@@ -58,7 +58,6 @@ const LEER: ChatStand = {
 let stand: ChatStand = LEER;
 let frage: SprachFrage | null = null;
 let stopp = 0;
-let einwilligung = 0;
 let frageNr = 0;
 const hoerer = new Set<() => void>();
 
@@ -125,15 +124,10 @@ export function leseStopp(): number {
   return stopp;
 }
 
-/** Die Einwilligung fuer die erste Nachricht, im Sprachmodus erteilt. */
-export function erteileEinwilligung(): void {
-  einwilligung += 1;
-  melde();
-}
-
-export function leseEinwilligung(): number {
-  return einwilligung;
-}
+// Eine Einwilligung ueber den Bus gibt es nicht (mehr): bis zum 24.09.2026 setzte der
+// Sprachmodus sie ungesehen, danach blieben Zaehler und Empfaenger im Chat scharf, ohne
+// Aufrufer. Seit dem 29.09.2026 entfernt (Befund der Gegenpruefung vom 28.09.2026): ein einziger neuer Aufruf
+// haette die KI-Einwilligung ohne Anzeige erteilt. Zugestimmt wird nur im Chat selbst.
 
 export function zaehlerServer(): number {
   return 0;

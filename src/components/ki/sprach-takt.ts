@@ -20,16 +20,11 @@
 import { useCallback, useRef } from "react";
 import type { VorlesePhase } from "@/lib/domain/vorlesen-zustand";
 import type { SprechStand } from "@/components/ki/sprachausgabe-strom";
+import { warteBisMarke as warteAufStimme } from "@/lib/domain/sprach-takt";
 
 // Bis die Sätze aus dem Stream beim Vorlesen angekommen sind, steht die Stimme
 // noch still, obwohl gleich gesprochen wird.
 const ANKOMMEN_MS = 450;
-const TAKT_MS = 120;
-const STILL_NOETIG = 2;
-const MAX_WARTEN_MS = 30_000;
-// Ohne Satzposition bleibt nur "still": dann nicht länger warten, sonst käme
-// ein Wechsel erst nach der ganzen Antwort.
-const OHNE_POSITION_MAX_MS = 6_000;
 const SEITE_MAX_MS = 3_000;
 const INHALT_MAX_MS = 2_500;
 const SEITE_NACHLAUF_MS = 300;
@@ -73,20 +68,19 @@ export function useSprachTakt() {
     [gilt],
   );
 
-  /** Wartet, bis der Satz mit der Nummer `marke` klingt (alles davor ist gesprochen)
-   *  oder die Stimme still ist. `marke` null: nur auf still warten. */
+  /** Wartet, bis die Stimme die Saetze vor `marke` gesprochen hat (domain/sprach-takt.ts).
+   *  `marke` null: keine Satzposition bekannt. */
   const warteBisMarke = useCallback(
     async (meinZug: number, marke: number | null) => {
-      let still = 0;
-      const deckel = marke === null ? OHNE_POSITION_MAX_MS : MAX_WARTEN_MS;
-      for (let ms = 0; ms < deckel; ms += TAKT_MS) {
-        if (!gilt(meinZug)) return;
-        const jetzt = stand.current?.() ?? null;
-        if (marke !== null && jetzt && jetzt.index >= marke) return;
-        still = stimme.current === "still" ? still + 1 : 0;
-        if (still >= STILL_NOETIG) return;
-        await pause(TAKT_MS);
-      }
+      await warteAufStimme(
+        {
+          gilt: () => gilt(meinZug),
+          stand: () => stand.current?.() ?? null,
+          stimme: () => stimme.current,
+          pause,
+        },
+        marke,
+      );
     },
     [gilt],
   );

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { abonniereHervorhebung, hervorhebungServer, leseHervorhebung } from "@/components/ki/hervorhebung";
-import type { Rechteck } from "@/lib/domain/sprachmodus";
+import { behalteGleichesRechteck, type Rechteck } from "@/lib/domain/sprachmodus";
 
 // Rahmen um das Element, das der Assistent gerade zeigt - waehrend des
 // Sprachmodus. Die Seite bleibt ueberall normal hell und scharf sichtbar
@@ -49,7 +49,10 @@ export function useHervorhebungsRechteck(): Rechteck | null {
     // vorigen Ziel wird unten (element ? rechteck : null) verworfen, ohne dass diese
     // Verzweigung selbst noch state setzt.
     if (!element) return;
-    const messen = () => setRechteck(element.isConnected ? rechteckVon(element) : null);
+    // Nur ein wirklich geaendertes Rechteck setzt den Zustand neu (behalteGleichesRechteck):
+    // der Beobachter unten meldet jede Aenderung im DOM, auch jeden neuen Knoten einer
+    // gestreamten Antwort.
+    const messen = () => setRechteck((alt) => behalteGleichesRechteck(alt, element.isConnected ? rechteckVon(element) : null));
     messen();
     const ro = new ResizeObserver(messen);
     ro.observe(element);

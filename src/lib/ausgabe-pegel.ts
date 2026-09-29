@@ -17,6 +17,8 @@
 // <audio>-Element an diesem Ausgang vorbei; er meldet sich nur mit
 // meldeElementWiedergabe, damit Himbi dort wenigstens im Takt spricht.
 
+import { pegelAusZeitbereich } from "@/lib/domain/diktat";
+
 let kontextDesAusgangs: AudioContext | null = null;
 let ausgang: GainNode | null = null;
 let analyse: AnalyserNode | null = null;
@@ -64,12 +66,9 @@ function ausgangKlingt(): boolean {
 export function leseAusgabePegel(): number {
   if (!analyse || !roh || !ausgangKlingt()) return 0;
   analyse.getByteTimeDomainData(roh);
-  let summe = 0;
-  for (let i = 0; i < roh.length; i++) {
-    const abweichung = (roh[i]! - 128) / 128;
-    summe += abweichung * abweichung;
-  }
-  return Math.sqrt(summe / roh.length);
+  // Dieselbe Rechnung wie das Mikrofon (lib/hoeren.ts): der Waechter vergleicht beide Werte
+  // direkt (echoFaktor). Bis zum 29.09.2026 stand hier eine eigene Kopie der Schleife.
+  return pegelAusZeitbereich(roh);
 }
 
 export interface AusgabeSpektrum {

@@ -83,7 +83,6 @@ import { antwortSpracheAus, useKiChatSprache } from "@/components/ki/ki-chat-spr
 import { stromMoeglich } from "@/components/ki/sprachausgabe-strom";
 import {
   abonniereSprachBus,
-  leseEinwilligung,
   leseSprachFrage,
   leseStopp,
   meldeChatStand,
@@ -749,10 +748,8 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   // und eine Navigation - und nach dem Gespraech steht alles hier zum Nachlesen.
   const sprachFrage = useSyncExternalStore(abonniereSprachBus, leseSprachFrage, () => null);
   const stoppZaehler = useSyncExternalStore(abonniereSprachBus, leseStopp, zaehlerServer);
-  const einwilligungZaehler = useSyncExternalStore(abonniereSprachBus, leseEinwilligung, zaehlerServer);
   const letzteSprachFrage = useRef(0);
   const letzterStopp = useRef(stoppZaehler);
-  const letzteEinwilligung = useRef(einwilligungZaehler);
 
   // Eine Frage, die kommt, waehrend die vorige Antwort noch abbricht (Unterbrechung,
   // Nachsatz), wartet, bis der Chat frei ist. Vorher schluckte sende() sie stillschweigend,
@@ -797,13 +794,6 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     // stopp() ist pro Render neu; ausgeloest wird nur durch einen neuen Stopp.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stoppZaehler]);
-
-  useEffect(() => {
-    if (einwilligungZaehler === letzteEinwilligung.current) return;
-    letzteEinwilligung.current = einwilligungZaehler;
-    setEinwilligung(true);
-    anfrageDaten.current = { ...anfrageDaten.current, einwilligung: true };
-  }, [einwilligungZaehler]);
 
   useEffect(() => {
     registriereEntsperren(live.entsperre);

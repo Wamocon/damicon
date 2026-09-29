@@ -26,24 +26,35 @@ import {
   antwortFertig,
   assistentIstDran,
   ausweichPlatz,
+  befehlGeprueftBis,
+  befehlOhneEcho,
   befehlsBeginn,
   befehlsWortIn,
+  beginntMitBefehl,
+  EINSATZ_VORLAUF_MS,
   UNTERTITEL_SCHLUESSEL,
   untertitelAusSpeicher,
+  erzeugeEinsatzMerker,
   erzeugeUnterbrechungsWaechter,
+  frageNachUnterbrechung,
   freigabeAntwortMitEcho,
   fuegeZusammen,
   istBeendenBefehl,
   istGesprochen,
+  istNachsatz,
   istNurAnhalten,
+  meldungNachEreignis,
   nachSitzungsAbbruch,
   naechstePhase,
   NEUVERSUCH_MS,
   ohrOffen,
   RUHE_VOR_ZUHOEREN_MS,
   STILLE_BIS_STUMM_MS,
-  unterbrechungsBefehl,
+  tagesbeginnAktion,
+  type Ereignis,
   type Phase,
+  type SprachMeldung,
+  type UnterbrechungsArt,
 } from "@/lib/domain/sprachmodus";
 import { AUFNAHME_STUECK_MS, AUFNAHME_VORGABEN } from "@/lib/domain/diktat";
 import { tageszeitBestimmen } from "@/lib/domain/tageszeit";
@@ -77,12 +88,11 @@ export function Sprachmodus() {
   return <SprachmodusInhalt />;
 }
 
-/** So lange muss ein vorlaeufig erkanntes "Stopp" stehen bleiben, bevor der
- *  Stoppwort-Waechter anhaelt (kurz genug, um sofort zu wirken, lang genug, dass
- *  ein vorlaeufiges Wort, das die Erkennung gleich korrigiert, nichts ausloest). */
+/** So lange muss ein vorlaeufig erkanntes Befehlswort ("Stopp") stehen bleiben, bevor es
+ *  Himbi anhaelt (kurz genug, um sofort zu wirken, lang genug, dass ein vorlaeufiges Wort,
+ *  das die Erkennung gleich korrigiert, nichts ausloest). Bis zum 28.09.2026 galt das fuer
+ *  einen eigenen Stoppwort-Waechter, heute fuer die Befehlssuche im durchgehenden Ohr. */
 const STOPP_STABIL_MS = 350;
-/** So lange darf beim Dazwischenreden Stille sein, ohne dass der Einsatz der Stimme verfaellt. */
-const EINSATZ_HALTEN_MS = 1_000;
 /** So weit vor Himbis Verstummen wird noch nach einem Befehlswort gesucht. */
 const BEFEHL_RUECKBLICK_MS = 3_000;
 /** Spielraum zwischen dem Erscheinen einer Freigabekarte und dem Zeitstempel der Erkennung
@@ -141,7 +151,15 @@ function SprachmodusInhalt() {
 
   const [phase, setPhase] = useState<Phase>("startet");
   const [zwischentext, setZwischentext] = useState("");
-  const [meldung, setMeldung] = useState<string | null>(null);
+  // Wie lange eine Meldung steht, entscheidet meldungNachEreignis (domain/sprachmodus.ts) bei
+  // jedem Ereignis des Ablaufs, siehe dispatch. Der Ref haelt sie sofort (wie phaseRef), damit
+  // dispatch nur dann neu setzt, wenn sich etwas aendert.
+  const [meldung, setMeldung] = useState<SprachMeldung | null>(null);
+  const meldungRef = useRef<SprachMeldung | null>(null);
+  const zeigeMeldung = useCallback((m: SprachMeldung | null) => {
+    meldungRef.current = m;
+    setMeldung(m);
+  }, []);
   // Mitlaufender Text: standardmaessig aus, die Wahl merkt sich der Browser
   // (domain/sprachmodus.ts, untertitelAusSpeicher). Der Sprachmodus wird nur im Browser
   // eingehaengt, der Speicher ist beim ersten Rendern also lesbar.
@@ -170,16 +188,27 @@ function SprachmodusInhalt() {
   // (Messung vom 28.09.2026: aus der Frage wurde "mir lieber die Reklamationen").
   const grenzeMs = useRef(0);
   const echoBisMs = useRef(0);
+  // Waehrend Himbi spricht: bis hierher (Audio-ms) ist die Befehlssuche gegen den damals
+  // klingenden Satz abgeschlossen (befehlGeprueftBis). Spaeter gegen einen anderen Satz geprueft,
+  // galt Himbis eigenes "Nein," sonst als Befehl (Befund der Gegenpruefung vom 28.09.2026).
+  const befehlGeprueftMs = useRef(0);
   const frageAb = useCallback(() => Math.max(grenzeMs.current, echoBisMs.current), []);
-  const befehlAb = useCallback(() => Math.max(grenzeMs.current, echoBisMs.current - BEFEHL_RUECKBLICK_MS), []);
+  const befehlAb = useCallback(
+    () => Math.max(grenzeMs.current, echoBisMs.current - BEFEHL_RUECKBLICK_MS, befehlGeprueftMs.current),
+    [],
+  );
   // Die zuletzt gestellte Frage - kommt waehrend des Nachdenkens noch etwas nach, wird
   // daraus EINE Frage (Nachsatz, Rueckmeldung vom 28.09.2026: "nach Ja hoert sie auf
   // zuzuhoeren und schaut nach").
   const offeneFrage = useRef<{ text: string; sprachen: string[] } | null>(null);
   const vorsatz = useRef<{ text: string; sprachen: string[] } | null>(null);
-  // Nach einem Unterbrechen per Wort beginnt die naechste Aeusserung mit diesem Wort
-  // ("Stopp, zeig mir lieber ..."); es wird dort abgeschnitten.
+  // Nach einem Unterbrechen per Wort oder Stimme kann die naechste Aeusserung mit dem Befehl
+  // beginnen ("Stopp, zeig mir lieber ..."); er wird dort abgeschnitten (frageNachUnterbrechung),
+  // davor nur ein Rest von Himbis Echo. Nach einem Tipp nicht (beginntMitBefehl).
   const nachUnterbrechung = useRef(false);
+  // Was Himbi beim Unterbrechen sagte (klingender und voriger Satz): nur diese Woerter duerfen
+  // vor dem Befehl stehen.
+  const echoBeimUnterbrechen = useRef("");
   // Der Satz, den Himbi sprach, als er unterbrochen wurde - geht mit der naechsten Frage
   // ans Modell, damit es weiss, was angekommen ist (Kontext bleibt erhalten).
   const unterbrochenBei = useRef<string | null>(null);
@@ -201,12 +230,14 @@ function SprachmodusInhalt() {
   // Die Phase steht sofort im Ref, nicht erst nach dem naechsten Rendern: die Erkennung
   // meldet Text und Endpunkt oft im selben Durchlauf, und der zweite Aufruf muss schon
   // die Phase sehen, die der erste gesetzt hat.
-  const dispatch = useCallback((ereignis: Parameters<typeof naechstePhase>[1]) => {
+  const dispatch = useCallback((ereignis: Ereignis) => {
+    const bleibt = meldungNachEreignis(meldungRef.current, ereignis);
+    if (bleibt !== meldungRef.current) zeigeMeldung(bleibt);
     const neu = naechstePhase(phaseRef.current, ereignis);
     if (neu === phaseRef.current) return;
     phaseRef.current = neu;
     setPhase(neu);
-  }, []);
+  }, [zeigeMeldung]);
 
   // --- Mikrofon: einmal geoeffnet, bleibt fuer die ganze Sitzung offen -----------------
   //
@@ -214,8 +245,8 @@ function SprachmodusInhalt() {
   // Aeusserung neu geoeffnet: staendiges Oeffnen/Schliessen laesst auf iOS die
   // Audiosession zwischen "nur Wiedergabe" und "Aufnahme und Wiedergabe" wechseln, und die
   // erste Antwort nach dem Wiederoeffnen kommt dann stumm ueber den Hoerer statt den
-  // Lautsprecher. Neu je Aeusserung ist nur der MediaRecorder auf diesem Strom (siehe
-  // starteAufnahme) - das beruehrt die Audiosession nicht.
+  // Lautsprecher. Die Aufnahme darauf (MediaRecorder) laeuft seit dem 28.09.2026 ebenfalls
+  // durchgehend, EINE fuers ganze Gespraech (siehe starteOhr).
   // Ist der Strom schon offen (Neustart nach einem Fehler), fuehrt erneutVersuchen() selbst
   // weiter - hier wird nur geoeffnet, was noch nicht offen ist.
   useEffect(() => {
@@ -232,18 +263,17 @@ function SprachmodusInhalt() {
         // Der Schein hinter Himbi reagiert auf die eigene Stimme (lib/hoeren.ts), und das Dazwischenreden
         // misst dort die Lautstaerke.
         starteHoeren(strom);
-        setMeldung(null);
         dispatch({ art: "mikrofon-bereit" });
       } catch {
         if (abgebrochen) return;
-        setMeldung(t("keinZugriff"));
+        zeigeMeldung({ text: t("keinZugriff"), fehlerzustand: true });
         dispatch({ art: "fehler" });
       }
     })();
     return () => {
       abgebrochen = true;
     };
-  }, [phase, dispatch, t]);
+  }, [phase, dispatch, t, zeigeMeldung]);
 
   // --- Das Ohr: eine Aufnahme, eine Live-Sitzung fuer das ganze Gespraech ------------------
   //
@@ -285,15 +315,31 @@ function SprachmodusInhalt() {
 
   /** Himbi verstummt, das Gespraech bleibt offen und der Verlauf erhalten. Der Satz, den er
    *  gerade sprach, geht mit der naechsten Frage ans Modell (sprachmodus-bus.ts). */
-  const unterbrecheHimbi = useCallback(() => {
-    const gerade = leseGerade();
-    unterbrochenBei.current = gerade?.satz ?? gerade?.vorher ?? null;
-    grenzeSteht.current = true;
-    // Auch nach dem Lautstaerke-Waechter kann die naechste Aeusserung mit "Stopp" beginnen.
-    nachUnterbrechung.current = true;
-    unterbrichChat();
-    dispatch({ art: "unterbrechen" });
-  }, [dispatch]);
+  const unterbrecheHimbi = useCallback(
+    (art: UnterbrechungsArt) => {
+      const gerade = leseGerade();
+      unterbrochenBei.current = gerade?.satz ?? gerade?.vorher ?? null;
+      echoBeimUnterbrechen.current = `${gerade?.satz ?? ""} ${gerade?.vorher ?? ""}`;
+      grenzeSteht.current = art !== "tipp";
+      // Auch nach dem Lautstaerke-Waechter kann die naechste Aeusserung mit "Stopp" beginnen,
+      // nach einem Tipp nicht.
+      nachUnterbrechung.current = beginntMitBefehl(art);
+      unterbrichChat();
+      dispatch({ art: "unterbrechen" });
+    },
+    [dispatch],
+  );
+
+  /** Stellt eine Frage an den Chat (sprachmodus-bus.ts): sie ist ab jetzt die offene Frage
+   *  (ein Nachsatz haengt sich an sie), und Himbi denkt. */
+  const stelleFrage = useCallback(
+    (frage: string, sprachen: string[], optionen: { ersetztLetzte?: boolean; unterbrochen?: string | null } = {}) => {
+      offeneFrage.current = { text: frage, sprachen };
+      stelleSprachFrage(frage, sprachen, optionen);
+      dispatch({ art: "frage-gestellt" });
+    },
+    [dispatch],
+  );
 
   /** Die Aeusserung ab der Grenze ist zu Ende (Endpunkt): Frage, Befehl oder Freigabe. */
   const nimmAeusserung = useCallback(
@@ -306,11 +352,8 @@ function SprachmodusInhalt() {
         // "Stopp, zeig mir lieber die Reklamationen": das Befehlswort hat schon gewirkt. Bei
         // offener Freigabe bleibt "Nein" eine Absage.
         nachUnterbrechung.current = false;
-        // Vor dem Befehl kann noch ein Rest von Himbis Echo stehen ("Hof. Stopp, zeig mir ...");
-        // gesucht wird deshalb in den ersten Woertern, nicht nur ganz am Anfang.
-        const b = befehlsBeginn(t.woerter.slice(0, 4).map((w) => w.text), () => false);
-        const befehl = leseFreigabeAnfrage() || b === null ? null : unterbrechungsBefehl(t.woerter.slice(b).map((w) => w.text).join(" "));
-        if (befehl) text = befehl.rest;
+        const rest = leseFreigabeAnfrage() ? null : frageNachUnterbrechung(t.woerter.map((w) => w.text), echoBeimUnterbrechen.current);
+        if (rest !== null) text = rest;
       }
       if (!istGesprochen(text) && !vorsatz.current) return;
       // Ja/Nein zu einer offenen Freigabekarte wertet beiEndpunkt vorher aus, in jeder Phase.
@@ -325,14 +368,11 @@ function SprachmodusInhalt() {
       const sprachen = vorsatz.current ? [...vorsatz.current.sprachen, ...t.sprachen] : t.sprachen;
       const ersetzt = vorsatz.current !== null;
       vorsatz.current = null;
-      offeneFrage.current = { text: frage, sprachen };
       fehlversuche.current = 0;
-      stelleSprachFrage(frage, sprachen, { ersetztLetzte: ersetzt, unterbrochen: unterbrochenBei.current });
+      stelleFrage(frage, sprachen, { ersetztLetzte: ersetzt, unterbrochen: unterbrochenBei.current });
       unterbrochenBei.current = null;
-      dispatch({ art: "aeusserung-ende" });
-      dispatch({ art: "frage-gestellt" });
     },
-    [audioJetzt, dispatch],
+    [audioJetzt, stelleFrage],
   );
 
   /** Neuer Text von der Erkennung, in jeder Phase. */
@@ -342,7 +382,7 @@ function SprachmodusInhalt() {
       const phase = phaseRef.current;
       const t = sitzung.textAb(frageAb());
       if (t.anzeige) zuletztGehoert.current = performance.now();
-      if (phase === "hoert" || phase === "versteht") {
+      if (phase === "hoert") {
         window.clearTimeout(kandidatTimer.current);
         setZwischentext(vorsatz.current ? fuegeZusammen(vorsatz.current.text, t.anzeige) : t.anzeige);
         return;
@@ -358,10 +398,16 @@ function SprachmodusInhalt() {
       const gesagt = phase === "spricht" ? (gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort) : "";
       const istEcho = (wort: string) => phase === "spricht" && befehlsWortIn(gesagt, wort) !== null;
       const beginn = befehlsBeginn(suche.woerter.map((w) => w.text), istEcho);
+      const endgueltigeWoerter = suche.endgueltig.split(/\s+/).filter(Boolean).length;
+      // Was jetzt gegen den klingenden Satz geprueft und kein Befehl war, wird spaeter nicht
+      // gegen einen anderen Satz noch einmal geprueft (befehlGeprueftBis).
+      if (beginn === null && phase === "spricht") {
+        befehlGeprueftMs.current = befehlGeprueftBis(suche.woerter, endgueltigeWoerter, befehlGeprueftMs.current);
+      }
       // Beim Nachdenken zaehlt ein Befehl nur am Anfang; alles andere ist ein Nachsatz.
       if (beginn === null || (phase === "denkt" && beginn > 0)) {
         window.clearTimeout(kandidatTimer.current);
-        if (phase === "denkt" && !leseFreigabeAnfrage() && offeneFrage.current && istGesprochen(t.anzeige)) {
+        if (phase === "denkt" && !leseFreigabeAnfrage() && offeneFrage.current && istNachsatz(t.anzeige)) {
           // Nachsatz: weitergesprochen, bevor Himbi antwortet. Die Anfrage bricht ab, und am
           // naechsten Endpunkt geht die zusammengefuegte Frage an Stelle der alten hinaus.
           vorsatz.current = offeneFrage.current;
@@ -376,8 +422,8 @@ function SprachmodusInhalt() {
         const jetzt = sitzung.textAb(befehlAb());
         const b = befehlsBeginn(jetzt.woerter.map((w) => w.text), istEcho);
         if (b === null || ohrRef.current?.sitzung !== sitzung || !assistentIstDran(phaseRef.current)) return;
-        const befehl = jetzt.woerter.slice(b).map((w) => w.text).join(" ");
-        if (istBeendenBefehl(befehl)) return beendenRef.current();
+        // Himbis Echo hinter dem Befehl zaehlt nicht mit ("Tschuess Himbi" mitten in die Antwort).
+        if (istBeendenBefehl(befehlOhneEcho(jetzt.woerter.map((w) => w.text), b, istEcho))) return beendenRef.current();
         const karte = leseFreigabeAnfrage();
         if (karte) {
           // Bei offener Freigabekarte lehnt "Stopp" nur die Karte ab, wie beim Zuhoeren.
@@ -390,11 +436,10 @@ function SprachmodusInhalt() {
         grenzeMs.current = Math.max(grenzeMs.current, jetzt.woerter[b]!.startMs ?? grenzeMs.current);
         echoBisMs.current = grenzeMs.current;
         offeneFrage.current = null;
-        unterbrecheHimbi();
+        unterbrecheHimbi("wort");
       };
       // Endgueltig erkannt: sofort. Nur vorlaeufig: erst, wenn es STOPP_STABIL_MS so bleibt -
       // ein vorlaeufiges Wort, das die Erkennung gleich korrigiert, loest nichts aus.
-      const endgueltigeWoerter = suche.endgueltig.split(/\s+/).filter(Boolean).length;
       window.clearTimeout(kandidatTimer.current);
       if (beginn < endgueltigeWoerter) loeseAus();
       else kandidatTimer.current = window.setTimeout(loeseAus, STOPP_STABIL_MS);
@@ -432,10 +477,8 @@ function SprachmodusInhalt() {
           entscheideFreigabe(art === "zusage", karte.nr);
           // "Sprachmodus beenden" bei offener Karte: ablehnen UND beenden.
           if (art === "beenden") return beendenRef.current();
-          if (phase === "hoert" || phase === "versteht") {
-            dispatch({ art: "aeusserung-ende" });
-            dispatch({ art: "frage-gestellt" });
-          }
+          // Beim Zuhoeren arbeitet der Chat nach der Entscheidung weiter: Himbi denkt.
+          if (phase === "hoert") dispatch({ art: "frage-gestellt" });
           return;
         }
       }
@@ -454,7 +497,7 @@ function SprachmodusInhalt() {
         echoBisMs.current = Math.max(echoBisMs.current, (t.endeMs ?? 0) + 1);
         return;
       }
-      if (phase === "hoert" || phase === "versteht") nimmAeusserung(t);
+      if (phase === "hoert") nimmAeusserung(t);
     },
     [audioJetzt, dispatch, frageAb, nimmAeusserung],
   );
@@ -472,10 +515,10 @@ function SprachmodusInhalt() {
       });
       fehlversuche.current = neu;
       if (weiter === "nicht-eingerichtet") {
-        setMeldung(t("liveFehlt"));
+        zeigeMeldung({ text: t("liveFehlt"), fehlerzustand: true });
         dispatch({ art: "fehler" });
       } else if (weiter === "aufgeben") {
-        setMeldung(t("verbindungFehlt"));
+        zeigeMeldung({ text: t("verbindungFehlt"), fehlerzustand: true });
         dispatch({ art: "fehler" });
       } else if (weiter === "stumm" && !assistentIstDran(phaseRef.current)) {
         // Lange nichts gehoert: stumm schalten, statt weiter Stille an die Erkennung zu
@@ -488,7 +531,7 @@ function SprachmodusInhalt() {
         }, NEUVERSUCH_MS);
       }
     },
-    [dispatch, schliesseOhr, t],
+    [dispatch, schliesseOhr, t, zeigeMeldung],
   );
 
   // Die Rueckrufe der Sitzung lesen immer die neueste Fassung (die Sitzung lebt laenger als
@@ -508,7 +551,7 @@ function SprachmodusInhalt() {
     } catch {
       // Nicht mitten im Effekt, der das Ohr startet, den Zustand umwerfen.
       queueMicrotask(() => {
-        setMeldung(t("keinZugriff"));
+        zeigeMeldung({ text: t("keinZugriff"), fehlerzustand: true });
         dispatch({ art: "fehler" });
       });
       return;
@@ -538,11 +581,12 @@ function SprachmodusInhalt() {
     ohrRef.current = { recorder, sitzung: diese, startPerf };
     grenzeMs.current = 0;
     echoBisMs.current = 0;
+    befehlGeprueftMs.current = 0;
     grenzeSteht.current = false;
     // Neue Sitzung, neue Audiozeit ab 0: eine offene Karte stand schon vorher.
     if (freigabeAbMs.current !== null) freigabeAbMs.current = 0;
     zuletztGehoert.current = performance.now();
-  }, [sprache, dispatch, t]);
+  }, [sprache, dispatch, t, zeigeMeldung]);
   useEffect(() => {
     starteOhrRef.current = starteOhr;
   }, [starteOhr]);
@@ -578,8 +622,9 @@ function SprachmodusInhalt() {
     if (phase !== "spricht") return;
     const waechter = erzeugeUnterbrechungsWaechter();
     let bild = 0;
-    let einsatz: number | null = null;
-    let stillSeit: number | null = null;
+    // Wo die Stimme eingesetzt hat (domain/sprachmodus.ts, erzeugeEinsatzMerker): ueberdauert
+    // die Kommapause in "Stopp, zeig mir ...", aber keine einzelne Geraeuschspitze.
+    let einsatz = erzeugeEinsatzMerker();
     const schritt = () => {
       // Hat ein Befehlswort schon unterbrochen, laeuft dieser Takt bis zum Aufraeumen des
       // Effekts noch einmal: kein zweites Unterbrechen, das die Grenze hinter die ersten Worte
@@ -588,28 +633,18 @@ function SprachmodusInhalt() {
       // Waehrend eine Freigabekarte wartet, ist lautes Sprechen die Antwort darauf ("Ja, bitte,
       // mach das"), kein Dazwischenreden: Unterbrechen wuerde die Karte ablehnen.
       if (leseFreigabeAnfrage()) {
-        einsatz = null;
-        stillSeit = null;
+        einsatz = erzeugeEinsatzMerker();
         bild = window.requestAnimationFrame(schritt);
         return;
       }
       const urteil = waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now());
+      const beginn = einsatz.melde(urteil, audioJetzt());
       if (urteil === "unterbrechen") {
-        grenzeMs.current = Math.max(grenzeMs.current, (einsatz ?? audioJetzt()) - 300);
+        grenzeMs.current = Math.max(grenzeMs.current, (beginn ?? audioJetzt()) - EINSATZ_VORLAUF_MS);
         echoBisMs.current = grenzeMs.current;
         offeneFrage.current = null;
-        unterbrecheHimbi();
+        unterbrecheHimbi("stimme");
         return;
-      }
-      // Der Einsatz ueberdauert kurze Pausen: in "Stopp, zeig mir ..." zaehlt der Waechter die
-      // Kommapause als Stille und hielte sonst erst "zeig" fuer den Anfang (Messung vom 28.09.2026).
-      const jetzt = audioJetzt();
-      if (urteil === "vielleicht") {
-        einsatz = einsatz ?? jetzt;
-        stillSeit = null;
-      } else {
-        stillSeit = stillSeit ?? jetzt;
-        if (jetzt - stillSeit > EINSATZ_HALTEN_MS) einsatz = null;
       }
       bild = window.requestAnimationFrame(schritt);
     };
@@ -642,12 +677,13 @@ function SprachmodusInhalt() {
         // nicht zugestimmt ist. Eine Zustimmung darf hier nicht ungesehen gesetzt
         // werden (bis zum 24.09.2026 tat der Sprachmodus genau das) - der Start
         // prueft sie deshalb schon vorher (ki-pane-kontext.tsx, starteSprachmodus).
-        setMeldung(t("einwilligungZuerst"));
+        zeigeMeldung({ text: t("einwilligungZuerst"), fehlerzustand: true });
         dispatch({ art: "fehler" });
         return;
       }
       if (stand.fehler) {
-        setMeldung(tAktion("fehler.unbekannt"));
+        // Das Gespraech bleibt offen: die Meldung gilt bis zur naechsten Frage oder Antwort.
+        zeigeMeldung({ text: tAktion("fehler.unbekannt"), fehlerzustand: false });
         dispatch({ art: "unterbrechen" });
         return;
       }
@@ -662,7 +698,7 @@ function SprachmodusInhalt() {
       }
     };
     return abonniereSprachBus(reagiere);
-  }, [audioJetzt, dispatch, t, tAktion]);
+  }, [audioJetzt, dispatch, t, tAktion, zeigeMeldung]);
 
   // --- Himbi beginnt den Tag (lib/himbi-tagesbeginn.ts) -----------------------------------
   //
@@ -679,26 +715,30 @@ function SprachmodusInhalt() {
   //   - Die Einwilligung hat starteSprachmodus (ki-pane-kontext.tsx) schon geprueft. Ist der Chat
   //     nicht bereit, beschaeftigt oder wartet eine Freigabe, entfaellt die Begruessung, ohne den
   //     Tag zu verbrauchen: der Merker wird erst gesetzt, wenn die Frage wirklich gestellt ist.
-  //   - Danach wie in nimmAeusserung: offeneFrage gesetzt (spricht der Nutzer gleich hinein, wird
-  //     es ein Nachsatz zu dieser Frage) und die Phase ueber "versteht" nach "denkt". Bliebe sie
-  //     auf "hoert", naehme das Ohr Himbis eigene Antwort am naechsten Endpunkt als Frage.
-  const tagesbeginnGeprueft = useRef(false);
+  //   - Danach wie in nimmAeusserung (stelleFrage): offeneFrage gesetzt (spricht der Nutzer gleich
+  //     hinein, wird es ein Nachsatz zu dieser Frage) und die Phase "denkt". Bliebe sie auf
+  //     "hoert", naehme das Ohr Himbis eigene Antwort am naechsten Endpunkt als Frage.
+  // Die Entscheidung selbst steht als reine Funktion in domain/sprachmodus.ts
+  // (tagesbeginnAktion) und wird dort Fall fuer Fall geprueft (himbi-tagesbegleiter.mjs).
+  const tagesbeginnEntschieden = useRef(false);
   useEffect(() => {
-    if (phase !== "hoert" || tagesbeginnGeprueft.current) return;
-    tagesbeginnGeprueft.current = true;
-    if (!tagesbeginnAn) return;
     const ablage = browserAblage();
     const jetzt = new Date();
-    if (!tagesbeginnFaellig(ablage, nutzerId, "gespraech", jetzt)) return;
     const stand = leseChatStand();
-    if (!stand.bereit || stand.beschaeftigt || stand.einwilligungFehlt || leseFreigabeAnfrage()) return;
-    const frage = t(`tagesbeginn.${tageszeitBestimmen(jetzt)}`);
-    offeneFrage.current = { text: frage, sprachen: [sprache] };
-    stelleSprachFrage(frage, [sprache]);
+    const aktion = tagesbeginnAktion({
+      phase,
+      schonEntschieden: tagesbeginnEntschieden.current,
+      einstellungAn: tagesbeginnAn,
+      faellig: tagesbeginnFaellig(ablage, nutzerId, "gespraech", jetzt),
+      chat: stand,
+      freigabeOffen: leseFreigabeAnfrage() !== null,
+    });
+    if (aktion === "nichts") return;
+    tagesbeginnEntschieden.current = true;
+    if (aktion !== "fragen") return;
+    stelleFrage(t(`tagesbeginn.${tageszeitBestimmen(jetzt)}`), [sprache]);
     merkeTagesbeginn(ablage, nutzerId, "gespraech", jetzt);
-    dispatch({ art: "aeusserung-ende" });
-    dispatch({ art: "frage-gestellt" });
-  }, [phase, tagesbeginnAn, nutzerId, sprache, dispatch, t]);
+  }, [phase, tagesbeginnAn, nutzerId, sprache, stelleFrage, t]);
 
   // Alles schliessen, wenn der Sprachmodus endet.
   useEffect(
@@ -715,10 +755,9 @@ function SprachmodusInhalt() {
 
   // --- Bedienung --------------------------------------------------------------------------
   const erneutVersuchen = useCallback(() => {
-    setMeldung(null);
     fehlversuche.current = 0;
-    // fehler -> startet; ist das Mikrofon noch offen, gleich weiter zum Zuhoeren,
-    // sonst oeffnet der Effekt fuer "startet" es neu.
+    // fehler -> startet (die Meldung verschwindet dabei, meldungNachEreignis); ist das Mikrofon
+    // noch offen, gleich weiter zum Zuhoeren, sonst oeffnet der Effekt fuer "startet" es neu.
     dispatch({ art: "fortsetzen" });
     if (stromRef.current) dispatch({ art: "mikrofon-bereit" });
   }, [dispatch]);
@@ -731,10 +770,9 @@ function SprachmodusInhalt() {
     }
     if (assistentIstDran(phaseRef.current)) {
       offeneFrage.current = null;
-      unterbrecheHimbi();
+      unterbrecheHimbi("tipp");
       // Per Tipp: der Nutzer hat nichts gesagt, alles bis jetzt war Himbis Echo.
       grenzeMs.current = Math.max(grenzeMs.current, audioJetzt());
-      grenzeSteht.current = false;
     }
   }, [audioJetzt, erneutVersuchen, unterbrecheHimbi]);
 
@@ -890,7 +928,6 @@ function SprachmodusInhalt() {
   // Nebenbei steht der klingende Satz als data-satz-jetzt am Sprachmodus selbst (seit dem
   // 26.09.2026 nicht mehr am Untertitel, der ist standardmaessig aus): der
   // Führungstest liest dort mit, was gerade gesprochen wird.
-  const untertitelRef = useRef<HTMLDivElement | null>(null);
   const wurzelRef = useRef<HTMLDivElement | null>(null);
   const himbiDran = assistentIstDran(phase);
   useEffect(() => {
@@ -944,7 +981,6 @@ function SprachmodusInhalt() {
     wartetAufFreigabe ? t("status.freigabe")
     : phase === "startet" ? t("status.startet")
     : phase === "hoert" ? t("status.hoert")
-    : phase === "versteht" ? t("status.versteht")
     : phase === "denkt" ? t("status.denkt")
     : phase === "spricht" ? t("status.spricht")
     : phase === "pausiert" ? t("status.pausiert")
@@ -977,15 +1013,15 @@ function SprachmodusInhalt() {
   // Eine offene Freigabe (Klick- oder Aktionskarte, sprachmodus-bus.ts) geht
   // ÜBER allem anderen: sichtbar, auch wenn die Untertitel ausgeschaltet sind -
   // eine Sicherheitsfrage darf nie unsichtbar bleiben. "Ja"/"Nein" loest sie
-  // auf (siehe die "versteht"-Auswertung oben, istZusageBefehl/istAbsageBefehl).
+  // auf, in jeder Phase (siehe beiEndpunkt oben, freigabeAntwortMitEcho).
   const untertitel = freigabeAnfrage ? (
     <div className="ki-sprachmodus__untertitel ki-sprachmodus__untertitel--freigabe" role="alertdialog" aria-live="assertive">
       <p className="ki-sprachmodus__untertitel-zeile">{freigabeAnfrage.text}</p>
       <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">{t("freigabeHinweis")}</p>
     </div>
   ) : untertitelAn ? (
-    <div ref={untertitelRef} className="ki-sprachmodus__untertitel" aria-hidden={phase !== "hoert" && phase !== "versteht"}>
-      {phase === "hoert" || phase === "versteht" ? (
+    <div className="ki-sprachmodus__untertitel" aria-hidden={phase !== "hoert"}>
+      {phase === "hoert" ? (
         <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">
           {zwischentext || (phase === "hoert" ? t("hoertZu") : "")}
         </p>
@@ -1036,7 +1072,7 @@ function SprachmodusInhalt() {
         {untertitel}
       </div>
 
-      {meldung ? <p className="ki-sprachmodus__meldung">{meldung}</p> : null}
+      {meldung ? <p className="ki-sprachmodus__meldung">{meldung.text}</p> : null}
 
       <div className="ki-sprachmodus__leiste">
         <button

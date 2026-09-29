@@ -146,7 +146,7 @@ export interface SprechStand {
   satz: string | null;
   /** Die Stelle, auf die seine Sprechmarke zeigt (domain/sprechmarken.ts). */
   ziel?: GebundenesZiel | null;
-  /** Der Satz davor: der Stoppwort-Waechter prueft Himbis Echo gegen beide. */
+  /** Der Satz davor: der Sprachmodus prueft Himbis Echo gegen beide (Befehle, Freigabe). */
   vorher?: string | null;
 }
 
@@ -175,6 +175,9 @@ type Strom = {
   endeGesendet: boolean;
   hatAudio: boolean;
   audioSekunden: number;
+  /** So viele Texte gingen an diesen Strom, seit zuletzt Ton von ihm kam: die haben sicher
+   *  noch nicht geklungen (siehe saetzeBeiStille). */
+  texteOhneTon: number;
   pcmRest: number | null;
   zuletzt: number;
   /** Abtastrate dieses Stroms (24 kHz, bei langsamem Netz 16 kHz). */
@@ -243,7 +246,12 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
   // Seitenwechsel kam erst mit dem naechsten Satz.
   let stillSeit: number | null = null;
   // Wie viele Saetze uebergeben waren, als die Stimme verstummte: nur DIESE sind
-  // dann gesagt. Ein Satz, der erst waehrend der Stille kommt, ist es noch nicht.
+  // dann gesagt. Ein Satz, der erst waehrend der Stille kommt, ist es noch nicht -
+  // und einer, dessen Text zwar an Soniox ging, von dem aber noch kein Ton kam, auch
+  // nicht (texteOhneTon). Bis zum 29.09.2026 zaehlte er mit: "Ich klicke jetzt auf
+  // Anlegen" galt als gesagt, sobald der Satz davor verklungen war, und die
+  // Freigabekarte stand da, bevor Himbi ihn sprach (Messung an der Preview vom
+  // 28.09.2026: Karte bei 0 ms, Himbi spricht ab 1,5 bis 2,4 s).
   let saetzeBeiStille = 0;
   // Fester Punkt der Schaetzung: bis zu diesem Satz ist alles gesagt, und so viel
   // Ton war da schon gespielt. An jeder Sprechpause neu gesetzt - sonst summierte
@@ -486,6 +494,7 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       endeGesendet: false,
       hatAudio: false,
       audioSekunden: 0,
+      texteOhneTon: 0,
       pcmRest: null,
       zuletzt: Date.now(),
       abtastrate: konfiguration.sample_rate,
@@ -510,6 +519,7 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
             !brauchtNeuenStrom(aktiv.zeichen, naechster.text.length, aktiv.tempo);
           if (nimmt && sende(textNachricht(aktiv.id, naechster.text))) {
             aktiv.texte.push(naechster.text);
+            aktiv.texteOhneTon += 1;
             aktiv.zeichen += naechster.text.length;
             aktiv.zuletzt = Date.now();
             ausstehend.shift();
@@ -596,9 +606,10 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       fertigSekunden += puffer.duration;
       if (geplant.size === 0) {
         stillSeit = performance.now();
-        // Nur, was schon an Soniox ging: ein Satz, der noch in der Warteschlange
-        // liegt, hat nicht geklungen.
-        saetzeBeiStille = verlauf.length - ausstehend.length;
+        // Nur, was schon an Soniox ging UND schon Ton hatte: ein Satz, der noch in der
+        // Warteschlange liegt, hat nicht geklungen, und einer, der nach dem letzten Ton
+        // des Stroms hinausging, auch nicht.
+        saetzeBeiStille = verlauf.length - ausstehend.length - (aktiv?.texteOhneTon ?? 0);
       }
       melde();
     };
@@ -628,6 +639,9 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       // Dann ist eine Luecke davor ein Aussetzer (Netz zu langsam), keine Werkzeugpause.
       const nochText = ungesprocheneTexte(aktiv.texte, aktiv.audioSekunden, aktiv.tempo) > 0;
       aktiv.audioSekunden += werte.length / aktiv.abtastrate;
+      // Ton nach einem Text: ob er schon zu diesem Text gehoert, sagt Soniox nicht. Er kann
+      // es aber, deshalb gilt ab hier wieder die alte Annahme (gesendet heisst gesprochen).
+      if (werte.length > 0) aktiv.texteOhneTon = 0;
       spiele(werte, aktiv.id, aktiv.abtastrate, nochText);
     } else if (e.art === "beendet") {
       // Ganzer Strom gehoert: daraus die tatsaechliche Sprechgeschwindigkeit.

@@ -15,23 +15,24 @@
 
 // --- 1. Ablauf ---------------------------------------------------------------------
 //
-// Halbduplex: entweder hoert Himbi zu, oder der Assistent ist dran. Waehrend
-// der Assistent spricht, ist das Mikrofon nicht in der Erkennung - sonst hoerte
-// die Erkennung die eigene Stimme des Assistenten aus dem Lautsprecher und
-// antwortete sich selbst. Unterbrochen wird wie im Gespraech durch Sprechen
-// (Abschnitt 4: nur, was deutlich lauter ist als Echo und Grundrauschen) oder
-// per Tipp auf Himbi bzw. die Leertaste - der sichere Weg in lauter Umgebung
-// (Hof, Halle).
+// Entweder hoert Himbi zu, oder der Assistent ist dran (denkt, spricht). Das Ohr bleibt
+// seit dem 28.09.2026 dabei durchgehend offen (ohrOffen): was von Himbis eigener Stimme
+// kommt, sortiert sprachmodus.tsx aus (Grenze im Audio, Echo-Pruefung). Unterbrochen wird
+// per Befehlswort (Abschnitt 1b), durch Sprechen (Abschnitt 4: nur, was deutlich lauter ist
+// als Echo und Grundrauschen) oder per Tipp auf Himbi bzw. die Leertaste - der sichere Weg
+// in lauter Umgebung (Hof, Halle).
+//
+// Nur die Zustaende und Ereignisse, die der Sprachmodus wirklich benutzt: bis zum 29.09.2026
+// gab es noch "aus", "versteht" und die Ereignisse "starten", "aeusserung-ende",
+// "nichts-gehoert" und "beenden". "versteht" wurde im selben Durchlauf wieder verlassen und nie
+// gezeigt, der Rest kam nur in Tests vor (Befund der Gegenpruefung). Der Sprachmodus beginnt
+// mit "startet" und endet, indem er ausgehaengt wird.
 
 export type Phase =
-  /** Kein Sprachmodus. */
-  | "aus"
   /** Mikrofon wird geoeffnet, Schluessel geholt. */
   | "startet"
   /** Der Assistent wartet auf eine Frage und zeigt, was er hoert. */
   | "hoert"
-  /** Die Aeusserung ist zu Ende, der letzte Text wird festgestellt. */
-  | "versteht"
   /** Die Frage ist gestellt, der Assistent arbeitet (Daten, Navigation). */
   | "denkt"
   /** Der Assistent spricht. */
@@ -42,42 +43,29 @@ export type Phase =
   | "fehler";
 
 export type Ereignis =
-  | { art: "starten" }
   | { art: "mikrofon-bereit" }
-  | { art: "aeusserung-ende" }
-  /** Text erkannt und abgeschickt. */
+  /** Die Aeusserung ist zu Ende und als Frage abgeschickt. */
   | { art: "frage-gestellt" }
-  /** Nichts verstanden: weiter zuhoeren. */
-  | { art: "nichts-gehoert" }
   | { art: "antwort-spricht" }
   /** Antwort komplett vorgelesen (oder ohne Ton fertig): wieder zuhoeren. */
   | { art: "antwort-fertig" }
-  /** Tipp auf Himbi waehrend der Assistent dran ist: sofort still, zuhoeren. */
+  /** Tipp, Befehlswort oder Stimme, waehrend der Assistent dran ist: sofort still, zuhoeren. */
   | { art: "unterbrechen" }
   | { art: "pausieren" }
   | { art: "fortsetzen" }
-  | { art: "fehler" }
-  | { art: "beenden" };
+  | { art: "fehler" };
 
 /** Der naechste Zustand. Unbekannte Uebergaenge lassen die Phase unveraendert -
  *  lieber ein verpasstes Ereignis als ein Sprung in einen Zustand, der nicht passt. */
 export function naechstePhase(phase: Phase, e: Ereignis): Phase {
-  if (e.art === "beenden") return "aus";
-  if (e.art === "fehler") return phase === "aus" ? "aus" : "fehler";
+  if (e.art === "fehler") return "fehler";
   switch (phase) {
-    case "aus":
-      return e.art === "starten" ? "startet" : phase;
     case "startet":
       return e.art === "mikrofon-bereit" ? "hoert" : phase;
     case "hoert":
-      if (e.art === "aeusserung-ende") return "versteht";
+      if (e.art === "frage-gestellt") return "denkt";
       if (e.art === "pausieren") return "pausiert";
       if (e.art === "antwort-spricht") return "spricht";
-      return phase;
-    case "versteht":
-      if (e.art === "frage-gestellt") return "denkt";
-      if (e.art === "nichts-gehoert") return "hoert";
-      if (e.art === "pausieren") return "pausiert";
       return phase;
     case "denkt":
       if (e.art === "antwort-spricht") return "spricht";
@@ -91,7 +79,7 @@ export function naechstePhase(phase: Phase, e: Ereignis): Phase {
     case "pausiert":
       return e.art === "fortsetzen" ? "hoert" : phase;
     case "fehler":
-      return e.art === "starten" || e.art === "fortsetzen" ? "startet" : phase;
+      return e.art === "fortsetzen" ? "startet" : phase;
   }
 }
 
@@ -101,7 +89,46 @@ export function naechstePhase(phase: Phase, e: Ereignis): Phase {
  *  mitten in seiner Antwort verloren. Was dabei von Himbis eigener Stimme kommt, sortiert
  *  sprachmodus.tsx aus (Grenze im Audio, Echo-Pruefung). Nie im Stumm- oder Fehlerzustand. */
 export function ohrOffen(phase: Phase): boolean {
-  return phase === "hoert" || phase === "versteht" || phase === "denkt" || phase === "spricht";
+  return phase === "hoert" || phase === "denkt" || phase === "spricht";
+}
+
+/** Eine Meldung unter Himbi. `fehlerzustand`: sie gehoert zum Fehlerzustand (kein Mikrofon,
+ *  keine Verbindung, Einwilligung fehlt) und bleibt bis zum neuen Versuch. Sonst (ein
+ *  gescheiterter Chat, das Gespraech bleibt offen) gilt sie nur bis zur naechsten Frage oder
+ *  Antwort: bis zum 29.09.2026 stand "Ein unbekannter Fehler" ueber allen weiteren Antworten
+ *  (Befund der Gegenpruefung). */
+export interface SprachMeldung {
+  text: string;
+  fehlerzustand: boolean;
+}
+
+/** Die Meldung nach einem Ereignis des Ablaufs (siehe SprachMeldung). */
+export function meldungNachEreignis<M extends SprachMeldung>(m: M | null, e: Ereignis): M | null {
+  if (!m) return null;
+  if (e.art === "mikrofon-bereit" || e.art === "fortsetzen") return null;
+  if (!m.fehlerzustand && (e.art === "frage-gestellt" || e.art === "antwort-spricht")) return null;
+  return m;
+}
+
+/** Himbi beginnt den Tag (lib/himbi-tagesbeginn.ts): was beim Uebergang nach "hoert" zu tun ist.
+ *  "nichts": nicht jetzt (noch nicht zugehoert, oder in dieser Sitzung schon entschieden).
+ *  "entfaellt": entschieden, heute in dieser Sitzung keine Begruessung (aus, schon gewesen, der
+ *  Chat nicht bereit oder beschaeftigt, Einwilligung fehlt, eine Freigabe wartet), ohne den Tag
+ *  zu verbrauchen. "fragen": die Frage nach der Tageslage stellen und den Tag merken. */
+export type TagesbeginnAktion = "nichts" | "entfaellt" | "fragen";
+
+export function tagesbeginnAktion(l: {
+  phase: Phase;
+  schonEntschieden: boolean;
+  einstellungAn: boolean;
+  faellig: boolean;
+  chat: { bereit: boolean; beschaeftigt: boolean; einwilligungFehlt: boolean };
+  freigabeOffen: boolean;
+}): TagesbeginnAktion {
+  if (l.phase !== "hoert" || l.schonEntschieden) return "nichts";
+  if (!l.einstellungAn || !l.faellig) return "entfaellt";
+  if (!l.chat.bereit || l.chat.beschaeftigt || l.chat.einwilligungFehlt || l.freigabeOffen) return "entfaellt";
+  return "fragen";
 }
 
 /** Ist der Assistent dran? Dann unterbricht ein Tipp auf Himbi. */
@@ -170,20 +197,23 @@ const BEENDEN_KERN = new Set([
   // Kasachisch
   "аяқта", "аяқтау", "өшір", "өшіру", "жап", "жабу", "сау",
 ]);
-/** Woerter, die einen Befehl begleiten, ohne ihm einen eigenen Inhalt zu geben. */
+/** Die Beiwoerter, die nie zum Inhalt danach gehoeren. Artikel und "Sprachmodus" zaehlen im
+ *  Befehl ("Stopp die Fuehrung"), aber vor einer Frage gehoeren sie zu ihr: aus "Nein, das ist
+ *  falsch" wird sonst "ist falsch". Nicht dieselbe Liste wie FREIGABE_FUELL (unten): dort
+ *  fehlen "ok" und "okay" absichtlich, sie sind dort eine Zusage. */
+const FUELLWOERTER = new Set([
+  "bitte", "please", "пожалуйста", "өтінемін", "himbi", "химби", "jetzt", "sofort", "mal", "doch", "kurz", "eben", "ok", "okay", "hey", "danke",
+]);
+/** Woerter, die einen Befehl begleiten, ohne ihm einen eigenen Inhalt zu geben: die
+ *  Fuellwoerter und dazu, was nur im Befehl nichts bedeutet (eine Liste statt zwei Kopien,
+ *  seit dem 29.09.2026). */
 const BEIWOERTER = new Set([
-  "bitte", "please", "пожалуйста", "өтінемін", "himbi", "химби", "jetzt", "sofort", "mal", "doch", "kurz", "eben",
-  "ok", "okay", "hey", "danke", "einfach", "alles", "auf", "on", "a", "second", "sec", "einen",
+  ...FUELLWOERTER,
+  "einfach", "alles", "auf", "on", "a", "second", "sec", "einen",
   "den", "das", "die", "sprachmodus", "gespräch", "gespraech", "modus", "führung", "fuehrung",
   "the", "voice", "mode", "conversation",
   "голосовой", "режим", "режима", "разговор", "разговора", "из", "до", "ещё", "еще",
   "дауыс", "режимі", "режимін", "әңгіме", "әңгімені", "тұр", "бол",
-]);
-/** Die Beiwoerter, die nie zum Inhalt danach gehoeren. Artikel und "Sprachmodus" zaehlen im
- *  Befehl ("Stopp die Fuehrung"), aber vor einer Frage gehoeren sie zu ihr: aus "Nein, das ist
- *  falsch" wird sonst "ist falsch". */
-const FUELLWOERTER = new Set([
-  "bitte", "please", "пожалуйста", "өтінемін", "himbi", "химби", "jetzt", "sofort", "mal", "doch", "kurz", "eben", "ok", "okay", "hey", "danke",
 ]);
 const HOEREN = new Set(["hör", "hoer", "hören", "hoeren"]);
 
@@ -242,7 +272,8 @@ export function unterbrechungsBefehl(text: string): { rest: string } | null {
 /** Nur anhalten, ohne Inhalt ("Stopp", "Moment", "Hoer auf"): beim Zuhoeren gibt es nichts
  *  anzuhalten, und als Frage an Himbi waere es sinnlos. "Nein" oder "Himbi" allein zaehlen hier
  *  NICHT - "Nein" ist beim Zuhoeren oft die Antwort auf Himbis Frage. */
-const NUR_ANHALTEN = new Set([...UNTERBRECHEN_KERN].filter((w) => !["nein", "no", "нет", "жоқ", "himbi", "химби", "falsch"].includes(w)));
+const KEIN_REINES_ANHALTEN = new Set(["nein", "no", "нет", "жоқ", "himbi", "химби", "falsch"]);
+const NUR_ANHALTEN = new Set([...UNTERBRECHEN_KERN].filter((w) => !KEIN_REINES_ANHALTEN.has(w)));
 export function istNurAnhalten(text: string): boolean {
   const woerter = woerterVon(text);
   if (woerter.length === 0 || woerter.length > 5) return false;
@@ -255,13 +286,33 @@ export function istNurAnhalten(text: string): boolean {
   return kern;
 }
 
+/** Ein erkanntes Wort, wie istEcho und die Wortlisten es vergleichen: klein, ohne Satzzeichen. */
+function kernwort(wort: string): string {
+  return wort.toLowerCase().replace(/[^\p{L}]/gu, "");
+}
+
+/** Der Befehl ab dem Wort `ab`: dieses Wort und was danach kommt, ohne Himbis Echo dahinter.
+ *  Sagt der Nutzer "Tschuess Himbi" mitten in eine Antwort, haengt die Erkennung oft Himbis
+ *  naechste Worte an; ohne sie waere es kein ganzer Beenden-Befehl mehr. */
+export function befehlOhneEcho(woerter: readonly string[], ab: number, istEcho: (wort: string) => boolean): string {
+  if (ab < 0 || ab >= woerter.length) return "";
+  return [woerter[ab]!, ...woerter.slice(ab + 1).filter((w) => !istEcho(kernwort(w)))].join(" ");
+}
+
 /** Wo im Text ein Befehl beginnt (Index des Wortes), fuer Text, dem Himbis eigene Stimme
  *  vorausgehen kann: waehrend er spricht, hoert die Erkennung sein Echo mit. `istEcho` sagt,
- *  ob ein Wort gerade von Himbi selbst kam. Liefert den ersten Treffer, der kein Echo ist. */
+ *  ob ein Wort gerade von Himbi selbst kam. Liefert den ersten Treffer, der kein Echo ist.
+ *  Ein Beendenwort zaehlt nur, wenn ab dort ein ganzer Beenden-Befehl steht (Himbis Echo
+ *  dahinter nicht mitgezaehlt, befehlOhneEcho): "пока" heisst auch "noch", und "Пока поставок
+ *  нет." am Anfang einer Antwort unterbrach Himbi sonst (Befund der Gegenpruefung vom
+ *  28.09.2026). */
 export function befehlsBeginn(woerter: readonly string[], istEcho: (wort: string) => boolean): number | null {
   for (let i = 0; i < woerter.length; i++) {
-    const w = woerter[i]!.toLowerCase().replace(/[^\p{L}]/gu, "");
-    const kern = UNTERBRECHEN_KERN.has(w) || BEENDEN_KERN.has(w) || (HOEREN.has(w) && woerter[i + 1]?.toLowerCase().replace(/[^\p{L}]/gu, "") === "auf");
+    const w = kernwort(woerter[i]!);
+    const kern =
+      UNTERBRECHEN_KERN.has(w) ||
+      (BEENDEN_KERN.has(w) && istBeendenBefehl(befehlOhneEcho(woerter, i, istEcho))) ||
+      (HOEREN.has(w) && kernwort(woerter[i + 1] ?? "") === "auf");
     if (kern && !istEcho(w)) return i;
   }
   return null;
@@ -281,6 +332,72 @@ export function befehlsWortIn(text: string, wort?: string): string | null {
  *  Geraeusch? Ein Wort aus mindestens zwei Buchstaben genuegt. */
 export function istGesprochen(text: string): boolean {
   return woerterVon(text).some((w) => w.length >= 2);
+}
+
+/** Laute ohne Inhalt: Zoegern, Brummen, ein "Ok" nebenher. */
+const FUELLLAUTE = new Set([
+  "äh", "ähm", "öh", "öhm", "hm", "hmm", "mhm", "mh", "ok", "okay",
+  "uh", "uhm", "um", "erm",
+  "э", "ээ", "эм", "эмм", "хм", "хмм", "мм", "ммм",
+]);
+
+/** Bricht dieser Text beim Nachdenken die laufende Anfrage ab (Nachsatz)? Nur mit einem Wort,
+ *  das mehr ist als ein Fuellaut: bis zum 29.09.2026 genuegte istGesprochen, und schon ein
+ *  "Hm." oder "Äh" brach den Modellaufruf ab und stellte die Frage mit angehaengtem "Äh." neu
+ *  (Befund der Gegenpruefung). */
+export function istNachsatz(text: string): boolean {
+  return woerterVon(text).some((w) => w.length >= 2 && !FUELLLAUTE.has(w));
+}
+
+/** Wie Himbi unterbrochen wurde: per Befehlswort, per Stimme (Lautstaerke-Waechter) oder per
+ *  Tipp bzw. Leertaste. */
+export type UnterbrechungsArt = "wort" | "stimme" | "tipp";
+
+/** Kann die naechste Aeusserung mit dem Befehl beginnen, der schon gewirkt hat? Nach einem Tipp
+ *  nicht: der Nutzer hat nichts gesagt (bis zum 29.09.2026 galt es auch dort, und die erste Frage
+ *  danach wurde am ersten Befehlswort darin abgeschnitten). */
+export function beginntMitBefehl(art: UnterbrechungsArt): boolean {
+  return art !== "tipp";
+}
+
+/** Die ersten Woerter einer Aeusserung, in denen nach einer Unterbrechung der Befehl stehen kann. */
+const BEFEHL_NACH_UNTERBRECHUNG_WOERTER = 4;
+
+/** Die erste Aeusserung nach einer Unterbrechung: beginnt sie mit dem Befehl, der schon
+ *  gewirkt hat ("Stopp, zeig mir lieber ..."), liefert dies den Rest, sonst null (der Text
+ *  bleibt, wie er ist). Vor dem Befehl darf nur ein Rest von Himbis Echo stehen ("Hof. Stopp,
+ *  zeig mir ..."): `echo` ist, was er beim Unterbrechen sagte. Bis zum 29.09.2026 zaehlte jedes
+ *  Befehlswort in den ersten vier Woertern, und aus "Wie sagt man Stopp auf Russisch?" wurde
+ *  "auf Russisch?" (Befund der Gegenpruefung). */
+export function frageNachUnterbrechung(woerter: readonly string[], echo: string): string | null {
+  const b = befehlsBeginn(woerter.slice(0, BEFEHL_NACH_UNTERBRECHUNG_WOERTER), () => false);
+  if (b === null) return null;
+  const himbi = new Set(woerterVon(echo));
+  const davorEcho = woerter.slice(0, b).every((w) => woerterVon(w).every((x) => himbi.has(x)));
+  if (!davorEcho) return null;
+  return unterbrechungsBefehl(woerter.slice(b).join(" "))?.rest ?? null;
+}
+
+/** Waehrend Himbi spricht: bis wohin (Audio-ms) die Befehlssuche schon abgeschlossen ist. Jedes
+ *  endgueltige Wort wurde gegen den Satz geprueft, der klang, als es kam (Echo-Pruefung gegen
+ *  den klingenden und den vorigen Satz); spaeter, wenn zwei Saetze weiter gespielt sind, fehlte
+ *  dieser Satz in der Pruefung, und Himbis eigenes "Nein," galt als Befehl des Nutzers (Befund
+ *  der Gegenpruefung vom 28.09.2026). Deshalb rueckt der Anfang des Suchfensters hinter die
+ *  schon geprueften Woerter. Ein "Hoer" am Ende bleibt drin: mit "auf" wird es noch ein Befehl.
+ *  Nur aufrufen, wenn in `woerter` kein Befehl gefunden wurde. */
+export function befehlGeprueftBis(
+  woerter: readonly { text: string; startMs: number | null }[],
+  endgueltige: number,
+  bisher: number,
+): number {
+  let bis = bisher;
+  const n = Math.min(endgueltige, woerter.length);
+  for (let i = 0; i < n; i++) {
+    const w = woerter[i]!;
+    if (i === n - 1 && HOEREN.has(kernwort(w.text))) break;
+    if (w.startMs !== null) bis = Math.max(bis, w.startMs + 1);
+  }
+  return bis;
 }
 
 /** Bindewoerter, mit denen ein Nachsatz typischerweise weitergeht. Die Erkennung schreibt sie
@@ -404,6 +521,15 @@ export interface Rechteck {
   hoehe: number;
 }
 
+/** Das neu gemessene Rechteck, oder das bisherige, wenn sich nichts geaendert hat. Der Rahmen
+ *  misst bei jeder Aenderung im DOM neu (sprach-spotlight.tsx); ein neues Objekt mit gleichen
+ *  Werten liess React bis zum 29.09.2026 jedes Mal den ganzen Sprachmodus neu aufbauen, samt
+ *  Layout-Messung auf dem Handy (Befund der Gegenpruefung). */
+export function behalteGleichesRechteck(alt: Rechteck | null, neu: Rechteck | null): Rechteck | null {
+  if (!alt || !neu) return neu;
+  return alt.x === neu.x && alt.y === neu.y && alt.breite === neu.breite && alt.hoehe === neu.hoehe ? alt : neu;
+}
+
 /** Mitlaufender Text im Sprachmodus: standardmaessig aus (Rueckmeldung vom 26.09.2026:
  *  "das Schriftbild ausschaltbar machen und per Default ausgeschaltet lassen, dafuer kann
  *  die Figur groesser werden"). Nur ein ausdruecklich gespeichertes "an" schaltet ihn ein;
@@ -475,8 +601,10 @@ export function ausweichPlatz(
 export const MAX_NEUVERSUCHE = 2;
 /** Pause vor dem Neuverbinden. */
 export const NEUVERSUCH_MS = 500;
-/** Eine Sitzung, die so lange lief, ist nicht gescheitert, sondern an ihre Zeitgrenze
- *  gestossen (SITZUNG_HOECHSTENS_S in domain/diktat-live.ts, derzeit 120 s). */
+/** Eine Sitzung, die so lange lief, ist nicht beim Verbinden gescheitert: sie wurde spaeter
+ *  beendet (Netzwechsel, Dienst, oder ihre Zeitgrenze - im Gespraech GESPRAECH_SITZUNG_S,
+ *  derzeit 30 Minuten, beim Diktat SITZUNG_HOECHSTENS_S, derzeit 120 s; domain/diktat-live.ts)
+ *  und zaehlt nicht als Fehlversuch. */
 export const LANGE_SITZUNG_MS = 15_000;
 
 export type NachAbbruch = "nicht-eingerichtet" | "stumm" | "neu-versuchen" | "aufgeben";
@@ -515,8 +643,12 @@ export function nachSitzungsAbbruch(a: {
 //   3. Echo: das Mikrofon muss lauter sein als ein Bruchteil dessen, was gerade
 //      ausgegeben wird - samt Nachhall, denn das Echo kommt verzoegert an und klingt nach.
 //
-// Und erst durchgehende Sprache von dauerMs loest aus, kein einzelner Knall. Kurze
-// Luecken zwischen Silben zaehlen dabei nur halb dagegen (leckender Zaehler).
+// Und erst durchgehende Sprache von dauerMs loest aus, kein einzelner Knall. Luecken
+// zwischen Silben zaehlen dabei DOPPELT dagegen (leckender Zaehler, LUECKE_ZAEHLT_FACH):
+// Sprechen mit drei Vierteln Anteil unterbricht, mit der Haelfte oder zwei Dritteln nicht.
+// Bis zum 29.09.2026 stand hier "nur halb", der Code zaehlte aber schon immer doppelt; so
+// bleibt es, im Zweifel unterbricht Himbi lieber nicht (supabase/tests/ki-assistent.mjs haelt
+// die Silbenmuster fest).
 //
 // Die Werte sind Ausgangswerte auf derselben Skala wie das Diktat (RMS 0..1) und am
 // echten Geraet nachzuziehen. Im Zweifel unterbricht Himbi lieber nicht: ein Tipp
@@ -544,9 +676,14 @@ export const UNTERBRECHEN_STANDARD: UnterbrechenEinstellungen = {
   dauerMs: 400,
 };
 
-/** "vielleicht": es klingt nach Sprache, aber noch nicht lange genug - Zeit, eine
- *  Aufnahme mitlaufen zu lassen, damit der Anfang des Satzes nicht verloren geht. */
+/** "vielleicht": es klingt nach Sprache, aber noch nicht lange genug. Daraus merkt sich
+ *  sprachmodus.tsx den Einsatz der Stimme (erzeugeEinsatzMerker), damit der Anfang des Satzes
+ *  zur naechsten Frage gehoert. Eine eigene Aufnahme laeuft dafuer seit dem 28.09.2026 nicht
+ *  mehr mit (EIN Ohr fuers ganze Gespraech). */
 export type UnterbrechenUrteil = "still" | "vielleicht" | "unterbrechen";
+
+/** Wie viel eine Luecke im Zaehler gegen das Gesprochene zaehlt (siehe Abschnitt 4). */
+const LUECKE_ZAEHLT_FACH = 2;
 
 export interface UnterbrechungsWaechter {
   /** mikrofon und ausgabe: RMS 0..1. jetztMs: monoton steigend (performance.now()). */
@@ -572,9 +709,52 @@ export function erzeugeUnterbrechungsWaechter(e: UnterbrechenEinstellungen = UNT
         Number.isFinite(grundrauschen) ? grundrauschen * e.rauschFaktor : 0,
         nachhall * e.echoFaktor,
       );
-      gesprochenMs = mikrofon > schwelle ? gesprochenMs + dt : Math.max(0, gesprochenMs - 2 * dt);
+      gesprochenMs = mikrofon > schwelle ? gesprochenMs + dt : Math.max(0, gesprochenMs - LUECKE_ZAEHLT_FACH * dt);
       if (gesprochenMs >= e.dauerMs) return "unterbrechen";
       return gesprochenMs > 0 ? "vielleicht" : "still";
+    },
+  };
+}
+
+/** So lange darf beim Dazwischenreden Stille sein, ohne dass der Einsatz der Stimme verfaellt. */
+export const EINSATZ_HALTEN_MS = 1_000;
+/** So lange muss es am Stueck nach Sprache klingen ("vielleicht"), bevor daraus ein Einsatz wird.
+ *  Eine einzelne Geraeuschspitze (ein Bild) ist keiner. */
+export const EINSATZ_MINDEST_MS = 100;
+/** So weit vor dem gemerkten Einsatz beginnt die naechste Frage: der Waechter merkt die Stimme
+ *  erst, wenn sie ueber der Schwelle ist, der Anfang des ersten Wortes liegt davor. */
+export const EINSATZ_VORLAUF_MS = 300;
+
+export interface EinsatzMerker {
+  /** Das Urteil des Waechters in diesem Bild; liefert den Einsatz (Audio-ms) oder null. */
+  melde(urteil: UnterbrechenUrteil, jetztMs: number): number | null;
+}
+
+/** Wo die Stimme des Nutzers eingesetzt hat. Der Einsatz ueberdauert kurze Pausen: in
+ *  "Stopp, zeig mir ..." zaehlt der Waechter die Kommapause als Stille und hielte sonst erst
+ *  "zeig" fuer den Anfang (Messung vom 28.09.2026). Gemerkt wird er erst, wenn es
+ *  EINSATZ_MINDEST_MS am Stueck nach Sprache klang, und zwar mit dem Beginn dieses Stuecks: bis
+ *  zum 29.09.2026 genuegte ein einzelnes Bild, und in lauter Umgebung hielten Spitzen im
+ *  Abstand unter einer Sekunde den Einsatz auf der ersten fest; Himbis Echo seither kam dann in
+ *  die naechste Frage (Befund der Gegenpruefung). */
+export function erzeugeEinsatzMerker(): EinsatzMerker {
+  let einsatz: number | null = null;
+  let stillSeit: number | null = null;
+  let stueckSeit: number | null = null;
+  return {
+    melde(urteil, jetztMs) {
+      if (urteil === "still") {
+        stueckSeit = null;
+        stillSeit = stillSeit ?? jetztMs;
+        if (jetztMs - stillSeit > EINSATZ_HALTEN_MS) einsatz = null;
+        return einsatz;
+      }
+      stueckSeit = stueckSeit ?? jetztMs;
+      if (jetztMs - stueckSeit >= EINSATZ_MINDEST_MS || urteil === "unterbrechen") {
+        einsatz = einsatz ?? stueckSeit;
+        stillSeit = null;
+      }
+      return einsatz;
     },
   };
 }

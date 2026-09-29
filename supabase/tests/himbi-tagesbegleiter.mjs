@@ -11,7 +11,8 @@
 //      gesperrter Speicher,
 //   2. die Anweisung TAGESBEGLEITER und "heute" (src/lib/domain/antwort-anweisungen.ts) und
 //      ihr Platz im Systemprompt (src/app/api/ki-assistent/route.ts),
-//   3. die Begruessung im Sprachmodus und die Sprechblase (Quelltextpruefungen),
+//   3. die Begruessung im Sprachmodus (Entscheidung als reine Funktion, alle Faelle) und die
+//      Sprechblase (Quelltextpruefungen),
 //   4. Texte in allen vier Sprachen, Einstellung mit Voreinstellung an, Handbuch.
 // =============================================================================
 
@@ -231,20 +232,51 @@ console.log("\n2. TAGESBEGLEITER und 'heute' im Systemprompt");
 // --- 3. Begruessung im Sprachmodus und Sprechblase -------------------------------
 console.log("\n3. Begruessung im Sprachmodus, Sprechblase, Kontext");
 {
+  // Die Entscheidung trifft seit dem 29.09.2026 eine reine Funktion (tagesbeginnAktion in
+  // lib/domain/sprachmodus.ts), und hier laeuft sie Fall fuer Fall. Bis dahin prueften Regexe
+  // den Quelltext des Effekts: eine Mutation, die die Begruessung nie stellte ("return;" hinter
+  // dem Merker), blieb 101 von 101 gruen, jede harmlose Umbenennung wurde rot (Befund der
+  // Gegenpruefung vom 28.09.2026).
+  const { naechstePhase, tagesbeginnAktion } = await import("../../src/lib/domain/sprachmodus.ts");
+  const frei = { bereit: true, beschaeftigt: false, einwilligungFehlt: false };
+  const lage = (aenderung = {}) => ({ phase: "hoert", schonEntschieden: false, einstellungAn: true, faellig: true, chat: frei, freigabeOffen: false, ...aenderung });
+  pruefe("Tagesbeginn: erstes Zuhoeren, Einstellung an, heute faellig, Chat frei, keine Karte: Himbi fragt", tagesbeginnAktion(lage()) === "fragen");
+  pruefe("Tagesbeginn: noch nicht beim Zuhoeren (Start, Nachdenken, Sprechen, Stumm, Fehler): noch nichts entschieden", ["startet", "denkt", "spricht", "pausiert", "fehler"].every((phase) => tagesbeginnAktion(lage({ phase })) === "nichts"));
+  pruefe("Tagesbeginn: in dieser Sitzung schon entschieden (nach Pause, Fehler, Neuversuch): nichts mehr", tagesbeginnAktion(lage({ schonEntschieden: true })) === "nichts");
+  pruefe("Tagesbeginn: Einstellung aus oder heute schon gewesen: entfaellt", tagesbeginnAktion(lage({ einstellungAn: false })) === "entfaellt" && tagesbeginnAktion(lage({ faellig: false })) === "entfaellt");
+  pruefe(
+    "Tagesbeginn: Chat nicht bereit, beschaeftigt, Einwilligung fehlt oder eine Freigabe wartet: entfaellt",
+    tagesbeginnAktion(lage({ chat: { ...frei, bereit: false } })) === "entfaellt" &&
+      tagesbeginnAktion(lage({ chat: { ...frei, beschaeftigt: true } })) === "entfaellt" &&
+      tagesbeginnAktion(lage({ chat: { ...frei, einwilligungFehlt: true } })) === "entfaellt" &&
+      tagesbeginnAktion(lage({ freigabeOffen: true })) === "entfaellt",
+  );
+  {
+    // Alle Kombinationen: "fragen" genau einmal, "nichts" genau dann, wenn nicht zugehoert wird
+    // oder schon entschieden ist.
+    const faelle = [];
+    const jaNein = [false, true];
+    for (const phase of ["startet", "hoert", "denkt", "spricht", "pausiert", "fehler"])
+      for (const schonEntschieden of jaNein)
+        for (const einstellungAn of jaNein)
+          for (const faellig of jaNein)
+            for (const bereit of jaNein)
+              for (const beschaeftigt of jaNein)
+                for (const einwilligungFehlt of jaNein)
+                  for (const freigabeOffen of jaNein) {
+                    const l = { phase, schonEntschieden, einstellungAn, faellig, chat: { bereit, beschaeftigt, einwilligungFehlt }, freigabeOffen };
+                    faelle.push({ l, a: tagesbeginnAktion(l) });
+                  }
+    const fragen = faelle.filter((f) => f.a === "fragen");
+    const nichtsFalsch = faelle.filter((f) => (f.a === "nichts") !== (f.l.phase !== "hoert" || f.l.schonEntschieden));
+    pruefe(`Tagesbeginn: von ${faelle.length} Kombinationen fragt genau eine, "nichts" nur ohne Zuhoeren oder nach der Entscheidung`, faelle.length === 768 && fragen.length === 1 && nichtsFalsch.length === 0, JSON.stringify({ fragen: fragen.length, nichtsFalsch: nichtsFalsch.length }));
+  }
+  pruefe("Tagesbeginn: die gestellte Frage fuehrt vom Zuhoeren zum Nachdenken (sonst naehme das Ohr Himbis Antwort als Frage)", naechstePhase("hoert", { art: "frage-gestellt" }) === "denkt");
+  // Verdrahtung im Effekt, so knapp wie moeglich: die Funktion entscheidet, gefragt und gemerkt
+  // wird nur bei "fragen", der Merker erst nach der Frage.
   const modus = lies("src/components/ki/sprachmodus.tsx");
-  const beginn = modus.indexOf("const tagesbeginnGeprueft = useRef(false);");
-  const ende = modus.indexOf("}, [phase, tagesbeginnAn, nutzerId, sprache, dispatch, t]);", beginn);
-  const block = beginn >= 0 && ende > beginn ? modus.slice(beginn, ende) : "";
-  pruefe("Sprachmodus: Begruessung nur beim ersten 'hoert' der Sitzung (Ref, nicht nach Pause/Fehler/Neuversuch)", /if \(phase !== "hoert" \|\| tagesbeginnGeprueft\.current\) return;\s*tagesbeginnGeprueft\.current = true;/.test(block));
-  pruefe("Sprachmodus: nur mit Einstellung an und wenn heute fuer diesen Nutzer noch faellig", block.includes("if (!tagesbeginnAn) return;") && block.includes('if (!tagesbeginnFaellig(ablage, nutzerId, "gespraech", jetzt)) return;'));
-  pruefe("Sprachmodus: nur wenn der Chat bereit und frei ist und keine Freigabe wartet", block.includes("if (!stand.bereit || stand.beschaeftigt || stand.einwilligungFehlt || leseFreigabeAnfrage()) return;"));
-  pruefe("Sprachmodus: Text in der Oberflaechensprache je Tageszeit, als offene Frage (Nachsatz haengt an)", block.includes("t(`tagesbeginn.${tageszeitBestimmen(jetzt)}`)") && block.includes("offeneFrage.current = { text: frage, sprachen: [sprache] };") && block.includes("stelleSprachFrage(frage, [sprache]);"));
-  const iFrage = block.indexOf("stelleSprachFrage(frage, [sprache]);");
-  const iMerker = block.indexOf('merkeTagesbeginn(ablage, nutzerId, "gespraech", jetzt);');
-  const iEnde = block.indexOf('dispatch({ art: "aeusserung-ende" });');
-  const iGestellt = block.indexOf('dispatch({ art: "frage-gestellt" });');
-  pruefe("Sprachmodus: Merker erst NACH dem Stellen der Frage", iFrage > 0 && iMerker > iFrage);
-  pruefe("Sprachmodus: danach Phase ueber 'versteht' nach 'denkt' (sonst naehme das Ohr Himbis Echo als Frage)", iEnde > iFrage && iGestellt > iEnde);
+  const effekt = /const aktion = tagesbeginnAktion\(\{[\s\S]*?\}\);\s*if \(aktion === "nichts"\) return;\s*tagesbeginnEntschieden\.current = true;\s*if \(aktion !== "fragen"\) return;\s*stelleFrage\(t\(`tagesbeginn\.\$\{tageszeitBestimmen\(jetzt\)\}`\), \[sprache\]\);\s*merkeTagesbeginn\(ablage, nutzerId, "gespraech", jetzt\);/;
+  pruefe("Sprachmodus: der Effekt folgt tagesbeginnAktion, fragt in der Oberflaechensprache je Tageszeit und merkt den Tag erst danach", effekt.test(modus));
   pruefe("Sprachmodus: Nutzer und Einstellung kommen aus den Kontexten", modus.includes("const { beendeSprachmodus, nutzerId } = useKiPane();") && modus.includes("const { tagesbeginnAn } = useHaustierStatus();"));
   pruefe("Start: die Einwilligung wird vor dem Sprachmodus geprueft (die Begruessung ist die erste Frage)", lies("src/components/ki/ki-pane-kontext.tsx").includes("if (leseChatStand().einwilligungFehlt) {"));
 

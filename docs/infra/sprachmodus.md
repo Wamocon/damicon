@@ -132,8 +132,9 @@ Der Systemprompt kennt jetzt `"assistent" | "agent" | "sprache"`
 
 ### Ablauf (Zustandsautomat, `src/lib/domain/sprachmodus.ts`)
 
-Phasen: `hoert` → `versteht` → `denkt` → `spricht` → wieder `hoert`. Seit dem
-28.09.2026 hört das Ohr in allen vier Phasen mit (`ohrOffen`), nur nicht im
+Phasen: `hoert` → `denkt` → `spricht` → wieder `hoert` (die Zwischenphase
+`versteht` wurde nie gezeigt und ist seit dem 29.09.2026 entfernt). Seit dem
+28.09.2026 hört das Ohr in allen drei Phasen mit (`ohrOffen`), nur nicht im
 Stumm- und Fehlerzustand: eine einzige Live-Sitzung für das ganze Gespräch
 (siehe Mikrofon). Was davon Himbis eigene Stimme ist, trennen zwei Grenzen im
 Audio: eine harte (`grenzeMs`: Ende der letzten Frage, erledigter Befehl) und
