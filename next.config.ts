@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
+  // Der Wissens-Upload liest PDF mit pdf-parse (PDF.js). Das Paket laedt zur Laufzeit eine Worker-Datei und
+  // optional natives Zeichnen (canvas); gebuendelt findet es sie nicht. Es bleibt deshalb ein externes Paket
+  // aus node_modules (src/lib/wissen/hochladen.ts).
+  serverExternalPackages: ["pdf-parse", "pdfjs-dist", "@napi-rs/canvas"],
   experimental: {
     // Fotobelege kommen vom Telefon und sind groesser als das Standardlimit
     // von 1 MB fuer Server Actions.

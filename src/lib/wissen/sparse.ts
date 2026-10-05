@@ -78,3 +78,10 @@ export function alsSparsevec(v: SparseVektor): string {
   const teile = [...summe].sort((a, b) => a[0] - b[0]).map(([idx, w]) => `${idx}:${Number(w.toFixed(4))}`);
   return `{${teile.join(",")}}/${SPARSE_DIMENSION}`;
 }
+
+/** Die Indizes eines sparsevec in Textform ("{4:1.5,6:2}/1000000000"), wie PostgREST ihn liefert. Gegenstueck zu alsSparsevec. */
+export function sparsevecIndizes(text: string): number[] {
+  const innen = text.slice(text.indexOf("{") + 1, text.lastIndexOf("}"));
+  if (!innen.trim()) return [];
+  return innen.split(",").map((paar) => Number(paar.split(":")[0]));
+}

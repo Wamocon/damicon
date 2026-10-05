@@ -49,6 +49,28 @@ NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npm run wissen:nach-s
 
 Optionen: `--trocken` (nur zählen), `--bereinigen` (Zeilen löschen, die es in der Quelle nicht mehr gibt), `--ja` (erlaubt ein gehostetes Ziel; ohne verweigert das Skript es). Der Lauf ist idempotent (Upsert), ein zweiter Lauf ändert nichts. Die Vektoren werden 1:1 übernommen. Größe: 5.655 Textstellen, 24.738 Wörter, rund 84 MB inklusive Index.
 
+## Dokumente hochladen (Admin)
+
+Im KI-Panel, Ansicht "Einstellungen", unter dem Ratenlimit: Abschnitt "Wissensdokumente". Nur mit dem Recht `ki_assistent:manage` (laut `rbac.ts` allein admin), geprüft in der Server Action und noch einmal in der Datenbank (Schreiben in `wissen_chunks` darf nur `service_role`).
+
+| | |
+| --- | --- |
+| Dateien | `.pdf`, `.md`, `.txt`, höchstens 8 MB, höchstens 400 Abschnitte je Dokument |
+| Bereich | `recht`, `steuer`, `compliance`, `audit`, `risiko` (Spalte `bereich`, ohne CHECK oder Enum, keine Migration) |
+| Rollen | Büro-Rollen (admin, ceo, betriebsleitung, buchhaltung). Admin ist immer dabei. Andere Rollen nutzen die Wissenssuche nicht (`darfWissenNutzen`) |
+| Original | wird nicht aufbewahrt, nur der Text liegt in `wissen_chunks` |
+| Dublette | derselbe Inhalt (SHA-256 des normalisierten Textes, `quelle_id = upload:<hash>`) wird abgelehnt |
+
+Der Upload nutzt dieselben Funktionen wie das Skript: `chunkiere`, `wissenEinbettung` (bge-m3, 1024 Dimensionen), `sparseDokument`, die Zeilenform des ETL. Er schreibt immer nach Supabase, unabhängig von `WISSEN_BACKEND`. Code: `src/lib/wissen/hochladen.ts`, `src/lib/actions/wissen.ts`.
+
+**Markierung.** Hochgeladene Zeilen tragen `extra.quelle = "upload"` (dazu `inhalts_hash`, `dateiname`, `hochgeladen_von`, `hochgeladen_von_name`). Der ETL im Spiegelmodus (`--bereinigen`) löscht solche Zeilen **nicht**, und ihre Wörter und ihre Anzahl gehen in `wissen_begriffe` (df, N) ein. Ohne diese Markierung würde der nächste Lauf jedes hochgeladene Dokument entfernen, weil es nicht in Qdrant steht.
+
+**Wortgewichte.** Bei jedem Upload werden df und IDF der Wörter des neuen Dokuments fortgeschrieben (Upsert, N = Anzahl aller Textstellen nach dem Einfügen). Die Gewichte aller anderen Wörter ändern sich dadurch minimal und bleiben bis zum nächsten ETL-Lauf unverändert. Zwei gleichzeitige Uploads können sich beim Zählen überschreiben; der nächste ETL-Lauf gleicht das aus.
+
+**Alles oder nichts.** Ein Upload hat keinen Status. Schlägt das Einbetten fehl, wird nichts geschrieben. Schlägt das Schreiben fehl, werden die Zeilen des Dokuments wieder entfernt. Ein defektes PDF ergibt eine Fehlermeldung, kein hängendes Dokument.
+
+**Liste.** Zeigt Titel, Bereich, Rollen, Datum (`eingelesen_am`), Hochgeladen von und Anzahl der Abschnitte. Per Skript eingelesene Dokumente erscheinen mit, gruppiert nach `quelle_id`.
+
 ## Ausrollen (gehostet)
 
 1. Migrationen anwenden (`20261102000000_wissen_pgvector.sql`): über den Workflow "Datenbank-Migration" oder `supabase db push --linked` (vorher `--dry-run`).
@@ -78,6 +100,7 @@ Die Fusionskonstante ist bewusst klein (k = 2). Mit dem Lehrbuchwert 60 fiel ein
 | --- | --- | --- |
 | `npm run test:wissen-db` | Rollenisolation per RLS, Hybridsuche, IDF, Filter ohne Trefferverlust, Schreibschutz (echtes Postgres) | PR-Pipeline, nach `supabase start` |
 | `npm run test:wissen-backend` | Adapter, Einbettungsclient, Backendwahl, Suche Ende zu Ende (ohne Datenbank) | `npm test` |
+| `npm run test:wissen-upload` | Admin-Upload: Rechte, Chunks, Dublette, Wortgewichte, Rollenfilter, Suche mit Beleg (ohne Datenbank) | `npm test` |
 | `npm run wissen:eval` | Trefferqualität (recall@k, MRR) und Rollensperren | von Hand, vor dem Einschalten |
 
 PGlite kann pgvector nicht. Die schnellen Tests überspringen deshalb Migrationen, die auf `_pgvector.sql` enden; die Migration selbst wird von `supabase start` in der CI und von `test:wissen-db` geprüft.
