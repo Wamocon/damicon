@@ -6,6 +6,7 @@ import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { aktualisiere, protokolliere, text } from "@/lib/actions/formular-helfer";
 import { wissenEinbettung } from "@/lib/wissen/embed";
+import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
 import { MAX_DATEI_BYTES, pruefeUploadUmgebung, supabaseSpeicher, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
 import { gruppiereWissenDokumente, type WissenDokumentZeile, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
 
@@ -31,6 +32,9 @@ const FEHLER_SCHLUESSEL: Record<UploadFehler["code"], string> = {
   doppelt: "fehler.wissenDoppelt",
   einbettung: "fehler.wissenEinbettung",
   speichern: "fehler.wissenSpeichern",
+  nichtLoeschbar: "fehler.wissenNichtLoeschbar",
+  loeschen: "fehler.wissenLoeschen",
+  gewichte: "fehler.wissenGewichte",
 };
 
 export async function wissenDokumentHochladen(
@@ -117,5 +121,54 @@ export async function wissenDokumenteLaden(): Promise<WissenDokumenteAntwort> {
   } catch (error) {
     console.error("[damicon] Wissensdokumente laden fehlgeschlagen:", error);
     return { dokumente: [], fehler: true };
+  }
+}
+
+// Loeschen eines HOCHGELADENEN Dokuments. Die Berechtigung wird zuerst geprueft, danach (in loeschen.ts) der
+// Vorschau-Schutz, die Form der quelle_id und, dass wirklich alles unter dieser Quelle aus dem Upload stammt. Vom
+// Skript geladene Dokumente lassen sich hier nicht loeschen, auch wenn jemand eine fremde quelle_id sendet.
+// Titel und Bereich fuer Meldung und Protokoll liest der Server selbst aus der Datenbank, nicht aus dem Formular.
+export async function wissenDokumentLoeschen(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("ki_assistent", "manage");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const quelleId = text(formData, "quelle_id");
+  if (!quelleId) return fehler("fehler.eingabe");
+
+  try {
+    const ergebnis = await loescheHochgeladenesDokument(quelleId, {
+      speicher: supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient),
+    });
+    if (ergebnis.schonWeg) {
+      aktualisiere(formData);
+      return ok("ok.wissenSchonGeloescht");
+    }
+    await protokolliere(profil, "wissen.geloescht", "wissen_chunks", null, {
+      titel: ergebnis.titel,
+      bereich: ergebnis.bereich,
+      quelle_id: quelleId,
+      abschnitte: ergebnis.geloescht,
+    });
+    aktualisiere(formData);
+    return ok("ok.wissenGeloescht", ergebnis.titel ?? "");
+  } catch (error) {
+    if (error instanceof UploadFehler) {
+      console.error("[damicon]", error.message);
+      // Bei "gewichte" ist das Dokument schon geloescht: das gehoert ins Protokoll, auch wenn die Meldung ein Fehler ist.
+      if (error.code === "gewichte") {
+        await protokolliere(profil, "wissen.geloescht", "wissen_chunks", null, { titel: error.wert ?? null, quelle_id: quelleId, wortgewichte_aktualisiert: false });
+        aktualisiere(formData);
+      }
+      return fehler(FEHLER_SCHLUESSEL[error.code], error.wert);
+    }
+    console.error("[damicon] Wissens-Loeschen unerwartet fehlgeschlagen:", error);
+    return fehler("fehler.unbekannt");
   }
 }

@@ -913,7 +913,9 @@
       "transkription": "Diktat übernommen.",
       "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
       "dokumentGeaendert": "Dokument „{wert}“ aktualisiert.",
-      "wissenHochgeladen": "Dokument \"{wert}\" hochgeladen und durchsuchbar."
+      "wissenHochgeladen": "Dokument \"{wert}\" hochgeladen und durchsuchbar.",
+      "wissenGeloescht": "Dokument \"{wert}\" gelöscht.",
+      "wissenSchonGeloescht": "Dieses Dokument ist bereits gelöscht."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -963,7 +965,10 @@
       "wissenDoppelt": "Dieser Inhalt ist bereits in der Wissensbasis (\"{wert}\").",
       "wissenEinbettung": "Die Einbettung ist fehlgeschlagen. Der Einbettungsdienst ist nicht erreichbar, es wurde nichts gespeichert.",
       "wissenSpeichern": "Das Dokument konnte nicht gespeichert werden. Es wurde nichts übernommen.",
-      "wissenVorschau": "Upload gesperrt: In der Vorschau-Umgebung wird nicht in die Wissensbasis geschrieben, weil sie dieselbe Datenbank wie die Produktion nutzen kann. Bitte in der Produktion oder in einer Umgebung mit eigener Datenbank hochladen."
+      "wissenVorschau": "Upload gesperrt: In der Vorschau-Umgebung wird nicht in die Wissensbasis geschrieben, weil sie dieselbe Datenbank wie die Produktion nutzen kann. Bitte in der Produktion oder in einer Umgebung mit eigener Datenbank hochladen.",
+      "wissenNichtLoeschbar": "Dieses Dokument kann hier nicht gelöscht werden. Nur über die Verwaltung hochgeladene Dokumente sind löschbar, Dokumente aus dem Einlese-Skript nie.",
+      "wissenLoeschen": "Das Dokument konnte nicht gelöscht werden. Es wurde nichts verändert.",
+      "wissenGewichte": "Das Dokument wurde gelöscht, aber die Wortgewichte der Suche konnten nicht aktualisiert werden. Das ist unschädlich und wird beim nächsten ETL-Lauf ausgeglichen."
     },
     "einladungen": {
       "erfolg": {
@@ -2232,6 +2237,16 @@
         "rollen": "Wer darf das Dokument sehen?",
         "adminImmer": "Administration ist immer eingeschlossen. Andere Rollen nutzen die Wissenssuche nicht.",
         "knopf": "Dokument hochladen"
+      },
+      "loeschen": {
+        "knopf": "Löschen",
+        "titel": "Dokument löschen?",
+        "dokument": "Dokument",
+        "bereich": "Bereich",
+        "abschnitte": "Abschnitte",
+        "warnung": "Achtung: Das Dokument und alle seine Abschnitte werden endgültig aus der Wissensbasis entfernt. Das kann nicht rückgängig gemacht werden. Der Assistent findet es danach nicht mehr.",
+        "abbrechen": "Abbrechen",
+        "bestaetigen": "Endgültig löschen"
       }
     }
   },

@@ -4,8 +4,8 @@ import { useActionState, useCallback, useEffect, useRef, useState, useTransition
 import { useFormatter, useTranslations } from "next-intl";
 import { Card, StatusPill } from "@/components/ui/kit";
 import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
-import { wissenDokumenteLaden, wissenDokumentHochladen } from "@/lib/actions/wissen";
-import { leer } from "@/lib/actions/status";
+import { wissenDokumenteLaden, wissenDokumentHochladen, wissenDokumentLoeschen } from "@/lib/actions/wissen";
+import { leer, type AktionsStatus } from "@/lib/actions/status";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 import { bereichSchluessel, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
@@ -17,6 +17,7 @@ export function WissenVerwaltung() {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
   const [dokumente, setDokumente] = useState<WissenDokumentZeile[] | null>(null);
   const [ladefehler, setLadefehler] = useState(false);
+  const [loeschMeldung, setLoeschMeldung] = useState<AktionsStatus>(leer);
   const [, starte] = useTransition();
 
   const lade = useCallback(() => {
@@ -37,6 +38,7 @@ export function WissenVerwaltung() {
       <WissenHochladenFormular beiErfolg={lade} />
       <div>
         <p className="mb-2 text-[11px] font-semibold text-card-foreground">{t("liste.titel")}</p>
+        <AktionsMeldung status={loeschMeldung} />
         {ladefehler ? (
           <Card className="text-center text-xs text-destructive">{t("liste.fehler")}</Card>
         ) : dokumente === null ? (
@@ -46,7 +48,7 @@ export function WissenVerwaltung() {
         ) : (
           <ul className="space-y-2">
             {dokumente.map((d) => (
-              <WissenDokumentKarte key={d.schluessel} dokument={d} />
+              <WissenDokumentKarte key={d.schluessel} dokument={d} beiLoeschen={(status) => { setLoeschMeldung(status); lade(); }} />
             ))}
           </ul>
         )}
@@ -55,7 +57,7 @@ export function WissenVerwaltung() {
   );
 }
 
-function WissenDokumentKarte({ dokument }: { dokument: WissenDokumentZeile }) {
+function WissenDokumentKarte({ dokument, beiLoeschen }: { dokument: WissenDokumentZeile; beiLoeschen: (status: AktionsStatus) => void }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
   const tRolle = useTranslations("roles");
   const format = useFormatter();
@@ -98,6 +100,10 @@ function WissenDokumentKarte({ dokument }: { dokument: WissenDokumentZeile }) {
             <dd className="inline">{dokument.chunks}</dd>
           </div>
         </dl>
+        {/* Nur Uploads sind loeschbar. Skript-Dokumente haben keinen Knopf (und der Server lehnt sie ohnehin ab). */}
+        {dokument.loeschbar ? (
+          <WissenLoeschenKnopf dokument={dokument} bereichName={bereichName} beiErgebnis={beiLoeschen} />
+        ) : null}
       </Card>
     </li>
   );
@@ -168,5 +174,83 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
         </div>
       </form>
     </FormularKarte>
+  );
+}
+
+// Loeschen mit Bestaetigungsfenster (natives <dialog>, modal: Tastatur und Fokus bleiben im Fenster, Esc bricht ab).
+// Das Fenster nennt Titel, Bereich und Zahl der Abschnitte und warnt, dass es nicht rueckgaengig zu machen ist.
+function WissenLoeschenKnopf({
+  dokument,
+  bereichName,
+  beiErgebnis,
+}: {
+  dokument: WissenDokumentZeile;
+  bereichName: string;
+  beiErgebnis: (status: AktionsStatus) => void;
+}) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.loeschen");
+  const [status, action] = useActionState(wissenDokumentLoeschen, leer);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const zuletzt = useRef(status);
+
+  // Nach der Antwort (Erfolg, "schon geloescht" oder Fehler): Fenster zu, Meldung und Neuladen beim Eltern-Element.
+  useEffect(() => {
+    if (status !== zuletzt.current && status.stand !== "leer") {
+      dialog.current?.close();
+      beiErgebnis(status);
+    }
+    zuletzt.current = status;
+  }, [status, beiErgebnis]);
+
+  return (
+    <div className="mt-3 border-t border-border pt-2.5">
+      <button
+        type="button"
+        onClick={() => dialog.current?.showModal()}
+        className="inline-flex h-7 items-center rounded-lg border border-destructive/30 px-2.5 text-[11px] font-semibold text-destructive transition hover:border-destructive"
+      >
+        {t("knopf")}
+      </button>
+      <dialog
+        ref={dialog}
+        aria-labelledby={`loeschen-titel-${dokument.schluessel}`}
+        className="m-auto w-[min(92vw,28rem)] rounded-xl border border-border bg-card p-0 text-card-foreground backdrop:bg-black/50"
+      >
+        <form action={action} className="space-y-3 p-4">
+          <PfadFeld />
+          <input type="hidden" name="quelle_id" value={dokument.schluessel} />
+          <h3 id={`loeschen-titel-${dokument.schluessel}`} className="text-sm font-black">
+            {t("titel")}
+          </h3>
+          <dl className="space-y-0.5 text-xs">
+            <div>
+              <dt className="inline font-semibold">{t("dokument")}: </dt>
+              <dd className="inline break-words">{dokument.titel}</dd>
+            </div>
+            <div>
+              <dt className="inline font-semibold">{t("bereich")}: </dt>
+              <dd className="inline">{bereichName}</dd>
+            </div>
+            <div>
+              <dt className="inline font-semibold">{t("abschnitte")}: </dt>
+              <dd className="inline">{dokument.chunks}</dd>
+            </div>
+          </dl>
+          <p role="alert" className="rounded-lg border border-destructive/25 bg-destructive/[0.06] p-2 text-xs font-semibold text-destructive">
+            {t("warnung")}
+          </p>
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => dialog.current?.close()}
+              className="inline-flex h-8 items-center rounded-lg border border-border px-3 text-xs font-semibold"
+            >
+              {t("abbrechen")}
+            </button>
+            <SubmitKnopf label={t("bestaetigen")} variante="leise" />
+          </div>
+        </form>
+      </dialog>
+    </div>
   );
 }

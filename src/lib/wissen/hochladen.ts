@@ -55,7 +55,10 @@ export type UploadFehlerCode =
   | "zuLang"
   | "doppelt"
   | "einbettung"
-  | "speichern";
+  | "speichern"
+  | "nichtLoeschbar"
+  | "loeschen"
+  | "gewichte";
 
 export class UploadFehler extends Error {
   constructor(
@@ -134,6 +137,11 @@ export function inhaltsHash(text: string): string {
  *  Dublettenschutz denselben Inhalt wieder, und die Liste gruppiert danach. */
 export function uploadQuelleId(hash: string): string {
   return `upload:${hash.slice(0, 32)}`;
+}
+
+/** Hat eine quelle_id die Form, die nur der Upload vergibt? (Das Skript vergibt Pfade wie "recht/nk-rk.md".) */
+export function istUploadQuelleId(quelleId: string): boolean {
+  return /^upload:[0-9a-f]{32}$/.test(quelleId);
 }
 
 // ---------------------------------------------------------------- Zeilen bauen
@@ -280,6 +288,17 @@ export interface WissenSpeicher {
   leseDokumenthaeufigkeit(indizes: number[]): Promise<Map<number, number>>;
   schreibeBegriffe(zeilen: { hash: number; df: number; idf: number }[]): Promise<void>;
   zaehleChunks(): Promise<number>;
+
+  // ---- fuer das Loeschen (src/lib/wissen/loeschen.ts) ----
+  /** Was liegt unter dieser quelle_id? `anzahl` = alle Zeilen, `fremd` = davon Zeilen, die NICHT zugleich
+   *  extra.quelle = "upload" UND eine quelle_id mit Vorsatz "upload:" haben (also nie loeschbar sind). */
+  ladeQuellenInfo(quelleId: string): Promise<{ anzahl: number; fremd: number; titel: string | null; bereich: string | null }>;
+  /** Loescht die Zeilen dieser quelle_id, aber NUR solche mit extra.quelle = "upload" und quelle_id "upload:%"
+   *  (in derselben Anweisung, auch wenn der Aufrufer es vorher geprueft hat). Liefert die sparsevec-Texte der
+   *  tatsaechlich geloeschten Zeilen: wer zweimal loescht, bekommt beim zweiten Mal eine leere Liste. */
+  loescheUpload(quelleId: string): Promise<string[]>;
+  /** Entfernt Woerter aus wissen_begriffe (df auf 0 gefallen). */
+  loescheBegriffe(indizes: number[]): Promise<void>;
 }
 
 /** IDF wie im ETL (scripts/wissen-nach-supabase.ts): ln(1 + (N - df + 0.5) / (df + 0.5)). */
@@ -445,6 +464,36 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
       const { count, error } = await db.from("wissen_chunks").select("id", { count: "exact", head: true });
       SCHREIB_FEHLER("Zaehlung", error);
       return count ?? 0;
+    },
+    async ladeQuellenInfo(quelleId) {
+      const { data, error } = await db
+        .from("wissen_chunks")
+        .select("titel, bereich, quelle_id, upload:extra->>quelle")
+        .eq("quelle_id", quelleId)
+        .limit(1000);
+      SCHREIB_FEHLER("Loeschen (lesen)", error);
+      const zeilen = (data ?? []) as unknown as { titel: string | null; bereich: string | null; quelle_id: string | null; upload: string | null }[];
+      const fremd = zeilen.filter((z) => !(z.upload === UPLOAD_QUELLE && (z.quelle_id ?? "").startsWith("upload:"))).length;
+      return { anzahl: zeilen.length, fremd, titel: zeilen[0]?.titel ?? null, bereich: zeilen[0]?.bereich ?? null };
+    },
+    async loescheUpload(quelleId) {
+      // Eine einzige DELETE-Anweisung: entweder verschwinden alle Zeilen des Dokuments oder keine. Beide Bedingungen
+      // stehen hier noch einmal im Filter. RETURNING liefert nur, was dieser Aufruf wirklich geloescht hat.
+      const { data, error } = await db
+        .from("wissen_chunks")
+        .delete()
+        .eq("quelle_id", quelleId)
+        .like("quelle_id", "upload:%")
+        .eq("extra->>quelle", UPLOAD_QUELLE)
+        .select("sparse");
+      SCHREIB_FEHLER("Loeschen", error);
+      return ((data ?? []) as unknown as { sparse: unknown }[]).map((z) => String(z.sparse));
+    },
+    async loescheBegriffe(indizes) {
+      for (let i = 0; i < indizes.length; i += 500) {
+        const { error } = await db.from("wissen_begriffe").delete().in("hash", indizes.slice(i, i + 500));
+        SCHREIB_FEHLER("wissen_begriffe (loeschen)", error);
+      }
     },
   };
 }

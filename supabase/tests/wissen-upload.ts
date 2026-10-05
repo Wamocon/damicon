@@ -18,6 +18,7 @@ import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { einbettungsText } from "@/lib/wissen/chunker";
 import type { Einbettung } from "@/lib/wissen/embed";
 import { gruppiereWissenDokumente, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
+import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
 import {
   BEREICH_WERT,
   erlaubteRollen,
@@ -36,7 +37,7 @@ import {
   type WissenSpeicher,
 } from "@/lib/wissen/hochladen";
 import { bereichSchluessel } from "@/lib/wissen/upload-konstanten";
-import { alsSparsevec, sparseDokument, sparseIndex, sparsevecIndizes, tokens } from "@/lib/wissen/sparse";
+import { alsSparsevec, sparseDokument, sparseIndex, sparsevecIndizes, tokens, wortgewichte } from "@/lib/wissen/sparse";
 import type { RpcKlient } from "@/lib/wissen/supabase-suche";
 import { sucheWissen } from "@/lib/wissen/suche";
 
@@ -91,11 +92,11 @@ interface Speicherstand {
 }
 
 function falscherSpeicher(
-  vorgabe: { zeilen?: ChunkZeile[]; begriffe?: Array<[number, number]> } = {},
-  fehlschlag: { chunksBeiBatch?: number; begriffe?: boolean } = {},
+  vorgabe: { zeilen?: ChunkZeile[]; begriffe?: Array<[number, number] | [number, number, number]> } = {},
+  fehlschlag: { chunksBeiBatch?: number; begriffe?: boolean; loeschen?: boolean } = {},
 ): WissenSpeicher & Speicherstand {
   const zeilen = new Map<string, ChunkZeile>((vorgabe.zeilen ?? []).map((z) => [z.id, z]));
-  const begriffe = new Map<number, { df: number; idf: number }>((vorgabe.begriffe ?? []).map(([h, df]) => [h, { df, idf: 0 }]));
+  const begriffe = new Map<number, { df: number; idf: number }>((vorgabe.begriffe ?? []).map(([h, df, w]) => [h, { df, idf: w ?? 0 }]));
   const ereignisse: string[] = [];
   return {
     zeilen,
@@ -130,6 +131,24 @@ function falscherSpeicher(
     },
     async zaehleChunks() {
       return zeilen.size;
+    },
+    async ladeQuellenInfo(quelleId) {
+      ereignisse.push("ladeQuellenInfo");
+      const z = [...zeilen.values()].filter((r) => r.quelle_id === quelleId);
+      const fremd = z.filter((r) => !(r.extra.quelle === "upload" && (r.quelle_id ?? "").startsWith("upload:"))).length;
+      return { anzahl: z.length, fremd, titel: z[0]?.titel ?? null, bereich: z[0]?.bereich ?? null };
+    },
+    async loescheUpload(quelleId) {
+      ereignisse.push("loescheUpload");
+      if (fehlschlag.loeschen) throw new Error("Loeschen fehlgeschlagen");
+      // wie die echte Anweisung: nur Zeilen mit BEIDEN Merkmalen, und nur diese werden zurueckgegeben
+      const weg = [...zeilen.values()].filter((r) => r.quelle_id === quelleId && r.extra.quelle === "upload" && (r.quelle_id ?? "").startsWith("upload:"));
+      for (const r of weg) zeilen.delete(r.id);
+      return weg.map((r) => r.sparse);
+    },
+    async loescheBegriffe(indizes) {
+      ereignisse.push("loescheBegriffe");
+      for (const i of indizes) begriffe.delete(i);
     },
   };
 }
@@ -431,6 +450,121 @@ async function main() {
     pruefe("Liste: leere Eingabe ergibt leere Liste", gruppiereWissenDokumente([]).length === 0);
   }
 
+  // ---- 10b. Loeschen hochgeladener Dokumente ------------------------------------------------------
+  {
+    const aktionQ = lies("src/lib/actions/wissen.ts");
+    const von = aktionQ.indexOf("export async function wissenDokumentLoeschen");
+    const rumpf = aktionQ.slice(von);
+    const gate = rumpf.indexOf('requirePermission("ki_assistent", "manage")');
+    const erster = Math.min(...["formData.get(", "text(formData", "loescheHochgeladenesDokument(", "createServiceRoleClient()"].map((x) => { const i = rumpf.indexOf(x); return i < 0 ? Infinity : i; }));
+    pruefe("Loeschen/Rechte: requirePermission(ki_assistent, manage) steht vor Formular, Dienst-Client und Loeschen", gate > 0 && gate < erster);
+    pruefe("Loeschen/Rechte: bei fehlendem Recht wird zugriffsFehler zurueckgegeben, es geht nicht weiter", /catch \(error\) \{\s*return zugriffsFehler\(error\);/.test(rumpf));
+    pruefe("Loeschen/Rechte: nur admin darf (rbac), CEO und alle anderen nicht", roles.filter((r) => hasPermission(r, "ki_assistent", "manage")).join() === "admin");
+    pruefe("Loeschen/Server: Titel und Bereich fuer Meldung und Protokoll kommen vom Server, nicht aus dem Formular", !/text\(formData, "titel"\)/.test(rumpf) && /ergebnis\.titel/.test(rumpf));
+    pruefe("Loeschen/Protokoll: das vorhandene Muster protokolliere() schreibt wissen.geloescht (wer, was, wann ueber audit_events)", /protokolliere\(profil, "wissen\.geloescht"/.test(rumpf));
+    const loe = lies("src/lib/wissen/loeschen.ts");
+    pruefe("Loeschen: der Vorschau-Schutz steht als erstes in der Loeschfunktion", loe.indexOf("pruefeUploadUmgebung(") > 0 && loe.indexOf("pruefeUploadUmgebung(") < loe.indexOf("istUploadQuelleId(quelleId)"));
+    const adapter = lies("src/lib/wissen/hochladen.ts");
+    pruefe("Loeschen/Adapter: die DELETE-Anweisung filtert selbst auf quelle_id, 'upload:%' und extra->>quelle = upload", /\.delete\(\)[\s\S]{0,200}\.like\("quelle_id", "upload:%"\)[\s\S]{0,80}\.eq\("extra->>quelle", UPLOAD_QUELLE\)/.test(adapter));
+    const ui = lies("src/components/db/wissen-verwaltung.tsx");
+    pruefe("Loeschen/UI: der Knopf erscheint nur bei loeschbar, mit Bestaetigungsfenster", /dokument\.loeschbar \?/.test(ui) && /showModal\(\)/.test(ui));
+
+    // Vorbestand wie nach dem ETL: 10 Skript-Textstellen, Wortgewichte konsistent (idf = idf(N, df)).
+    const texte = Array.from({ length: 10 }, (_, i) => `Skriptdokument ${i} Beleg Archiv Frist Walnuss ${i % 3 === 0 ? "Meldefrist Schneeeule" : "Quarkspeise"} Artikel ${i}`);
+    const skript = texte.map((t, i) => ({ ...zeilen[0]!, id: `skript-${i}`, quelle_id: `recht/dok${i}.md`, titel: `Skript ${i}`, bereich: "legal", extra: {}, sparse: alsSparsevec(sparseDokument(t)) }) as ChunkZeile);
+    const gew = wortgewichte(skript.map((z) => sparsevecIndizes(z.sparse)));
+    const vorgabeBegriffe = gew.map((g) => [g.hash, g.df, g.idf] as [number, number, number]);
+    const vorbestand = () => falscherSpeicher({ zeilen: skript, begriffe: vorgabeBegriffe });
+    const abbild = (sp: Speicherstand) => JSON.stringify({ z: [...sp.zeilen.keys()].sort(), b: [...sp.begriffe].sort((a, b) => a[0] - b[0]) });
+    const hochladeText = "Neues Dokument Beleg Archiv Frist\n\nZypressenkodex Regenwurm Silberreiher Meldefrist Schneeeule\n\nFrist Walnuss Himmelblau";
+
+    // a) Hochladen, Loeschen, Zustand wie vorher
+    const sp = vorbestand();
+    const vorher = abbild(sp);
+    const up = await verarbeiteUpload(eingabe({ dateiname: "d.txt", titel: "Zu loeschen", bytes: bytes(hochladeText) }), { speicher: sp, einbettung: falscheEinbettung(), jetzt: JETZT });
+    pruefe("Loeschen/Round-Trip: nach dem Upload hat sich der Zustand geaendert (Zeilen und Begriffe)", abbild(sp) !== vorher && sp.zeilen.size === 10 + up.chunks);
+    const neueWoerter = [...sp.begriffe.keys()].filter((h) => !gew.some((g) => g.hash === h)).length;
+    pruefe("Loeschen/Round-Trip: der Upload hat neue Woerter angelegt", neueWoerter > 0, `${neueWoerter} neue Woerter`);
+    const erg = await loescheHochgeladenesDokument(up.quelleId, { speicher: sp, umgebung: {} });
+    pruefe("Loeschen: Upload, dann Loeschen laesst keine Zeilen des Dokuments zurueck", [...sp.zeilen.values()].every((z) => z.quelle_id !== up.quelleId) && sp.zeilen.size === 10 && erg.geloescht === up.chunks && !erg.schonWeg, `${erg.geloescht} Zeilen`);
+    pruefe("Loeschen/Round-Trip: wissen_begriffe (df, idf, Woerter) ist nach Upload + Loeschen gleich dem Zustand VOR dem Upload", abbild(sp) === vorher);
+    pruefe("Loeschen/Round-Trip: Woerter, die nur das Dokument hatte, sind aus wissen_begriffe wieder entfernt", [...sp.begriffe.keys()].every((h) => gew.some((g) => g.hash === h)) && sp.ereignisse.includes("loescheBegriffe"));
+    pruefe("Loeschen: Titel und Bereich kommen vom Server in das Ergebnis", erg.titel === "Zu loeschen" && erg.bereich === "legal");
+
+    // b) Idempotenz: zweites Loeschen, Doppelklick (zwei gleichzeitige Aufrufe)
+    const zweites = await loescheHochgeladenesDokument(up.quelleId, { speicher: sp, umgebung: {} });
+    pruefe("Loeschen/Idempotent: zweites Loeschen -> schon geloescht, kein Fehler, nichts veraendert", zweites.schonWeg && zweites.geloescht === 0 && abbild(sp) === vorher);
+    const sp2 = vorbestand();
+    const up2 = await verarbeiteUpload(eingabe({ dateiname: "d.txt", bytes: bytes(hochladeText) }), { speicher: sp2, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const [r1, r2] = await Promise.all([loescheHochgeladenesDokument(up2.quelleId, { speicher: sp2, umgebung: {} }), loescheHochgeladenesDokument(up2.quelleId, { speicher: sp2, umgebung: {} })]);
+    pruefe("Loeschen/Idempotent: Doppelklick (zwei gleichzeitige Aufrufe) loescht einmal, die Gewichte werden nur einmal verringert", [r1, r2].filter((r) => r.schonWeg).length === 1 && abbild(sp2) === vorher);
+
+    // c) Skript-Zeilen und alles, was kein reiner Upload ist, sind nie loeschbar
+    const sp3 = vorbestand();
+    const vor3 = abbild(sp3);
+    const code = async (q: string, s = sp3) => fehlerCode(() => loescheHochgeladenesDokument(q, { speicher: s, umgebung: {} }));
+    pruefe("Loeschen/Skript: eine Skript-quelle (Pfad) wird abgelehnt, ohne die Datenbank zu fragen", (await code("recht/dok0.md")) === "nichtLoeschbar" && sp3.ereignisse.length === 0 && abbild(sp3) === vor3);
+    pruefe("Loeschen/Skript: auch ein erfundener Vorsatz upload: ohne 32 Hexzeichen wird abgelehnt", (await code("upload:abc")) === "nichtLoeschbar" && (await code("upload:../recht")) === "nichtLoeschbar" && (await code("")) === "nichtLoeschbar");
+    const gefaelscht = { ...skript[0]!, id: "x1", quelle_id: `upload:${"a".repeat(32)}`, extra: {} } as ChunkZeile; // richtige Form, aber nicht vom Upload (kein extra.quelle)
+    const sp4 = falscherSpeicher({ zeilen: [...skript, gefaelscht] });
+    pruefe("Loeschen/Skript: gueltige upload:-Form, aber ohne extra.quelle = upload -> abgelehnt, nichts geloescht", (await code(`upload:${"a".repeat(32)}`, sp4)) === "nichtLoeschbar" && sp4.zeilen.has("x1") && !sp4.ereignisse.includes("loescheUpload"));
+    const markiert = { ...skript[1]!, id: "x2", quelle_id: `upload:${"b".repeat(32)}`, extra: { quelle: "upload" } } as ChunkZeile;
+    const gemischt = { ...skript[2]!, id: "x3", quelle_id: `upload:${"b".repeat(32)}`, extra: {} } as ChunkZeile;
+    const sp5 = falscherSpeicher({ zeilen: [...skript, markiert, gemischt] });
+    pruefe("Loeschen/Skript: gemischte Quelle (eine Zeile vom Upload, eine nicht) -> ganz abgelehnt, auch die Upload-Zeile bleibt", (await code(`upload:${"b".repeat(32)}`, sp5)) === "nichtLoeschbar" && sp5.zeilen.has("x2") && sp5.zeilen.has("x3"));
+    const nurMarker = { ...skript[3]!, id: "x4", quelle_id: "recht/fremd.md", extra: { quelle: "upload" } } as ChunkZeile; // Marker ohne Vorsatz
+    const sp6 = falscherSpeicher({ zeilen: [...skript, nurMarker] });
+    pruefe("Loeschen/Skript: Marker upload ohne Vorsatz upload: in der quelle_id -> nicht loeschbar", (await code("recht/fremd.md", sp6)) === "nichtLoeschbar" && sp6.zeilen.has("x4"));
+    const sp7 = falscherSpeicher({ zeilen: [markiert, gemischt] });
+    const roh = await sp7.loescheUpload(`upload:${"b".repeat(32)}`);
+    pruefe("Loeschen/Server: selbst direkt am Speicher loescht die Anweisung nur Zeilen mit beiden Merkmalen", roh.length === 1 && sp7.zeilen.has("x3") && !sp7.zeilen.has("x2"));
+    pruefe("Loeschen/Liste: loeschbar nur, wenn ALLE Zeilen des Dokuments Upload-Zeilen sind", (() => {
+      const r = (id: string, q: string | null, u: string | null): WissenListeZeile => ({ id, quelle_id: q, pfad: null, titel: "t", bereich: "legal", rollen: ["admin"], eingelesen_am: null, upload_quelle: u, hochgeladen_von: null });
+      const l = gruppiereWissenDokumente([r("1", `upload:${"c".repeat(32)}`, "upload"), r("2", `upload:${"c".repeat(32)}`, "upload"), r("3", "recht/a.md", null), r("4", `upload:${"d".repeat(32)}`, "upload"), r("5", `upload:${"d".repeat(32)}`, null), r("6", "recht/b.md", "upload")]);
+      const f = (k: string) => l.find((x) => x.schluessel === k)!.loeschbar;
+      return f(`upload:${"c".repeat(32)}`) === true && f("recht/a.md") === false && f(`upload:${"d".repeat(32)}`) === false && f("recht/b.md") === false;
+    })());
+
+    // d) Vorschau-Schutz beim Loeschen
+    const sp8 = vorbestand();
+    const up8 = await verarbeiteUpload(eingabe({ dateiname: "d.txt", bytes: bytes(hochladeText) }), { speicher: sp8, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const vor8 = abbild(sp8);
+    sp8.ereignisse.length = 0;
+    pruefe("Loeschen/Vorschau: VERCEL_ENV=preview verweigert das Loeschen, nichts wird gelesen oder geloescht", (await fehlerCode(() => loescheHochgeladenesDokument(up8.quelleId, { speicher: sp8, umgebung: { VERCEL_ENV: "preview" } }))) === "vorschau" && sp8.ereignisse.length === 0 && abbild(sp8) === vor8);
+    pruefe("Loeschen/Vorschau: mit WISSEN_UPLOAD_PREVIEW_OK=true ist es erlaubt", (await loescheHochgeladenesDokument(up8.quelleId, { speicher: sp8, umgebung: { VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: "true" } })).geloescht === up8.chunks);
+
+    // e) Ausfaelle
+    const flag = { loeschen: false, begriffe: false };
+    const sp9 = falscherSpeicher({ zeilen: skript, begriffe: vorgabeBegriffe }, flag);
+    const up9 = await verarbeiteUpload(eingabe({ dateiname: "d.txt", bytes: bytes(hochladeText) }), { speicher: sp9, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const vor9 = abbild(sp9);
+    flag.loeschen = true;
+    pruefe("Loeschen/Ausfall: schlaegt die Loeschanweisung fehl -> loeschen, alles bleibt wie vorher (Zeilen und Gewichte)", (await code(up9.quelleId, sp9)) === "loeschen" && abbild(sp9) === vor9);
+    flag.loeschen = false;
+    flag.begriffe = true;
+    const c9 = await code(up9.quelleId, sp9);
+    pruefe("Loeschen/Ausfall: schlagen nur die Gewichte fehl -> gewichte; das Dokument ist weg (kein halbes Dokument), die Gewichte bleiben zu hoch", c9 === "gewichte" && [...sp9.zeilen.values()].every((z) => z.quelle_id !== up9.quelleId) && sp9.zeilen.size === 10);
+    flag.begriffe = false;
+    const nochmal = await loescheHochgeladenesDokument(up9.quelleId, { speicher: sp9, umgebung: {} });
+    pruefe("Loeschen/Ausfall: ein erneutes Loeschen danach meldet 'schon geloescht' und crasht nicht", nochmal.schonWeg);
+    const ausfall: WissenSpeicher = { ...falscherSpeicher(), ladeQuellenInfo: async () => { throw new Error("DB weg"); } };
+    pruefe("Loeschen/Ausfall: Datenbank beim Lesen nicht erreichbar -> loeschen", (await fehlerCode(() => loescheHochgeladenesDokument(`upload:${"e".repeat(32)}`, { speicher: ausfall, umgebung: {} }))) === "loeschen");
+
+    // f) Gestapelt: df ist immer exakt zurueck; idf der beruehrten Woerter passt zum aktuellen N
+    const sp10 = vorbestand();
+    const a = await verarbeiteUpload(eingabe({ dateiname: "a.txt", titel: "A", bytes: bytes("Dokument A Beleg Walnuss Archiv Zeppelin") }), { speicher: sp10, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const dfVorB = JSON.stringify([...sp10.begriffe].map(([h, v]) => [h, v.df]).sort());
+    const b = await verarbeiteUpload(eingabe({ dateiname: "b.txt", titel: "B", bytes: bytes("Dokument B Frist Quarkspeise Kaktus") }), { speicher: sp10, einbettung: falscheEinbettung(), jetzt: JETZT });
+    await loescheHochgeladenesDokument(b.quelleId, { speicher: sp10, umgebung: {} });
+    const dfNachB = JSON.stringify([...sp10.begriffe].map(([h, v]) => [h, v.df]).sort());
+    pruefe("Loeschen/gestapelt: nach Upload A, Upload B, Loeschen B ist df jedes Wortes exakt wie vor B", dfVorB === dfNachB);
+    const n10 = sp10.zeilen.size;
+    pruefe("Loeschen/gestapelt: Gewichte sind gueltig (0 < df <= N); die beruehrten Woerter passen zum aktuellen N", [...sp10.begriffe.values()].every((v) => v.df > 0 && v.df <= n10) && [...sp10.begriffe.values()].some((v) => v.idf === idf(n10, v.df)));
+    await loescheHochgeladenesDokument(a.quelleId, { speicher: sp10, umgebung: {} });
+    const dfAlle = (x: Speicherstand) => JSON.stringify({ z: [...x.zeilen.keys()].sort(), b: [...x.begriffe].map(([h, v]) => [h, v.df]).sort() });
+    pruefe("Loeschen/gestapelt: nach dem Loeschen beider Dokumente sind Zeilen, Woerter und df des Vorbestands exakt wieder da (idf der nur von B beruehrten Woerter spiegelt dabei das N zwischen A und B, bis der naechste ETL-Lauf alle angleicht)", dfAlle(sp10) === dfAlle(vorbestand()));
+  }
+
   // ---- 11. ETL laesst Uploads stehen ---------------------------------------------------------------
   {
     const etl = lies("scripts/wissen-nach-supabase.ts");
@@ -444,9 +578,9 @@ async function main() {
   for (const loc of ["de", "en", "ru", "kk"]) {
     const m = JSON.parse(lies(`src/messages/${loc}.json`)) as { aktionen: { ok: Record<string, string>; fehler: Record<string, string> }; kiAssistentAnsicht: { wissensVerwaltung: Record<string, unknown> } };
     const w = m.kiAssistentAnsicht.wissensVerwaltung as { titel?: string; bereich?: Record<string, string>; formular?: Record<string, string> };
-    const schluessel = ["wissenVorschau", "wissenDateityp", "wissenLesen", "wissenLeer", "wissenZuLang", "wissenDoppelt", "wissenEinbettung", "wissenSpeichern"];
-    pruefe(`Texte ${loc}: alle Fehler- und Erfolgsmeldungen vorhanden`, schluessel.every((k) => m.aktionen.fehler[k]) && !!m.aktionen.ok.wissenHochgeladen);
-    pruefe(`Texte ${loc}: Titel, fuenf Bereiche und Formularfelder vorhanden`, !!w.titel && UPLOAD_BEREICHE.every((b) => w.bereich?.[b]) && ["titel", "datei", "titelFeld", "bereich", "rollen", "knopf", "adminImmer"].every((k) => w.formular?.[k]));
+    const schluessel = ["wissenNichtLoeschbar", "wissenLoeschen", "wissenGewichte", "wissenVorschau", "wissenDateityp", "wissenLesen", "wissenLeer", "wissenZuLang", "wissenDoppelt", "wissenEinbettung", "wissenSpeichern"];
+    pruefe(`Texte ${loc}: alle Fehler- und Erfolgsmeldungen vorhanden`, schluessel.every((k) => m.aktionen.fehler[k]) && !!m.aktionen.ok.wissenHochgeladen && !!m.aktionen.ok.wissenGeloescht && !!m.aktionen.ok.wissenSchonGeloescht);
+    pruefe(`Texte ${loc}: Titel, fuenf Bereiche und Formularfelder vorhanden`, !!w.titel && UPLOAD_BEREICHE.every((b) => w.bereich?.[b]) && ["titel", "datei", "titelFeld", "bereich", "rollen", "knopf", "adminImmer"].every((k) => w.formular?.[k]) && ["knopf", "titel", "dokument", "bereich", "abschnitte", "warnung", "abbrechen", "bestaetigen"].every((k) => (w as { loeschen?: Record<string, string> }).loeschen?.[k]));
   }
 
   console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);

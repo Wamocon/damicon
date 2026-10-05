@@ -73,6 +73,13 @@ Der Upload nutzt dieselben Funktionen wie das Skript: `chunkiere`, `wissenEinbet
 
 **Liste.** Zeigt Titel, Bereich, Rollen, Datum (`eingelesen_am`), Hochgeladen von und Anzahl der Abschnitte. Per Skript eingelesene Dokumente erscheinen mit, gruppiert nach `quelle_id`.
 
+**Löschen.** In der Liste hat jedes **hochgeladene** Dokument einen Löschen-Knopf mit Bestätigungsfenster (Titel, Bereich, Zahl der Abschnitte, Warnung, dass es nicht rückgängig zu machen ist). Löschbar ist nur, was der Upload angelegt hat: alle Zeilen der Quelle haben `extra.quelle = "upload"` **und** eine `quelle_id` der Form `upload:<32 Hex>`. Vom Skript oder ETL geladene Dokumente haben keinen Knopf und werden auch vom Server abgelehnt (Server Action `wissenDokumentLoeschen`: zuerst `requirePermission("ki_assistent","manage")`, dann Vorschau-Schutz, Form der `quelle_id`, Prüfung der Zeilen, und die `DELETE`-Anweisung filtert beide Bedingungen noch einmal selbst). Der Vorschau-Schutz (`WISSEN_UPLOAD_PREVIEW_OK`) gilt auch hier. Code: `src/lib/wissen/loeschen.ts`.
+
+- **Wortgewichte.** Nach dem Löschen werden df und IDF der Wörter des Dokuments zurückgerechnet (sparsevec-Indizes der gelöschten Zeilen, wie beim Upload nur rückwärts); Wörter, die dann in keiner Textstelle mehr vorkommen, verschwinden aus `wissen_begriffe`. Nach **einem** Upload und dem Löschen desselben Dokuments ist `wissen_begriffe` wieder genau wie vorher (Round-Trip-Test). Bei mehreren Uploads dazwischen ist df immer exakt zurück; das IDF der berührten Wörter passt zum aktuellen N, die der übrigen Wörter ändert erst der nächste ETL-Lauf.
+- **Ausfall.** Die Zeilen werden in **einer** `DELETE`-Anweisung entfernt: ganz oder gar nicht. Schlägt sie fehl, bleibt alles wie es war. Schlägt danach nur die Rückrechnung der Wortgewichte fehl, ist das Dokument gelöscht und die Gewichte sind etwas zu hoch (unschädlich, der nächste ETL-Lauf gleicht sie aus); die Meldung sagt das ausdrücklich. Ein halbes Dokument bleibt nie zurück.
+- **Mehrfach.** Doppelklick oder ein zweites Löschen findet nichts mehr und meldet "bereits gelöscht", ohne die Gewichte noch einmal zu verringern: sie werden nur aus den Zeilen berechnet, die dieser Aufruf wirklich gelöscht hat (`DELETE … RETURNING`).
+- **Protokoll.** Wie beim Upload schreibt `protokolliere()` einen Eintrag in `audit_events` (`wissen.geloescht`: Person, Titel, Bereich, `quelle_id`, Zahl der Abschnitte, Zeitpunkt).
+
 ## Ausrollen (gehostet)
 
 1. Migrationen anwenden (`20261102000000_wissen_pgvector.sql`): über den Workflow "Datenbank-Migration" oder `supabase db push --linked` (vorher `--dry-run`).

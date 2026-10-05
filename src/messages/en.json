@@ -913,7 +913,9 @@
       "transkription": "Dictation accepted.",
       "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
       "dokumentGeaendert": "Document “{wert}” updated.",
-      "wissenHochgeladen": "Document \"{wert}\" uploaded and searchable."
+      "wissenHochgeladen": "Document \"{wert}\" uploaded and searchable.",
+      "wissenGeloescht": "Document \"{wert}\" deleted.",
+      "wissenSchonGeloescht": "This document has already been deleted."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -963,7 +965,10 @@
       "wissenDoppelt": "This content is already in the knowledge base (\"{wert}\").",
       "wissenEinbettung": "Embedding failed. The embedding service is unreachable, nothing was saved.",
       "wissenSpeichern": "The document could not be saved. Nothing was kept.",
-      "wissenVorschau": "Upload blocked: the preview environment does not write to the knowledge base because it may share the production database. Please upload in production or in an environment with its own database."
+      "wissenVorschau": "Upload blocked: the preview environment does not write to the knowledge base because it may share the production database. Please upload in production or in an environment with its own database.",
+      "wissenNichtLoeschbar": "This document cannot be deleted here. Only documents uploaded through this administration can be deleted, never documents from the import script.",
+      "wissenLoeschen": "The document could not be deleted. Nothing was changed.",
+      "wissenGewichte": "The document was deleted, but the search word weights could not be updated. This is harmless and is corrected by the next ETL run."
     },
     "einladungen": {
       "erfolg": {
@@ -2232,6 +2237,16 @@
         "rollen": "Who may see the document?",
         "adminImmer": "Administration is always included. Other roles do not use the knowledge search.",
         "knopf": "Upload document"
+      },
+      "loeschen": {
+        "knopf": "Delete",
+        "titel": "Delete document?",
+        "dokument": "Document",
+        "bereich": "Area",
+        "abschnitte": "Sections",
+        "warnung": "Warning: the document and all its sections are removed from the knowledge base for good. This cannot be undone. The assistant will no longer find it.",
+        "abbrechen": "Cancel",
+        "bestaetigen": "Delete permanently"
       }
     }
   },

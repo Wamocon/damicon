@@ -28,7 +28,12 @@ export interface WissenDokumentZeile {
   hochgeladenVon: string | null;
   chunks: number;
   herkunft: "upload" | "skript";
+  /** Nur ein Dokument, dessen Zeilen ALLE aus dem Upload stammen (extra.quelle = "upload" und quelle_id "upload:..."),
+   *  zeigt einen Loeschen-Knopf. Skript-Dokumente nie. Der Server prueft dasselbe noch einmal selbst. */
+  loeschbar: boolean;
 }
+
+const istUploadZeile = (z: WissenListeZeile) => z.upload_quelle === "upload" && (z.quelle_id ?? "").startsWith("upload:");
 
 export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[]): WissenDokumentZeile[] {
   const gruppen = new Map<string, WissenDokumentZeile>();
@@ -45,10 +50,12 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[]): W
         hochgeladenVon: z.hochgeladen_von,
         chunks: 1,
         herkunft: z.upload_quelle === "upload" ? "upload" : "skript",
+        loeschbar: istUploadZeile(z),
       });
       continue;
     }
     vorhanden.chunks += 1;
+    vorhanden.loeschbar &&= istUploadZeile(z);
     for (const r of z.rollen ?? []) if (!vorhanden.rollen.includes(r)) vorhanden.rollen.push(r);
     if (z.eingelesen_am && (!vorhanden.datum || z.eingelesen_am > vorhanden.datum)) vorhanden.datum = z.eingelesen_am;
     if (!vorhanden.hochgeladenVon && z.hochgeladen_von) vorhanden.hochgeladenVon = z.hochgeladen_von;
