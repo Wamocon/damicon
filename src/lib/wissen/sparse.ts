@@ -85,3 +85,17 @@ export function sparsevecIndizes(text: string): number[] {
   if (!innen.trim()) return [];
   return innen.split(",").map((paar) => Number(paar.split(":")[0]));
 }
+
+/** Dokumenthaeufigkeit (df) und IDF je Wort fuer wissen_begriffe. `chunkIndizes` hat je Textstelle die Wort-Indizes
+ *  (schon mit sparseIndex abgebildet); ein Wort zaehlt je Textstelle einmal, N ist die Zahl der Textstellen.
+ *  idf = ln(1 + (N - df + 0.5) / (df + 0.5)). Reihenfolge des Ergebnisses: erstes Auftreten. Vom ETL
+ *  (scripts/wissen-nach-supabase.ts) benutzt; die Rechnung ist die, die dort vorher inline stand. */
+export function wortgewichte(chunkIndizes: Iterable<readonly number[]>): { hash: number; df: number; idf: number }[] {
+  const df = new Map<number, number>();
+  let n = 0;
+  for (const indizes of chunkIndizes) {
+    n += 1;
+    for (const idx of new Set(indizes)) df.set(idx, (df.get(idx) ?? 0) + 1);
+  }
+  return [...df].map(([hash, d]) => ({ hash, df: d, idf: Number(Math.log(1 + (n - d + 0.5) / (d + 0.5)).toFixed(6)) }));
+}

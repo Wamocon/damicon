@@ -436,7 +436,7 @@ async function main() {
     const etl = lies("scripts/wissen-nach-supabase.ts");
     pruefe("ETL: Marker upload ist definiert", /const UPLOAD_QUELLE = "upload"/.test(etl));
     pruefe("ETL: --bereinigen liest extra->>quelle und schliesst Uploads vom Loeschen aus", /extra->>quelle/.test(etl) && /!== UPLOAD_QUELLE/.test(etl));
-    pruefe("ETL: Uploads zaehlen in die Dokumenthaeufigkeit (N und df) mit", /const n = punkte\.length \+ hochgeladen/.test(etl) && /sparsevecIndizes/.test(etl));
+    pruefe("ETL: Uploads zaehlen in die Dokumenthaeufigkeit (N und df) mit", /listen\.push\(sparsevecIndizes\(/.test(etl) && /wortgewichte\(listen\)/.test(etl));
     pruefe("Upload und ETL benutzen denselben Marker", lies("src/lib/wissen/hochladen.ts").includes('UPLOAD_QUELLE = "upload"'));
   }
 

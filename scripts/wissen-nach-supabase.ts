@@ -15,7 +15,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { qdrantAusUmgebung } from "../src/lib/wissen/qdrant";
-import { alsSparsevec, sparseIndex, sparsevecIndizes } from "../src/lib/wissen/sparse";
+import { alsSparsevec, sparseIndex, sparsevecIndizes, wortgewichte } from "../src/lib/wissen/sparse";
 
 interface QdrantPunkt {
   id: string;
@@ -111,11 +111,8 @@ async function main() {
 
   const db = createClient(url, dienstSchluessel, { auth: { persistSession: false, autoRefreshToken: false } });
 
-  // Dokumenthaeufigkeit je Wort (ein Wort zaehlt je Textstelle einmal)
-  const df = new Map<number, number>();
-  for (const p of punkte) {
-    for (const idx of new Set(p.vector.text.indices.map(sparseIndex))) df.set(idx, (df.get(idx) ?? 0) + 1);
-  }
+  // Dokumenthaeufigkeit je Wort (ein Wort zaehlt je Textstelle einmal): wortgewichte() in sparse.ts.
+  const listen: number[][] = punkte.map((p) => p.vector.text.indices.map(sparseIndex));
   // Hochgeladene Textstellen (nicht in Qdrant) zaehlen mit, nur lesend.
   let hochgeladen = 0;
   for (let von = 0; ; von += 500) {
@@ -123,13 +120,12 @@ async function main() {
     if (error) throw new Error(`Uploads zaehlen: ${error.message}`);
     for (const r of data ?? []) {
       hochgeladen += 1;
-      for (const idx of new Set(sparsevecIndizes(String((r as { sparse: unknown }).sparse)))) df.set(idx, (df.get(idx) ?? 0) + 1);
+      listen.push(sparsevecIndizes(String((r as { sparse: unknown }).sparse)));
     }
     if (!data || data.length < 500) break;
   }
   if (hochgeladen > 0) console.log(`  ${hochgeladen} hochgeladene Textstellen bleiben bestehen und zaehlen fuer die Wortgewichte mit`);
-  const n = punkte.length + hochgeladen;
-  const begriffe = [...df].map(([hash, d]) => ({ hash, df: d, idf: Number(Math.log(1 + (n - d + 0.5) / (d + 0.5)).toFixed(6)) }));
+  const begriffe = wortgewichte(listen);
   console.log(`  ${begriffe.length} verschiedene Woerter`);
   if (args.has("--trocken")) return;
 
