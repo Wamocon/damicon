@@ -12,6 +12,7 @@ import {
 } from "@/lib/wissen/chunker";
 import type { Einbettung } from "@/lib/wissen/embed";
 import {
+  BEREICH_WERT,
   MAX_DATEI_BYTES,
   MAX_TITEL,
   UPLOAD_BEREICHE,
@@ -22,7 +23,7 @@ import {
 } from "@/lib/wissen/upload-konstanten";
 import { alsSparsevec, sparseDokument, sparseIndex } from "@/lib/wissen/sparse";
 
-export { MAX_DATEI_BYTES, MAX_TITEL, UPLOAD_BEREICHE, UPLOAD_ENDUNGEN, UPLOAD_ROLLEN };
+export { BEREICH_WERT, MAX_DATEI_BYTES, MAX_TITEL, UPLOAD_BEREICHE, UPLOAD_ENDUNGEN, UPLOAD_ROLLEN };
 export type { UploadBereich, UploadDateityp };
 
 // Admin-Upload in die BESTEHENDE Wissensbasis (public.wissen_chunks). Kein zweiter
@@ -46,6 +47,7 @@ export const UPLOAD_QUELLE = "upload";
 
 export type UploadFehlerCode =
   | "eingabe"
+  | "vorschau"
   | "dateityp"
   | "zuGross"
   | "lesen"
@@ -151,13 +153,14 @@ export interface UploadMetadaten {
 /** Ein Dokument im Sinne des Chunkers. Markdown darf sein Frontmatter mitbringen (wie im Korpus),
  *  .txt und PDF haben keines. Titel, Bereich, Quelle und Kennung setzt IMMER der Upload. */
 export function baueDokument(text: string, m: UploadMetadaten): WissensDokument {
-  const pfad = `upload/${m.bereich}/${m.dateiname}`;
+  const bereich = BEREICH_WERT[m.bereich]; // gespeicherter Wert, siehe upload-konstanten.ts
+  const pfad = `upload/${bereich}/${m.dateiname}`;
   const dok: WissensDokument =
     m.typ === "md"
       ? parseDokument(pfad, text)
       : {
           pfad,
-          bereich: m.bereich,
+          bereich,
           text: text.trim(),
           meta: {
             chunk_id: null,
@@ -178,7 +181,7 @@ export function baueDokument(text: string, m: UploadMetadaten): WissensDokument 
         };
   const quelleId = uploadQuelleId(m.hash);
   dok.pfad = pfad;
-  dok.bereich = m.bereich; // parseDokument leitet den Bereich sonst aus dem Pfad ab
+  dok.bereich = bereich; // parseDokument leitet den Bereich sonst aus dem Pfad ab
   dok.meta.titel = m.titel;
   dok.meta.quelle_id = quelleId;
   dok.meta.chunk_id = quelleId; // daraus entstehen die stabilen Chunk-IDs: gleicher Inhalt = gleiche IDs
@@ -304,11 +307,24 @@ export interface UploadAbhaengigkeiten {
   speicher: WissenSpeicher;
   einbettung: Einbettung;
   jetzt?: () => Date;
+  /** Umgebungsvariablen; nur fuer Tests, sonst process.env. */
+  umgebung?: Record<string, string | undefined>;
+}
+
+/** Vorschau-Schutz: Eine Vercel-Preview-Umgebung teilt sich bisher dieselbe Datenbank (und damit dasselbe Schema
+ *  `public`) wie die Produktion, weil die App kein Schema waehlt. Ein Upload von dort wuerde in die Produktions-
+ *  Wissensbasis schreiben. Deshalb verweigert der Upload in VERCEL_ENV=preview, solange nicht ausdruecklich
+ *  WISSEN_UPLOAD_PREVIEW_OK=true gesetzt ist (nur setzen, wenn die Vorschau eine eigene Datenbank hat). */
+export function pruefeUploadUmgebung(env: Record<string, string | undefined> = process.env): void {
+  if (env.VERCEL_ENV === "preview" && env.WISSEN_UPLOAD_PREVIEW_OK !== "true") throw new UploadFehler("vorschau");
 }
 
 /** Der ganze Weg: pruefen, Text lesen, Dublette erkennen, zerlegen, einbetten, schreiben, Wortgewichte nachfuehren.
  *  Wirft ausschliesslich UploadFehler. Die Rolle der hochladenden Person prueft der Aufrufer (Server Action). */
 export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeiten): Promise<UploadErgebnis> {
+  // 0. Umgebung: nie aus einer Vorschau in die gemeinsame Datenbank schreiben.
+  pruefeUploadUmgebung(d.umgebung ?? process.env);
+
   // 1. Eingabe - vor jedem Parsen, die Dateigroesse zuerst (ein PDF-Parser soll nie eine Riesendatei sehen).
   const titel = e.titel.trim();
   if (!titel || titel.length > MAX_TITEL || !istBereich(e.bereich)) throw new UploadFehler("eingabe");

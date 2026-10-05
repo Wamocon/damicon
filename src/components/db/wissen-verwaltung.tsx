@@ -7,7 +7,7 @@ import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, SubmitKnopf } f
 import { wissenDokumenteLaden, wissenDokumentHochladen } from "@/lib/actions/wissen";
 import { leer } from "@/lib/actions/status";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
-import { UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
+import { bereichSchluessel, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
 // Wissensverwaltung im KI-Panel (Einstellungen, unter dem Ratenlimit). Admin-only: Das Panel reicht das Element nur
 // an Rollen mit ki_assistent:manage weiter, und beide Server Actions pruefen die Berechtigung noch einmal selbst.
@@ -62,8 +62,10 @@ function WissenDokumentKarte({ dokument }: { dokument: WissenDokumentZeile }) {
   const datum = dokument.datum && !Number.isNaN(Date.parse(dokument.datum))
     ? format.dateTime(new Date(dokument.datum), { dateStyle: "medium" })
     : t("liste.keinDatum");
-  const bereichName = (UPLOAD_BEREICHE as readonly string[]).includes(dokument.bereich)
-    ? t(`bereich.${dokument.bereich}` as never)
+  // Gespeichert ist "legal", angezeigt wird die Bezeichnung "Recht".
+  const bereichKey = bereichSchluessel(dokument.bereich);
+  const bereichName = (UPLOAD_BEREICHE as readonly string[]).includes(bereichKey)
+    ? t(`bereich.${bereichKey}` as never)
     : dokument.bereich || t("liste.keinBereich");
 
   return (

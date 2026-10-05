@@ -9,6 +9,25 @@ import { BUERO_ROLLEN } from "@/lib/wissen/rollen";
 export const UPLOAD_BEREICHE = ["recht", "steuer", "compliance", "audit", "risiko"] as const;
 export type UploadBereich = (typeof UPLOAD_BEREICHE)[number];
 
+/** Welcher Wert in `wissen_chunks.bereich` landet. Die Oberflaeche behaelt ihre Bezeichnungen, aber "recht" schreibt
+ *  "legal": so heisst der Bereich im vorhandenen Korpus (Ordner des Einlese-Skripts), und Uploads zum Recht stehen in
+ *  derselben Gruppe. steuer, compliance, audit und risiko gibt es im Korpus bisher nicht bzw. gleich lautend (audit);
+ *  sie werden unveraendert geschrieben. Die uebrigen Korpuswerte (amtlich, fachquellen, kernwissen, nk-214-viii)
+ *  kommen nur vom Skript und sind im Upload nicht waehlbar. */
+export const BEREICH_WERT: Record<UploadBereich, string> = {
+  recht: "legal",
+  steuer: "steuer",
+  compliance: "compliance",
+  audit: "audit",
+  risiko: "risiko",
+};
+
+/** Umkehrung fuer die Anzeige: gespeichertes "legal" zeigt die Bezeichnung "Recht". Andere Werte bleiben, wie sie sind. */
+export function bereichSchluessel(gespeichert: string): string {
+  const treffer = UPLOAD_BEREICHE.find((b) => BEREICH_WERT[b] === gespeichert);
+  return treffer ?? gespeichert;
+}
+
 /** Rollen, die der Upload anbietet: genau die Bueroeinheit der Wissensbasis. Die Wissenssuche ist ohnehin nur
  *  fuer sie freigeschaltet (darfWissenNutzen), weitere Rollen waeren wirkungslos. */
 export const UPLOAD_ROLLEN: readonly Role[] = BUERO_ROLLEN;

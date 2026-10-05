@@ -56,7 +56,9 @@ Im KI-Panel, Ansicht "Einstellungen", unter dem Ratenlimit: Abschnitt "Wissensdo
 | | |
 | --- | --- |
 | Dateien | `.pdf`, `.md`, `.txt`, höchstens 8 MB, höchstens 400 Abschnitte je Dokument |
-| Bereich | `recht`, `steuer`, `compliance`, `audit`, `risiko` (Spalte `bereich`, ohne CHECK oder Enum, keine Migration) |
+| Bereich | Auswahl `recht`, `steuer`, `compliance`, `audit`, `risiko`. Gespeichert wird **`legal`** für Recht (so heißt der Bereich im Korpus), die anderen vier unverändert. Die Spalte `bereich` hat weder CHECK noch Enum, keine Migration. Angezeigt wird `legal` wieder als "Recht". Die Korpuswerte `amtlich`, `fachquellen`, `kernwissen` und `nk-214-viii` kommen nur vom Skript |
+| Autoritätsstufe | bleibt `NULL` (außer ein Markdown-Frontmatter nennt eine). Solche Zeilen erscheinen in der allgemeinen Trefferliste, nicht in den bevorzugten Plätzen für Recht und amtliche Texte (Stufe 1 bis 3) |
+| Vorschau | In `VERCEL_ENV=preview` verweigert der Upload, solange nicht `WISSEN_UPLOAD_PREVIEW_OK=true` gesetzt ist. Die App wählt kein Datenbankschema; eine Vorschau mit denselben Supabase-Schlüsseln wie die Produktion würde in die Produktions-Wissensbasis schreiben. Das Flag nur setzen, wenn die Vorschau eine eigene Datenbank hat |
 | Rollen | Büro-Rollen (admin, ceo, betriebsleitung, buchhaltung). Admin ist immer dabei. Andere Rollen nutzen die Wissenssuche nicht (`darfWissenNutzen`) |
 | Original | wird nicht aufbewahrt, nur der Text liegt in `wissen_chunks` |
 | Dublette | derselbe Inhalt (SHA-256 des normalisierten Textes, `quelle_id = upload:<hash>`) wird abgelehnt |

@@ -19,7 +19,9 @@ import { einbettungsText } from "@/lib/wissen/chunker";
 import type { Einbettung } from "@/lib/wissen/embed";
 import { gruppiereWissenDokumente, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
 import {
+  BEREICH_WERT,
   erlaubteRollen,
+  pruefeUploadUmgebung,
   idf,
   inhaltsHash,
   MAX_CHUNKS,
@@ -33,6 +35,7 @@ import {
   type UploadEingabe,
   type WissenSpeicher,
 } from "@/lib/wissen/hochladen";
+import { bereichSchluessel } from "@/lib/wissen/upload-konstanten";
 import { alsSparsevec, sparseDokument, sparseIndex, sparsevecIndizes, tokens } from "@/lib/wissen/sparse";
 import type { RpcKlient } from "@/lib/wissen/supabase-suche";
 import { sucheWissen } from "@/lib/wissen/suche";
@@ -244,6 +247,25 @@ async function main() {
   pruefe("Rollen: Nicht-Bueroeinheiten und Unsinn werden verworfen", erlaubteRollen(["kunde", "pfluecker", "brigade", "erzeuger", "root", ""]).join() === "admin");
   pruefe("Rollen: Doppelte zaehlen einmal, feste Reihenfolge", erlaubteRollen(["buchhaltung", "ceo", "buchhaltung"]).join() === "admin,ceo,buchhaltung");
   pruefe("Bereiche: Recht, Steuer, Compliance, Audit, Risiko, klein geschrieben", UPLOAD_BEREICHE.join() === "recht,steuer,compliance,audit,risiko");
+  pruefe("Bereiche: recht -> legal, die vier anderen bleiben unveraendert", BEREICH_WERT.recht === "legal" && (["steuer", "compliance", "audit", "risiko"] as const).every((b) => BEREICH_WERT[b] === b));
+  pruefe("Bereiche: Anzeige kehrt legal wieder zu recht um, Korpuswerte bleiben", bereichSchluessel("legal") === "recht" && bereichSchluessel("steuer") === "steuer" && bereichSchluessel("amtlich") === "amtlich" && bereichSchluessel("nk-214-viii") === "nk-214-viii");
+
+  // ---- 2b. Vorschau-Schutz -----------------------------------------------------------------------
+  {
+    const wirft = (env: Record<string, string | undefined>) => { try { pruefeUploadUmgebung(env); return false; } catch (e) { return e instanceof UploadFehler && e.code === "vorschau"; } };
+    pruefe("Vorschau-Schutz: VERCEL_ENV=preview wird abgelehnt", wirft({ VERCEL_ENV: "preview" }));
+    pruefe("Vorschau-Schutz: WISSEN_UPLOAD_PREVIEW_OK=true hebt die Sperre auf", !wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: "true" }));
+    pruefe("Vorschau-Schutz: nur der Wert true gilt (1, yes, TRUE, leer nicht)", ["1", "yes", "TRUE", "", "false"].every((v) => wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: v })));
+    pruefe("Vorschau-Schutz: Produktion, Development und lokal (ohne VERCEL_ENV) sind frei", !wirft({ VERCEL_ENV: "production" }) && !wirft({ VERCEL_ENV: "development" }) && !wirft({}));
+    pruefe("Vorschau-Schutz: das Flag allein erlaubt nichts anderes (preview bleibt zu ohne Flag)", wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: undefined }));
+    const s = falscherSpeicher();
+    const e = falscheEinbettung();
+    const code = await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s, einbettung: e, jetzt: JETZT, umgebung: { VERCEL_ENV: "preview" } }));
+    pruefe("Vorschau-Schutz: verarbeiteUpload in der Vorschau -> vorschau, nichts gelesen, eingebettet oder geschrieben", code === "vorschau" && e.aufrufe === 0 && s.ereignisse.length === 0 && s.zeilen.size === 0);
+    const frei = await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s, einbettung: e, jetzt: JETZT, umgebung: { VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: "true" } }));
+    pruefe("Vorschau-Schutz: mit Freigabe laeuft der Upload", frei === "kein-fehler" && s.zeilen.size > 0);
+    pruefe("Vorschau-Schutz: die Action meldet den Fall mit eigener Meldung", /vorschau: "fehler\.wissenVorschau"/.test(aktion) && aktion.indexOf("pruefeUploadUmgebung();") < aktion.indexOf("arrayBuffer()"));
+  }
 
   // ---- 3. Eingabepruefung -----------------------------------------------------------------------
   {
@@ -280,7 +302,7 @@ async function main() {
   const erg = await verarbeiteUpload(eingabe({ rollen: ["buchhaltung", "kunde"] }), d1);
   const zeilen = [...s1.zeilen.values()];
   pruefe("Upload (.md): Ergebnis nennt die Zahl der Abschnitte, Zeilen liegen im Speicher", erg.chunks > 0 && zeilen.length === erg.chunks, `${erg.chunks} Abschnitte`);
-  pruefe("Upload: Bereich klein geschrieben, Pfad unter upload/", zeilen.every((z) => z.bereich === "recht" && z.pfad === "upload/recht/kodex.md"));
+  pruefe("Upload: Formularwert recht wird als bereich \"legal\" gespeichert, Pfad unter upload/legal/", zeilen.every((z) => z.bereich === "legal" && z.pfad === "upload/legal/kodex.md"), `${zeilen[0]?.bereich} ${zeilen[0]?.pfad}`);
   pruefe("Upload: Rollen = Admin + Buchhaltung (Kunde verworfen)", zeilen.every((z) => z.rollen.join() === "admin,buchhaltung"), zeilen[0]?.rollen.join());
   pruefe("Upload: Markierung extra.quelle = upload, Hash, Dateiname und Hochladende stehen in extra", zeilen.every((z) => z.extra.quelle === "upload" && z.extra.inhalts_hash === erg.hash && z.extra.dateiname === "kodex.md" && z.extra.hochgeladen_von === ADMIN.id && z.extra.hochgeladen_von_name === ADMIN.name));
   pruefe("Upload: quelle_id = upload:<hash>, Titel und Beleg-Kontext = Titel", zeilen.every((z) => z.quelle_id === uploadQuelleId(erg.hash) && z.titel === "Testkodex Zypresse" && z.kontext === "Testkodex Zypresse"));
@@ -422,7 +444,7 @@ async function main() {
   for (const loc of ["de", "en", "ru", "kk"]) {
     const m = JSON.parse(lies(`src/messages/${loc}.json`)) as { aktionen: { ok: Record<string, string>; fehler: Record<string, string> }; kiAssistentAnsicht: { wissensVerwaltung: Record<string, unknown> } };
     const w = m.kiAssistentAnsicht.wissensVerwaltung as { titel?: string; bereich?: Record<string, string>; formular?: Record<string, string> };
-    const schluessel = ["wissenDateityp", "wissenLesen", "wissenLeer", "wissenZuLang", "wissenDoppelt", "wissenEinbettung", "wissenSpeichern"];
+    const schluessel = ["wissenVorschau", "wissenDateityp", "wissenLesen", "wissenLeer", "wissenZuLang", "wissenDoppelt", "wissenEinbettung", "wissenSpeichern"];
     pruefe(`Texte ${loc}: alle Fehler- und Erfolgsmeldungen vorhanden`, schluessel.every((k) => m.aktionen.fehler[k]) && !!m.aktionen.ok.wissenHochgeladen);
     pruefe(`Texte ${loc}: Titel, fuenf Bereiche und Formularfelder vorhanden`, !!w.titel && UPLOAD_BEREICHE.every((b) => w.bereich?.[b]) && ["titel", "datei", "titelFeld", "bereich", "rollen", "knopf", "adminImmer"].every((k) => w.formular?.[k]));
   }

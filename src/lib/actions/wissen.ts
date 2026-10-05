@@ -6,7 +6,7 @@ import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { aktualisiere, protokolliere, text } from "@/lib/actions/formular-helfer";
 import { wissenEinbettung } from "@/lib/wissen/embed";
-import { MAX_DATEI_BYTES, supabaseSpeicher, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
+import { MAX_DATEI_BYTES, pruefeUploadUmgebung, supabaseSpeicher, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
 import { gruppiereWissenDokumente, type WissenDokumentZeile, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
 
 // Admin-Upload in die Wissensbasis (Recht, Steuer, Compliance, Audit, Risiko). Dieselbe Berechtigung wie die
@@ -22,6 +22,7 @@ import { gruppiereWissenDokumente, type WissenDokumentZeile, type WissenListeZei
 
 const FEHLER_SCHLUESSEL: Record<UploadFehler["code"], string> = {
   eingabe: "fehler.eingabe",
+  vorschau: "fehler.wissenVorschau",
   dateityp: "fehler.wissenDateityp",
   zuGross: "fehler.zuGross",
   lesen: "fehler.wissenLesen",
@@ -49,6 +50,8 @@ export async function wissenDokumentHochladen(
   if (datei.size > MAX_DATEI_BYTES) return fehler("fehler.zuGross");
 
   try {
+    // Vor dem Einlesen der Datei: in einer Vorschau-Umgebung (gemeinsame Datenbank) wird nichts geschrieben.
+    pruefeUploadUmgebung();
     const ergebnis = await verarbeiteUpload(
       {
         titel: text(formData, "titel"),

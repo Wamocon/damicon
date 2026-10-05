@@ -962,7 +962,8 @@
       "wissenZuLang": "The document is too long (at most {wert} sections). Please split it into several files.",
       "wissenDoppelt": "This content is already in the knowledge base (\"{wert}\").",
       "wissenEinbettung": "Embedding failed. The embedding service is unreachable, nothing was saved.",
-      "wissenSpeichern": "The document could not be saved. Nothing was kept."
+      "wissenSpeichern": "The document could not be saved. Nothing was kept.",
+      "wissenVorschau": "Upload blocked: the preview environment does not write to the knowledge base because it may share the production database. Please upload in production or in an environment with its own database."
     },
     "einladungen": {
       "erfolg": {

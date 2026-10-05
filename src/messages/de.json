@@ -962,7 +962,8 @@
       "wissenZuLang": "Das Dokument ist zu lang (höchstens {wert} Abschnitte). Bitte in mehrere Dateien teilen.",
       "wissenDoppelt": "Dieser Inhalt ist bereits in der Wissensbasis (\"{wert}\").",
       "wissenEinbettung": "Die Einbettung ist fehlgeschlagen. Der Einbettungsdienst ist nicht erreichbar, es wurde nichts gespeichert.",
-      "wissenSpeichern": "Das Dokument konnte nicht gespeichert werden. Es wurde nichts übernommen."
+      "wissenSpeichern": "Das Dokument konnte nicht gespeichert werden. Es wurde nichts übernommen.",
+      "wissenVorschau": "Upload gesperrt: In der Vorschau-Umgebung wird nicht in die Wissensbasis geschrieben, weil sie dieselbe Datenbank wie die Produktion nutzen kann. Bitte in der Produktion oder in einer Umgebung mit eigener Datenbank hochladen."
     },
     "einladungen": {
       "erfolg": {
