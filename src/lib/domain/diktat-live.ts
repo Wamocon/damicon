@@ -117,6 +117,8 @@ export interface LiveKonfiguration {
   /** Nur im Gespraech (Sprachmodus), siehe GESPRAECH_ENDPUNKT. */
   endpoint_sensitivity?: number;
   endpoint_latency_adjustment_level?: number;
+  /** Nur im Gespraech und nur mit Schalter (KI_SPRECHERTRENNUNG, siehe liveKonfiguration). */
+  enable_speaker_diarization?: true;
   context: DiktatKontext;
 }
 
@@ -145,9 +147,21 @@ export const GESPRAECH_ENDPUNKT = { endpoint_sensitivity: 0.2, endpoint_latency_
 /** Laengste Wartezeit nach dem letzten Wort im Gespraech (Diktat: ENDPUNKT_VERZOEGERUNG_MS). */
 export const GESPRAECH_ENDPUNKT_VERZOEGERUNG_MS = 1_000;
 
-export function liveKonfiguration(oberflaeche: string | undefined, zweck: LiveZweck = "diktat"): LiveKonfiguration {
+/** Sprechertrennung im Gespraech (Rueckmeldung vom 05.10.2026: "er spricht, bekommt von anderen
+ *  Ton und bricht ab"). Jedes Wort traegt dann eine Sprechernummer, und der Sprachmodus nimmt nur
+ *  den Hauptsprecher der Sitzung als Frage oder Unterbrechung (domain/sprachmodus.ts,
+ *  nurHauptsprecher). Soniox selbst warnt: in Echtzeit ungenauer als nachtraeglich, Nummern
+ *  koennen anfangs springen, und die Endpunkterkennung verschlechtert die Zuordnung
+ *  (soniox.com/docs/stt/concepts/speaker-diarization, abgerufen 03.10.2026). Deshalb nur mit
+ *  Schalter, bis eine Messung zeigt, dass sie im Gespraech traegt. */
+export interface LiveOptionen {
+  sprechertrennung?: boolean;
+}
+
+export function liveKonfiguration(oberflaeche: string | undefined, zweck: LiveZweck = "diktat", optionen: LiveOptionen = {}): LiveKonfiguration {
   return {
     ...(zweck === "gespraech" ? GESPRAECH_ENDPUNKT : {}),
+    ...(zweck === "gespraech" && optionen.sprechertrennung ? { enable_speaker_diarization: true as const } : {}),
     model: LIVE_MODELL,
     // Der Browser schickt, was MediaRecorder liefert (webm/opus, auf dem
     // iPhone mp4) - genau so macht es das offizielle Web-SDK.
@@ -197,6 +211,8 @@ export interface SonioxToken {
   /** Lage im Audio, in ms ab dem ersten gesendeten Stueck der Sitzung. */
   start_ms?: unknown;
   end_ms?: unknown;
+  /** Sprechernummer ("1", "2" ...), nur mit enable_speaker_diarization. */
+  speaker?: unknown;
 }
 
 export interface SonioxPaket {
@@ -233,8 +249,9 @@ export interface TextAb {
   /** Ende des letzten Wortes (ms im Audio), null ohne Wort. */
   endeMs: number | null;
   /** Die Woerter mit ihrer Lage im Audio (Soniox liefert Teilstuecke wie "W", "ie"; ein
-   *  neues Wort beginnt mit einem Leerzeichen). Endgueltige zuerst, dann vorlaeufige. */
-  woerter: Array<{ text: string; startMs: number | null; endeMs: number | null }>;
+   *  neues Wort beginnt mit einem Leerzeichen). Endgueltige zuerst, dann vorlaeufige.
+   *  `sprecher`: die Sprechernummer seines ersten Teilstuecks, null ohne Sprechertrennung. */
+  woerter: Array<{ text: string; startMs: number | null; endeMs: number | null; sprecher: string | null }>;
 }
 
 export interface TokenSammler {
@@ -254,6 +271,7 @@ interface Wort {
   startMs: number | null;
   endeMs: number | null;
   sprache: string | null;
+  sprecher: string | null;
   /** Beginnt hier ein neues Wort? Ja bei fuehrendem Leerzeichen, beim ersten Token der
    *  Sitzung und beim ersten nach einem Endpunkt - sonst ist es ein Teilstueck ("ferungen"). */
   anfang: boolean;
@@ -337,7 +355,7 @@ export function erzeugeTokenSammler(): TokenSammler {
         const neu = woerter.length === 0 || w.anfang;
         const text = w.text.trim();
         if (!text) continue;
-        if (neu) woerter.push({ text, startMs: w.startMs, endeMs: w.endeMs });
+        if (neu) woerter.push({ text, startMs: w.startMs, endeMs: w.endeMs, sprecher: w.sprecher });
         else {
           const letzt = woerter[woerter.length - 1]!;
           letzt.text += text;
@@ -380,6 +398,7 @@ export function erzeugeTokenSammler(): TokenSammler {
           startMs: zahl(t.start_ms),
           endeMs: zahl(t.end_ms),
           sprache: typeof t.language === "string" && t.language ? t.language : null,
+          sprecher: typeof t.speaker === "string" && t.speaker ? t.speaker : typeof t.speaker === "number" ? String(t.speaker) : null,
           anfang: anfang || /^\s/.test(text),
         };
         anfang = false;

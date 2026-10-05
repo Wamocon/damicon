@@ -11,7 +11,9 @@
 //   1. der Ablauf des Gespraechs (wer ist dran?),
 //   2. das Rechteck eines hervorgehobenen Bereichs,
 //   3. was nach dem Abbruch einer Live-Sitzung geschieht,
-//   4. wann Dazwischenreden Himbi unterbricht.
+//   4. wann Dazwischenreden Himbi unterbricht,
+//   5. die zweite Stufe davon: leiser werden, dann nach den Woertern entscheiden,
+//   6. was vom Gesagten im Verlauf fuers Modell bleibt (nur das Gehoerte).
 
 // --- 1. Ablauf ---------------------------------------------------------------------
 //
@@ -797,4 +799,178 @@ export function erzeugeEinsatzMerker(): EinsatzMerker {
       return einsatz;
     },
   };
+}
+
+// --- 5. Zwei Stufen beim Dazwischenreden -------------------------------------------
+//
+// Rueckmeldung vom 05.10.2026 (Desktop): "Er spricht was und bekommt von anderen Ton und bricht
+// ab, und dann sage ich was und er bricht wieder ab." Bis dahin hielt der Lautstaerke-Waechter
+// (Abschnitt 4) Himbi nach 400 ms lauter Stimme SOFORT an - egal, ob der Nutzer etwas wollte, nur
+// "Mhm" sagte oder ein Kollege im Raum sprach. Er misst Lautstaerke, nicht Bedeutung; Krisp misst
+// fuer diese Art Unterbrechung 66 % Fehlalarme (krisp.ai, Mai 2026).
+//
+// Jetzt zwei Stufen, nach dem Muster, das LiveKit, Pipecat und Vapi 2026 anbieten (Mindestzahl an
+// Woertern, Fortsetzen nach einem Fehlalarm; Recherche vom 03.10.2026):
+//   1. Der Waechter schlaegt an: Himbi wird leiser (AUSGABE_GEDAEMPFT), spricht aber weiter.
+//      Leiserwerden laesst sich zuruecknehmen, Verstummen nicht - deshalb darf diese Stufe
+//      empfindlich bleiben. Nebenbei sinkt das Echo, und die Erkennung hoert den Nutzer besser.
+//   2. Die Erkennung liefert die Woerter dazu, und urteilNachVerdacht entscheidet:
+//      - nichts verstanden (Geraeusch) oder nur Rueckmeldung ("Mhm", "Ja", "Genau"): wieder
+//        lauter, Himbi spricht weiter, als waere nichts gewesen;
+//      - eigene Woerter mit Inhalt (ab VERDACHT_MIN_WOERTER, oder eines am Ende der Aeusserung):
+//        Himbi verstummt, und die Woerter sind die naechste Frage.
+//   Befehlswoerter ("Stopp", "Moment", "Himbi") wirken wie bisher sofort (Abschnitt 1b). Himbis
+//   eigene Worte (Echo) zaehlen nicht, mit Sprechertrennung auch nicht die anderer Sprecher.
+//
+// Spricht der Nutzer in den ersten Sekunden einer Antwort weiter (NACHSATZ_FENSTER_MS), ist das
+// meist noch ein Nachsatz zur Frage ("Zeig mir die Lieferungen ... und die Reklamationen"):
+// dann wird daraus EINE Frage, wie beim Weiterreden waehrend des Nachdenkens.
+
+/** So leise spricht Himbi in der ersten Stufe (Faktor auf den Ausgang, etwa -10 dB). */
+export const AUSGABE_GEDAEMPFT = 0.3;
+/** Spaetestens nach so langer Wartezeit entscheiden die Woerter, die bis dahin da sind. */
+export const VERDACHT_HOECHSTENS_MS = 1_800;
+/** Ab so vielen eigenen Woertern mit Inhalt ist es sicher eine Unterbrechung. */
+export const VERDACHT_MIN_WOERTER = 2;
+/** So lange nach Himbis erstem Ton gilt Weiterreden noch als Nachsatz zur Frage. */
+export const NACHSATZ_FENSTER_MS = 3_000;
+
+/** Rueckmeldungen ohne Inhalt: man hoert zu, will aber nichts. Mit den Fuelllauten. "Nein",
+ *  "Stopp" und "Moment" stehen bewusst NICHT hier, sie sind Befehle (Abschnitt 1b). */
+const RUECKMELDUNGEN = new Set([
+  ...FUELLLAUTE,
+  // Deutsch
+  "ja", "jaja", "jo", "jep", "genau", "aha", "ach", "achso", "so", "richtig", "stimmt", "gut", "klar", "verstehe", "verstanden", "super", "prima", "toll", "oh", "ah", "interessant",
+  // Englisch
+  "yes", "yeah", "yep", "yup", "right", "sure", "cool", "great", "nice", "huh", "mm",
+  // Russisch
+  "да", "ага", "угу", "ну", "так", "понятно", "ясно", "хорошо", "ладно", "конечно", "окей", "ок", "верно", "точно", "правильно",
+  // Kasachisch
+  "иә", "ия", "иа", "жарайды", "түсінікті", "дұрыс", "рас", "әрине",
+]);
+
+export type VerdachtUrteil = "warten" | "rueckmeldung" | "unterbrechen";
+
+/** Ein erkanntes Wort mit seiner Sprechernummer (null ohne Sprechertrennung). */
+export interface SprecherWort {
+  text: string;
+  sprecher?: string | null;
+}
+
+/** Die Sprechernummer, die in diesen Woertern am haeufigsten vorkommt; null ohne Sprechertrennung. */
+export function hauptsprecherVon(woerter: readonly SprecherWort[]): string | null {
+  const zaehler = new Map<string, number>();
+  for (const w of woerter) if (w.sprecher) zaehler.set(w.sprecher, (zaehler.get(w.sprecher) ?? 0) + 1);
+  let bester: string | null = null;
+  for (const [sprecher, n] of zaehler) if (bester === null || n > zaehler.get(bester)!) bester = sprecher;
+  return bester;
+}
+
+/** Nur die Woerter des Hauptsprechers. Ohne Hauptsprecher, und fuer Woerter ohne Nummer (keine
+ *  Sprechertrennung), bleibt alles - lieber ein fremdes Wort zu viel als eine eigene Frage verloren. */
+export function nurHauptsprecher<T extends SprecherWort>(woerter: readonly T[], haupt: string | null): T[] {
+  if (!haupt) return [...woerter];
+  return woerter.filter((w) => !w.sprecher || w.sprecher === haupt);
+}
+
+/** Zweite Stufe: Was sagen die Woerter seit dem Einsatz der Stimme? `gesagt`: Himbis klingender
+ *  und voriger Satz (sein Echo). `abgeschlossen`: die Aeusserung ist zu Ende (Endpunkt) oder die
+ *  Wartezeit (VERDACHT_HOECHSTENS_MS) ist um - dann wird mit dem entschieden, was da ist. */
+export function urteilNachVerdacht(a: {
+  woerter: readonly SprecherWort[];
+  gesagt: string;
+  abgeschlossen: boolean;
+  hauptsprecher?: string | null;
+}): VerdachtUrteil {
+  const echo = new Set(woerterVon(a.gesagt));
+  const eigene: string[] = [];
+  for (const w of nurHauptsprecher(a.woerter, a.hauptsprecher ?? null)) {
+    const kern = woerterVon(w.text);
+    if (kern.length === 0) continue;
+    if (echo.size > 0 && kern.every((x) => echo.has(x))) continue;
+    eigene.push(...kern);
+  }
+  const inhalt = eigene.filter((w) => !RUECKMELDUNGEN.has(w));
+  if (inhalt.length >= VERDACHT_MIN_WOERTER) return "unterbrechen";
+  if (!a.abgeschlossen) return "warten";
+  return inhalt.length > 0 ? "unterbrechen" : "rueckmeldung";
+}
+
+/** Wird die Unterbrechung ein Nachsatz zur letzten Frage (EINE Frage statt zwei)? Nur in den
+ *  ersten NACHSATZ_FENSTER_MS der Antwort und nur, solange die Frage noch offen ist. */
+export function alsNachsatz(a: { sprichtSeitMs: number | null; jetztMs: number; offeneFrage: boolean }): boolean {
+  return a.offeneFrage && a.sprichtSeitMs !== null && a.jetztMs - a.sprichtSeitMs <= NACHSATZ_FENSTER_MS;
+}
+
+// --- 6. Im Verlauf nur, was gehoert wurde -----------------------------------------
+//
+// Bis zum 05.10.2026 bekam nur die EINE Frage nach einer Unterbrechung den Hinweis "zuletzt
+// gehoert: <Satz>" (antwort-anweisungen.ts). Im Verlauf blieb die ganze erzeugte Antwort stehen,
+// und zwei Fragen spaeter bezog sich das Modell auf Saetze, die der Nutzer nie gehoert hatte.
+// LiveKit kuerzt den Verlauf deshalb dauerhaft auf das Gehoerte (docs.livekit.io, Turns). Hier
+// dasselbe: der Browser schickt den Verlauf mit jeder Frage, und fuer eine unterbrochene Antwort
+// steht darin nur noch der Teil bis zum zuletzt gehoerten Satz, mit einer Marke. Angezeigt und
+// gespeichert wird weiter die ganze Antwort - zum Nachlesen.
+
+/** Diese Marke ersetzt im Verlauf fuers Modell den Rest einer unterbrochenen Antwort. */
+export const UNTERBROCHEN_MARKE = "[Unterbrochen: Der Rest dieser Antwort wurde nicht vorgelesen, der Nutzer hat ihn nicht gehört.]";
+
+/** Text klein, nur Buchstaben und Ziffern, je ein Leerzeichen dazwischen - mit der Stelle im
+ *  Original fuer jedes Zeichen. So findet sich ein Satz auch, wenn er auf der Seite ohne
+ *  Markdown steht ("**Hof** 3" gegen "Hof 3"). */
+function normiertMitStellen(text: string): { norm: string; stelle: number[] } {
+  let norm = "";
+  const stelle: number[] = [];
+  for (let i = 0; i < text.length; i++) {
+    const z = text[i]!;
+    if (/[\p{L}\p{N}]/u.test(z)) {
+      norm += z.toLowerCase();
+      stelle.push(i);
+    } else if (norm.length > 0 && !norm.endsWith(" ")) {
+      norm += " ";
+      stelle.push(i);
+    }
+  }
+  return { norm, stelle };
+}
+
+/** Der Teil einer Antwort bis einschliesslich des Satzes `satz` (der beim Unterbrechen klang),
+ *  samt Satzzeichen dahinter. null, wenn der Satz darin nicht vorkommt. */
+export function antwortBisGehoert(text: string, satz: string): string | null {
+  const gesucht = normiertMitStellen(satz).norm.trim();
+  if (!gesucht) return null;
+  const { norm, stelle } = normiertMitStellen(text);
+  const ab = norm.indexOf(gesucht);
+  if (ab < 0) return null;
+  let ende = stelle[ab + gesucht.length - 1]! + 1;
+  while (ende < text.length && /[.!?…:;)"'»“*_]/.test(text[ende]!)) ende += 1;
+  return text.slice(0, ende).trimEnd();
+}
+
+type TextTeil = { type: "text"; text: string };
+const istTextTeil = (p: unknown): p is TextTeil =>
+  typeof p === "object" && p !== null && (p as { type?: unknown }).type === "text" && typeof (p as { text?: unknown }).text === "string";
+
+/** Der Verlauf fuers Modell: jede unterbrochene Antwort (Id in `gehoert`, Wert: der Satz, der beim
+ *  Unterbrechen klang) endet nach diesem Satz mit UNTERBROCHEN_MARKE. Textteile danach fallen weg,
+ *  Werkzeugaufrufe bleiben (die Handlung ist geschehen). Findet sich der Satz nicht, bleibt die
+ *  Nachricht, wie sie ist - dann traegt nur der Hinweis bei der naechsten Frage. */
+export function mitGehoertenAntworten<T extends { id: string; role: string; parts: readonly unknown[] }>(
+  nachrichten: readonly T[],
+  gehoert: ReadonlyMap<string, string>,
+): T[] {
+  if (gehoert.size === 0) return [...nachrichten];
+  return nachrichten.map((n) => {
+    const satz = n.role === "assistant" ? gehoert.get(n.id) : undefined;
+    if (!satz) return n;
+    const stelle = n.parts.findIndex((p) => istTextTeil(p) && antwortBisGehoert(p.text, satz) !== null);
+    if (stelle < 0) return n;
+    const teile: unknown[] = [];
+    n.parts.forEach((p, i) => {
+      if (i < stelle) teile.push(p);
+      else if (i === stelle && istTextTeil(p)) teile.push({ ...p, text: `${antwortBisGehoert(p.text, satz)}\n\n${UNTERBROCHEN_MARKE}` });
+      else if (!istTextTeil(p)) teile.push(p);
+    });
+    return { ...n, parts: teile } as T;
+  });
 }

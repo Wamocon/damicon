@@ -92,6 +92,7 @@ import {
   zaehlerServer,
   type SprachFrage,
 } from "@/components/ki/sprachmodus-bus";
+import { mitGehoertenAntworten } from "@/lib/domain/sprachmodus";
 import { KiChatAktionskarte } from "@/components/ki/ki-chat-aktionskarte";
 import { KiChatComposer } from "@/components/ki/ki-chat-composer";
 
@@ -266,6 +267,11 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   useEffect(() => {
     anfrageDaten.current = { ...anfrageDaten.current, einwilligung, modus, pfad, rolle, sprache, pruefkontext };
   }, [einwilligung, modus, pfad, rolle, sprache, pruefkontext]);
+  // Im Sprachmodus unterbrochene Antworten: Id der Antwort -> der Satz, der beim Unterbrechen
+  // klang. Fuers Modell endet die Antwort ab dann dauerhaft dort (domain/sprachmodus.ts,
+  // mitGehoertenAntworten), angezeigt wird sie weiter ganz. Seit dem 05.10.2026; vorher galt nur
+  // der Hinweis bei der einen Frage danach.
+  const gehoertBis = useRef(new Map<string, string>());
 
   // Client-Werkzeuge (Klick/Feld/Scroll/Zeigen im Dashboard) und die
   // Klickfreigabe dafuer - siehe ki-chat-werkzeuge.ts. Muss vor useChat()
@@ -319,7 +325,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
               // damit setzt das Modell Sprechmarken ohne vorheriges seiteLesen.
               ...(imSprachmodus ? { seitenkarte: seitenKarte() } : {}),
               id,
-              messages: alle.slice(ab),
+              messages: mitGehoertenAntworten(alle.slice(ab), gehoertBis.current),
               trigger,
               messageId,
             },
@@ -767,7 +773,13 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
         return i >= 0 && alt[i]!.role === "user" ? alt.slice(0, i) : alt;
       });
     }
-    if (f.unterbrochen) anfrageDaten.current = { ...anfrageDaten.current, unterbrochen: f.unterbrochen };
+    if (f.unterbrochen) {
+      anfrageDaten.current = { ...anfrageDaten.current, unterbrochen: f.unterbrochen };
+      // Die unterbrochene Antwort ist die letzte im Verlauf: fuers Modell endet sie ab jetzt beim
+      // zuletzt gehoerten Satz, auch bei allen spaeteren Fragen.
+      const unterbrocheneAntwort = messages.findLast((m) => m.role === "assistant");
+      if (unterbrocheneAntwort) gehoertBis.current.set(unterbrocheneAntwort.id, f.unterbrochen);
+    }
     // Gesprochen, also wie ein Diktat: die gehoerten Sprachen gehen mit und entscheiden
     // ueber die Sprache der Antwort (domain/antwortsprache.ts).
     merkeDiktatSprachen(f.sprachen);

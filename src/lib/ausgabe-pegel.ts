@@ -50,6 +50,27 @@ export function ausgangFuer(kontext: AudioContext): AudioNode {
   return ausgang;
 }
 
+/** Zeitkonstante fuers Leiser- und Lauterwerden, in Sekunden: weich genug, dass es nicht knackt,
+ *  schnell genug, dass der Nutzer es sofort hoert (nach etwa 60 ms fast am Ziel). */
+const DAEMPFUNG_ZEITKONSTANTE_S = 0.02;
+
+/** Himbi leiser stellen, ohne ihn anzuhalten - die erste Stufe beim Dazwischenreden
+ *  (domain/sprachmodus.ts, Abschnitt 5). `faktor` 1 heisst normal, AUSGABE_GEDAEMPFT leiser.
+ *  Wirkt auf Strom und Abschnitte (beide spielen ueber diesen Ausgang), nicht auf den Datei-Weg
+ *  mit dem audio-Element. Der Pegel fuer den Echo-Vergleich wird hinter dem Ausgang gemessen
+ *  und sinkt deshalb mit - so wie das Echo im Raum. */
+export function daempfeAusgabe(faktor: number): void {
+  if (!ausgang || !kontextDesAusgangs) return;
+  const ziel = Math.min(1, Math.max(0, faktor));
+  try {
+    const jetzt = kontextDesAusgangs.currentTime;
+    ausgang.gain.cancelScheduledValues(jetzt);
+    ausgang.gain.setTargetAtTime(ziel, jetzt, DAEMPFUNG_ZEITKONSTANTE_S);
+  } catch {
+    ausgang.gain.value = ziel;
+  }
+}
+
 /** Klingt der Ausgang gerade? Ein angehaltener AudioContext (sprach-takt.ts haelt die
  *  Stimme beim Seitenwechsel bis zu 3,5 s an) liefert im Analyser weiter den zuletzt
  *  gerechneten Block: ohne diese Pruefung stand Himbis Mund in der Zeit offen, und der

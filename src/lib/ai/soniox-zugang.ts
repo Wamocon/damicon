@@ -13,7 +13,7 @@
 // aus rbac.ts und den Umgebungsvariablen, genau wie in Produktion. Faellt eine
 // dieser Pruefungen weg, wird ein Test rot.
 import { hasPermission, type Role } from "@/lib/rbac";
-import { diktatLiveAn } from "@/lib/domain/schalter";
+import { diktatLiveAn, sprechertrennungAn } from "@/lib/domain/schalter";
 import { GESPRAECH_SITZUNG_S, liveKonfiguration, SCHLUESSEL_GUELTIG_S, SITZUNG_HOECHSTENS_S, sonioxLiveAdresse, type LiveZweck } from "@/lib/domain/diktat-live";
 import { holeSonioxSchluessel, sonioxBasisUrl, sonioxReferenz } from "@/lib/ai/soniox-client";
 import { SONIOX_TTS_MODELL } from "@/lib/ai/sprachausgabe-client";
@@ -145,7 +145,7 @@ export async function gibDiktatSchluessel(req: Request, u: SchluesselUmgebung): 
   }
 
   return Response.json(
-    { schluessel: schluessel.schluessel, adresse, konfiguration: liveKonfiguration(sprache, zweck) },
+    { schluessel: schluessel.schluessel, adresse, konfiguration: liveKonfiguration(sprache, zweck, { sprechertrennung: sprechertrennungAn() }) },
     { headers: { "cache-control": "no-store" } },
   );
 }

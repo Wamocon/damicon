@@ -20,12 +20,19 @@ import {
   stelleSprachFrage,
   unterbrichChat,
 } from "@/components/ki/sprachmodus-bus";
-import { leseAusgabePegel } from "@/lib/ausgabe-pegel";
+import { daempfeAusgabe, leseAusgabePegel } from "@/lib/ausgabe-pegel";
 import { leseLautstaerke, starteHoeren, stoppeHoeren } from "@/lib/hoeren";
 import {
+  alsNachsatz,
   antwortFertig,
   assistentIstDran,
+  AUSGABE_GEDAEMPFT,
   ausweichPlatz,
+  hauptsprecherVon,
+  nurHauptsprecher,
+  urteilNachVerdacht,
+  VERDACHT_HOECHSTENS_MS,
+  type VerdachtUrteil,
   befehlGeprueftBis,
   aeusserungsBeginn,
   beendetWirklich,
@@ -137,8 +144,13 @@ const leseHandy = () => window.matchMedia(HANDY).matches;
  *  Echounterdrueckung. Beim Diktat verstummt jede Wiedergabe, solange das
  *  Mikrofon offen ist; hier spricht Himbi, waehrend das Mikrofon offen bleibt
  *  (Dazwischenreden, siehe erzeugeUnterbrechungsWaechter). Ohne Filter hoerte
- *  das Mikrofon die Stimme aus dem Lautsprecher mit. */
-const GESPRAECH_AUFNAHME: MediaTrackConstraints = { ...AUFNAHME_VORGABEN, echoCancellation: true };
+ *  das Mikrofon die Stimme aus dem Lautsprecher mit.
+ *
+ *  Seit dem 05.10.2026 "all" statt true: Chrome ab 141 rechnet damit auch Ton anderer
+ *  Programme aus dem Mikrofon heraus (ein Anruf, Musik, ein Video im Nachbartab - "Ton von
+ *  anderen", Rueckmeldung vom 05.10.2026), sonst nur den eigenen. Browser ohne diesen Wert
+ *  (Firefox, Safari, aeltere Chrome) lesen den Text nach WebIDL als true, also wie bisher. */
+const GESPRAECH_AUFNAHME = { ...AUFNAHME_VORGABEN, echoCancellation: "all" } as unknown as MediaTrackConstraints;
 
 /** Das Ohr: EINE Aufnahme und EINE Live-Sitzung fuer das ganze Gespraech (seit dem
  *  28.09.2026, siehe ohrOffen in domain/sprachmodus.ts). startPerf ist der Nullpunkt der
@@ -226,6 +238,15 @@ function SprachmodusInhalt() {
   const freigabeNr = useRef<number | null>(null);
   const zuletztGehoert = useRef(0);
   const phaseRef = useRef(phase);
+  // Erste Stufe beim Dazwischenreden (domain/sprachmodus.ts, Abschnitt 5): Himbi spricht leiser,
+  // bis die Woerter ab abMs (Audio-ms, Einsatz der Stimme) entscheiden. null: kein Verdacht.
+  const verdacht = useRef<{ abMs: number } | null>(null);
+  const verdachtTimer = useRef<number | undefined>(undefined);
+  // Seit wann (Uhr) Himbi in dieser Antwort spricht: fuer den Nachsatz in den ersten Sekunden.
+  const sprichtSeit = useRef<number | null>(null);
+  // Mit Sprechertrennung (Schalter KI_SPRECHERTRENNUNG): die Nummer des Hauptsprechers dieser
+  // Sitzung, aus der ersten angenommenen Frage. Ohne Sprechertrennung bleibt sie null.
+  const hauptsprecher = useRef<string | null>(null);
 
   const chatStand = useSyncExternalStore(abonniereSprachBus, leseChatStand, chatStandServer);
   const freigabeAnfrage = useSyncExternalStore(abonniereSprachBus, leseFreigabeAnfrage, freigabeAnfrageServer);
@@ -350,12 +371,17 @@ function SprachmodusInhalt() {
       grenzeMs.current = Math.max(grenzeMs.current, (t.endeMs ?? audioJetzt()) + 1);
       grenzeSteht.current = false;
       setZwischentext("");
-      let text = t.endgueltig || t.anzeige;
+      // Sprechertrennung (Schalter KI_SPRECHERTRENNUNG): nur der Hauptsprecher der Sitzung zaehlt,
+      // was nur andere sagen, ist keine Frage. Ohne Sprechernummern bleibt alles, wie es ist.
+      const haupt = hauptsprecher.current ?? hauptsprecherVon(t.woerter);
+      const woerter = nurHauptsprecher(t.woerter, haupt);
+      if (t.woerter.length > 0 && woerter.length === 0) return;
+      let text = woerter.length === t.woerter.length ? t.endgueltig || t.anzeige : woerter.map((w) => w.text).join(" ");
       if (nachUnterbrechung.current) {
         // "Stopp, zeig mir lieber die Reklamationen": das Befehlswort hat schon gewirkt. Bei
         // offener Freigabe bleibt "Nein" eine Absage.
         nachUnterbrechung.current = false;
-        const rest = leseFreigabeAnfrage() ? null : frageNachUnterbrechung(t.woerter.map((w) => w.text), echoBeimUnterbrechen.current);
+        const rest = leseFreigabeAnfrage() ? null : frageNachUnterbrechung(woerter.map((w) => w.text), echoBeimUnterbrechen.current);
         if (rest !== null) text = rest;
       }
       if (!istGesprochen(text) && !vorsatz.current) return;
@@ -383,8 +409,68 @@ function SprachmodusInhalt() {
       fehlversuche.current = 0;
       stelleFrage(frage, sprachen, { ersetztLetzte: ersetzt, unterbrochen: unterbrochenBei.current });
       unterbrochenBei.current = null;
+      if (!hauptsprecher.current && haupt) hauptsprecher.current = haupt;
     },
     [audioJetzt, stelleFrage],
+  );
+
+  /** Die erste Stufe endet. `lauter`: Himbi spricht weiter, also wieder in normaler Lautstaerke.
+   *  Ohne (er verstummt gleich): leise bis zum Ende - sonst klaenge er im Moment zwischen
+   *  Entscheidung und Stopp des Chats noch einmal laut auf. Die naechste Antwort beginnt in jedem
+   *  Fall wieder normal (Effekt auf die Phase). */
+  const beendeVerdacht = useCallback((lauter: boolean) => {
+    window.clearTimeout(verdachtTimer.current);
+    if (!verdacht.current) return;
+    verdacht.current = null;
+    if (lauter) daempfeAusgabe(1);
+  }, []);
+
+  /** Zweite Stufe: entscheiden die Woerter seit dem Einsatz der Stimme schon (domain/sprachmodus.ts,
+   *  Abschnitt 5)? "rueckmeldung": wieder lauter, Himbi spricht weiter. "unterbrechen": Himbi
+   *  verstummt, die Woerter ab dem Einsatz sind die naechste Frage - in den ersten Sekunden der
+   *  Antwort als Nachsatz zur vorigen. "warten": weiter leiser, bis mehr kommt. */
+  const pruefeVerdacht = useCallback(
+    (sitzung: LiveSitzung, abschluss: "offen" | "endpunkt" | "frist"): VerdachtUrteil | null => {
+      const v = verdacht.current;
+      if (!v || ohrRef.current?.sitzung !== sitzung || phaseRef.current !== "spricht") return null;
+      // Erscheint waehrend des Verdachts eine Freigabekarte, ist Sprechen die Antwort darauf (wie
+      // beim Waechter): kein Unterbrechen, das die Karte abbraeche. Himbi wieder normal laut.
+      if (leseFreigabeAnfrage()) {
+        beendeVerdacht(true);
+        return null;
+      }
+      const woerter = sitzung.textAb(v.abMs).woerter;
+      // Abgeschlossen ist die Aeusserung nach der Frist immer, an einem Endpunkt nur, wenn seit dem
+      // Einsatz ueberhaupt ein Wort kam: sonst gehoert der Endpunkt noch zu Himbis Echo davor, und
+      // die Aeusserung des Nutzers hat noch nicht einmal begonnen.
+      const abgeschlossen = abschluss === "frist" || (abschluss === "endpunkt" && woerter.length > 0);
+      const gerade = leseGerade();
+      const gesagt = gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort.slice(-200);
+      const urteil = urteilNachVerdacht({ woerter, gesagt, abgeschlossen, hauptsprecher: hauptsprecher.current });
+      if (urteil === "warten") return urteil;
+      beendeVerdacht(urteil === "rueckmeldung");
+      if (urteil === "rueckmeldung") return urteil;
+      // Die naechste Frage beginnt am Einsatz der Stimme, auch wenn Himbi erst jetzt verstummt.
+      grenzeMs.current = Math.max(grenzeMs.current, v.abMs);
+      echoBisMs.current = grenzeMs.current;
+      if (alsNachsatz({ sprichtSeitMs: sprichtSeit.current, jetztMs: performance.now(), offeneFrage: offeneFrage.current !== null })) {
+        // Wie beim Weiterreden waehrend des Nachdenkens: die Antwort bricht ab, und am naechsten
+        // Endpunkt geht die zusammengefuegte Frage an Stelle der alten hinaus.
+        vorsatz.current = offeneFrage.current;
+        offeneFrage.current = null;
+        unterbrochenBei.current = null;
+        echoBeimUnterbrechen.current = gesagt;
+        grenzeSteht.current = true;
+        nachUnterbrechung.current = true;
+        unterbrichChat();
+        dispatch({ art: "unterbrechen" });
+      } else {
+        offeneFrage.current = null;
+        unterbrecheHimbi("stimme");
+      }
+      return urteil;
+    },
+    [beendeVerdacht, dispatch, unterbrecheHimbi],
   );
 
   /** Neuer Text von der Erkennung, in jeder Phase. */
@@ -400,6 +486,9 @@ function SprachmodusInhalt() {
         return;
       }
       if (phase !== "denkt" && phase !== "spricht") return;
+      // Zweite Stufe beim Dazwischenreden: entscheiden die Woerter seit dem Einsatz schon? Ein
+      // Befehlswort allein ("Stopp") bleibt "warten" und wirkt unten wie bisher sofort.
+      if (phase === "spricht" && pruefeVerdacht(sitzung, "offen") === "unterbrechen") return;
       // Befehle auch kurz vor Himbis Verstummen (befehlAb), der Nachsatz erst dahinter.
       const suche = sitzung.textAb(befehlAb());
       if (!istGesprochen(suche.anzeige)) return;
@@ -465,7 +554,7 @@ function SprachmodusInhalt() {
       if (beginn < endgueltigeWoerter) loeseAus();
       else kandidatTimer.current = window.setTimeout(loeseAus, STOPP_STABIL_MS);
     },
-    [audioJetzt, befehlAb, dispatch, frageAb, unterbrecheHimbi],
+    [audioJetzt, befehlAb, dispatch, frageAb, pruefeVerdacht, unterbrecheHimbi],
   );
 
   /** Die Erkennung meldet das Ende einer Aeusserung. */
@@ -511,6 +600,12 @@ function SprachmodusInhalt() {
         freigabeAbMs.current = Math.max(freigabeAbMs.current, (antwort.endeMs ?? audioJetzt()) + 1 + FREIGABE_VORLAUF_MS);
       }
       if (phase === "spricht") {
+        // Zweite Stufe: die Aeusserung ist zu Ende, jetzt entscheiden ihre Woerter. War es eine
+        // Unterbrechung, ist dieser Endpunkt schon der der neuen Frage (die Phase ist jetzt "hoert").
+        if (pruefeVerdacht(sitzung, "endpunkt") === "unterbrechen") {
+          nimmAeusserung(sitzung.textAb(frageAb()));
+          return;
+        }
         const stand = leseChatStand();
         if (!stand.spricht && !stand.laedt && !stand.beschaeftigt) {
           // Die Antwort ist schon verklungen, nur die kurze Gnadenfrist lief noch: das war der
@@ -527,7 +622,7 @@ function SprachmodusInhalt() {
       }
       if (phase === "hoert") nimmAeusserung(t);
     },
-    [audioJetzt, dispatch, frageAb, nimmAeusserung],
+    [audioJetzt, dispatch, frageAb, nimmAeusserung, pruefeVerdacht],
   );
 
   const beiScheitern = useCallback(
@@ -611,10 +706,14 @@ function SprachmodusInhalt() {
     echoBisMs.current = 0;
     befehlGeprueftMs.current = 0;
     grenzeSteht.current = false;
+    // Neue Sitzung, neue Audiozeit und neue Sprechernummern: ein offener Verdacht und der
+    // Hauptsprecher gehoeren zur alten.
+    beendeVerdacht(true);
+    hauptsprecher.current = null;
     // Neue Sitzung, neue Audiozeit ab 0: eine offene Karte stand schon vorher.
     if (freigabeAbMs.current !== null) freigabeAbMs.current = 0;
     zuletztGehoert.current = performance.now();
-  }, [sprache, dispatch, t, zeigeMeldung]);
+  }, [sprache, beendeVerdacht, dispatch, t, zeigeMeldung]);
   useEffect(() => {
     starteOhrRef.current = starteOhr;
   }, [starteOhr]);
@@ -643,12 +742,16 @@ function SprachmodusInhalt() {
   // --- Dazwischenreden, waehrend Himbi spricht --------------------------------------------
   //
   // Neben den Befehlswoertern bleibt der Lautstaerke-Waechter: wer deutlich lauter als das
-  // Echo und laenger als einen Moment spricht, unterbricht (domain/sprachmodus.ts). Was ab
-  // dem Einsatz der Stimme gesagt wurde, gehoert zur naechsten Frage. Der Tipp auf Himbi
-  // bleibt der sichere Weg (laute Halle).
+  // Echo und laenger als einen Moment spricht, loest die erste Stufe aus (domain/sprachmodus.ts,
+  // Abschnitt 5): Himbi wird leiser, und die Woerter entscheiden (pruefeVerdacht, aus beiText,
+  // beiEndpunkt und spaetestens nach VERDACHT_HOECHSTENS_MS). Bis zum 05.10.2026 hielt der
+  // Waechter Himbi sofort an, auch fuer ein "Mhm" oder einen Kollegen im Raum (Rueckmeldung vom
+  // 05.10.2026). Was ab dem Einsatz der Stimme gesagt wurde, gehoert zur naechsten Frage. Der
+  // Tipp auf Himbi bleibt der sichere Weg (laute Halle).
   useEffect(() => {
     if (phase !== "spricht") return;
-    const waechter = erzeugeUnterbrechungsWaechter();
+    sprichtSeit.current = performance.now();
+    let waechter = erzeugeUnterbrechungsWaechter();
     let bild = 0;
     // Wo die Stimme eingesetzt hat (domain/sprachmodus.ts, erzeugeEinsatzMerker): ueberdauert
     // die Kommapause in "Stopp, zeig mir ...", aber keine einzelne Geraeuschspitze.
@@ -659,8 +762,11 @@ function SprachmodusInhalt() {
       // der neuen Frage schoebe (Messung vom 28.09.2026: aus "Stopp, zeig mir ..." wurde "mir ...").
       if (phaseRef.current !== "spricht") return;
       // Waehrend eine Freigabekarte wartet, ist lautes Sprechen die Antwort darauf ("Ja, bitte,
-      // mach das"), kein Dazwischenreden: Unterbrechen wuerde die Karte ablehnen.
-      if (leseFreigabeAnfrage()) {
+      // mach das"), kein Dazwischenreden: Unterbrechen wuerde die Karte ablehnen. Und solange der
+      // Verdacht laeuft, entscheiden die Woerter, nicht der Pegel; danach misst der Waechter von
+      // vorn, sonst zaehlte das "Mhm" von eben beim naechsten Mal noch mit.
+      if (leseFreigabeAnfrage() || verdacht.current) {
+        waechter = erzeugeUnterbrechungsWaechter();
         einsatz = erzeugeEinsatzMerker();
         bild = window.requestAnimationFrame(schritt);
         return;
@@ -668,17 +774,34 @@ function SprachmodusInhalt() {
       const urteil = waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now());
       const beginn = einsatz.melde(urteil, audioJetzt());
       if (urteil === "unterbrechen") {
-        grenzeMs.current = Math.max(grenzeMs.current, (beginn ?? audioJetzt()) - EINSATZ_VORLAUF_MS);
-        echoBisMs.current = grenzeMs.current;
-        offeneFrage.current = null;
-        unterbrecheHimbi("stimme");
-        return;
+        // Erste Stufe: leiser, nicht still. Die Frage beginnt erst, wenn die Woerter es bestaetigen.
+        verdacht.current = { abMs: Math.max(grenzeMs.current, (beginn ?? audioJetzt()) - EINSATZ_VORLAUF_MS) };
+        daempfeAusgabe(AUSGABE_GEDAEMPFT);
+        window.clearTimeout(verdachtTimer.current);
+        verdachtTimer.current = window.setTimeout(() => {
+          const sitzung = ohrRef.current?.sitzung;
+          if (!sitzung || pruefeVerdacht(sitzung, "frist") === null) beendeVerdacht(true);
+        }, VERDACHT_HOECHSTENS_MS);
+        // War die Erkennung schneller als der Pegel, liegen die Woerter schon vor.
+        const sitzung = ohrRef.current?.sitzung;
+        if (sitzung && pruefeVerdacht(sitzung, "offen") === "unterbrechen") return;
       }
       bild = window.requestAnimationFrame(schritt);
     };
     bild = window.requestAnimationFrame(schritt);
     return () => window.cancelAnimationFrame(bild);
-  }, [phase, audioJetzt, unterbrecheHimbi]);
+  }, [phase, audioJetzt, beendeVerdacht, pruefeVerdacht]);
+
+  // Verlaesst Himbi das Sprechen (fertig, Befehlswort, Tipp, Stumm), endet auch die erste Stufe.
+  // Leise bleibt er bis dahin; die naechste Antwort beginnt wieder in normaler Lautstaerke - ab
+  // "denkt" ist der Stopp der vorigen laengst durch (bei "spricht" direkt aus "hoert" ebenso).
+  useEffect(() => {
+    if (phase !== "spricht") {
+      sprichtSeit.current = null;
+      beendeVerdacht(false);
+    }
+    if (phase === "denkt" || (phase === "spricht" && !verdacht.current)) daempfeAusgabe(1);
+  }, [phase, beendeVerdacht]);
 
   // --- An den Chat-Zustand gekoppelt: denkt -> spricht -> wieder zuhoeren ---------------
   // Direkt am Bus statt in einem Effekt auf chatStand: der Chat meldet seinen Stand aus
@@ -696,7 +819,24 @@ function SprachmodusInhalt() {
       const sprichtJetzt = stand.spricht || stand.laedt;
       // Himbi ist gerade verstummt: was die Erkennung ab jetzt hoert, ist nicht mehr sein Echo.
       // Ausser er wurde per Stimme unterbrochen: dann steht die Grenze schon am Einsatz des Nutzers.
-      if (sprachZuletzt.current && !sprichtJetzt && !grenzeSteht.current) echoBisMs.current = Math.max(echoBisMs.current, audioJetzt() + 50);
+      // Lief dabei noch die erste Stufe (der Nutzer spricht schon), gehoeren seine Worte ab dem
+      // Einsatz zur naechsten Frage, sofern sie Inhalt haben - ein "Mhm" in Himbis letzten Satz nicht.
+      if (sprachZuletzt.current && !sprichtJetzt && !grenzeSteht.current) {
+        const v = verdacht.current;
+        const sitzung = ohrRef.current?.sitzung;
+        const inhalt =
+          v && sitzung
+            ? urteilNachVerdacht({ woerter: sitzung.textAb(v.abMs).woerter, gesagt: stand.antwort.slice(-200), abgeschlossen: true, hauptsprecher: hauptsprecher.current }) === "unterbrechen"
+            : false;
+        if (v && inhalt) {
+          grenzeMs.current = Math.max(grenzeMs.current, v.abMs);
+          echoBisMs.current = grenzeMs.current;
+          grenzeSteht.current = true;
+        } else {
+          echoBisMs.current = Math.max(echoBisMs.current, audioJetzt() + 50);
+        }
+        beendeVerdacht(true);
+      }
       sprachZuletzt.current = sprichtJetzt;
       window.clearTimeout(ruheTimer.current);
       if (phaseRef.current !== "denkt" && phaseRef.current !== "spricht") return;
@@ -726,7 +866,7 @@ function SprachmodusInhalt() {
       }
     };
     return abonniereSprachBus(reagiere);
-  }, [audioJetzt, dispatch, t, tAktion, zeigeMeldung]);
+  }, [audioJetzt, beendeVerdacht, dispatch, t, tAktion, zeigeMeldung]);
 
   // --- Himbi beginnt den Tag (lib/himbi-tagesbeginn.ts) -----------------------------------
   //
@@ -773,12 +913,16 @@ function SprachmodusInhalt() {
     () => () => {
       window.clearTimeout(ruheTimer.current);
       window.clearTimeout(neuTimer.current);
+      // Endet der Sprachmodus mitten in oder kurz nach der ersten Stufe, liest der Chat danach
+      // wieder in normaler Lautstaerke vor.
+      beendeVerdacht(false);
+      daempfeAusgabe(1);
       schliesseOhr();
       stromRef.current?.getTracks().forEach((s) => s.stop());
       stromRef.current = null;
       stoppeHoeren();
     },
-    [schliesseOhr],
+    [beendeVerdacht, schliesseOhr],
   );
 
   // --- Bedienung --------------------------------------------------------------------------
