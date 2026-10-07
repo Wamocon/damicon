@@ -683,7 +683,7 @@
     "lohn": {
       "title": "Quality-factor pay",
       "navTitle": "Quality-factor pay",
-      "description": "A combined model of base pay, a volume component and a quality factor. A pure piece rate pushes for volume, squeezes berries and is value-destroying for the raspberry.",
+      "description": "This is where pickers' pay is calculated for a period: base pay from hours worked plus a volume share from the kilograms picked, multiplied by a quality factor (less waste, higher factor). The result is one settlement per person, which accounting approves and pays out, including the statutory deductions.",
       "summary": "Base pay plus volume plus a quality factor. The quality factor is not optional but a precondition.",
       "todo": "The minimum wage as a hard floor, editing the pay rates with a preview of the corridor, a payslip as PDF per picker, an advance account."
     },
@@ -753,8 +753,8 @@
     "schulungen": {
       "title": "Training videos",
       "navTitle": "Training",
-      "description": "Multilingual, image-based short onboarding of seasonal workers on the phone - videos per core process, with pictures instead of text.",
-      "summary": "An illustrated six-step induction, multilingual, with its own progress per person, plus the mandatory training.",
+      "description": "Multilingual short induction of seasonal workers on the phone: six steps, each with a large pictogram and little text, plus the mandatory training.",
+      "summary": "A six-step induction with pictograms, multilingual, with its own progress per person, plus the mandatory training.",
       "todo": "Videos per core process, filmed and dubbed into Kazakh and Russian."
     },
     "kanaele": {
@@ -1674,7 +1674,10 @@
   },
   "sync": {
     "knopf": {
-      "label": "Sync status"
+      "label": "Sync status",
+      "online": "Network status: online. Open synchronization",
+      "offline": "Network status: offline. Open synchronization",
+      "wartend": "{anzahl, plural, one {# entry waiting} other {# entries waiting}}"
     },
     "panelTitel": "Sync status",
     "online": "Online",

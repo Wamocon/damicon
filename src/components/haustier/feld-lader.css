@@ -12,6 +12,12 @@
   flex-direction: column;
   align-items: center;
   gap: 0.9rem;
+  /* WMCNL-2397: Strauchreihe und Feldweg liegen absolut in der Buehne und laufen
+     fuer ihren Endlos-Lauf bewusst ueber deren Breite hinaus. Ohne Beschnitt
+     ragten sechzehn Straeucher und dreissig Steine links und rechts aus dem Bild,
+     die Szene sah zerrissen aus. Der Himmel beschneidet nur sich selbst. */
+  overflow: hidden;
+  border-radius: 1.1rem;
 }
 .fl-himmel {
   position: relative;

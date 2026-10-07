@@ -683,7 +683,7 @@
     "lohn": {
       "title": "Qualitätsfaktor-Lohn",
       "navTitle": "Qualitätsfaktor-Lohn",
-      "description": "Kombimodell aus Grundvergütung, Mengenkomponente und Qualitätsfaktor. Reiner Stücklohn drückt auf Menge, quetscht Beeren und ist bei der Himbeere wertvernichtend.",
+      "description": "Hier wird der Lohn der Pflückerinnen und Pflücker für einen Zeitraum berechnet: Grundlohn aus den Arbeitsstunden plus ein Mengenanteil aus den gepflückten Kilogramm, multipliziert mit einem Qualitätsfaktor (weniger Ausschuss, höherer Faktor). Ergebnis ist eine Abrechnung je Person, die die Buchhaltung freigibt und auszahlt, samt gesetzlichen Abzügen.",
       "summary": "Grundlohn plus Menge plus Qualitätsfaktor. Der Qualitätsfaktor ist keine Option, sondern Voraussetzung.",
       "todo": "Mindestlohn als feste Untergrenze, Pflege der Lohnsätze mit Vorschau auf den Korridor, Lohnzettel als PDF je Pflücker, Vorschusskonto."
     },
@@ -753,8 +753,8 @@
     "schulungen": {
       "title": "Schulungsvideos",
       "navTitle": "Schulungen",
-      "description": "Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon - Videos je Kernprozess, mit Bildern statt Text.",
-      "summary": "Bebilderte Kurzeinarbeitung in sechs Schritten, mehrsprachig, mit eigenem Fortschritt je Person, dazu die Pflichtschulungen.",
+      "description": "Mehrsprachige Kurzeinarbeitung der Saisonkräfte auf dem Telefon: sechs Schritte, je ein großes Piktogramm mit wenig Text, dazu die Pflichtschulungen.",
+      "summary": "Kurzeinarbeitung in sechs Schritten mit Piktogramm, mehrsprachig, mit eigenem Fortschritt je Person, dazu die Pflichtschulungen.",
       "todo": "Videos je Kernprozess, gedreht und auf Kasachisch und Russisch vertont."
     },
     "kanaele": {
@@ -1674,7 +1674,10 @@
   },
   "sync": {
     "knopf": {
-      "label": "Synchronisierung"
+      "label": "Synchronisierung",
+      "online": "Netzstatus: online. Synchronisierung öffnen",
+      "offline": "Netzstatus: offline. Synchronisierung öffnen",
+      "wartend": "{anzahl, plural, one {# Eintrag wartet} other {# Einträge warten}}"
     },
     "panelTitel": "Synchronisierung",
     "online": "Online",
