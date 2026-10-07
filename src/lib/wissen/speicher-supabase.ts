@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { SCHREIB_BATCH, type WissenSpeicher } from "@/lib/wissen/hochladen";
+import { SCHREIB_BATCH, type FreigabeInfo, type WissenSpeicher } from "@/lib/wissen/hochladen";
 import { istUploadZeile, UPLOAD_QUELLE, UPLOAD_QUELLE_MUSTER } from "@/lib/wissen/upload-quelle";
 
 // Der Speicher des Wissens-Uploads auf dem service_role-Client. Die Logik steht in hochladen.ts und loeschen.ts und
@@ -79,6 +79,71 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
         const { error } = await db.from("wissen_begriffe").delete().in("hash", indizes.slice(i, i + 500));
         SCHREIB_FEHLER("wissen_begriffe (loeschen)", error);
       }
+    },
+
+    // ---- Freigabe (Vier-Augen-Prinzip, siehe freigabe.ts) ----
+    async ladeFreigabeInfo(quelleId) {
+      const { data, error } = await db
+        .from("wissen_chunks")
+        .select("titel, bereich, quelle_id, upload_quelle:extra->>quelle, pruefstatus, quellenart, pruefen_bis, hochgeladen_von:extra->>hochgeladen_von")
+        .eq("quelle_id", quelleId)
+        .limit(1000);
+      SCHREIB_FEHLER("Freigabe (lesen)", error);
+      const zeilen = (data ?? []) as unknown as Array<{
+        titel: string | null;
+        bereich: string | null;
+        quelle_id: string | null;
+        upload_quelle: string | null;
+        pruefstatus: string | null;
+        quellenart: string | null;
+        pruefen_bis: string | null;
+        hochgeladen_von: string | null;
+      }>;
+      const stati = new Set(zeilen.map((z) => z.pruefstatus));
+      const status: FreigabeInfo["pruefstatus"] = zeilen.length === 0 ? null : stati.size === 1 ? (zeilen[0]!.pruefstatus as FreigabeInfo["pruefstatus"]) : "gemischt";
+      return {
+        anzahl: zeilen.length,
+        fremd: zeilen.filter((z) => !istUploadZeile(z)).length,
+        titel: zeilen[0]?.titel ?? null,
+        bereich: zeilen[0]?.bereich ?? null,
+        quellenart: zeilen[0]?.quellenart ?? null,
+        pruefstatus: status,
+        hochgeladenVon: zeilen.map((z) => z.hochgeladen_von).find((v): v is string => !!v) ?? null,
+        pruefenBis: zeilen[0]?.pruefen_bis ?? null,
+      };
+    },
+    async entscheide(quelleId, a) {
+      // Eine Anweisung: alle Zeilen des Dokuments oder keine. Marker und Status stehen noch einmal im Filter; der Waechter
+      // der Datenbank lehnt die Freigabe durch die hochladende Person selbst dann ab, wenn hier ein Fehler stuende.
+      const { data, error } = await db
+        .from("wissen_chunks")
+        .update({ pruefstatus: a.status, geprueft_von: a.pruefer, geprueft_am: a.zeitpunkt, pruefen_bis: a.pruefenBis })
+        .eq("quelle_id", quelleId)
+        .like("quelle_id", UPLOAD_QUELLE_MUSTER)
+        .eq("extra->>quelle", UPLOAD_QUELLE)
+        .eq("pruefstatus", "ungeprueft")
+        .select("id");
+      SCHREIB_FEHLER("Freigabe", error);
+      return (data ?? []).length;
+    },
+    async verlaengere(quelleId, a) {
+      const { data, error } = await db
+        .from("wissen_chunks")
+        .update({ geprueft_von: a.pruefer, geprueft_am: a.zeitpunkt, pruefen_bis: a.pruefenBis })
+        .eq("quelle_id", quelleId)
+        .like("quelle_id", UPLOAD_QUELLE_MUSTER)
+        .eq("extra->>quelle", UPLOAD_QUELLE)
+        .eq("pruefstatus", "freigegeben")
+        .not("pruefen_bis", "is", null)
+        .select("id");
+      SCHREIB_FEHLER("Verlaengerung", error);
+      return (data ?? []).length;
+    },
+    async ladeVorschau(quelleId, maxZeichen) {
+      const { data, error } = await db.from("wissen_chunks").select("text, teil").eq("quelle_id", quelleId).order("teil").limit(4);
+      SCHREIB_FEHLER("Vorschau", error);
+      const text = ((data ?? []) as unknown as { text: string }[]).map((z) => String(z.text)).join("\n\n");
+      return text.length > maxZeichen ? `${text.slice(0, maxZeichen).trimEnd()} ...` : text;
     },
   };
 }

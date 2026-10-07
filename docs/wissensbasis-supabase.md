@@ -57,7 +57,10 @@ Im KI-Panel, Ansicht "Einstellungen", unter dem Ratenlimit: Abschnitt "Wissensdo
 | --- | --- |
 | Dateien | `.pdf`, `.md`, `.txt`, höchstens 8 MB (genau 8 MiB minus 64 KiB: Die Server Actions nehmen 8 MiB je Anfrage an, Formularfelder und Multipart-Rahmen brauchen Platz; die Oberfläche stoppt größere Dateien vor dem Absenden), höchstens 400 Abschnitte je Dokument. Lesen und Einbetten dürfen zusammen 45 Sekunden dauern (das Dashboard erlaubt 60); danach bricht der Upload mit einer klaren Meldung ab, bevor irgendetwas geschrieben wurde |
 | Bereich | Auswahl `recht`, `steuer`, `compliance`, `audit`, `risiko`. Gespeichert wird **`legal`** für Recht (so heißt der Bereich im Korpus), die anderen vier unverändert. Die Spalte `bereich` hat weder CHECK noch Enum, keine Migration. Angezeigt wird `legal` wieder als "Recht". Die Korpuswerte `amtlich`, `fachquellen`, `kernwissen` und `nk-214-viii` kommen nur vom Skript |
-| Autoritätsstufe | bleibt `NULL` (außer ein Markdown-Frontmatter nennt eine). Solche Zeilen erscheinen in der allgemeinen Trefferliste, nicht in den bevorzugten Plätzen für Recht und amtliche Texte (Stufe 1 bis 3). Nennt ein Frontmatter eine Stufe, steht sie im Protokolleintrag `wissen.hochgeladen` (`autoritaetsstufe`): Stufe 1 bis 3 belegt die bevorzugten Plätze und soll nachvollziehbar sein |
+| Quellenart | Pflichtfeld, 13 Arten von `rechtsnorm` bis `ki_zusammenfassung` (Tabelle unten). Sie bestimmt Stufe, Nutzung je Bereich und Wiedervorlage. Maßgeblich ist die Herkunft des Textes, nicht der Weg: Ein Gesetzestext von einer amtlichen Webseite ist eine Rechtsnorm |
+| Textgrundlage | `original` (Standard), `amtlich_uebersetzt`, `fachlich_uebersetzt`, `maschinell_uebersetzt`. Steht in der Einordnung, die der Assistent nennt |
+| Link zur Quelle | Pflicht bei `internetquelle` und `forum` (Herkunftsnachweis für die Prüfung), sonst freiwillig; nur http und https, höchstens 500 Zeichen |
+| Autoritätsstufe | kommt aus der Quellenart (Tabelle unten), nie aus einem Frontmatter: Eine Stufe im Kopf einer Markdown-Datei wird verworfen. Den Rang vergibt das Formular, und die zweite Person sieht ihn bei der Freigabe. Das Protokoll `wissen.hochgeladen` nennt Quellenart und Stufe |
 | Vorschau | Wohin die App schreibt, bestimmt das Datenbankschema (`SUPABASE_DB_SCHEMA`, `src/lib/supabase/schema.ts`). Eine Vorschau mit `public_preview` arbeitet in der Kopie und darf hochladen. Gesperrt ist nur `VERCEL_ENV=preview` mit Schema `public`: Das würde in die Produktions-Wissensbasis schreiben. `WISSEN_UPLOAD_PREVIEW_OK=true` hebt die Sperre auf (nur setzen, wenn die Vorschau eine eigene Datenbank hat). Die lokale Entwicklung (ohne `VERCEL_ENV`) wird nicht gesperrt: Wer lokal gegen die Produktionsdatenbank arbeitet, schreibt dorthin |
 | Rollen | Büro-Rollen (admin, ceo, betriebsleitung, buchhaltung). Admin ist immer dabei. Andere Rollen nutzen die Wissenssuche nicht (`darfWissenNutzen`) |
 | Original | wird nicht aufbewahrt, nur der Text liegt in `wissen_chunks` |
@@ -69,7 +72,7 @@ Der Upload nutzt dieselben Funktionen wie das Skript: `chunkiere`, `wissenEinbet
 
 **Wortgewichte.** Bei jedem Upload werden df und IDF der Wörter des neuen Dokuments fortgeschrieben (Upsert, N = Anzahl aller Textstellen nach dem Einfügen). Die Gewichte aller anderen Wörter ändern sich dadurch minimal und bleiben bis zum nächsten ETL-Lauf unverändert. Zwei gleichzeitige Uploads können sich beim Zählen überschreiben; der nächste ETL-Lauf gleicht das aus.
 
-**Alles oder nichts.** Ein Upload hat keinen Status. Schlägt das Einbetten fehl oder ist das Zeitbudget aufgebraucht, wird nichts geschrieben. Schlägt das Schreiben fehl, werden die Zeilen des Dokuments wieder entfernt. Ein defektes PDF ergibt eine Fehlermeldung, kein hängendes Dokument. Beendet die Plattform die Funktion hart, während die Zeilen geschrieben werden (zum Beispiel bei einem Neustart), kann ein Teil der Abschnitte stehen bleiben. Das Dokument erscheint dann in der Liste, lässt sich löschen, und der nächste ETL-Lauf gleicht die Wortgewichte aus.
+**Alles oder nichts.** Ein Upload ist erst ungeprüft (Vier-Augen-Prinzip unten) und hat sonst keinen Zwischenzustand. Schlägt das Einbetten fehl oder ist das Zeitbudget aufgebraucht, wird nichts geschrieben. Schlägt das Schreiben fehl, werden die Zeilen des Dokuments wieder entfernt. Ein defektes PDF ergibt eine Fehlermeldung, kein hängendes Dokument. Beendet die Plattform die Funktion hart, während die Zeilen geschrieben werden (zum Beispiel bei einem Neustart), kann ein Teil der Abschnitte stehen bleiben. Das Dokument erscheint dann in der Liste, lässt sich löschen, und der nächste ETL-Lauf gleicht die Wortgewichte aus.
 
 **Liste.** Zeigt Titel, Bereich, Rollen, Datum (`eingelesen_am`), Hochgeladen von und Anzahl der Abschnitte. Per Skript eingelesene Dokumente erscheinen mit, gruppiert nach `quelle_id`. Die Liste liest höchstens 50.000 Textstellen (der Korpus hat rund 5.700); wird das Limit erreicht, weist ein roter Hinweis darauf hin, dass die Liste unvollständig ist.
 
@@ -80,9 +83,54 @@ Der Upload nutzt dieselben Funktionen wie das Skript: `chunkiere`, `wissenEinbet
 - **Mehrfach.** Doppelklick oder ein zweites Löschen findet nichts mehr und meldet "bereits gelöscht", ohne die Gewichte noch einmal zu verringern: sie werden nur aus den Zeilen berechnet, die dieser Aufruf wirklich gelöscht hat (`DELETE … RETURNING`).
 - **Protokoll.** Wie beim Upload schreibt `protokolliere()` einen Eintrag in `audit_events` (`wissen.geloescht`: Person, Titel, Bereich, `quelle_id`, Zahl der Abschnitte, Zeitpunkt).
 
+## Typisierung der Quellen
+
+Nicht jeder Text ist gleich belastbar. Jede hochgeladene Textstelle trägt deshalb eine **Quellenart**, daraus ergibt sich die **Autoritätsstufe** (die bestehende Skala: 1 Primärrecht, 2 untergesetzlich, 3 amtliche Erläuterung, 4 Fachquelle, 5 Presse und ungesicherte Quellen). Beides steht in `src/lib/wissen/quellenart.ts`, der einzigen Stelle für diese Regeln; Upload, Freigabe, Suche, Quellenkarte und Tests lesen von dort. Bestand ohne Quellenart (Skript und ETL) gilt wie bisher.
+
+Wofür eine Quelle taugt, hängt vom **Bereich** ab (Nutzung): `ja` = normale Quelle, `Hinweis` = wird genutzt, aber nie allein tragend und immer als ungeprüft gekennzeichnet, `gesperrt` = für diesen Bereich nicht zulässig (der Upload wird abgelehnt). Blogs und Foren sind für Gesetze und Vorschriften ungeeignet (Fehlinformationen), für Risikomanagement als Hinweis denkbar, weil sich Methoden laufend ändern.
+
+| Quellenart | Beispiele | Stufe | Recht | Steuern | Compliance | Audit | Risiko | Wiedervorlage |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `rechtsnorm` | Gesetz, Verordnung, Kodex | 1 | ja | ja | ja | ja | ja | nie |
+| `rechtsprechung` | Urteil, Beschluss | 2 | ja | ja | ja | ja | ja | nie |
+| `verwaltungsanweisung` | Erlass, Schreiben einer Behörde | 2 | ja | ja | ja | ja | ja | nie |
+| `behoerdeninfo` | Merkblatt, amtliche Auskunft | 3 | ja | ja | ja | ja | ja | nie |
+| `standard` | ISO, COSO, Prüfungsstandard | 3 | Hinweis | Hinweis | ja | ja | ja | nie |
+| `fachliteratur` | Kommentar, Lehrbuch, Fachaufsatz | 4 | ja | ja | ja | ja | ja | nie |
+| `praxisbeitrag` | Whitepaper, Studie, Kanzlei- oder Verbandsinformation | 4 | Hinweis | Hinweis | Hinweis | ja | ja | 24 Monate |
+| `intern` | Betriebsanweisung, eigene Analyse | 4 | Hinweis | Hinweis | ja | ja | ja | 24 Monate |
+| `nachschlagewerk` | Lexikon, Wikipedia | 5 | Hinweis | Hinweis | Hinweis | Hinweis | Hinweis | 12 Monate |
+| `internetquelle` | Webseite, Artikel, Blog (Link Pflicht) | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate |
+| `forum` | Forum, Q&A, soziale Netze (Link Pflicht) | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate |
+| `internetrecherche` | Zusammenstellung aus einer Websuche, von Mensch oder KI | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate |
+| `ki_zusammenfassung` | von einer KI erzeugte Zusammenfassung | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate |
+
+**Wiedervorlage.** Quellen, deren Inhalt veraltet (Internet, Foren, Nachschlagewerke, Praxisbeiträge), laufen nach 12 oder 24 Monaten ab: `pruefen_bis` wird bei der Freigabe gesetzt, danach findet die Suche die Quelle nicht mehr, bis eine zweite Person sie erneut geprüft und verlängert hat. Die Liste kennzeichnet sie als "Prüfung fällig".
+
+## Vier-Augen-Prinzip
+
+Ein Upload ist **ungeprüft** und für niemanden durchsuchbar, auch nicht für den Admin, der ihn hochgeladen hat: Die Zeilensicherheit der Datenbank zeigt nur `pruefstatus = 'freigegeben'`, und `wissen_suche` filtert zusätzlich selbst (für Aufrufe mit dem Dienstschlüssel). Eine **zweite Person** mit dem Recht `ki_assistent:manage` gibt frei: In der Liste steht für die anderen Admins der Knopf "Prüfen". Der Dialog zeigt Titel, Bereich, Quellenart und Stufe, Rollen, Link und den Anfang des Textes und bietet Freigeben, Ablehnen (bleibt gesperrt, lässt sich löschen). Wer hochgeladen hat, sieht "Wartet auf eine zweite Person" und kann das Dokument zurückziehen (ablehnen) oder löschen, aber nicht freigeben.
+
+Zwei Schichten, die sich nicht aufeinander verlassen: die Anwendung (`src/lib/wissen/freigabe.ts`, Server Action `wissenDokumentPruefen`) und ein **Wächter in der Datenbank** (Trigger `wissen_pruefung_wache`, Migration `20261115000000`). Der Wächter lehnt jede Freigabe oder Verlängerung ab, deren `geprueft_von` der Person entspricht, die hochgeladen hat (`extra.hochgeladen_von`), jede Freigabe ohne `geprueft_von`, jede Rückkehr aus einem entschiedenen Status (freigegeben und abgelehnt bleiben so) und jeden Upload, der nicht ungeprüft beginnt. Ein Fehler im Anwendungscode kann das Prinzip damit nicht umgehen. Das Protokoll (`audit_events`) hält `wissen.hochgeladen`, `wissen.freigegeben`, `wissen.abgelehnt` und `wissen.verlaengert` mit Person, Titel, Bereich, Quellenart und Stufe fest.
+
+**Voraussetzung:** Es braucht mindestens zwei Personen mit dem Recht `ki_assistent:manage` (laut `rbac.ts` allein die Rolle admin). Mit nur einem Admin lässt sich nichts freigeben; das ist gewollt.
+
+## Wie der Assistent die Typisierung einhält
+
+Nicht durch Bitten im Prompt allein, sondern in Schichten, von der härtesten zur weichsten:
+
+1. **Datenbank:** Nur freigegebene, nicht abgelaufene Zeilen sind durchsuchbar (RLS und `wissen_suche`). Der Wächter erzwingt das Vier-Augen-Prinzip.
+2. **Upload:** Gesperrte Kombinationen aus Quellenart und Bereich werden abgelehnt, bevor die Datei gelesen wird; für Internetquelle und Forum ist der Link Pflicht.
+3. **Suche (`src/lib/wissen/suche.ts`):** Jeder Beleg trägt `quellenart`, `textgrundlage`, `nutzung` (ja oder hinweis) und `einordnung`, einen vom Code berechneten Satzteil wie "Fachliteratur, Stufe 4 (Fachquelle), Stand 2026-03-01". Hinweise stehen hinter allen tragenden Belegen, belegen nie die für Recht und amtliche Texte reservierten Plätze, und es kommen höchstens zwei in den Kontext. Eine Kombination, die nach dem Upload gesperrt wurde (Regel verschärft), wird sofort nicht mehr geliefert.
+4. **Lage:** Die Suche meldet `massgeblich` (Stufe 1 bis 3, uneingeschränkt), `belastbar` (nur Fachquellen), `nur_hinweise` oder `keine`. Daraus leitet das Werkzeug (`src/lib/ai/wissen-werkzeug.ts`) seinen Hinweis an das Modell ab, im Code und nicht durch das Modell: bei `nur_hinweise` muss die Antwort offen sagen, dass die Wissensbasis keine belastbare Quelle enthält.
+5. **Systemprompt (`quellenAnweisung`):** Regel 7 verlangt, die Einordnung bei wichtigen Aussagen in der Antwortsprache wiederzugeben, Regel 8, Hinweise nie als Grundlage verbindlicher Rechts-, Steuer- oder Compliance-Aussagen zu verwenden. Der Text der Belege gilt als Quellenmaterial, nie als Anweisung.
+6. **Oberfläche:** Die Quellenkarte im Chat zeigt Quellenart, Stufe, Stand und Übersetzungsart, warnt bei Hinweisen und sagt unter der Antwort "Nur Hinweise, keine belastbare Quelle", wenn nur Hinweise zitiert wurden.
+
+Was das nicht leistet: Die Quellenart sagt etwas über das Gewicht einer Quelle, nicht über die Richtigkeit einer Aussage. Auch kuratierte Rechtsrecherche halluziniert (Stanford, 2024: bei Lexis und Westlaw 17 bis 34 Prozent fehlerhafte Antworten). Die Belegkarte mit Link zum Original bleibt der eigentliche Schutz.
+
 ## Ausrollen (gehostet)
 
-1. Migrationen anwenden (`20261102000000_wissen_pgvector.sql`): über den Workflow "Datenbank-Migration" oder `supabase db push --linked` (vorher `--dry-run`).
+1. Migrationen anwenden (`20261102000000_wissen_pgvector.sql`, danach `20261115000000_wissen_typisierung_pgvector.sql` für Typisierung und Vier-Augen-Prüfung): über den Workflow "Datenbank-Migration" oder `supabase db push --linked` (vorher `--dry-run`). Die Migration muss VOR der neuen Anwendung laufen, sonst kennt die Liste die neuen Spalten nicht.
 2. ETL mit `--ja` gegen das gehostete Projekt.
 3. Vercel-Variablen setzen (Tabelle oben) und neu deployen.
 4. Prüfen: als Admin fragen "Ab welchem Umsatz muss sich ein Betrieb in Kasachstan für die Mehrwertsteuer registrieren?" Es muss "Wissensbasis durchsucht" erscheinen, dazu Zitatmarken und Quellenkarten (НК РК ст. 99 und 101).
@@ -107,9 +155,9 @@ Die Fusionskonstante ist bewusst klein (k = 2). Mit dem Lehrbuchwert 60 fiel ein
 
 | Befehl | Prüft | Läuft in |
 | --- | --- | --- |
-| `npm run test:wissen-db` | Rollenisolation per RLS, Hybridsuche, IDF, Filter ohne Trefferverlust, Schreibschutz, dazu Admin-Upload und Löschen mit dem echten Adapter (`wissen-upload-db.ts`: Marker- und LIKE-Filter der DELETE-Anweisung, Doppelklick, Rundlauf der Wortgewichte, Listenabfrage mit den Aliasen, Suche, RLS) (echtes Postgres) | PR-Pipeline, nach `supabase start` |
+| `npm run test:wissen-db` | Rollenisolation per RLS, Hybridsuche, IDF, Filter ohne Trefferverlust, Schreibschutz, dazu Admin-Upload, Vier-Augen-Wächter, Quarantäne, Wiedervorlage und Löschen mit dem echten Adapter (`wissen-upload-db.ts`: Marker- und LIKE-Filter der DELETE-Anweisung, Doppelklick, Rundlauf der Wortgewichte, Listenabfrage mit den Aliasen, Suche, RLS) (echtes Postgres) | PR-Pipeline, nach `supabase start` |
 | `npm run test:wissen-backend` | Adapter, Einbettungsclient, Backendwahl, Suche Ende zu Ende (ohne Datenbank) | `npm test` |
-| `npm run test:wissen-upload` | Admin-Upload: Rechte, Chunks, Dublette, Wortgewichte, Rollenfilter, Zeitbudget, Vorschau-Schutz je Schema, Suche mit Beleg (ohne Datenbank) | `npm test` |
+| `npm run test:wissen-upload` | Admin-Upload: Rechte, Chunks, Dublette, Wortgewichte, Rollenfilter, Zeitbudget, Vorschau-Schutz je Schema, Quellenart und Matrix, Freigabe, Verhalten der Suche und des Werkzeugs, Suche mit Beleg (ohne Datenbank) | `npm test` |
 | `npm run wissen:eval` | Trefferqualität (recall@k, MRR) und Rollensperren | von Hand, vor dem Einschalten |
 
 PGlite kann pgvector nicht. Die schnellen Tests überspringen deshalb Migrationen, die auf `_pgvector.sql` enden; die Migration selbst wird von `supabase start` in der CI und von `test:wissen-db` geprüft.

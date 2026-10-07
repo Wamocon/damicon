@@ -23,6 +23,15 @@ import {
 import { alsSparsevec, idf, sparseDokument, sparseIndex, zaehleWoerter } from "@/lib/wissen/sparse";
 import { DATENBANK_SCHEMA } from "@/lib/supabase/schema";
 import { UPLOAD_QUELLE, uploadQuelleId } from "@/lib/wissen/upload-quelle";
+import {
+  istQuellenart,
+  istTextgrundlage,
+  nutzungFuer,
+  QUELLENART_INFO,
+  standardStufe,
+  type Quellenart,
+  type Textgrundlage,
+} from "@/lib/wissen/quellenart";
 
 // Admin-Upload in die BESTEHENDE Wissensbasis (public.wissen_chunks). Kein zweiter
 // Index, keine zweite Suche, keine zweite Einbettung: Zerlegen (chunkiere), Einbetten
@@ -56,9 +65,18 @@ export type UploadFehlerCode =
   | "einbettung"
   | "zeit"
   | "speichern"
+  | "quellenartGesperrt"
+  | "urlFehlt"
+  | "urlUngueltig"
   | "nichtLoeschbar"
   | "loeschen"
-  | "gewichte";
+  | "gewichte"
+  // Freigabe (freigabe.ts)
+  | "nichtGefunden"
+  | "nichtFreigebbar"
+  | "nichtPruefbar"
+  | "selbstFreigabe"
+  | "freigeben";
 
 export class UploadFehler extends Error {
   constructor(
@@ -123,6 +141,21 @@ export async function extrahiereText(bytes: Uint8Array, typ: UploadDateityp): Pr
   }
 }
 
+/** Der Link zur Quelle: leer ergibt null, sonst muss es eine http(s)-Adresse sein (hoechstens 500 Zeichen). */
+export function normalisiereUrl(roh: string | undefined): string | null {
+  const t = (roh ?? "").trim();
+  if (!t) return null;
+  if (t.length > 500) throw new UploadFehler("urlUngueltig");
+  let u: URL;
+  try {
+    u = new URL(t);
+  } catch {
+    throw new UploadFehler("urlUngueltig");
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") throw new UploadFehler("urlUngueltig");
+  return u.toString();
+}
+
 /** Fuer den Vergleich: Zeilenenden und Leerraum vereinheitlicht, damit dieselbe Datei mit anderem
  *  Zeilenende (Windows/Unix) nicht als neues Dokument zaehlt. */
 function normalisiere(text: string): string {
@@ -143,6 +176,10 @@ export interface UploadMetadaten {
   hash: string;
   rollen: Role[];
   hochgeladenVon: { id: string; name: string | null };
+  quellenart: Quellenart;
+  textgrundlage: Textgrundlage;
+  /** Link zur Quelle (Herkunftsnachweis); fuer Internetquellen und Foren Pflicht. */
+  url: string | null;
   /** ISO-Zeitpunkt; ein Parameter, damit Tests ohne Uhr auskommen. */
   zeitpunkt: string;
 }
@@ -180,6 +217,10 @@ export function baueDokument(text: string, m: UploadMetadaten): WissensDokument 
   dok.pfad = pfad;
   dok.bereich = bereich; // parseDokument leitet den Bereich sonst aus dem Pfad ab
   dok.meta.titel = m.titel;
+  // Die Stufe bestimmt die Quellenart (src/lib/wissen/quellenart.ts), nicht ein Frontmatter: Der Rang ist eine Entscheidung des
+  // Formulars, die die zweite Person bei der Freigabe sieht. Eine Stufe im Frontmatter wird verworfen.
+  dok.meta.autoritaetsstufe = standardStufe(m.quellenart);
+  dok.meta.url = m.url ?? dok.meta.url;
   dok.meta.quelle_id = quelleId;
   dok.meta.chunk_id = quelleId; // daraus entstehen die stabilen Chunk-IDs: gleicher Inhalt = gleiche IDs
   dok.meta.sprache ??= erkenneSprache(dok.text) ?? "de";
@@ -214,6 +255,13 @@ export interface ChunkZeile {
   eingelesen_am: string;
   embed_modell: string;
   extra: Record<string, unknown>;
+  // Typisierung und Pruefung (Migration 20261115000000). Ein Upload beginnt IMMER ungeprueft; die Datenbank erzwingt das.
+  quellenart: string;
+  textgrundlage: string;
+  pruefstatus: string;
+  pruefen_bis: string | null;
+  geprueft_von: string | null;
+  geprueft_am: string | null;
   dense: string;
   sparse: string;
 }
@@ -260,6 +308,12 @@ export function baueZeile(
         hochgeladen_von: m.hochgeladenVon.id,
         hochgeladen_von_name: m.hochgeladenVon.name,
       },
+      quellenart: m.quellenart,
+      textgrundlage: m.textgrundlage,
+      pruefstatus: "ungeprueft",
+      pruefen_bis: null, // die Wiedervorlage beginnt mit der Freigabe
+      geprueft_von: null,
+      geprueft_am: null,
       dense: `[${dense.join(",")}]`,
       sparse: alsSparsevec(sparse),
     },
@@ -288,15 +342,40 @@ export interface WissenSpeicher {
   loescheUpload(quelleId: string): Promise<string[]>;
   /** Entfernt Woerter aus wissen_begriffe (df auf 0 gefallen). */
   loescheBegriffe(indizes: number[]): Promise<void>;
+
+  // ---- fuer die Freigabe (src/lib/wissen/freigabe.ts) ----
+  ladeFreigabeInfo(quelleId: string): Promise<FreigabeInfo>;
+  /** Entscheidet ueber ein UNGEPRUEFTES Upload-Dokument (freigegeben oder abgelehnt). Die Anweisung filtert selbst auf
+   *  Upload-Marker und pruefstatus = ungeprueft. Liefert die Zahl der Zeilen, die dieser Aufruf wirklich geaendert hat. */
+  entscheide(quelleId: string, a: { status: "freigegeben" | "abgelehnt"; pruefer: string; zeitpunkt: string; pruefenBis: string | null }): Promise<number>;
+  /** Verschiebt die Wiedervorlage eines freigegebenen Upload-Dokuments. Liefert die Zahl geaenderter Zeilen. */
+  verlaengere(quelleId: string, a: { pruefer: string; zeitpunkt: string; pruefenBis: string }): Promise<number>;
+  /** Der Anfang des Textes fuer die Pruefung (hoechstens `maxZeichen`), auch fuer ungepruefte Dokumente. */
+  ladeVorschau(quelleId: string, maxZeichen: number): Promise<string>;
+}
+
+/** Was die Pruefung ueber ein Dokument wissen muss. */
+export interface FreigabeInfo {
+  anzahl: number;
+  /** Zeilen, die NICHT zugleich extra.quelle = "upload" und eine quelle_id "upload:..." haben. */
+  fremd: number;
+  titel: string | null;
+  bereich: string | null;
+  quellenart: string | null;
+  /** Der Status, wenn alle Zeilen denselben haben, sonst "gemischt". null bei anzahl 0. */
+  pruefstatus: "ungeprueft" | "freigegeben" | "abgelehnt" | "gemischt" | null;
+  /** profiles.id der Person, die hochgeladen hat (extra.hochgeladen_von). */
+  hochgeladenVon: string | null;
+  pruefenBis: string | null;
 }
 
 export interface UploadErgebnis {
   chunks: number;
   quelleId: string;
   hash: string;
-  /** Stufe, die ein Markdown-Frontmatter mitbrachte (sonst null). Stufe 1 bis 3 belegt die bevorzugten Plaetze fuer
-   *  Recht und amtliche Texte; die Action schreibt sie deshalb ins Protokoll. */
-  autoritaetsstufe: number | null;
+  quellenart: Quellenart;
+  /** Die vergebene Stufe (aus der Quellenart); die Action schreibt sie ins Protokoll. */
+  autoritaetsstufe: number;
 }
 
 export interface UploadEingabe {
@@ -307,6 +386,12 @@ export interface UploadEingabe {
   dateiname: string;
   bytes: Uint8Array;
   hochgeladenVon: { id: string; name: string | null };
+  /** Rohwert aus dem Formular; muss eine Quellenart sein (quellenart.ts). */
+  quellenart: string;
+  /** Leer = original. */
+  textgrundlage?: string;
+  /** Link zur Quelle; leer erlaubt, ausser die Quellenart verlangt ihn. */
+  url?: string;
 }
 
 export interface UploadAbhaengigkeiten {
@@ -348,6 +433,14 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
   if (!typ) throw new UploadFehler("dateityp");
   if (e.bytes.length === 0) throw new UploadFehler("eingabe");
   if (e.bytes.length > MAX_DATEI_BYTES) throw new UploadFehler("zuGross");
+  if (!istQuellenart(e.quellenart)) throw new UploadFehler("eingabe");
+  const quellenart: Quellenart = e.quellenart;
+  const textgrundlage = e.textgrundlage?.trim() ? e.textgrundlage.trim() : "original";
+  if (!istTextgrundlage(textgrundlage)) throw new UploadFehler("eingabe");
+  // Wofuer die Quelle taugt, haengt vom Bereich ab: Blogs und Foren sind fuer Gesetze und Vorschriften ungeeignet.
+  if (nutzungFuer(e.bereich, quellenart) === "nein") throw new UploadFehler("quellenartGesperrt");
+  const url = normalisiereUrl(e.url);
+  if (QUELLENART_INFO[quellenart].urlPflicht && !url) throw new UploadFehler("urlFehlt");
 
   // 2. Text
   const text = await extrahiereText(e.bytes, typ);
@@ -371,6 +464,9 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
     hash,
     rollen: erlaubteRollen(e.rollen),
     hochgeladenVon: e.hochgeladenVon,
+    quellenart,
+    textgrundlage,
+    url,
     zeitpunkt,
   };
   const chunks = chunkiere(baueDokument(text, meta));
@@ -416,5 +512,5 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
     throw new UploadFehler("speichern", undefined, ursache);
   }
 
-  return { chunks: chunks.length, quelleId, hash, autoritaetsstufe: chunks[0]?.meta.autoritaetsstufe ?? null };
+  return { chunks: chunks.length, quelleId, hash, quellenart, autoritaetsstufe: standardStufe(quellenart) };
 }

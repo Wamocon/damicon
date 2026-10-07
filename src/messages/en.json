@@ -914,9 +914,12 @@
       "transkription": "Dictation accepted.",
       "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
       "dokumentGeaendert": "Document “{wert}” updated.",
-      "wissenHochgeladen": "Document “{wert}” uploaded and searchable.",
+      "wissenHochgeladen": "Document “{wert}” uploaded. It is waiting for approval by a second person.",
       "wissenGeloescht": "Document “{wert}” deleted.",
-      "wissenSchonGeloescht": "This document has already been deleted."
+      "wissenSchonGeloescht": "This document has already been deleted.",
+      "wissenFreigegeben": "Document “{wert}” approved and searchable.",
+      "wissenAbgelehnt": "Document “{wert}” rejected. It stays blocked and can be deleted.",
+      "wissenVerlaengert": "Document “{wert}” extended and searchable again."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -971,7 +974,15 @@
       "wissenVorschau": "Upload blocked: this preview environment writes to the same database schema as production (SUPABASE_DB_SCHEMA is not public_preview). Please upload in production or in a preview with its own schema.",
       "wissenNichtLoeschbar": "This document cannot be deleted here. Only documents uploaded through this administration can be deleted, never documents from the import script.",
       "wissenLoeschen": "The document could not be deleted. Nothing was changed.",
-      "wissenGewichte": "The document was deleted, but the search word weights could not be updated. This is harmless and is corrected by the next ETL run."
+      "wissenGewichte": "The document was deleted, but the search word weights could not be updated. This is harmless and is corrected by the next ETL run.",
+      "wissenQuellenartGesperrt": "This source type is not permitted for the chosen area. Laws and regulations need an official or professional source, not an internet source.",
+      "wissenUrlFehlt": "The link to the source is required for this source type (proof of origin).",
+      "wissenUrlUngueltig": "The link to the source is not a valid http or https address.",
+      "wissenNichtGefunden": "This document does not exist (any more).",
+      "wissenNichtFreigebbar": "This document cannot be reviewed here. Only documents uploaded through this administration are approved.",
+      "wissenNichtPruefbar": "This document is not waiting for a review, or someone else has just decided.",
+      "wissenSelbstFreigabe": "Four-eyes principle: the person who uploaded a document does not approve it. Please ask a second person.",
+      "wissenFreigeben": "The decision could not be saved. Nothing was changed."
     },
     "einladungen": {
       "erfolg": {
@@ -1987,7 +1998,29 @@
       "intern": "Internal research",
       "unbelegt": "There is no source for this citation.",
       "gestuetzt": "Backed by statute text",
-      "nurFach": "Expert sources only: check the primary source"
+      "nurFach": "Expert sources only: check the primary source",
+      "art": {
+        "rechtsnorm": "Legal norm",
+        "rechtsprechung": "Case law",
+        "verwaltungsanweisung": "Administrative directive",
+        "behoerdeninfo": "Official information",
+        "standard": "Standard or framework",
+        "fachliteratur": "Specialist literature",
+        "praxisbeitrag": "Practice paper",
+        "intern": "Internal document",
+        "nachschlagewerk": "Reference work",
+        "internetquelle": "Internet source",
+        "forum": "Forum or Q&A portal",
+        "internetrecherche": "Result of an internet search",
+        "ki_zusammenfassung": "AI summary"
+      },
+      "textgrundlage": {
+        "amtlich_uebersetzt": "Official translation",
+        "fachlich_uebersetzt": "Professional translation",
+        "maschinell_uebersetzt": "Machine translation"
+      },
+      "nurHinweis": "Only a hint from an unchecked source, not authoritative.",
+      "nurHinweise": "Hints only, no reliable source"
     },
     "anbieterVerwaltung": {
       "titel": "Manage AI providers",
@@ -2246,11 +2279,16 @@
         "vonSkript": "Import script",
         "abschnitte": "Sections",
         "keinDatum": "no date",
-        "keinBereich": "no area"
+        "keinBereich": "no area",
+        "quellenart": "Source type",
+        "stufe": "Level",
+        "link": "Source",
+        "pruefenBis": "Review due on",
+        "wartet": "Waiting for a second person: the uploader does not approve."
       },
       "formular": {
         "titel": "Upload document",
-        "lead": "PDF, Markdown or text up to 8 MB. The content is split, embedded and searchable immediately. The same file cannot be uploaded twice.",
+        "lead": "PDF, Markdown or text up to 8 MB. The content is split and embedded. The same file cannot be uploaded twice.",
         "datei": "File",
         "dateiHinweis": "Allowed: .pdf, .md, .txt. A PDF without a text layer (pure scan) is rejected.",
         "titelFeld": "Title",
@@ -2259,7 +2297,16 @@
         "bitteWaehlen": "Please choose",
         "rollen": "Who may see the document?",
         "adminImmer": "Administration is always included. Other roles do not use the knowledge search.",
-        "knopf": "Upload document"
+        "knopf": "Upload document",
+        "quellenart": "Source type",
+        "quellenartHinweis": "By where the text comes from, not how you got it: a statute from an official website is a legal norm, not an internet source.",
+        "nichtZulaessig": "not permitted for this area",
+        "nutzungHinweis": "In this area only as a hint: the assistant labels the source as unchecked and never bases a binding statement on it alone.",
+        "stufeInfo": "Will be created as level {stufe}.",
+        "textgrundlage": "Text basis",
+        "url": "Link to the source",
+        "urlHinweis": "Required for internet sources and forums, otherwise optional. The link is the proof of origin for the review.",
+        "freigabeHinweis": "After the upload the document waits for approval by a second person (four-eyes principle). Only then is it searchable."
       },
       "loeschen": {
         "knopf": "Delete",
@@ -2270,6 +2317,66 @@
         "warnung": "Warning: the document and all its sections are removed from the knowledge base for good. This cannot be undone. The assistant will no longer find it.",
         "abbrechen": "Cancel",
         "bestaetigen": "Delete permanently"
+      },
+      "quellenart": {
+        "rechtsnorm": "Legal norm",
+        "rechtsprechung": "Case law",
+        "verwaltungsanweisung": "Administrative directive",
+        "behoerdeninfo": "Official information",
+        "standard": "Standard or framework",
+        "fachliteratur": "Specialist literature",
+        "praxisbeitrag": "Practice paper",
+        "intern": "Internal document",
+        "nachschlagewerk": "Reference work",
+        "internetquelle": "Internet source",
+        "forum": "Forum or Q&A portal",
+        "internetrecherche": "Result of an internet search",
+        "ki_zusammenfassung": "AI summary"
+      },
+      "beispiel": {
+        "rechtsnorm": "statute, regulation, code",
+        "rechtsprechung": "judgment, ruling",
+        "verwaltungsanweisung": "decree, letter of an authority",
+        "behoerdeninfo": "leaflet, official guidance",
+        "standard": "ISO, COSO, auditing standard",
+        "fachliteratur": "commentary, textbook, journal article",
+        "praxisbeitrag": "white paper, study, law-firm or association publication",
+        "intern": "work instruction, own analysis",
+        "nachschlagewerk": "encyclopedia, Wikipedia",
+        "internetquelle": "web page, article, blog",
+        "forum": "forum, Q&A, social networks",
+        "internetrecherche": "compilation from a web search, by a person or an AI",
+        "ki_zusammenfassung": "summary generated by an AI"
+      },
+      "textgrundlage": {
+        "original": "Original text",
+        "amtlich_uebersetzt": "Official translation",
+        "fachlich_uebersetzt": "Professional translation",
+        "maschinell_uebersetzt": "Machine translation"
+      },
+      "status": {
+        "ungeprueft": "Awaiting approval",
+        "freigegeben": "Approved",
+        "abgelehnt": "Rejected",
+        "abgelaufen": "Review due"
+      },
+      "nutzung": {
+        "hinweis": "Hint only"
+      },
+      "pruefung": {
+        "knopf": "Review",
+        "knopfErneut": "Review again",
+        "titel": "Review and approve the document?",
+        "titelErneut": "Review due: keep using the document?",
+        "vorschau": "Start of the text",
+        "vorschauLaedt": "Loading …",
+        "vorschauFehler": "The preview could not be loaded.",
+        "hinweis": "Four-eyes principle: approving makes the document searchable for the chosen roles. Check origin, source type and content. The uploader may not approve.",
+        "hinweisErneut": "The review date has passed: the document is no longer found until a second person has checked and extended it. Methods change, so check whether the content still applies.",
+        "freigeben": "Approve",
+        "ablehnen": "Reject",
+        "verlaengern": "Extend",
+        "abbrechen": "Cancel"
       }
     },
     "sprachmodus": {

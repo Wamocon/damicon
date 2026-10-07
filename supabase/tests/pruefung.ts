@@ -83,7 +83,7 @@ pruefe("kanonisch: undefined wird ausgelassen", kanonisch({ a: 1, b: undefined }
 // ---- Ablauf mit Mock-Modell --------------------------------------------------------------------
 const FRISTEN_REIHE = ["sofort", "7 Tage", "30 Tage", "90 Tage"];
 const nutzung = { inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 1, text: 1, reasoning: 0 } };
-const beleg = (id: string, stufe = 1): Beleg => ({ id, fundstelle: `НК РК ст. ${id}`, titel: "t", sprache: "ru", stufe, gueltigAb: "2026-01-01", gueltigBis: null, ueberholt: false, konfidenz: null, abgerufenAm: "2026-09-19", url: "https://adilet.zan.kz/x", bereich: "steuer", text: "Текст нормы", punktzahl: 1 });
+const beleg = (id: string, stufe = 1): Beleg => ({ id, fundstelle: `НК РК ст. ${id}`, titel: "t", sprache: "ru", stufe, gueltigAb: "2026-01-01", gueltigBis: null, ueberholt: false, konfidenz: null, abgerufenAm: "2026-09-19", url: "https://adilet.zan.kz/x", bereich: "steuer", text: "Текст нормы", punktzahl: 1, quellenart: null, textgrundlage: null, nutzung: "ja", einordnung: "" });
 const felderImPrompt = (prompt: string) => [...prompt.matchAll(/=== PR(?:Ü|UE)FUNGSFELD ([a-z-]+):/g)].map((m) => m[1]!);
 const ersteBelegNr = (prompt: string, feld: string) => new RegExp(`=== PR(?:Ü|UE)FUNGSFELD ${feld}:[\\s\\S]*?\\[(S\\d+)\\]`).exec(prompt)?.[1];
 
@@ -170,7 +170,7 @@ function abhaengigkeiten(v: Verhalten, opts: { werkzeuge?: Record<string, unknow
     suche: async () => {
       if (opts.sucheFehler) throw new Error("Qdrant nicht erreichbar");
       nr++;
-      return { belege: [beleg("S1"), beleg("S2", 4)], dauerMs: { einbettung: 1, suche: 1, gesamt: 2 } };
+      return { belege: [beleg("S1"), beleg("S2", 4)], lage: "massgeblich" as const, dauerMs: { einbettung: 1, suche: 1, gesamt: 2 } };
     },
     jetzt: () => new Date("2026-09-20T10:00:00Z"),
     neueId: () => `lauf-${++nr}`,

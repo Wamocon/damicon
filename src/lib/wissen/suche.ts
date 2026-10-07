@@ -5,6 +5,7 @@ import { hybridSucheSupabase, type RpcKlient } from "@/lib/wissen/supabase-suche
 import type { SparseVektor } from "@/lib/wissen/sparse";
 import { BUERO_ROLLEN } from "@/lib/wissen/rollen";
 import { sparseFrage } from "@/lib/wissen/sparse";
+import { belegLage, einordnung, nutzungFuer, type BelegLage, type Nutzung } from "@/lib/wissen/quellenart";
 
 // Die Suche, die der Agent aufruft. Sie macht drei Dinge, die nicht dem Modell
 // ueberlassen werden duerfen:
@@ -19,6 +20,9 @@ import { sparseFrage } from "@/lib/wissen/sparse";
 // reserviert sind, sofern es solche Treffer gibt.
 const PRIMAER_PLAETZE = 3;
 const PRIMAER_MAX_STUFE = 3;
+// Quellen, die in ihrem Bereich nur als Hinweis taugen (Internet, Forum, KI ...), stehen hinter allen tragenden Belegen und
+// belegen nie einen der reservierten Plaetze. Mehr als zwei kommen nicht in den Kontext.
+const HINWEIS_MAX = 2;
 
 export interface Beleg {
   /** Zitierkennung fuer diese Antwort: S1, S2 ... */
@@ -37,10 +41,19 @@ export interface Beleg {
   bereich: string;
   text: string;
   punktzahl: number;
+  /** Typisierung (Migration 20261115000000): null bei Bestand ohne Typisierung. */
+  quellenart: string | null;
+  textgrundlage: string | null;
+  /** Wofuer die Quelle in ihrem Bereich taugt: ja, hinweis (nie allein tragend). Berechnet aus quellenart.ts, nicht gespeichert. */
+  nutzung: Nutzung;
+  /** Ein Satzteil mit Art, Stufe, Stand und Einschraenkungen. Berechnet im Code, das Modell gibt ihn nur wieder. */
+  einordnung: string;
 }
 
 export interface SuchErgebnis {
   belege: Beleg[];
+  /** massgeblich (Stufe 1 bis 3, uneingeschraenkt), belastbar, nur_hinweise oder keine: das Werkzeug leitet daraus seinen Hinweis ab. */
+  lage: BelegLage;
   dauerMs: { einbettung: number; suche: number; gesamt: number };
 }
 
@@ -145,12 +158,14 @@ async function einbettenMitCache(e: Einbettung, texte: string[]): Promise<number
 function alsBeleg(t: Treffer, nr: number): Beleg {
   const p = t.payload as Record<string, unknown>;
   const s = (k: string): string | null => (typeof p[k] === "string" && p[k] ? (p[k] as string) : null);
+  const stufe = typeof p.autoritaetsstufe === "number" ? p.autoritaetsstufe : null;
+  const nutzung = nutzungFuer(s("bereich") ?? "", s("quellenart"));
   return {
     id: `S${nr}`,
     fundstelle: s("kontext") ?? s("titel") ?? "Quelle",
     titel: s("titel"),
     sprache: s("sprache"),
-    stufe: typeof p.autoritaetsstufe === "number" ? p.autoritaetsstufe : null,
+    stufe,
     gueltigAb: s("gueltig_ab"),
     gueltigBis: s("gueltig_bis"),
     ueberholt: p.ist_ueberholt === true,
@@ -160,7 +175,17 @@ function alsBeleg(t: Treffer, nr: number): Beleg {
     bereich: s("bereich") ?? "",
     text: s("text") ?? "",
     punktzahl: Number(t.score.toFixed(4)),
+    quellenart: s("quellenart"),
+    textgrundlage: s("textgrundlage"),
+    nutzung,
+    einordnung: einordnung({ quellenart: s("quellenart"), stufe, nutzung, textgrundlage: s("textgrundlage"), stand: s("abgerufen_am") }),
   };
+}
+
+/** Nutzung eines Treffers aus seinem Payload (Bereich und Quellenart), ohne den Beleg zu bauen. */
+function nutzungVon(t: Treffer): Nutzung {
+  const p = t.payload as Record<string, unknown>;
+  return nutzungFuer(typeof p.bereich === "string" ? p.bereich : "", typeof p.quellenart === "string" ? p.quellenart : null);
 }
 
 export async function sucheWissen(
@@ -184,17 +209,24 @@ export async function sucheWissen(
     suchen({ rolle, nurAktuell, maxStufe: PRIMAER_MAX_STUFE }, { limit: PRIMAER_PLAETZE + 2 }),
     suchen({ rolle, nurAktuell }, { limit }),
   ]);
+  // Die reservierten Plaetze gehoeren tragenden Quellen: ein Hinweis (zum Beispiel eine Norm in einer Rechtsfrage) rueckt nicht ein.
+  const primaerTragend = primaer.filter((t) => nutzungVon(t) === "ja");
   const gesehen = new Set<string>();
   const treffer: Treffer[] = [];
-  for (const t of [...primaer.slice(0, PRIMAER_PLAETZE), ...alle, ...primaer.slice(PRIMAER_PLAETZE)]) {
+  for (const t of [...primaerTragend.slice(0, PRIMAER_PLAETZE), ...alle, ...primaerTragend.slice(PRIMAER_PLAETZE)]) {
     if (gesehen.has(t.id)) continue;
     gesehen.add(t.id);
+    // "nein" kann nur entstehen, wenn die Regeln nach dem Upload strenger wurden: dann gilt die neue Regel sofort.
+    if (nutzungVon(t) === "nein") continue;
     treffer.push(t);
   }
-  treffer.length = Math.min(treffer.length, limit);
+  const geordnet = [...treffer.filter((t) => nutzungVon(t) === "ja"), ...treffer.filter((t) => nutzungVon(t) === "hinweis").slice(0, HINWEIS_MAX)];
+  geordnet.length = Math.min(geordnet.length, limit);
   const t2 = performance.now();
+  const belege = geordnet.map((t, i) => alsBeleg(t, i + 1));
   return {
-    belege: treffer.map((t, i) => alsBeleg(t, i + 1)),
+    belege,
+    lage: belegLage(belege),
     dauerMs: { einbettung: Math.round(t1 - t0), suche: Math.round(t2 - t1), gesamt: Math.round(t2 - t0) },
   };
 }

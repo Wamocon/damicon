@@ -48,6 +48,8 @@ export function Feld({
   required,
   placeholder,
   defaultValue,
+  value,
+  onChange,
   inputMode,
   form,
   hinweis,
@@ -58,6 +60,9 @@ export function Feld({
   required?: boolean;
   placeholder?: string;
   defaultValue?: string;
+  /** Gesteuertes Feld: der Eltern-Zustand bestimmt den Wert (bleibt nach einem Fehler erhalten, wird nach einem Erfolg geleert). */
+  value?: string;
+  onChange?: (wert: string) => void;
   inputMode?: "text" | "decimal";
   form?: string;
   /** Kurzer Hinweis unter dem Feld, etwa die Zeitzone; Vorlesehilfen lesen ihn mit. */
@@ -74,7 +79,7 @@ export function Feld({
         type={type}
         required={required}
         placeholder={placeholder}
-        defaultValue={defaultValue}
+        {...(value !== undefined ? { value, onChange: (e) => onChange?.(e.target.value) } : { defaultValue })}
         inputMode={inputMode}
         form={form}
         aria-describedby={hinweis ? hinweisId : undefined}
@@ -96,10 +101,12 @@ export function Auswahl({
   gruppen,
   required,
   defaultValue,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
-  options: { wert: string; text: string }[];
+  options: { wert: string; text: string; disabled?: boolean }[];
   /**
    * Zusaetzliche Eintraege unter Ueberschriften, hinter den options. Fuer
    * Listen, die zu lang zum Ueberfliegen sind - etwa Kostentraeger nach
@@ -108,6 +115,9 @@ export function Auswahl({
   gruppen?: { titel: string; options: { wert: string; text: string }[] }[];
   required?: boolean;
   defaultValue?: string;
+  /** Gesteuerte Auswahl, siehe Feld. */
+  value?: string;
+  onChange?: (wert: string) => void;
 }) {
   return (
     <label className="block space-y-1">
@@ -117,11 +127,11 @@ export function Auswahl({
       <select
         name={name}
         required={required}
-        defaultValue={defaultValue}
+        {...(value !== undefined ? { value, onChange: (e) => onChange?.(e.target.value) } : { defaultValue })}
         className={feldKlassen}
       >
         {options.map((option) => (
-          <option key={option.wert} value={option.wert}>
+          <option key={option.wert} value={option.wert} disabled={option.disabled}>
             {option.text}
           </option>
         ))}

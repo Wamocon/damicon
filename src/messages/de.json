@@ -914,9 +914,12 @@
       "transkription": "Diktat übernommen.",
       "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
       "dokumentGeaendert": "Dokument „{wert}“ aktualisiert.",
-      "wissenHochgeladen": "Dokument „{wert}“ hochgeladen und durchsuchbar.",
+      "wissenHochgeladen": "Dokument „{wert}“ hochgeladen. Es wartet auf die Freigabe durch eine zweite Person.",
       "wissenGeloescht": "Dokument „{wert}“ gelöscht.",
-      "wissenSchonGeloescht": "Dieses Dokument ist bereits gelöscht."
+      "wissenSchonGeloescht": "Dieses Dokument ist bereits gelöscht.",
+      "wissenFreigegeben": "Dokument „{wert}“ freigegeben und durchsuchbar.",
+      "wissenAbgelehnt": "Dokument „{wert}“ abgelehnt. Es bleibt gesperrt und lässt sich löschen.",
+      "wissenVerlaengert": "Dokument „{wert}“ verlängert und wieder durchsuchbar."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -971,7 +974,15 @@
       "wissenVorschau": "Upload gesperrt: Diese Vorschau-Umgebung schreibt in dasselbe Datenbankschema wie die Produktion (SUPABASE_DB_SCHEMA ist nicht public_preview). Bitte in der Produktion oder in einer Vorschau mit eigenem Schema hochladen.",
       "wissenNichtLoeschbar": "Dieses Dokument kann hier nicht gelöscht werden. Nur über die Verwaltung hochgeladene Dokumente sind löschbar, Dokumente aus dem Einlese-Skript nie.",
       "wissenLoeschen": "Das Dokument konnte nicht gelöscht werden. Es wurde nichts verändert.",
-      "wissenGewichte": "Das Dokument wurde gelöscht, aber die Wortgewichte der Suche konnten nicht aktualisiert werden. Das ist unschädlich und wird beim nächsten ETL-Lauf ausgeglichen."
+      "wissenGewichte": "Das Dokument wurde gelöscht, aber die Wortgewichte der Suche konnten nicht aktualisiert werden. Das ist unschädlich und wird beim nächsten ETL-Lauf ausgeglichen.",
+      "wissenQuellenartGesperrt": "Diese Quellenart ist für den gewählten Bereich nicht zulässig. Gesetze und Vorschriften brauchen eine amtliche oder fachliche Quelle, keine Internetquelle.",
+      "wissenUrlFehlt": "Für diese Quellenart ist der Link zur Quelle Pflicht (Herkunftsnachweis).",
+      "wissenUrlUngueltig": "Der Link zur Quelle ist keine gültige http- oder https-Adresse.",
+      "wissenNichtGefunden": "Dieses Dokument gibt es nicht (mehr).",
+      "wissenNichtFreigebbar": "Dieses Dokument lässt sich hier nicht prüfen. Nur über die Verwaltung hochgeladene Dokumente werden freigegeben.",
+      "wissenNichtPruefbar": "Dieses Dokument wartet nicht auf eine Prüfung, oder jemand anderes hat gerade entschieden.",
+      "wissenSelbstFreigabe": "Vier-Augen-Prinzip: Wer ein Dokument hochgeladen hat, gibt es nicht frei. Bitte eine zweite Person bitten.",
+      "wissenFreigeben": "Die Entscheidung konnte nicht gespeichert werden. Es wurde nichts verändert."
     },
     "einladungen": {
       "erfolg": {
@@ -1987,7 +1998,29 @@
       "intern": "Interne Recherche",
       "unbelegt": "Zu dieser Marke gibt es keinen Beleg.",
       "gestuetzt": "Auf Gesetzestext gestützt",
-      "nurFach": "Nur Fachquellen: Primärquelle prüfen"
+      "nurFach": "Nur Fachquellen: Primärquelle prüfen",
+      "art": {
+        "rechtsnorm": "Rechtsnorm",
+        "rechtsprechung": "Rechtsprechung",
+        "verwaltungsanweisung": "Verwaltungsanweisung",
+        "behoerdeninfo": "Behördeninformation",
+        "standard": "Norm oder Standard",
+        "fachliteratur": "Fachliteratur",
+        "praxisbeitrag": "Praxisbeitrag",
+        "intern": "Interne Ausarbeitung",
+        "nachschlagewerk": "Nachschlagewerk",
+        "internetquelle": "Internetquelle",
+        "forum": "Forum oder Frage-Antwort-Portal",
+        "internetrecherche": "Ergebnis einer Internetrecherche",
+        "ki_zusammenfassung": "KI-Zusammenfassung"
+      },
+      "textgrundlage": {
+        "amtlich_uebersetzt": "Amtliche Übersetzung",
+        "fachlich_uebersetzt": "Fachliche Übersetzung",
+        "maschinell_uebersetzt": "Maschinelle Übersetzung"
+      },
+      "nurHinweis": "Nur ein Hinweis aus einer ungeprüften Quelle, nicht maßgeblich.",
+      "nurHinweise": "Nur Hinweise, keine belastbare Quelle"
     },
     "anbieterVerwaltung": {
       "titel": "KI-Anbieter verwalten",
@@ -2246,11 +2279,16 @@
         "vonSkript": "Einlese-Skript",
         "abschnitte": "Abschnitte",
         "keinDatum": "ohne Datum",
-        "keinBereich": "ohne Bereich"
+        "keinBereich": "ohne Bereich",
+        "quellenart": "Quellenart",
+        "stufe": "Stufe",
+        "link": "Quelle",
+        "pruefenBis": "Prüfung fällig am",
+        "wartet": "Wartet auf eine zweite Person: Wer hochgeladen hat, gibt nicht frei."
       },
       "formular": {
         "titel": "Dokument hochladen",
-        "lead": "PDF, Markdown oder Text bis 8 MB. Der Inhalt wird zerlegt, eingebettet und sofort durchsuchbar. Dieselbe Datei lässt sich nicht zweimal hochladen.",
+        "lead": "PDF, Markdown oder Text bis 8 MB. Der Inhalt wird zerlegt und eingebettet. Dieselbe Datei lässt sich nicht zweimal hochladen.",
         "datei": "Datei",
         "dateiHinweis": "Erlaubt: .pdf, .md, .txt. Ein PDF ohne Textebene (reiner Scan) wird abgelehnt.",
         "titelFeld": "Titel",
@@ -2259,7 +2297,16 @@
         "bitteWaehlen": "Bitte wählen",
         "rollen": "Wer darf das Dokument sehen?",
         "adminImmer": "Administration ist immer eingeschlossen. Andere Rollen nutzen die Wissenssuche nicht.",
-        "knopf": "Dokument hochladen"
+        "knopf": "Dokument hochladen",
+        "quellenart": "Quellenart",
+        "quellenartHinweis": "Nach der Herkunft des Textes, nicht nach dem Weg: Ein Gesetzestext von einer amtlichen Webseite ist eine Rechtsnorm, kein Internetbeitrag.",
+        "nichtZulaessig": "für diesen Bereich nicht zulässig",
+        "nutzungHinweis": "In diesem Bereich nur als Hinweis: Der Assistent nennt die Quelle als ungeprüft und stützt nie eine verbindliche Aussage allein darauf.",
+        "stufeInfo": "Wird mit Stufe {stufe} angelegt.",
+        "textgrundlage": "Textgrundlage",
+        "url": "Link zur Quelle",
+        "urlHinweis": "Pflicht bei Internetquelle und Forum, sonst freiwillig. Der Link ist der Herkunftsnachweis für die Prüfung.",
+        "freigabeHinweis": "Nach dem Hochladen wartet das Dokument auf die Freigabe durch eine zweite Person (Vier-Augen-Prinzip). Erst dann ist es durchsuchbar."
       },
       "loeschen": {
         "knopf": "Löschen",
@@ -2270,6 +2317,66 @@
         "warnung": "Achtung: Das Dokument und alle seine Abschnitte werden endgültig aus der Wissensbasis entfernt. Das kann nicht rückgängig gemacht werden. Der Assistent findet es danach nicht mehr.",
         "abbrechen": "Abbrechen",
         "bestaetigen": "Endgültig löschen"
+      },
+      "quellenart": {
+        "rechtsnorm": "Rechtsnorm",
+        "rechtsprechung": "Rechtsprechung",
+        "verwaltungsanweisung": "Verwaltungsanweisung",
+        "behoerdeninfo": "Behördeninformation",
+        "standard": "Norm oder Standard",
+        "fachliteratur": "Fachliteratur",
+        "praxisbeitrag": "Praxisbeitrag",
+        "intern": "Interne Ausarbeitung",
+        "nachschlagewerk": "Nachschlagewerk",
+        "internetquelle": "Internetquelle",
+        "forum": "Forum oder Frage-Antwort-Portal",
+        "internetrecherche": "Ergebnis einer Internetrecherche",
+        "ki_zusammenfassung": "KI-Zusammenfassung"
+      },
+      "beispiel": {
+        "rechtsnorm": "Gesetz, Verordnung, Kodex",
+        "rechtsprechung": "Urteil, Beschluss",
+        "verwaltungsanweisung": "Erlass, Schreiben einer Behörde",
+        "behoerdeninfo": "Merkblatt, amtliche Auskunft",
+        "standard": "ISO, COSO, Prüfungsstandard",
+        "fachliteratur": "Kommentar, Lehrbuch, Fachaufsatz",
+        "praxisbeitrag": "Whitepaper, Studie, Kanzlei- oder Verbandsinformation",
+        "intern": "Betriebsanweisung, eigene Analyse",
+        "nachschlagewerk": "Lexikon, Wikipedia",
+        "internetquelle": "Webseite, Artikel, Blog",
+        "forum": "Forum, Q&A, soziale Netze",
+        "internetrecherche": "Zusammenstellung aus einer Websuche, von Mensch oder KI",
+        "ki_zusammenfassung": "von einer KI erzeugte Zusammenfassung"
+      },
+      "textgrundlage": {
+        "original": "Originaltext",
+        "amtlich_uebersetzt": "Amtliche Übersetzung",
+        "fachlich_uebersetzt": "Fachliche Übersetzung",
+        "maschinell_uebersetzt": "Maschinelle Übersetzung"
+      },
+      "status": {
+        "ungeprueft": "Wartet auf Freigabe",
+        "freigegeben": "Freigegeben",
+        "abgelehnt": "Abgelehnt",
+        "abgelaufen": "Prüfung fällig"
+      },
+      "nutzung": {
+        "hinweis": "Nur Hinweis"
+      },
+      "pruefung": {
+        "knopf": "Prüfen",
+        "knopfErneut": "Erneut prüfen",
+        "titel": "Dokument prüfen und freigeben?",
+        "titelErneut": "Wiedervorlage: Dokument weiter nutzen?",
+        "vorschau": "Anfang des Textes",
+        "vorschauLaedt": "Wird geladen …",
+        "vorschauFehler": "Die Vorschau konnte nicht geladen werden.",
+        "hinweis": "Vier-Augen-Prinzip: Mit der Freigabe wird das Dokument für die gewählten Rollen durchsuchbar. Prüfen Sie Herkunft, Quellenart und Inhalt. Wer hochgeladen hat, darf nicht freigeben.",
+        "hinweisErneut": "Die Wiedervorlage ist erreicht: Das Dokument wird nicht mehr gefunden, bis eine zweite Person es erneut geprüft und verlängert hat. Methoden und Verfahren ändern sich, prüfen Sie, ob der Inhalt noch gilt.",
+        "freigeben": "Freigeben",
+        "ablehnen": "Ablehnen",
+        "verlaengern": "Verlängern",
+        "abbrechen": "Abbrechen"
       }
     },
     "sprachmodus": {

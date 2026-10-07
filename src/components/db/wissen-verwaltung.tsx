@@ -4,21 +4,33 @@ import { startTransition, useActionState, useCallback, useEffect, useRef, useSta
 import { useFormatter, useTranslations } from "next-intl";
 import { Card, StatusPill } from "@/components/ui/kit";
 import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
-import { wissenDokumenteLaden, wissenDokumentHochladen, wissenDokumentLoeschen } from "@/lib/actions/wissen";
+import {
+  wissenDokumenteLaden,
+  wissenDokumentHochladen,
+  wissenDokumentLoeschen,
+  wissenDokumentPruefen,
+  wissenDokumentVorschau,
+} from "@/lib/actions/wissen";
 import { leer, type AktionsStatus } from "@/lib/actions/status";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
+import { istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN } from "@/lib/wissen/quellenart";
 import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
 // Wissensverwaltung im KI-Panel (Einstellungen, unter dem Ratenlimit). Admin-only: Das Panel reicht das Element nur
-// an Rollen mit ki_assistent:manage weiter, und beide Server Actions pruefen die Berechtigung noch einmal selbst.
+// an Rollen mit ki_assistent:manage weiter, und alle Server Actions pruefen die Berechtigung noch einmal selbst.
 // Die Liste wird erst beim Oeffnen der Ansicht geladen (nicht im Layout): Sie liest alle Textstellen der Wissensbasis.
+//
+// Vier-Augen-Prinzip: Ein Upload wartet auf die Freigabe durch eine ZWEITE Person. Wer hochgeladen hat, sieht den Hinweis
+// "wartet", alle anderen Admins den Knopf "Pruefen" mit dem Anfang des Textes. Den Zwang setzen Server und Datenbank durch,
+// nicht diese Oberflaeche.
 
 export function WissenVerwaltung() {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
   const [dokumente, setDokumente] = useState<WissenDokumentZeile[] | null>(null);
+  const [ichId, setIchId] = useState<string | null>(null);
   const [ladefehler, setLadefehler] = useState(false);
   const [abgeschnitten, setAbgeschnitten] = useState(false);
-  const [loeschMeldung, setLoeschMeldung] = useState<AktionsStatus>(leer);
+  const [aktionsMeldung, setAktionsMeldung] = useState<AktionsStatus>(leer);
   const [, starte] = useTransition();
 
   const lade = useCallback(() => {
@@ -27,6 +39,7 @@ export function WissenVerwaltung() {
       setDokumente(antwort.dokumente);
       setLadefehler(antwort.fehler);
       setAbgeschnitten(antwort.abgeschnitten);
+      setIchId(antwort.ichId);
     });
   }, []);
 
@@ -40,7 +53,7 @@ export function WissenVerwaltung() {
       <WissenHochladenFormular beiErfolg={lade} />
       <div>
         <p className="mb-2 text-[11px] font-semibold text-card-foreground">{t("liste.titel")}</p>
-        <AktionsMeldung status={loeschMeldung} />
+        <AktionsMeldung status={aktionsMeldung} />
         {abgeschnitten ? <p role="status" className="mb-2 text-[11px] font-semibold text-destructive">{t("liste.abgeschnitten")}</p> : null}
         {ladefehler ? (
           <Card className="text-center text-xs text-destructive">{t("liste.fehler")}</Card>
@@ -51,7 +64,15 @@ export function WissenVerwaltung() {
         ) : (
           <ul className="space-y-2">
             {dokumente.map((d) => (
-              <WissenDokumentKarte key={d.schluessel} dokument={d} beiLoeschen={(status) => { setLoeschMeldung(status); lade(); }} />
+              <WissenDokumentKarte
+                key={d.schluessel}
+                dokument={d}
+                ichId={ichId}
+                beiErgebnis={(status) => {
+                  setAktionsMeldung(status);
+                  lade();
+                }}
+              />
             ))}
           </ul>
         )}
@@ -60,7 +81,15 @@ export function WissenVerwaltung() {
   );
 }
 
-function WissenDokumentKarte({ dokument, beiLoeschen }: { dokument: WissenDokumentZeile; beiLoeschen: (status: AktionsStatus) => void }) {
+function WissenDokumentKarte({
+  dokument,
+  ichId,
+  beiErgebnis,
+}: {
+  dokument: WissenDokumentZeile;
+  ichId: string | null;
+  beiErgebnis: (status: AktionsStatus) => void;
+}) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
   const tRolle = useTranslations("roles");
   const format = useFormatter();
@@ -72,17 +101,26 @@ function WissenDokumentKarte({ dokument, beiLoeschen }: { dokument: WissenDokume
   const bereichName = (UPLOAD_BEREICHE as readonly string[]).includes(bereichKey)
     ? t(`bereich.${bereichKey}` as never)
     : dokument.bereich || t("liste.keinBereich");
+  const artName = istQuellenart(dokument.quellenart) ? t(`quellenart.${dokument.quellenart}` as never) : null;
+  const ersterEintrag = dokument.herkunft === "upload";
+  const eigener = !!ichId && dokument.hochgeladenVonId === ichId;
+  const wartetAufMich = !eigener && (dokument.pruefstatus === "ungeprueft" || dokument.abgelaufen);
+  const wartetAufAndere = eigener && (dokument.pruefstatus === "ungeprueft" || dokument.abgelaufen);
+  const status = dokument.pruefstatus === "ungeprueft" ? "ungeprueft" : dokument.pruefstatus === "abgelehnt" ? "abgelehnt" : dokument.abgelaufen ? "abgelaufen" : "freigegeben";
 
   return (
     <li>
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <p className="min-w-0 break-words text-sm font-black text-card-foreground">{dokument.titel}</p>
-          <div className="flex shrink-0 gap-1.5">
+          <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
             <StatusPill tone="info">{bereichName}</StatusPill>
-            <StatusPill tone={dokument.herkunft === "upload" ? "success" : "neutral"}>
-              {t(`herkunft.${dokument.herkunft}`)}
-            </StatusPill>
+            <StatusPill tone={dokument.herkunft === "upload" ? "success" : "neutral"}>{t(`herkunft.${dokument.herkunft}`)}</StatusPill>
+            {artName ? <StatusPill tone="neutral">{artName}</StatusPill> : null}
+            {dokument.nutzung === "hinweis" ? <StatusPill tone="warning">{t("nutzung.hinweis")}</StatusPill> : null}
+            {ersterEintrag ? (
+              <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
+            ) : null}
           </div>
         </div>
         <dl className="mt-2 grid gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground sm:grid-cols-2">
@@ -102,29 +140,66 @@ function WissenDokumentKarte({ dokument, beiLoeschen }: { dokument: WissenDokume
             <dt className="inline font-semibold">{t("liste.abschnitte")}: </dt>
             <dd className="inline">{dokument.chunks}</dd>
           </div>
+          {dokument.stufe !== null ? (
+            <div>
+              <dt className="inline font-semibold">{t("liste.stufe")}: </dt>
+              <dd className="inline">{dokument.stufe}</dd>
+            </div>
+          ) : null}
+          {dokument.pruefenBis ? (
+            <div>
+              <dt className="inline font-semibold">{t("liste.pruefenBis")}: </dt>
+              <dd className="inline">{format.dateTime(new Date(dokument.pruefenBis), { dateStyle: "medium" })}</dd>
+            </div>
+          ) : null}
+          {dokument.url ? (
+            <div className="sm:col-span-2">
+              <dt className="inline font-semibold">{t("liste.link")}: </dt>
+              <dd className="inline break-all">
+                <a href={dokument.url} target="_blank" rel="noreferrer noopener" className="underline">
+                  {dokument.url}
+                </a>
+              </dd>
+            </div>
+          ) : null}
         </dl>
-        {/* Nur Uploads sind loeschbar. Skript-Dokumente haben keinen Knopf (und der Server lehnt sie ohnehin ab). */}
-        {dokument.loeschbar ? (
-          <WissenLoeschenKnopf dokument={dokument} bereichName={bereichName} beiErgebnis={beiLoeschen} />
-        ) : null}
+        {wartetAufAndere ? <p className="mt-2 text-[11px] font-semibold text-warning">{t("liste.wartet")}</p> : null}
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-2.5 empty:hidden">
+          {wartetAufMich ? <WissenPruefenKnopf dokument={dokument} bereichName={bereichName} artName={artName} beiErgebnis={beiErgebnis} /> : null}
+          {/* Nur Uploads sind loeschbar. Skript-Dokumente haben keinen Knopf (und der Server lehnt sie ohnehin ab). */}
+          {dokument.loeschbar ? <WissenLoeschenKnopf dokument={dokument} bereichName={bereichName} beiErgebnis={beiErgebnis} /> : null}
+        </div>
       </Card>
     </li>
   );
 }
 
+interface Eingaben {
+  titel: string;
+  bereich: string;
+  quellenart: string;
+  textgrundlage: string;
+  url: string;
+  rollen: string[];
+}
+const LEERE_EINGABEN: Eingaben = { titel: "", bereich: "", quellenart: "", textgrundlage: "original", url: "", rollen: [] };
+
 function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.formular");
   const tBereich = useTranslations("kiAssistentAnsicht.wissensVerwaltung.bereich");
+  const tArt = useTranslations("kiAssistentAnsicht.wissensVerwaltung.quellenart");
+  const tBeispiel = useTranslations("kiAssistentAnsicht.wissensVerwaltung.beispiel");
+  const tText = useTranslations("kiAssistentAnsicht.wissensVerwaltung.textgrundlage");
   const tRolle = useTranslations("roles");
   const tAktion = useTranslations("aktionen");
-  // React setzt ein Formular nach jeder Aktion zurueck, auch nach einem Fehler: Titel, Bereich und Rollen waeren weg
-  // (nur die Datei muss ohnehin neu gewaehlt werden). Die Eingaben werden deshalb als Vorgabewerte gemerkt, auf die
-  // das Zuruecksetzen zurueckfaellt, und nach einem Erfolg geleert.
-  const [behalten, setBehalten] = useState<{ titel: string; bereich: string; rollen: string[] }>({ titel: "", bereich: "", rollen: [] });
+  // Alle Eingaben (ausser der Datei) liegen im Zustand, nicht im Formular: React setzt ein Formular nach jeder Aktion
+  // zurueck, auch nach einem Fehler. So bleiben Titel, Bereich, Quellenart und Rollen stehen (nur die Datei muss neu
+  // gewaehlt werden) und werden nach einem Erfolg geleert.
+  const [werte, setWerte] = useState<Eingaben>(LEERE_EINGABEN);
+  const aendere = (teil: Partial<Eingaben>) => setWerte((alt) => ({ ...alt, ...teil }));
   const [status, action] = useActionState(async (vorher: AktionsStatus, formData: FormData) => {
-    setBehalten({ titel: String(formData.get("titel") ?? ""), bereich: String(formData.get("bereich") ?? ""), rollen: formData.getAll("rollen").map(String) });
     const antwort = await wissenDokumentHochladen(vorher, formData);
-    if (antwort.stand === "ok") startTransition(() => setBehalten({ titel: "", bereich: "", rollen: [] }));
+    if (antwort.stand === "ok") startTransition(() => setWerte(LEERE_EINGABEN));
     return antwort;
   }, leer);
   const zuletzt = useRef(status);
@@ -134,6 +209,9 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
     if (status !== zuletzt.current && status.stand === "ok") beiErfolg();
     zuletzt.current = status;
   }, [status, beiErfolg]);
+
+  const art = istQuellenart(werte.quellenart) ? werte.quellenart : null;
+  const nutzung = art && werte.bereich ? nutzungFuer(werte.bereich, art) : "ja";
 
   return (
     <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
@@ -156,19 +234,64 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
           />
           <span className="block text-[11px] text-muted-foreground">{t("dateiHinweis")}</span>
         </label>
-        <Feld label={t("titelFeld")} name="titel" required placeholder={t("titelPlatzhalter")} defaultValue={behalten.titel} />
-        {/* key: React uebernimmt ein geaendertes defaultValue bei <select> nicht; mit neuem key entsteht das Feld neu. */}
+        <Feld label={t("titelFeld")} name="titel" required placeholder={t("titelPlatzhalter")} value={werte.titel} onChange={(titel) => aendere({ titel })} />
         <Auswahl
-          key={`bereich-${behalten.bereich}`}
           label={t("bereich")}
           name="bereich"
           required
-          defaultValue={behalten.bereich}
+          value={werte.bereich}
+          // Wechselt der Bereich auf einen, in dem die gewaehlte Quellenart nicht zulaessig ist, wird die Art zurueckgesetzt.
+          onChange={(bereich) => aendere({ bereich, quellenart: nutzungFuer(bereich, werte.quellenart) === "nein" ? "" : werte.quellenart })}
           options={[
             { wert: "", text: t("bitteWaehlen") },
             ...UPLOAD_BEREICHE.map((b) => ({ wert: b, text: tBereich(b) })),
           ]}
         />
+        <div className="space-y-1 sm:col-span-2">
+          <Auswahl
+            label={t("quellenart")}
+            name="quellenart"
+            required
+            value={werte.quellenart}
+            onChange={(quellenart) => aendere({ quellenart })}
+            options={[
+              { wert: "", text: t("bitteWaehlen") },
+              ...QUELLENARTEN.map((a) => {
+                const gesperrt = !!werte.bereich && nutzungFuer(werte.bereich, a) === "nein";
+                return {
+                  wert: a,
+                  text: `${tArt(a)} (${gesperrt ? t("nichtZulaessig") : tBeispiel(a)})`,
+                  disabled: gesperrt,
+                };
+              }),
+            ]}
+          />
+          <span className="block text-[11px] text-muted-foreground">{t("quellenartHinweis")}</span>
+          {art ? (
+            <span className={`block text-[11px] ${nutzung === "hinweis" ? "font-semibold text-warning" : "text-muted-foreground"}`}>
+              {nutzung === "hinweis" ? t("nutzungHinweis") : t("stufeInfo", { stufe: QUELLENART_INFO[art].stufe })}
+            </span>
+          ) : null}
+        </div>
+        <Auswahl
+          label={t("textgrundlage")}
+          name="textgrundlage"
+          value={werte.textgrundlage}
+          onChange={(textgrundlage) => aendere({ textgrundlage })}
+          options={TEXTGRUNDLAGEN.map((g) => ({ wert: g, text: tText(g) }))}
+        />
+        <div className="space-y-1">
+          <Feld
+            label={t("url")}
+            name="quelle_url"
+            type="url"
+            required={!!art && QUELLENART_INFO[art].urlPflicht}
+            placeholder="https://"
+            value={werte.url}
+            onChange={(url) => aendere({ url })}
+          />
+          <span className="block text-[11px] text-muted-foreground">{t("urlHinweis")}</span>
+        </div>
         <fieldset className="space-y-1 sm:col-span-2">
           <legend className="text-[11px] font-semibold text-card-foreground">{t("rollen")}</legend>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -178,7 +301,13 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
                   // Der Admin ist immer dabei: ein deaktiviertes Feld wird nicht gesendet, der Server ergaenzt ihn.
                   <input type="checkbox" checked disabled aria-describedby="wissen-admin-immer" />
                 ) : (
-                  <input type="checkbox" name="rollen" value={rolle} defaultChecked={behalten.rollen.includes(rolle)} />
+                  <input
+                    type="checkbox"
+                    name="rollen"
+                    value={rolle}
+                    checked={werte.rollen.includes(rolle)}
+                    onChange={(e) => aendere({ rollen: e.target.checked ? [...werte.rollen, rolle] : werte.rollen.filter((r) => r !== rolle) })}
+                  />
                 )}
                 {tRolle(rolle)}
               </label>
@@ -188,6 +317,7 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
             {t("adminImmer")}
           </span>
         </fieldset>
+        <p className="text-[11px] font-semibold text-muted-foreground sm:col-span-2">{t("freigabeHinweis")}</p>
         <div className="flex items-end sm:col-span-2">
           <SubmitKnopf label={t("knopf")} status={status} />
         </div>
@@ -196,6 +326,146 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
         </div>
       </form>
     </FormularKarte>
+  );
+}
+
+// Pruefen mit Bestaetigungsfenster (natives <dialog>, modal). Zeigt, was freigegeben wird: Titel, Bereich, Quellenart,
+// Link, Rollen und den Anfang des Textes. Dafuer ist die Vorschau da: Wer freigibt, soll gelesen haben, was er freigibt.
+function WissenPruefenKnopf({
+  dokument,
+  bereichName,
+  artName,
+  beiErgebnis,
+}: {
+  dokument: WissenDokumentZeile;
+  bereichName: string;
+  artName: string | null;
+  beiErgebnis: (status: AktionsStatus) => void;
+}) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  const tRolle = useTranslations("roles");
+  const [status, action, laeuft] = useActionState(wissenDokumentPruefen, leer);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const zuletzt = useRef(status);
+  const [vorschau, setVorschau] = useState<"laedt" | { text: string; fehler: boolean } | null>(null);
+  const erneut = dokument.pruefstatus === "freigegeben";
+
+  // Nach der Antwort (Erfolg oder Fehler): Fenster zu, Meldung und Neuladen beim Eltern-Element.
+  useEffect(() => {
+    if (status !== zuletzt.current && status.stand !== "leer") {
+      dialog.current?.close();
+      beiErgebnis(status);
+    }
+    zuletzt.current = status;
+  }, [status, beiErgebnis]);
+
+  const oeffnen = () => {
+    dialog.current?.showModal();
+    setVorschau("laedt");
+    wissenDokumentVorschau(dokument.schluessel)
+      .then(setVorschau)
+      .catch(() => setVorschau({ text: "", fehler: true }));
+  };
+  const titelId = `pruefen-titel-${dokument.schluessel}`;
+  const knopfKlasse = "inline-flex h-8 items-center rounded-lg border px-3 text-xs font-semibold disabled:opacity-60";
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={oeffnen}
+        className="inline-flex h-7 items-center rounded-lg border border-primary/40 px-2.5 text-[11px] font-semibold text-primary transition hover:border-primary"
+      >
+        {erneut ? t("pruefung.knopfErneut") : t("pruefung.knopf")}
+      </button>
+      <dialog
+        ref={dialog}
+        aria-labelledby={titelId}
+        className="m-auto w-[min(94vw,34rem)] rounded-xl border border-border bg-card p-0 text-card-foreground backdrop:bg-black/50"
+      >
+        <form action={action} className="space-y-3 p-4">
+          <PfadFeld />
+          <input type="hidden" name="quelle_id" value={dokument.schluessel} />
+          <h3 id={titelId} className="text-sm font-black">
+            {erneut ? t("pruefung.titelErneut") : t("pruefung.titel")}
+          </h3>
+          <dl className="space-y-0.5 text-xs">
+            <div>
+              <dt className="inline font-semibold">{t("loeschen.dokument")}: </dt>
+              <dd className="inline break-words">{dokument.titel}</dd>
+            </div>
+            <div>
+              <dt className="inline font-semibold">{t("loeschen.bereich")}: </dt>
+              <dd className="inline">{bereichName}</dd>
+            </div>
+            {artName ? (
+              <div>
+                <dt className="inline font-semibold">{t("liste.quellenart")}: </dt>
+                <dd className="inline">
+                  {artName}
+                  {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe}` : ""}
+                  {dokument.nutzung === "hinweis" ? `, ${t("nutzung.hinweis")}` : ""}
+                </dd>
+              </div>
+            ) : null}
+            <div>
+              <dt className="inline font-semibold">{t("liste.rollen")}: </dt>
+              <dd className="inline">{dokument.rollen.map((r) => tRolle(r as never)).join(", ") || "-"}</dd>
+            </div>
+            <div>
+              <dt className="inline font-semibold">{t("liste.von")}: </dt>
+              <dd className="inline">{dokument.hochgeladenVon ?? t("liste.vonSkript")}</dd>
+            </div>
+            <div>
+              <dt className="inline font-semibold">{t("loeschen.abschnitte")}: </dt>
+              <dd className="inline">{dokument.chunks}</dd>
+            </div>
+            {dokument.url ? (
+              <div>
+                <dt className="inline font-semibold">{t("liste.link")}: </dt>
+                <dd className="inline break-all">
+                  <a href={dokument.url} target="_blank" rel="noreferrer noopener" className="underline">
+                    {dokument.url}
+                  </a>
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+          <div>
+            <p className="mb-1 text-[11px] font-semibold">{t("pruefung.vorschau")}</p>
+            <div className="max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/40 p-2 text-[11px] leading-4">
+              {vorschau === "laedt" || vorschau === null
+                ? t("pruefung.vorschauLaedt")
+                : vorschau.fehler
+                  ? t("pruefung.vorschauFehler")
+                  : vorschau.text}
+            </div>
+          </div>
+          <p role="note" className="rounded-lg border border-warning/30 bg-warning/[0.08] p-2 text-xs font-semibold text-warning">
+            {erneut ? t("pruefung.hinweisErneut") : t("pruefung.hinweis")}
+          </p>
+          <div className="flex flex-wrap justify-end gap-2">
+            <button type="button" onClick={() => dialog.current?.close()} className={`${knopfKlasse} border-border`}>
+              {t("pruefung.abbrechen")}
+            </button>
+            {erneut ? (
+              <button type="submit" name="aktion" value="verlaengern" disabled={laeuft} className={`${knopfKlasse} border-primary bg-primary text-primary-foreground`}>
+                {t("pruefung.verlaengern")}
+              </button>
+            ) : (
+              <>
+                <button type="submit" name="aktion" value="ablehnen" disabled={laeuft} className={`${knopfKlasse} border-destructive/40 text-destructive`}>
+                  {t("pruefung.ablehnen")}
+                </button>
+                <button type="submit" name="aktion" value="freigeben" disabled={laeuft} className={`${knopfKlasse} border-primary bg-primary text-primary-foreground`}>
+                  {t("pruefung.freigeben")}
+                </button>
+              </>
+            )}
+          </div>
+        </form>
+      </dialog>
+    </>
   );
 }
 
@@ -225,7 +495,7 @@ function WissenLoeschenKnopf({
   }, [status, beiErgebnis]);
 
   return (
-    <div className="mt-3 border-t border-border pt-2.5">
+    <>
       <button
         type="button"
         onClick={() => dialog.current?.showModal()}
@@ -273,6 +543,6 @@ function WissenLoeschenKnopf({
           </div>
         </form>
       </dialog>
-    </div>
+    </>
   );
 }

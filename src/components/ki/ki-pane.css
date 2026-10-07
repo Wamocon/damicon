@@ -1502,6 +1502,13 @@ html[data-ki-zieht] body {
   color: var(--akzent, var(--himbeere));
   background: color-mix(in oklab, var(--akzent, var(--himbeere)) 12%, transparent);
 }
+/* Quellenart (Fachliteratur, Forum ...): neben der Stufe, damit "woher" und "wie belastbar" getrennt zu lesen sind. */
+.ki-quelle__art {
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, currentColor 28%, transparent);
+  font-weight: 650;
+}
 .ki-quelle__stelle {
   margin: 0;
   font-size: 0.8rem;
