@@ -331,7 +331,7 @@
         "email": "E-Mail",
         "status": "Zweiter Faktor"
       },
-      "aktiv": "{anzahl, plural, one {aktiv, # Faktor} other {aktiv, # Faktoren}}",
+      "aktiv": "{anzahl, plural, one {# Faktor aktiv} other {# Faktoren aktiv}}",
       "nichtEingerichtet": "nicht eingerichtet",
       "keineKonten": "Es gibt noch kein Konto mit Anmeldung.",
       "nichtGeladen": "Der Status konnte nicht geladen werden. Es lässt sich daraus nichts über den Schutz der Konten ablesen. Bitte die Seite neu laden."

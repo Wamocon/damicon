@@ -331,7 +331,7 @@
         "email": "Email",
         "status": "Second factor"
       },
-      "aktiv": "{anzahl, plural, one {active, # factor} other {active, # factors}}",
+      "aktiv": "{anzahl, plural, one {# factor active} other {# factors active}}",
       "nichtEingerichtet": "not set up",
       "keineKonten": "There is no account with sign-in yet.",
       "nichtGeladen": "The status could not be loaded. Nothing can be concluded about how well the accounts are protected. Please reload the page."
