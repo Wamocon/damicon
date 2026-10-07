@@ -857,7 +857,58 @@ await mussScheitern(
     `erster: ${mengeErst[0].ergebnis}, zweiter: ${mengeReplay[0].ergebnis}`,
   );
 
+  // WMCNL-2452: eine Rolle ohne Leserecht auf pflueckaufgaben und ohne
+  // Schreibrecht auf sync_protokoll (picker) bekam fuer beide Funktionen einen
+  // rohen 42501 statt der sauberen Antwort 'berechtigung'.
   await alsAdmin(db);
+  const { rows: picker } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-picker@damicon.demo', '{"role":"picker"}'::jsonb)
+     returning id;`,
+  );
+  await alsRolle(db, "authenticated", picker[0].id);
+  const pickerAktion = crypto.randomUUID();
+  let pickerMenge = null;
+  let pickerStatus = null;
+  let pickerFehler = "";
+  try {
+    pickerMenge = (
+      await db.query("select * from public.sync_menge_melden($1, $2, 12.5, 1.0);", [
+        pickerAktion,
+        aufgabeId,
+      ])
+    ).rows[0];
+    pickerStatus = (
+      await db.query(
+        "select * from public.sync_aufgabe_status_setzen($1, $2, 'angenommen', 'offen');",
+        [crypto.randomUUID(), aufgabeId],
+      )
+    ).rows[0];
+  } catch (e) {
+    pickerFehler = e?.cause?.code ?? e?.code ?? String(e).slice(0, 80);
+  }
+  check(
+    "Sync: eine Rolle ohne Protokollrecht bekommt 'berechtigung' statt eines RLS-Fehlers",
+    pickerMenge?.ergebnis === "berechtigung" && pickerStatus?.ergebnis === "berechtigung",
+    pickerFehler
+      ? `Fehler ${pickerFehler}`
+      : `Menge: ${pickerMenge?.ergebnis}, Status: ${pickerStatus?.ergebnis}`,
+  );
+
+  await alsAdmin(db);
+  const { rows: pickerProtokoll } = await db.query(
+    "select 1 from public.sync_protokoll where aktion_id = $1;",
+    [pickerAktion],
+  );
+  const { rows: pickerAufgabe } = await db.query(
+    "select status from public.pflueckaufgaben where id = $1;",
+    [aufgabeId],
+  );
+  check(
+    "Sync: die abgewiesene Aktion der Rolle ohne Protokollrecht schreibt weder Protokoll noch Aufgabe",
+    pickerProtokoll.length === 0 && pickerAufgabe[0].status === "in_arbeit",
+    `Protokollzeilen: ${pickerProtokoll.length}, Status: ${pickerAufgabe[0].status}`,
+  );
   // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
