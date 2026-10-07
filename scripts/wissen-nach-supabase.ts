@@ -16,7 +16,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { DATENBANK_SCHEMA } from "../src/lib/supabase/schema";
 import { qdrantAusUmgebung } from "../src/lib/wissen/qdrant";
-import { alsSparsevec, sparseIndex } from "../src/lib/wissen/sparse";
+import { alsSparsevec, sparseIndex, sparsevecIndizes, wortgewichte } from "../src/lib/wissen/sparse";
+import { UPLOAD_QUELLE } from "../src/lib/wissen/upload-quelle";
 
 interface QdrantPunkt {
   id: string;
@@ -29,6 +30,11 @@ const BEKANNT = new Set([
   "gueltig_bis", "ist_ueberholt", "ersetzt_durch", "abgerufen_am", "url", "konfidenz", "pfad", "bereich", "teil",
   "teile", "kontext", "text", "rollen", "eingelesen_am", "embed_modell",
 ]);
+
+// Zeilen, die der Admin-Upload (src/lib/wissen/hochladen.ts) angelegt hat, tragen extra.quelle = UPLOAD_QUELLE
+// (src/lib/wissen/upload-quelle.ts, dieselbe Konstante wie im Upload). Sie stehen nicht in Qdrant. Der ETL fasst sie
+// nicht an: --bereinigen loescht sie nicht, und ihre Woerter und ihre Anzahl gehen in die Dokumenthaeufigkeit (df, N)
+// ein, damit ein ETL-Lauf die Gewichte der Uploads nicht zuruecksetzt.
 
 const str = (v: unknown): string | null => (typeof v === "string" && v !== "" ? v : null);
 const zahl = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
@@ -105,17 +111,26 @@ async function main() {
   if (dimensionen.length !== 1 || dimensionen[0] !== 1024) throw new Error(`Unerwartete Vektorgroesse: ${dimensionen.join(", ")} (erwartet 1024).`);
   console.log(`  ${punkte.length} Punkte, Modell ${modelle.join(", ")}, Dimension ${dimensionen[0]}`);
 
-  // Dokumenthaeufigkeit je Wort (ein Wort zaehlt je Textstelle einmal)
-  const df = new Map<number, number>();
-  for (const p of punkte) {
-    for (const idx of new Set(p.vector.text.indices.map(sparseIndex))) df.set(idx, (df.get(idx) ?? 0) + 1);
+  const db = createClient(url, dienstSchluessel, { auth: { persistSession: false, autoRefreshToken: false }, db: { schema: DATENBANK_SCHEMA } });
+
+  // Dokumenthaeufigkeit je Wort (ein Wort zaehlt je Textstelle einmal): wortgewichte() in sparse.ts.
+  const listen: number[][] = punkte.map((p) => p.vector.text.indices.map(sparseIndex));
+  // Hochgeladene Textstellen (nicht in Qdrant) zaehlen mit, nur lesend.
+  let hochgeladen = 0;
+  for (let von = 0; ; von += 500) {
+    const { data, error } = await db.from("wissen_chunks").select("sparse").eq("extra->>quelle", UPLOAD_QUELLE).order("id").range(von, von + 499);
+    if (error) throw new Error(`Uploads zaehlen: ${error.message}`);
+    for (const r of data ?? []) {
+      hochgeladen += 1;
+      listen.push(sparsevecIndizes(String((r as { sparse: unknown }).sparse)));
+    }
+    if (!data || data.length < 500) break;
   }
-  const n = punkte.length;
-  const begriffe = [...df].map(([hash, d]) => ({ hash, df: d, idf: Number(Math.log(1 + (n - d + 0.5) / (d + 0.5)).toFixed(6)) }));
+  if (hochgeladen > 0) console.log(`  ${hochgeladen} hochgeladene Textstellen bleiben bestehen und zaehlen fuer die Wortgewichte mit`);
+  const begriffe = wortgewichte(listen);
   console.log(`  ${begriffe.length} verschiedene Woerter`);
   if (args.has("--trocken")) return;
 
-  const db = createClient(url, dienstSchluessel, { auth: { persistSession: false, autoRefreshToken: false }, db: { schema: DATENBANK_SCHEMA } });
   const zeilen = punkte.map(zeile);
   for (let i = 0; i < zeilen.length; i += 100) {
     const { error } = await db.from("wissen_chunks").upsert(zeilen.slice(i, i + 100), { onConflict: "id" });
@@ -134,9 +149,15 @@ async function main() {
     const soll = new Set(zeilen.map((z) => z.id));
     const veraltet: string[] = [];
     for (let von = 0; ; von += 1000) {
-      const { data, error } = await db.from("wissen_chunks").select("id").order("id").range(von, von + 999);
+      const { data, error } = await db.from("wissen_chunks").select("id, upload:extra->>quelle").order("id").range(von, von + 999);
       if (error) throw new Error(`Bereinigen (lesen): ${error.message}`);
-      veraltet.push(...(data ?? []).map((r) => r.id as string).filter((id) => !soll.has(id)));
+      // Hochgeladene Zeilen sind kein Spiegel von Qdrant und bleiben stehen.
+      veraltet.push(
+        ...(data ?? [])
+          .filter((r) => (r as { upload: string | null }).upload !== UPLOAD_QUELLE)
+          .map((r) => r.id as string)
+          .filter((id) => !soll.has(id)),
+      );
       if (!data || data.length < 1000) break;
     }
     for (let i = 0; i < veraltet.length; i += 200) {

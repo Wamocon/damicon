@@ -170,7 +170,7 @@ export const en: HandbuchTexte = {
 
   anleitungen: {
     einleitung:
-      "Five procedures that cover the core of the operation. The paths refer to the sidebar.",
+      "Six procedures that cover the core of the operation. The paths refer to the sidebar.",
     liste: [
       {
         id: "wartezeit",
@@ -233,6 +233,21 @@ export const en: HandbuchTexte = {
           "An open invitation can be withdrawn as long as it has not been redeemed.",
           "For the second factor: open “Security” at the bottom of the sidebar, or the same entry in the account sheet on a phone.",
           "“Start” shows a QR code and a key — both are handed out only once. Scan it in an authenticator app, enter the six-digit code and confirm. Only then does the factor take effect.",
+        ],
+      },
+      {
+        id: "wissensdokument",
+        titel: "Upload and delete a document in the knowledge base (administration)",
+        einleitung:
+          "The knowledge base holds the law, tax, compliance, audit and risk texts from which the assistant takes its references. Only administration can add or remove documents here.",
+        schritte: [
+          "Sign in as administration, open the AI panel and choose “Settings”. The section “Knowledge documents” sits below the rate limit.",
+          "Under “Upload document” choose a file (PDF, Markdown or text, at most 8 MB). A PDF must contain text, a pure scan is rejected.",
+          "Enter a title, choose the area (Law, Tax, Compliance, Audit or Risk) and tick which office roles may see the document. Administration is always included.",
+          "Press “Upload document”. The text is split and embedded, which takes up to a minute for long documents. Afterwards the document is searchable at once and appears in the list with area, roles, date, who loaded it and number of sections.",
+          "The same file cannot be uploaded twice. The portal recognises the content and names the existing document. The original file is not kept, only the text.",
+          "To delete, choose “Delete” on an uploaded document and check title, area and number of sections in the window. Deleting cannot be undone. Documents loaded by script have no delete button.",
+          "Uploaded documents appear in the general result list, not among the preferred official legal sources.",
         ],
       },
     ],
@@ -551,6 +566,10 @@ export const en: HandbuchTexte = {
       {
         begriff: "Voice mode",
         text: "A live conversation with the assistant without a visible chat: Himbi leads the conversation: large in the middle while listening, at the left edge while explaining on wide screens, sized to fit the screen. Running text is off by default and can be switched on with the subtitles button in the bar; the browser remembers the choice (on a phone Himbi stays small, without running text and beside the highlighted area, so the page stays visible), with lips moving in time with the voice while speaking (the small figure in the corner is hidden meanwhile; if Himbi is switched off in the settings, a coloured circle shows whether it is listening, thinking or speaking), and the assistant can jump to and highlight a section on its own. Interrupt as in a conversation: just start talking, or tap Himbi. To start: the “Talk” button in the header, or in the chat the send button while the input field is empty. Voice mode can do the same as the chat, including entering data. Before any change is saved, it shows the change clearly outlined on screen, and you approve it by saying “Yes” or decline it with “No”. While it explains, a frame outlines exactly the spot it is talking about, and it expands collapsed sections for that. It also opens the zones Field, Yard, Office and Market and the compliance audit report, filtered by audit, tax, law or risk on request. Say “Stop”, “Wait”, “Hold on” or “No” to halt Himbi while he is speaking or thinking. The conversation stays open, and Himbi knows how far you listened. Whatever you say right after that is the next question, for example “Stop, show me the complaints instead”. If you keep talking while he is still thinking or has only just started to answer, he adds your words to the question instead of answering only the first part. Noises and a short “mhm”, “yes” or “right” do not interrupt him: he briefly gets quieter and then carries on. He only stops when you say something with content. To end voice mode, say “End voice mode” or “Bye Himbi”. So that this always works, the microphone listens throughout the whole conversation, also while the assistant is speaking; it recognises its own voice and does not react to it. The voice always follows the language of the text, not the interface language: a Russian sentence sounds Russian even when the interface is German, both when reading answers aloud in the chat and in a conversation. This also applies to very short answers such as “Да.”. While an approval is open, the status reads “Waiting for your yes or no”. The approval only appears after Himbi has spoken the sentence before it, for example “I am now clicking Create”. “Yes, please”, “Do it”, “Да, конечно” or “Әрине” also count as consent, and an “uh” before it does no harm. A counter-question such as “Yes?” approves nothing. If you ask a new question instead, Himbi declines the open action and then answers your question. A command only takes effect when your utterance starts with it: “How do I close the task?” does not end voice mode. On a slow connection Himbi speaks in slightly lower audio quality so that the voice does not stutter.",
+      },
+      {
+        begriff: "Knowledge base",
+        text: "The stock of texts on law, tax, compliance, audit and risk from which the assistant takes its references. Texts arrive by script or as an upload by administration. Every passage carries its area, roles and origin.",
       },
       {
         begriff: "Day companion",

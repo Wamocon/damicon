@@ -913,7 +913,10 @@
       "stammdatenGespeichert": "Stammdaten gespeichert.",
       "transkription": "Diktat übernommen.",
       "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
-      "dokumentGeaendert": "Dokument „{wert}“ aktualisiert."
+      "dokumentGeaendert": "Dokument „{wert}“ aktualisiert.",
+      "wissenHochgeladen": "Dokument „{wert}“ hochgeladen und durchsuchbar.",
+      "wissenGeloescht": "Dokument „{wert}“ gelöscht.",
+      "wissenSchonGeloescht": "Dieses Dokument ist bereits gelöscht."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -956,7 +959,19 @@
       "transkriptionLeer": "Nichts verstanden. Bitte etwas lauter oder näher am Mikrofon sprechen.",
       "dateiGross": "Die Aufnahme ist zu groß.",
       "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits.",
-      "ratenlimit": "Zu viele Anfragen in kurzer Zeit. Bitte kurz warten und es erneut versuchen."
+      "ratenlimit": "Zu viele Anfragen in kurzer Zeit. Bitte kurz warten und es erneut versuchen.",
+      "wissenDateityp": "Nur .pdf, .md und .txt sind erlaubt.",
+      "wissenLesen": "Die Datei konnte nicht gelesen werden (beschädigt, verschlüsselt oder keine Textdatei).",
+      "wissenLeer": "Die Datei enthält keinen lesbaren Text (bei einem PDF: vermutlich ein Scan ohne Textebene).",
+      "wissenZuLang": "Das Dokument ist zu lang (höchstens {wert} Abschnitte). Bitte in mehrere Dateien teilen.",
+      "wissenDoppelt": "Dieser Inhalt ist bereits in der Wissensbasis („{wert}“).",
+      "wissenEinbettung": "Die Einbettung ist fehlgeschlagen. Der Einbettungsdienst ist nicht erreichbar, es wurde nichts gespeichert.",
+      "wissenZeit": "Das Einbetten dauert zu lange (mehr als {wert} Sekunden). Es wurde nichts gespeichert. Bitte das Dokument in mehrere kleinere Dateien teilen.",
+      "wissenSpeichern": "Das Dokument konnte nicht gespeichert werden. Es wurde nichts übernommen.",
+      "wissenVorschau": "Upload gesperrt: Diese Vorschau-Umgebung schreibt in dasselbe Datenbankschema wie die Produktion (SUPABASE_DB_SCHEMA ist nicht public_preview). Bitte in der Produktion oder in einer Vorschau mit eigenem Schema hochladen.",
+      "wissenNichtLoeschbar": "Dieses Dokument kann hier nicht gelöscht werden. Nur über die Verwaltung hochgeladene Dokumente sind löschbar, Dokumente aus dem Einlese-Skript nie.",
+      "wissenLoeschen": "Das Dokument konnte nicht gelöscht werden. Es wurde nichts verändert.",
+      "wissenGewichte": "Das Dokument wurde gelöscht, aber die Wortgewichte der Suche konnten nicht aktualisiert werden. Das ist unschädlich und wird beim nächsten ETL-Lauf ausgeglichen."
     },
     "einladungen": {
       "erfolg": {
@@ -2205,6 +2220,58 @@
     "mehr": "Mehr",
     "groesser": "Panel vergrößern",
     "kleiner": "Panel verkleinern",
+    "wissensVerwaltung": {
+      "titel": "Wissensdokumente",
+      "lead": "Nur für Administration sichtbar. Dokumente laden Sie hier in die Wissensbasis, die der Assistent bei Recht-, Steuer-, Compliance-, Audit- und Risikofragen durchsucht. Die Datei selbst wird nicht aufbewahrt, nur der Text.",
+      "bereich": {
+        "recht": "Recht",
+        "steuer": "Steuern",
+        "compliance": "Compliance",
+        "audit": "Audit",
+        "risiko": "Risiko"
+      },
+      "herkunft": {
+        "upload": "Hochgeladen",
+        "skript": "Skript"
+      },
+      "liste": {
+        "titel": "Vorhandene Dokumente",
+        "laedt": "Dokumente werden geladen …",
+        "leer": "Noch keine Dokumente in der Wissensbasis.",
+        "fehler": "Die Dokumentliste konnte nicht geladen werden.",
+        "abgeschnitten": "Die Liste ist unvollständig: Die Wissensbasis hat mehr Textstellen, als diese Ansicht lesen kann. Bitte melden.",
+        "rollen": "Rollen",
+        "datum": "Eingelesen am",
+        "von": "Von",
+        "vonSkript": "Einlese-Skript",
+        "abschnitte": "Abschnitte",
+        "keinDatum": "ohne Datum",
+        "keinBereich": "ohne Bereich"
+      },
+      "formular": {
+        "titel": "Dokument hochladen",
+        "lead": "PDF, Markdown oder Text bis 8 MB. Der Inhalt wird zerlegt, eingebettet und sofort durchsuchbar. Dieselbe Datei lässt sich nicht zweimal hochladen.",
+        "datei": "Datei",
+        "dateiHinweis": "Erlaubt: .pdf, .md, .txt. Ein PDF ohne Textebene (reiner Scan) wird abgelehnt.",
+        "titelFeld": "Titel",
+        "titelPlatzhalter": "zum Beispiel Steuergesetzbuch, Auszug",
+        "bereich": "Bereich",
+        "bitteWaehlen": "Bitte wählen",
+        "rollen": "Wer darf das Dokument sehen?",
+        "adminImmer": "Administration ist immer eingeschlossen. Andere Rollen nutzen die Wissenssuche nicht.",
+        "knopf": "Dokument hochladen"
+      },
+      "loeschen": {
+        "knopf": "Löschen",
+        "titel": "Dokument löschen?",
+        "dokument": "Dokument",
+        "bereich": "Bereich",
+        "abschnitte": "Abschnitte",
+        "warnung": "Achtung: Das Dokument und alle seine Abschnitte werden endgültig aus der Wissensbasis entfernt. Das kann nicht rückgängig gemacht werden. Der Assistent findet es danach nicht mehr.",
+        "abbrechen": "Abbrechen",
+        "bestaetigen": "Endgültig löschen"
+      }
+    },
     "sprachmodus": {
       "titel": "Sprachmodus",
       "starten": "Sprachmodus starten",

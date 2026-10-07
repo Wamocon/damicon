@@ -35,13 +35,15 @@ export async function protokolliere(
   metadata: Record<string, Json> = {},
 ) {
   const supabase = await createClient();
-  await supabase.from("audit_events").insert({
+  const { error } = await supabase.from("audit_events").insert({
     actor: `${profil.fullName} (${profil.role})`,
     aktion,
     ressource,
     ressource_id: ressourceId,
     metadata,
   });
+  // Ein fehlender Protokolleintrag bricht die Aktion nicht ab (sie ist schon geschehen), darf aber nicht still bleiben.
+  if (error) console.error(`[damicon] Protokolleintrag "${aktion}" fehlgeschlagen:`, error.message);
 }
 
 // WMC-Vibecode-Cleanup-Fund: derselbe Datumsstempel-plus-Zufallssuffix-Code

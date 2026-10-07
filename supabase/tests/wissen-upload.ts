@@ -1,0 +1,641 @@
+// Tests fuer den Admin-Upload in die Wissensbasis (ohne Datenbank, ohne Netz, nur synthetische Dateien):
+//   * Rechte: nur admin darf hochladen; die Server Action prueft das vor allem anderen
+//   * Eingabe: Dateityp, Groesse (vor dem Parsen), Titel, Bereich, Rollen (Admin immer dabei, nur Bueroeinheit)
+//   * Text: .txt, .md und ein echtes (selbst gebautes) PDF; kaputtes PDF und Binaerdatei haengen nichts auf
+//   * Der Upload erzeugt Textstellen in der Form des ETL, mit Bereich, Rollen, Quelle und Beleg
+//   * Dublette: dieselbe Datei (auch mit anderen Zeilenenden) legt nichts doppelt an
+//   * Wortgewichte (wissen_begriffe): df und IDF je Wort, N aus der Gesamtzahl
+//   * Alles oder nichts: Fehler beim Einbetten oder Schreiben hinterlassen kein halbes Dokument
+//   * Suche findet das Dokument mit Beleg; ein auf eine Rolle beschraenktes Dokument sieht eine andere Rolle nicht
+//   * Liste: hochgeladene und per Skript eingelesene Dokumente erscheinen gemeinsam, gruppiert nach quelle_id
+//   * ETL-Spiegelmodus laesst hochgeladene Zeilen stehen
+// Die SQL-Funktion wissen_suche und die RLS selbst prueft test:wissen-db (echtes Postgres); hier bildet ein Nachbau
+// ihre Regeln nach (Rolle in rollen, nicht ueberholt, Stufe), damit sucheWissen() Ende zu Ende laeuft.
+// Aufruf: npm run test:wissen-upload (laeuft ueber tsx, damit die @/-Pfade aufloesen).
+
+import { readFileSync } from "node:fs";
+import { hasPermission, roles, type Role } from "@/lib/rbac";
+import { einbettungsText } from "@/lib/wissen/chunker";
+import type { Einbettung } from "@/lib/wissen/embed";
+import { gruppiereWissenDokumente, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
+import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
+import {
+  erlaubteRollen,
+  pruefeUploadUmgebung,
+  inhaltsHash,
+  MAX_CHUNKS,
+  UploadFehler,
+  verarbeiteUpload,
+  ZEITBUDGET_MS,
+  type ChunkZeile,
+  type UploadEingabe,
+  type WissenSpeicher,
+} from "@/lib/wissen/hochladen";
+import { BEREICH_WERT, bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
+import { alsSparsevec, idf, sparseDokument, sparseIndex, sparsevecIndizes, tokens, wortgewichte } from "@/lib/wissen/sparse";
+import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
+import type { RpcKlient } from "@/lib/wissen/supabase-suche";
+import { sucheWissen } from "@/lib/wissen/suche";
+
+let gesamt = 0;
+let fehler = 0;
+function pruefe(name: string, ok: boolean, detail = "") {
+  gesamt++;
+  if (!ok) fehler++;
+  console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? `  - ${detail}` : ""}`);
+}
+
+const lies = (pfad: string) => readFileSync(pfad, "utf8");
+const bytes = (s: string) => new TextEncoder().encode(s);
+
+// ---- Nachbauten --------------------------------------------------------------------------------
+
+function hash32(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/** Deterministische "Einbettung": Woerter fallen in 1024 Faecher, danach normiert. Gleiche Woerter = aehnliche Vektoren. */
+function vektorVon(text: string): number[] {
+  const v = new Array<number>(1024).fill(0);
+  for (const t of tokens(text)) v[hash32(t) % 1024]! += 1;
+  const norm = Math.sqrt(v.reduce((s, x) => s + x * x, 0)) || 1;
+  return v.map((x) => x / norm);
+}
+
+function falscheEinbettung(optionen: { dimension?: number; werfe?: boolean } = {}): Einbettung & { aufrufe: number } {
+  const e = {
+    modell: "synthetisch-bge-m3",
+    dimension: optionen.dimension ?? 1024,
+    aufrufe: 0,
+    async einbetten(texte: string[]) {
+      e.aufrufe += 1;
+      if (optionen.werfe) throw new Error("Dienst nicht erreichbar");
+      return texte.map(vektorVon);
+    },
+  };
+  return e;
+}
+
+interface Speicherstand {
+  zeilen: Map<string, ChunkZeile>;
+  begriffe: Map<number, { df: number; idf: number }>;
+  ereignisse: string[];
+}
+
+function falscherSpeicher(
+  vorgabe: { zeilen?: ChunkZeile[]; begriffe?: Array<[number, number] | [number, number, number]> } = {},
+  fehlschlag: { chunksBeiBatch?: number; begriffe?: boolean; loeschen?: boolean } = {},
+): WissenSpeicher & Speicherstand {
+  const zeilen = new Map<string, ChunkZeile>((vorgabe.zeilen ?? []).map((z) => [z.id, z]));
+  const begriffe = new Map<number, { df: number; idf: number }>((vorgabe.begriffe ?? []).map(([h, df, w]) => [h, { df, idf: w ?? 0 }]));
+  const ereignisse: string[] = [];
+  return {
+    zeilen,
+    begriffe,
+    ereignisse,
+    async findeQuelle(quelleId) {
+      ereignisse.push("findeQuelle");
+      const z = [...zeilen.values()].find((r) => r.quelle_id === quelleId);
+      return z ? { titel: z.titel } : null;
+    },
+    async schreibeChunks(neu) {
+      ereignisse.push("schreibeChunks");
+      let batch = 0;
+      for (let i = 0; i < neu.length; i += 2) {
+        batch += 1;
+        if (fehlschlag.chunksBeiBatch === batch) throw new Error("Schreibfehler im Batch");
+        for (const z of neu.slice(i, i + 2)) zeilen.set(z.id, z);
+      }
+    },
+    async loescheQuelle(quelleId) {
+      ereignisse.push("loescheQuelle");
+      for (const [id, z] of zeilen) if (z.quelle_id === quelleId) zeilen.delete(id);
+    },
+    async leseDokumenthaeufigkeit(indizes) {
+      ereignisse.push("leseDokumenthaeufigkeit");
+      return new Map(indizes.filter((i) => begriffe.has(i)).map((i) => [i, begriffe.get(i)!.df]));
+    },
+    async schreibeBegriffe(neu) {
+      ereignisse.push("schreibeBegriffe");
+      if (fehlschlag.begriffe) throw new Error("Begriffe nicht schreibbar");
+      for (const b of neu) begriffe.set(b.hash, { df: b.df, idf: b.idf });
+    },
+    async zaehleChunks() {
+      return zeilen.size;
+    },
+    async ladeQuellenInfo(quelleId) {
+      ereignisse.push("ladeQuellenInfo");
+      const z = [...zeilen.values()].filter((r) => r.quelle_id === quelleId);
+      const fremd = z.filter((r) => !istUploadZeile({ quelle_id: r.quelle_id, upload_quelle: typeof r.extra.quelle === "string" ? r.extra.quelle : null })).length;
+      return { anzahl: z.length, fremd, titel: z[0]?.titel ?? null, bereich: z[0]?.bereich ?? null };
+    },
+    async loescheUpload(quelleId) {
+      ereignisse.push("loescheUpload");
+      if (fehlschlag.loeschen) throw new Error("Loeschen fehlgeschlagen");
+      // wie die echte Anweisung: nur Zeilen mit BEIDEN Merkmalen, und nur diese werden zurueckgegeben
+      const weg = [...zeilen.values()].filter((r) => r.quelle_id === quelleId && r.extra.quelle === "upload" && (r.quelle_id ?? "").startsWith("upload:"));
+      for (const r of weg) zeilen.delete(r.id);
+      return weg.map((r) => r.sparse);
+    },
+    async loescheBegriffe(indizes) {
+      ereignisse.push("loescheBegriffe");
+      for (const i of indizes) begriffe.delete(i);
+    },
+  };
+}
+
+/** Nachbau von wissen_suche() samt RLS: sichtbar ist, wer mit seiner ECHTEN Rolle in `rollen` steht. */
+function falscheSuche(speicher: Speicherstand, sitzungsRolle: Role): RpcKlient {
+  return {
+    async rpc(fn, args) {
+      if (fn !== "wissen_suche") return { data: null, error: { message: `unbekannte Funktion ${fn}` } };
+      const fragen = args.p_fragen as Array<{ dense: number[] }>;
+      const pRolle = args.p_rolle as string | null;
+      const maxStufe = args.p_max_stufe as number | null;
+      const nurAktuell = args.p_nur_aktuell as boolean;
+      const punkte = new Map<string, number>();
+      for (const f of fragen) {
+        const sichtbar = [...speicher.zeilen.values()]
+          .filter((z) => z.rollen.includes(sitzungsRolle)) // RLS
+          .filter((z) => pRolle === null || z.rollen.includes(pRolle))
+          .filter((z) => !nurAktuell || !z.ist_ueberholt)
+          .filter((z) => maxStufe === null || (z.autoritaetsstufe !== null && z.autoritaetsstufe <= maxStufe));
+        const bewertet = sichtbar
+          .map((z) => ({ z, s: (JSON.parse(z.dense) as number[]).reduce((sum, x, i) => sum + x * (f.dense[i] ?? 0), 0) }))
+          .filter((x) => x.s > 0)
+          .sort((a, b) => b.s - a.s);
+        bewertet.forEach((x, rang) => punkte.set(x.z.id, (punkte.get(x.z.id) ?? 0) + 1 / (2 + rang + 1)));
+      }
+      const daten = [...punkte]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, (args.p_limit as number) ?? 8)
+        .map(([id, punktzahl]) => {
+          const z = speicher.zeilen.get(id)!;
+          return { id, punktzahl, payload: { ...z, rollen: z.rollen, dense: undefined, sparse: undefined, extra: undefined } };
+        });
+      return { data: daten, error: null };
+    },
+  };
+}
+
+/** Ein echtes, gueltiges einseitiges PDF mit Text (ASCII), selbst gebaut: keine Datei im Repo, kein Firmendokument. */
+function minimalesPdf(zeilen: string[]): Uint8Array {
+  const esc = (s: string) => s.replace(/[\\()]/g, "\\$&");
+  const strom = `BT /F1 12 Tf 72 720 Td 16 TL ${zeilen.map((z) => `(${esc(z)}) Tj T*`).join(" ")} ET`;
+  const objekte = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+    `<< /Length ${strom.length} >>\nstream\n${strom}\nendstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+  ];
+  let aus = "%PDF-1.4\n";
+  const versatz: number[] = [];
+  objekte.forEach((o, i) => {
+    versatz.push(aus.length);
+    aus += `${i + 1} 0 obj\n${o}\nendobj\n`;
+  });
+  const xref = aus.length;
+  aus += `xref\n0 ${objekte.length + 1}\n0000000000 65535 f \n${versatz.map((v) => `${String(v).padStart(10, "0")} 00000 n \n`).join("")}`;
+  aus += `trailer\n<< /Size ${objekte.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return bytes(aus);
+}
+
+// ---- Synthetische Texte (frei erfunden, kein echtes Dokument) -----------------------------------
+
+const ABSAETZE = [
+  "Der Testkodex Zypresse regelt die Aufbewahrung der Belege im Betrieb Sonnenhof.",
+  "Artikel 1. Jeder Beleg wird sieben Jahre lang im Archiv Blauwal aufbewahrt und darf nicht vernichtet werden.",
+  "Artikel 2. Die Frist fuer die Quarkspeise-Meldung betraegt vierzehn Tage nach dem Stichtag.",
+  "Artikel 3. Verstoesse gegen die Aufbewahrung werden mit einer Verwarnung durch die Pelikan-Stelle geahndet.",
+];
+const MD = `${ABSAETZE.join("\n\n")}\n`;
+const TXT = `Notiz Sonnenhof\n\n${ABSAETZE.slice(0, 2).join("\n\n")}\n`;
+const JETZT = () => new Date("2026-10-05T10:00:00.000Z");
+const ADMIN = { id: "00000000-0000-0000-0000-000000000001", name: "Test Admin" };
+
+function eingabe(teil: Partial<UploadEingabe> = {}): UploadEingabe {
+  return { titel: "Testkodex Zypresse", bereich: "recht", rollen: ["buchhaltung"], dateiname: "kodex.md", bytes: bytes(MD), hochgeladenVon: ADMIN, ...teil };
+}
+
+async function fehlerCode(f: () => Promise<unknown>): Promise<string> {
+  try {
+    await f();
+    return "kein-fehler";
+  } catch (e) {
+    return e instanceof UploadFehler ? e.code : `andere-ausnahme:${e instanceof Error ? e.message : String(e)}`;
+  }
+}
+
+async function main() {
+  // Die Suche laeuft in diesem Test ueber Supabase (der Nachbau von wissen_suche), nie ueber Qdrant.
+  process.env.WISSEN_BACKEND = "supabase";
+
+  // ---- 1. Rechte ------------------------------------------------------------------------------
+  const darf = roles.filter((r) => hasPermission(r, "ki_assistent", "manage"));
+  pruefe("Recht: nur admin hat ki_assistent:manage", darf.length === 1 && darf[0] === "admin", `Rollen mit Recht: ${darf.join(", ")}`);
+  pruefe("Recht: auch ceo darf nicht hochladen", !hasPermission("ceo", "ki_assistent", "manage"));
+  for (const r of roles.filter((x) => x !== "admin")) {
+    if (hasPermission(r, "ki_assistent", "manage")) pruefe(`Recht: ${r} darf nicht hochladen`, false);
+  }
+  const aktion = lies("src/lib/actions/wissen.ts");
+  const gate = aktion.indexOf('requirePermission("ki_assistent", "manage")');
+  const ersterZugriff = Math.min(...["formData.get(", "verarbeiteUpload(", "createServiceRoleClient()"].map((s) => { const i = aktion.indexOf(s, aktion.indexOf("export async function wissenDokumentHochladen")); return i < 0 ? Infinity : i; }));
+  pruefe("Action: Rechtepruefung steht vor Formular, Dienst-Client und Verarbeitung", gate > 0 && gate < ersterZugriff);
+  pruefe("Action: Pruefung wird bei Fehler zurueckgegeben (zugriffsFehler), nicht weitergemacht", /catch \(error\) \{\s*return zugriffsFehler\(error\);/.test(aktion));
+  pruefe("Action: auch das Laden der Liste prueft das Recht", /wissenDokumenteLaden\(\)[\s\S]{0,200}requirePermission\("ki_assistent", "manage"\)/.test(aktion));
+  pruefe("Action: schreibt ausdruecklich nach Supabase (service_role), ohne wissenBackend()", aktion.includes("createServiceRoleClient()") && !/import[^;]*wissen\/suche"/.test(aktion) && !/wissenBackend\(\)\s*[=!(]/.test(aktion.replace(/\/\/.*$/gm, "")));
+  const hochladenQuelle = lies("src/lib/wissen/hochladen.ts");
+  pruefe("Upload-Modul haengt weder von der Suche noch von wissenBackend ab", !/wissen\/suche"/.test(hochladenQuelle) && !hochladenQuelle.includes("wissenBackend"));
+  const oberflaeche = lies("src/components/db/wissen-verwaltung.tsx");
+  pruefe("Oberflaeche: kein Serverschluessel, kein Upload-Modul im Client", !/process\.env|wissen\/hochladen"|node:crypto/.test(oberflaeche));
+  pruefe("Oberflaeche und Action: Rollenliste kommt aus der Bueroeinheit, darfWissenNutzen bleibt unveraendert", UPLOAD_ROLLEN.join() === "admin,ceo,betriebsleitung,buchhaltung" && /BUERO_ROLLEN\.includes|\(BUERO_ROLLEN as string\[\]\)\.includes\(rolle\)/.test(lies("src/lib/wissen/suche.ts")));
+
+  // ---- 2. Rollen und Bereiche ------------------------------------------------------------------
+  pruefe("Rollen: Admin ist automatisch dabei", erlaubteRollen(["buchhaltung"]).join() === "admin,buchhaltung", erlaubteRollen(["buchhaltung"]).join());
+  pruefe("Rollen: ohne Auswahl bleibt nur der Admin", erlaubteRollen([]).join() === "admin");
+  pruefe("Rollen: Nicht-Bueroeinheiten und Unsinn werden verworfen", erlaubteRollen(["kunde", "pfluecker", "brigade", "erzeuger", "root", ""]).join() === "admin");
+  pruefe("Rollen: Doppelte zaehlen einmal, feste Reihenfolge", erlaubteRollen(["buchhaltung", "ceo", "buchhaltung"]).join() === "admin,ceo,buchhaltung");
+  pruefe("Bereiche: Recht, Steuer, Compliance, Audit, Risiko, klein geschrieben", UPLOAD_BEREICHE.join() === "recht,steuer,compliance,audit,risiko");
+  pruefe("Bereiche: recht -> legal, die vier anderen bleiben unveraendert", BEREICH_WERT.recht === "legal" && (["steuer", "compliance", "audit", "risiko"] as const).every((b) => BEREICH_WERT[b] === b));
+  pruefe("Bereiche: Anzeige kehrt legal wieder zu recht um, Korpuswerte bleiben", bereichSchluessel("legal") === "recht" && bereichSchluessel("steuer") === "steuer" && bereichSchluessel("amtlich") === "amtlich" && bereichSchluessel("nk-214-viii") === "nk-214-viii");
+
+  // ---- 2b. Vorschau-Schutz -----------------------------------------------------------------------
+  // Seit dem Schema-Schalter (SUPABASE_DB_SCHEMA) bestimmt das Schema, wohin die App schreibt. Gesperrt ist nur noch
+  // eine Vorschau, die auf public (Produktion) schreiben wuerde.
+  {
+    const wirft = (env: Record<string, string | undefined>, schema = "public") => { try { pruefeUploadUmgebung(env, schema); return false; } catch (e) { return e instanceof UploadFehler && e.code === "vorschau"; } };
+    pruefe("Vorschau-Schutz: VERCEL_ENV=preview mit Schema public wird abgelehnt", wirft({ VERCEL_ENV: "preview" }));
+    pruefe("Vorschau-Schutz: eine Vorschau mit eigenem Schema public_preview ist frei (sie schreibt in die Kopie)", !wirft({ VERCEL_ENV: "preview" }, "public_preview"));
+    pruefe("Vorschau-Schutz: WISSEN_UPLOAD_PREVIEW_OK=true hebt die Sperre auf (auch bei Schema public, eigene Datenbank)", !wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: "true" }));
+    pruefe("Vorschau-Schutz: nur der Wert true gilt (1, yes, TRUE, leer nicht)", ["1", "yes", "TRUE", "", "false"].every((v) => wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: v })));
+    pruefe("Vorschau-Schutz: Produktion, Development und lokal (ohne VERCEL_ENV) sind frei", !wirft({ VERCEL_ENV: "production" }) && !wirft({ VERCEL_ENV: "development" }) && !wirft({}));
+    pruefe("Vorschau-Schutz: das Flag allein erlaubt nichts anderes (preview mit public bleibt zu ohne Flag)", wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: undefined }));
+    const s = falscherSpeicher();
+    const e = falscheEinbettung();
+    const code = await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s, einbettung: e, jetzt: JETZT, umgebung: { VERCEL_ENV: "preview" }, schema: "public" }));
+    pruefe("Vorschau-Schutz: verarbeiteUpload in der Vorschau mit Schema public -> vorschau, nichts gelesen, eingebettet oder geschrieben", code === "vorschau" && e.aufrufe === 0 && s.ereignisse.length === 0 && s.zeilen.size === 0);
+    const frei = await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s, einbettung: e, jetzt: JETZT, umgebung: { VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: "true" }, schema: "public" }));
+    pruefe("Vorschau-Schutz: mit Freigabe laeuft der Upload", frei === "kein-fehler" && s.zeilen.size > 0);
+    const s2 = falscherSpeicher();
+    const frei2 = await fehlerCode(() => verarbeiteUpload(eingabe({ titel: "Zweites Dokument", bytes: bytes("Anderer Inhalt Nachtigall Tintenfass.") }), { speicher: s2, einbettung: falscheEinbettung(), jetzt: JETZT, umgebung: { VERCEL_ENV: "preview" }, schema: "public_preview" }));
+    pruefe("Vorschau-Schutz: Vorschau mit Schema public_preview darf hochladen, ohne Flag", frei2 === "kein-fehler" && s2.zeilen.size > 0);
+    pruefe("Vorschau-Schutz: die Action meldet den Fall mit eigener Meldung", /vorschau: "fehler\.wissenVorschau"/.test(aktion) && aktion.indexOf("pruefeUploadUmgebung();") < aktion.indexOf("arrayBuffer()"));
+    const hochladenOhneKommentare = lies("src/lib/wissen/hochladen.ts").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    pruefe("Vorschau-Schutz: das Schema kommt aus der App (DATENBANK_SCHEMA), nicht aus einer zweiten Regel", /DATENBANK_SCHEMA/.test(hochladenOhneKommentare) && !/NEXT_PUBLIC_DB_SCHEMA|SUPABASE_DB_SCHEMA/.test(hochladenOhneKommentare));
+  }
+
+  // ---- 3. Eingabepruefung -----------------------------------------------------------------------
+  {
+    const s = falscherSpeicher();
+    const e = falscheEinbettung();
+    const d = { speicher: s, einbettung: e, jetzt: JETZT };
+    pruefe("Eingabe: .docx wird abgelehnt (dateityp)", (await fehlerCode(() => verarbeiteUpload(eingabe({ dateiname: "a.docx" }), d))) === "dateityp");
+    pruefe("Eingabe: Datei ohne Endung wird abgelehnt", (await fehlerCode(() => verarbeiteUpload(eingabe({ dateiname: "kodex" }), d))) === "dateityp");
+    pruefe("Eingabe: leere Datei wird abgelehnt", (await fehlerCode(() => verarbeiteUpload(eingabe({ bytes: new Uint8Array(0) }), d))) === "eingabe");
+    pruefe("Eingabe: zu grosse Datei wird abgelehnt, bevor sie gelesen wird", (await fehlerCode(() => verarbeiteUpload(eingabe({ dateiname: "gross.pdf", bytes: new Uint8Array(MAX_DATEI_BYTES + 1) }), d))) === "zuGross");
+    pruefe("Eingabe: leerer Titel", (await fehlerCode(() => verarbeiteUpload(eingabe({ titel: "   " }), d))) === "eingabe");
+    pruefe("Eingabe: zu langer Titel", (await fehlerCode(() => verarbeiteUpload(eingabe({ titel: "x".repeat(201) }), d))) === "eingabe");
+    pruefe("Eingabe: unbekannter Bereich (kein Auffangwert)", (await fehlerCode(() => verarbeiteUpload(eingabe({ bereich: "sonstiges" }), d))) === "eingabe");
+    pruefe("Eingabe: Bereich muss klein geschrieben sein", (await fehlerCode(() => verarbeiteUpload(eingabe({ bereich: "Recht" }), d))) === "eingabe");
+    pruefe("Eingabe: nach abgelehnter Eingabe wurde weder eingebettet noch geschrieben", e.aufrufe === 0 && s.zeilen.size === 0 && s.ereignisse.length === 0);
+  }
+
+  // ---- 4. Textgewinnung -------------------------------------------------------------------------
+  {
+    const s = falscherSpeicher();
+    const d = { speicher: s, einbettung: falscheEinbettung(), jetzt: JETZT };
+    pruefe("Text: Binaerdatei als .txt (Nullbytes) -> lesen, nichts gespeichert", (await fehlerCode(() => verarbeiteUpload(eingabe({ dateiname: "b.txt", bytes: new Uint8Array([0x41, 0, 0x42, 0xff]) }), d))) === "lesen" && s.zeilen.size === 0);
+    pruefe("Text: kaputtes PDF -> lesen, kein Absturz, nichts gespeichert", (await fehlerCode(() => verarbeiteUpload(eingabe({ dateiname: "k.pdf", bytes: bytes("das ist kein pdf, nur Text ohne Struktur") }), d))) === "lesen" && s.zeilen.size === 0);
+    pruefe("Text: abgeschnittenes PDF -> lesen oder leer, nie eine ungefangene Ausnahme", ["lesen", "leer"].includes(await fehlerCode(() => verarbeiteUpload(eingabe({ dateiname: "k2.pdf", bytes: minimalesPdf(["Hallo Welt"]).slice(0, 80) }), d))));
+    pruefe("Text: nur Leerraum -> leer", (await fehlerCode(() => verarbeiteUpload(eingabe({ dateiname: "l.txt", bytes: bytes("  \n\n \t ") }), d))) === "leer");
+    pruefe("Text: PDF ohne Text (Scan-Fall) -> leer", (await fehlerCode(() => verarbeiteUpload(eingabe({ dateiname: "s.pdf", bytes: minimalesPdf([]) }), d))) === "leer");
+    pruefe("Text: zu langes Dokument -> zuLang, nichts gespeichert", (await fehlerCode(() => verarbeiteUpload(eingabe({ dateiname: "lang.txt", bytes: bytes(Array.from({ length: MAX_CHUNKS * 3 }, (_, i) => `Absatz ${i}: ${"Wort".repeat(300)} nummer${i}`).join("\n\n")) }), d))) === "zuLang" && s.zeilen.size === 0);
+  }
+
+  // ---- 5. Upload erzeugt Textstellen -------------------------------------------------------------
+  const s1 = falscherSpeicher();
+  const e1 = falscheEinbettung();
+  const d1 = { speicher: s1, einbettung: e1, jetzt: JETZT };
+  const erg = await verarbeiteUpload(eingabe({ rollen: ["buchhaltung", "kunde"] }), d1);
+  const zeilen = [...s1.zeilen.values()];
+  pruefe("Upload (.md): Ergebnis nennt die Zahl der Abschnitte, Zeilen liegen im Speicher", erg.chunks > 0 && zeilen.length === erg.chunks, `${erg.chunks} Abschnitte`);
+  pruefe("Upload: Formularwert recht wird als bereich \"legal\" gespeichert, Pfad unter upload/legal/", zeilen.every((z) => z.bereich === "legal" && z.pfad === "upload/legal/kodex.md"), `${zeilen[0]?.bereich} ${zeilen[0]?.pfad}`);
+  pruefe("Upload: Rollen = Admin + Buchhaltung (Kunde verworfen)", zeilen.every((z) => z.rollen.join() === "admin,buchhaltung"), zeilen[0]?.rollen.join());
+  pruefe("Upload: Markierung extra.quelle = upload, Hash, Dateiname und Hochladende stehen in extra", zeilen.every((z) => z.extra.quelle === "upload" && z.extra.inhalts_hash === erg.hash && z.extra.dateiname === "kodex.md" && z.extra.hochgeladen_von === ADMIN.id && z.extra.hochgeladen_von_name === ADMIN.name));
+  pruefe("Upload: quelle_id = upload:<hash>, Titel und Beleg-Kontext = Titel", zeilen.every((z) => z.quelle_id === uploadQuelleId(erg.hash) && z.titel === "Testkodex Zypresse" && z.kontext === "Testkodex Zypresse"));
+  pruefe("Upload: Einbettung mit dem Modell der Konfiguration, 1024 Zahlen im pgvector-Text", zeilen.every((z) => z.embed_modell === "synthetisch-bge-m3" && JSON.parse(z.dense).length === 1024 && z.dense.startsWith("[")));
+  pruefe("Upload: sparser Vektor ist dieselbe Funktion wie im ETL (sparseDokument + alsSparsevec auf Kontext + Text)", zeilen.every((z) => z.sparse === alsSparsevec(sparseDokument(einbettungsText({ kontext: z.kontext ?? "", text: z.text })))));
+  pruefe("Upload: Sprache erkannt, Datum gesetzt, Zeitpunkt der Einlesung", zeilen.every((z) => z.sprache === "de" && z.abgerufen_am === "2026-10-05" && z.eingelesen_am === "2026-10-05T10:00:00.000Z"));
+  pruefe("Upload: Text der Absaetze ist vollstaendig enthalten", ABSAETZE.every((a) => zeilen.some((z) => z.text.includes(a.slice(0, 40)))));
+  {
+    const t = falscherSpeicher();
+    await verarbeiteUpload(eingabe({ rollen: ["buchhaltung", "kunde"] }), { speicher: t, einbettung: falscheEinbettung(), jetzt: JETZT });
+    pruefe("Upload: IDs sind stabil (zweimal gebaut = gleiche IDs)", [...t.zeilen.keys()].sort().join() === [...s1.zeilen.keys()].sort().join());
+  }
+
+  // .txt und PDF
+  {
+    const s = falscherSpeicher();
+    const d = { speicher: s, einbettung: falscheEinbettung(), jetzt: JETZT };
+    const r = await verarbeiteUpload(eingabe({ dateiname: "notiz.txt", bytes: bytes(TXT), titel: "Notiz Sonnenhof", bereich: "audit" }), d);
+    pruefe("Upload (.txt): wird angenommen, Bereich audit", r.chunks > 0 && [...s.zeilen.values()].every((z) => z.bereich === "audit" && z.pfad === "upload/audit/notiz.txt"));
+    const pdf = minimalesPdf(["Synthetisches PDF Steuerkodex Birke", "Paragraph 7: Die Meldefrist Schneeeule betraegt dreissig Tage."]);
+    const sp = falscherSpeicher();
+    const rp = await verarbeiteUpload(eingabe({ dateiname: "steuer.pdf", bytes: pdf, titel: "Steuerkodex Birke", bereich: "steuer" }), { speicher: sp, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const alle = [...sp.zeilen.values()].map((z) => z.text).join(" ");
+    pruefe("Upload (.pdf): Text wird aus dem PDF gelesen und gespeichert", rp.chunks > 0 && /Schneeeule/.test(alle) && /dreissig Tage/.test(alle), alle.slice(0, 80));
+    const sm = falscherSpeicher();
+    const ergFront = await verarbeiteUpload(eingabe({ dateiname: "front.md", bytes: bytes("---\ntitel: Fremder Titel\nquelle_id: fremd\nchunk_id: fremd\nautoritaetsstufe: 2\n---\n\nInhalt Frontmatter Eisvogel.\n") }), { speicher: sm, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const z = [...sm.zeilen.values()][0]!;
+    pruefe("Upload (.md mit Frontmatter): Titel, Quelle und Kennung setzt der Upload, die Stufe bleibt erhalten", z.titel === "Testkodex Zypresse" && z.quelle_id?.startsWith("upload:") === true && z.chunk_id === z.quelle_id && z.autoritaetsstufe === 2);
+    pruefe("Upload (.md mit Frontmatter): die Stufe steht im Ergebnis, damit die Action sie protokolliert (Stufe 1 bis 3 belegt die bevorzugten Rechtsplaetze)", ergFront.autoritaetsstufe === 2 && /autoritaetsstufe: ergebnis\.autoritaetsstufe/.test(aktion));
+    const ohneFront = await verarbeiteUpload(eingabe({ dateiname: "ohne.txt", bytes: bytes("Ohne Frontmatter Silberdistel.") }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT });
+    pruefe("Upload (.txt): ohne Frontmatter bleibt die Stufe leer (null)", ohneFront.autoritaetsstufe === null);
+  }
+
+  // ---- 6. Dublette -------------------------------------------------------------------------------
+  {
+    const vorher = s1.zeilen.size;
+    pruefe("Dublette: dieselbe Datei erneut -> doppelt (mit Titel des vorhandenen)", (await fehlerCode(() => verarbeiteUpload(eingabe({ rollen: ["ceo"] }), d1))) === "doppelt");
+    pruefe("Dublette: es entstehen keine neuen Zeilen", s1.zeilen.size === vorher);
+    pruefe("Dublette: auch mit anderem Titel, Bereich und anderen Zeilenenden (CRLF)", (await fehlerCode(() => verarbeiteUpload(eingabe({ titel: "Anderer Titel", bereich: "audit", dateiname: "kopie.md", bytes: bytes(MD.replace(/\n/g, "\r\n")) }), d1))) === "doppelt" && s1.zeilen.size === vorher);
+    let titel = "";
+    try { await verarbeiteUpload(eingabe(), d1); } catch (e) { titel = e instanceof UploadFehler ? (e.wert ?? "") : ""; }
+    pruefe("Dublette: die Meldung nennt den Titel des vorhandenen Dokuments", titel === "Testkodex Zypresse", titel);
+    pruefe("Dublette: Hash ist gleich bei gleichem Inhalt, verschieden bei anderem", inhaltsHash(MD) === inhaltsHash(MD.replace(/\n/g, "\r\n")) && inhaltsHash(MD) !== inhaltsHash(`${MD}\nNeu.`));
+    const s = s1;
+    const r2 = await verarbeiteUpload(eingabe({ dateiname: "zwei.md", titel: "Zweites Dokument", bytes: bytes(`Ein ganz anderer Inhalt ueber Walnussernte und Zypressen.\n\n${ABSAETZE[0]}`) }), { speicher: s, einbettung: falscheEinbettung(), jetzt: JETZT });
+    pruefe("Dublette: anderer Inhalt wird normal angenommen", r2.chunks > 0 && s.zeilen.size > vorher);
+  }
+
+  // ---- 7. Wortgewichte ---------------------------------------------------------------------------
+  {
+    // Vorbestand wie nach dem ETL: 10 Textstellen, das Wort "beleg" kommt in 3 vor.
+    const belegIdx = sparseIndex(sparseDokument("beleg").indices[0]!);
+    const vorbestand = Array.from({ length: 10 }, (_, i) => ({ ...zeilen[0]!, id: `alt-${i}`, quelle_id: `skript/${i}`, extra: {} }) as ChunkZeile);
+    const s = falscherSpeicher({ zeilen: vorbestand, begriffe: [[belegIdx, 3]] });
+    const r = await verarbeiteUpload(eingabe({ dateiname: "w.txt", bytes: bytes("Beleg Archiv\n\nBeleg Frist\n\nAnderes Thema Walnuss") }), { speicher: s, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const n = s.zeilen.size;
+    const neu = [...s.zeilen.values()].filter((z) => z.extra.quelle === "upload");
+    const enthalten = neu.filter((z) => sparsevecIndizes(z.sparse).includes(belegIdx)).length;
+    const b = s.begriffe.get(belegIdx)!;
+    pruefe("Begriffe: N = alle Textstellen nach dem Einfuegen (Vorbestand + Upload)", n === 10 + r.chunks, `N=${n}`);
+    pruefe("Begriffe: df des Wortes = alter Wert + Textstellen des Uploads, die es enthalten", b.df === 3 + enthalten && enthalten > 0, `df=${b.df}, neu=${enthalten}`);
+    pruefe("Begriffe: IDF folgt der Formel des ETL", b.idf === idf(n, b.df), `idf=${b.idf}`);
+    const walnuss = sparseIndex(sparseDokument("walnuss").indices[0]!);
+    pruefe("Begriffe: neue Woerter bekommen df = Anzahl der Textstellen mit dem Wort", s.begriffe.get(walnuss)?.df === neu.filter((z) => sparsevecIndizes(z.sparse).includes(walnuss)).length);
+    pruefe("Begriffe: df ueberschreitet nie N", [...s.begriffe.values()].every((x) => x.df <= n));
+    pruefe("Begriffe: Parser der sparsevec-Textform ist das Gegenstueck zu alsSparsevec", sparsevecIndizes(alsSparsevec({ indices: [5, 9, 1_000_000_020], values: [1, 2, 3] })).join() === [6, 10, 21].join() && sparsevecIndizes("{}/1000000000").length === 0);
+  }
+
+  // ---- 8. Alles oder nichts ----------------------------------------------------------------------
+  {
+    const s = falscherSpeicher();
+    pruefe("Atomar: Einbettung faellt aus -> einbettung, nichts geschrieben, keine Begriffe", (await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s, einbettung: falscheEinbettung({ werfe: true }), jetzt: JETZT }))) === "einbettung" && s.zeilen.size === 0 && s.begriffe.size === 0 && !s.ereignisse.includes("schreibeChunks"));
+    pruefe("Atomar: falsche Vektorgroesse -> einbettung", (await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s, einbettung: falscheEinbettung({ dimension: 768 }), jetzt: JETZT }))) === "einbettung" && s.zeilen.size === 0);
+    const s2 = falscherSpeicher({}, { chunksBeiBatch: 2 });
+    pruefe("Atomar: Schreibfehler mitten im Dokument -> speichern, schon geschriebene Zeilen werden entfernt", (await fehlerCode(() => verarbeiteUpload(eingabe({ dateiname: "viel.txt", bytes: bytes(Array.from({ length: 12 }, (_, i) => `Absatz ${i} ${"Zeichen ".repeat(150)}`).join("\n\n")) }), { speicher: s2, einbettung: falscheEinbettung(), jetzt: JETZT }))) === "speichern" && s2.zeilen.size === 0 && s2.ereignisse.includes("loescheQuelle"));
+    const s3 = falscherSpeicher({}, { begriffe: true });
+    pruefe("Atomar: Begriffe nicht schreibbar -> speichern, Zeilen wieder entfernt, nie ein Dokument ohne Gewichte", (await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s3, einbettung: falscheEinbettung(), jetzt: JETZT }))) === "speichern" && s3.zeilen.size === 0);
+    const ausfall: WissenSpeicher = { ...falscherSpeicher(), findeQuelle: async () => { throw new Error("DB weg"); } };
+    pruefe("Atomar: Datenbank bei der Dublettenpruefung nicht erreichbar -> speichern", (await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: ausfall, einbettung: falscheEinbettung(), jetzt: JETZT }))) === "speichern");
+  }
+
+  // ---- 9. Suche findet das Dokument mit Beleg; Rollen -----------------------------------------------
+  {
+    const s = falscherSpeicher();
+    const e = falscheEinbettung();
+    const d = { speicher: s, einbettung: e, jetzt: JETZT };
+    // A: nur Admin (keine Rolle angekreuzt). B: Admin + Buchhaltung.
+    await verarbeiteUpload(eingabe({ rollen: [], titel: "Nur Admin Kodex", dateiname: "a.md", bytes: bytes("Der Geheimkodex Rotfuchs regelt die Sondervollmacht der Geschaeftsfuehrung Zinnoberrot.") }), d);
+    await verarbeiteUpload(eingabe({ rollen: ["buchhaltung"], titel: "Buchhaltung Kodex", bereich: "steuer", dateiname: "b.md", bytes: bytes("Der Rechenkodex Silberreiher regelt die Umsatzsteuer-Voranmeldung Himmelblau im Quartal.") }), d);
+    const suche = (rolle: Role, frage: string) => sucheWissen({ frage }, rolle, { einbettung: e, supabase: falscheSuche(s, rolle) });
+
+    const bAlsBuch = await suche("buchhaltung", "Umsatzsteuer-Voranmeldung Himmelblau Silberreiher");
+    const beleg = bAlsBuch.belege[0];
+    pruefe("Suche: Buchhaltung findet das fuer sie freigegebene Dokument an erster Stelle", beleg?.titel === "Buchhaltung Kodex", beleg?.titel ?? "kein Treffer");
+    pruefe("Suche: der Beleg nennt Kennung S1, Fundstelle = Titel, Bereich und den Text der Stelle", beleg?.id === "S1" && beleg.fundstelle === "Buchhaltung Kodex" && beleg.bereich === "steuer" && /Silberreiher/.test(beleg.text), JSON.stringify({ id: beleg?.id, f: beleg?.fundstelle, b: beleg?.bereich }));
+    pruefe("Suche: Beleg traegt Abrufdatum und Sprache des Uploads", beleg?.abgerufenAm === "2026-10-05" && beleg.sprache === "de");
+
+    const aAlsBuch = await suche("buchhaltung", "Geheimkodex Rotfuchs Sondervollmacht Zinnoberrot");
+    pruefe("Rollen: ein nur fuer Admin freigegebenes Dokument sieht die Buchhaltung NICHT", !aAlsBuch.belege.some((b) => /Rotfuchs/.test(b.text) || b.titel === "Nur Admin Kodex"), aAlsBuch.belege.map((b) => b.titel).join("|"));
+    const aAlsAdmin = await suche("admin", "Geheimkodex Rotfuchs Sondervollmacht Zinnoberrot");
+    pruefe("Rollen: der Admin sieht es", aAlsAdmin.belege[0]?.titel === "Nur Admin Kodex");
+    const bAlsCeo = await suche("ceo", "Umsatzsteuer-Voranmeldung Himmelblau Silberreiher");
+    pruefe("Rollen: ein nur fuer Admin und Buchhaltung freigegebenes Dokument sieht der CEO nicht", !bAlsCeo.belege.some((b) => b.titel === "Buchhaltung Kodex"));
+    const bAlsKunde = await suche("kunde", "Umsatzsteuer-Voranmeldung Himmelblau Silberreiher");
+    pruefe("Rollen: ein Kunde bekommt nichts, auch wenn die Frage passt (RLS)", bAlsKunde.belege.length === 0);
+    // Auch ein manipuliertes p_rolle erweitert nichts: die Sitzungsrolle (RLS) bleibt massgeblich.
+    const manipuliert = await sucheWissen({ frage: "Geheimkodex Rotfuchs Sondervollmacht" }, "admin", { einbettung: e, supabase: falscheSuche(s, "buchhaltung") });
+    pruefe("Rollen: p_rolle=admin mit Buchhaltungs-Sitzung liefert das Admin-Dokument nicht (RLS gewinnt)", !manipuliert.belege.some((b) => b.titel === "Nur Admin Kodex"));
+  }
+
+  // ---- 10. Liste -----------------------------------------------------------------------------------
+  {
+    const roh: WissenListeZeile[] = [
+      { id: "1", quelle_id: "recht/nk-rk.md", pfad: "recht/nk-rk.md", titel: "НК РК", bereich: "recht", rollen: ["admin", "ceo"], eingelesen_am: "2026-09-19", upload_quelle: null, hochgeladen_von: null },
+      { id: "2", quelle_id: "recht/nk-rk.md", pfad: "recht/nk-rk.md", titel: "НК РК", bereich: "recht", rollen: ["admin", "ceo"], eingelesen_am: "2026-09-20", upload_quelle: null, hochgeladen_von: null },
+      { id: "3", quelle_id: null, pfad: "audit/leitfaden.md", titel: null, bereich: "audit", rollen: ["admin"], eingelesen_am: null, upload_quelle: null, hochgeladen_von: null },
+      { id: "4", quelle_id: "upload:abc", pfad: "upload/steuer/x.md", titel: "Hochgeladen", bereich: "steuer", rollen: ["admin", "buchhaltung"], eingelesen_am: "2026-10-05T10:00:00.000Z", upload_quelle: "upload", hochgeladen_von: "Test Admin" },
+      { id: "5", quelle_id: "upload:abc", pfad: "upload/steuer/x.md", titel: "Hochgeladen", bereich: "steuer", rollen: ["admin", "buchhaltung"], eingelesen_am: "2026-10-05T10:00:00.000Z", upload_quelle: "upload", hochgeladen_von: "Test Admin" },
+      { id: "6", quelle_id: "upload:abc", pfad: "upload/steuer/x.md", titel: "Hochgeladen", bereich: "steuer", rollen: ["admin", "buchhaltung"], eingelesen_am: "2026-10-05T10:00:00.000Z", upload_quelle: "upload", hochgeladen_von: "Test Admin" },
+    ];
+    const l = gruppiereWissenDokumente(roh);
+    pruefe("Liste: Zeilen werden nach quelle_id zu Dokumenten, notfalls nach Pfad", l.length === 3, `${l.length} Dokumente`);
+    const up = l.find((x) => x.herkunft === "upload")!;
+    pruefe("Liste: hochgeladenes Dokument mit Titel, Bereich, Rollen, Datum, Hochladendem und Abschnitten", up.titel === "Hochgeladen" && up.bereich === "steuer" && up.rollen.join() === "admin,buchhaltung" && up.datum === "2026-10-05T10:00:00.000Z" && up.hochgeladenVon === "Test Admin" && up.chunks === 3);
+    const sk = l.find((x) => x.schluessel === "recht/nk-rk.md")!;
+    pruefe("Liste: Skript-Dokument gruppiert, zaehlt Abschnitte, nimmt das juengste eingelesen_am", sk.herkunft === "skript" && sk.chunks === 2 && sk.datum === "2026-09-20" && sk.hochgeladenVon === null);
+    pruefe("Liste: Dokument ohne Titel und Datum wird trotzdem gezeigt (Pfad als Titel), steht am Ende", l[l.length - 1]!.titel === "audit/leitfaden.md" && l[l.length - 1]!.datum === null);
+    pruefe("Liste: neueste zuerst", l[0]!.herkunft === "upload");
+    pruefe("Liste: leere Eingabe ergibt leere Liste", gruppiereWissenDokumente([]).length === 0);
+  }
+
+  // ---- 10b. Loeschen hochgeladener Dokumente ------------------------------------------------------
+  {
+    const aktionQ = lies("src/lib/actions/wissen.ts");
+    const von = aktionQ.indexOf("export async function wissenDokumentLoeschen");
+    const rumpf = aktionQ.slice(von);
+    const gate = rumpf.indexOf('requirePermission("ki_assistent", "manage")');
+    const erster = Math.min(...["formData.get(", "text(formData", "loescheHochgeladenesDokument(", "createServiceRoleClient()"].map((x) => { const i = rumpf.indexOf(x); return i < 0 ? Infinity : i; }));
+    pruefe("Loeschen/Rechte: requirePermission(ki_assistent, manage) steht vor Formular, Dienst-Client und Loeschen", gate > 0 && gate < erster);
+    pruefe("Loeschen/Rechte: bei fehlendem Recht wird zugriffsFehler zurueckgegeben, es geht nicht weiter", /catch \(error\) \{\s*return zugriffsFehler\(error\);/.test(rumpf));
+    pruefe("Loeschen/Rechte: nur admin darf (rbac), CEO und alle anderen nicht", roles.filter((r) => hasPermission(r, "ki_assistent", "manage")).join() === "admin");
+    pruefe("Loeschen/Server: Titel und Bereich fuer Meldung und Protokoll kommen vom Server, nicht aus dem Formular", !/text\(formData, "titel"\)/.test(rumpf) && /ergebnis\.titel/.test(rumpf));
+    pruefe("Loeschen/Protokoll: das vorhandene Muster protokolliere() schreibt wissen.geloescht (wer, was, wann ueber audit_events)", /protokolliere\(profil, "wissen\.geloescht"/.test(rumpf));
+    const loe = lies("src/lib/wissen/loeschen.ts");
+    pruefe("Loeschen: der Vorschau-Schutz steht als erstes in der Loeschfunktion", loe.indexOf("pruefeUploadUmgebung(") > 0 && loe.indexOf("pruefeUploadUmgebung(") < loe.indexOf("istUploadQuelleId(quelleId)"));
+    const adapter = lies("src/lib/wissen/speicher-supabase.ts");
+    pruefe("Loeschen/Adapter: die DELETE-Anweisung filtert selbst auf quelle_id, 'upload:%' und extra->>quelle = upload", /\.delete\(\)[\s\S]{0,200}\.like\("quelle_id", UPLOAD_QUELLE_MUSTER\)[\s\S]{0,80}\.eq\("extra->>quelle", UPLOAD_QUELLE\)/.test(adapter));
+    const ui = lies("src/components/db/wissen-verwaltung.tsx");
+    pruefe("Loeschen/UI: der Knopf erscheint nur bei loeschbar, mit Bestaetigungsfenster", /dokument\.loeschbar \?/.test(ui) && /showModal\(\)/.test(ui));
+
+    // Vorbestand wie nach dem ETL: 10 Skript-Textstellen, Wortgewichte konsistent (idf = idf(N, df)).
+    const texte = Array.from({ length: 10 }, (_, i) => `Skriptdokument ${i} Beleg Archiv Frist Walnuss ${i % 3 === 0 ? "Meldefrist Schneeeule" : "Quarkspeise"} Artikel ${i}`);
+    const skript = texte.map((t, i) => ({ ...zeilen[0]!, id: `skript-${i}`, quelle_id: `recht/dok${i}.md`, titel: `Skript ${i}`, bereich: "legal", extra: {}, sparse: alsSparsevec(sparseDokument(t)) }) as ChunkZeile);
+    const gew = wortgewichte(skript.map((z) => sparsevecIndizes(z.sparse)));
+    const vorgabeBegriffe = gew.map((g) => [g.hash, g.df, g.idf] as [number, number, number]);
+    const vorbestand = () => falscherSpeicher({ zeilen: skript, begriffe: vorgabeBegriffe });
+    const abbild = (sp: Speicherstand) => JSON.stringify({ z: [...sp.zeilen.keys()].sort(), b: [...sp.begriffe].sort((a, b) => a[0] - b[0]) });
+    const hochladeText = "Neues Dokument Beleg Archiv Frist\n\nZypressenkodex Regenwurm Silberreiher Meldefrist Schneeeule\n\nFrist Walnuss Himmelblau";
+
+    // a) Hochladen, Loeschen, Zustand wie vorher
+    const sp = vorbestand();
+    const vorher = abbild(sp);
+    const up = await verarbeiteUpload(eingabe({ dateiname: "d.txt", titel: "Zu loeschen", bytes: bytes(hochladeText) }), { speicher: sp, einbettung: falscheEinbettung(), jetzt: JETZT });
+    pruefe("Loeschen/Round-Trip: nach dem Upload hat sich der Zustand geaendert (Zeilen und Begriffe)", abbild(sp) !== vorher && sp.zeilen.size === 10 + up.chunks);
+    const neueWoerter = [...sp.begriffe.keys()].filter((h) => !gew.some((g) => g.hash === h)).length;
+    pruefe("Loeschen/Round-Trip: der Upload hat neue Woerter angelegt", neueWoerter > 0, `${neueWoerter} neue Woerter`);
+    const erg = await loescheHochgeladenesDokument(up.quelleId, { speicher: sp, umgebung: {} });
+    pruefe("Loeschen: Upload, dann Loeschen laesst keine Zeilen des Dokuments zurueck", [...sp.zeilen.values()].every((z) => z.quelle_id !== up.quelleId) && sp.zeilen.size === 10 && erg.geloescht === up.chunks && !erg.schonWeg, `${erg.geloescht} Zeilen`);
+    pruefe("Loeschen/Round-Trip: wissen_begriffe (df, idf, Woerter) ist nach Upload + Loeschen gleich dem Zustand VOR dem Upload", abbild(sp) === vorher);
+    pruefe("Loeschen/Round-Trip: Woerter, die nur das Dokument hatte, sind aus wissen_begriffe wieder entfernt", [...sp.begriffe.keys()].every((h) => gew.some((g) => g.hash === h)) && sp.ereignisse.includes("loescheBegriffe"));
+    pruefe("Loeschen: Titel und Bereich kommen vom Server in das Ergebnis", erg.titel === "Zu loeschen" && erg.bereich === "legal");
+
+    // b) Idempotenz: zweites Loeschen, Doppelklick (zwei gleichzeitige Aufrufe)
+    const zweites = await loescheHochgeladenesDokument(up.quelleId, { speicher: sp, umgebung: {} });
+    pruefe("Loeschen/Idempotent: zweites Loeschen -> schon geloescht, kein Fehler, nichts veraendert", zweites.schonWeg && zweites.geloescht === 0 && abbild(sp) === vorher);
+    const sp2 = vorbestand();
+    const up2 = await verarbeiteUpload(eingabe({ dateiname: "d.txt", bytes: bytes(hochladeText) }), { speicher: sp2, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const [r1, r2] = await Promise.all([loescheHochgeladenesDokument(up2.quelleId, { speicher: sp2, umgebung: {} }), loescheHochgeladenesDokument(up2.quelleId, { speicher: sp2, umgebung: {} })]);
+    pruefe("Loeschen/Idempotent: Doppelklick (zwei gleichzeitige Aufrufe) loescht einmal, die Gewichte werden nur einmal verringert", [r1, r2].filter((r) => r.schonWeg).length === 1 && abbild(sp2) === vorher);
+
+    // c) Skript-Zeilen und alles, was kein reiner Upload ist, sind nie loeschbar
+    const sp3 = vorbestand();
+    const vor3 = abbild(sp3);
+    const code = async (q: string, s = sp3) => fehlerCode(() => loescheHochgeladenesDokument(q, { speicher: s, umgebung: {} }));
+    pruefe("Loeschen/Skript: eine Skript-quelle (Pfad) wird abgelehnt, ohne die Datenbank zu fragen", (await code("recht/dok0.md")) === "nichtLoeschbar" && sp3.ereignisse.length === 0 && abbild(sp3) === vor3);
+    pruefe("Loeschen/Skript: auch ein erfundener Vorsatz upload: ohne 32 Hexzeichen wird abgelehnt", (await code("upload:abc")) === "nichtLoeschbar" && (await code("upload:../recht")) === "nichtLoeschbar" && (await code("")) === "nichtLoeschbar");
+    const gefaelscht = { ...skript[0]!, id: "x1", quelle_id: `upload:${"a".repeat(32)}`, extra: {} } as ChunkZeile; // richtige Form, aber nicht vom Upload (kein extra.quelle)
+    const sp4 = falscherSpeicher({ zeilen: [...skript, gefaelscht] });
+    pruefe("Loeschen/Skript: gueltige upload:-Form, aber ohne extra.quelle = upload -> abgelehnt, nichts geloescht", (await code(`upload:${"a".repeat(32)}`, sp4)) === "nichtLoeschbar" && sp4.zeilen.has("x1") && !sp4.ereignisse.includes("loescheUpload"));
+    const markiert = { ...skript[1]!, id: "x2", quelle_id: `upload:${"b".repeat(32)}`, extra: { quelle: "upload" } } as ChunkZeile;
+    const gemischt = { ...skript[2]!, id: "x3", quelle_id: `upload:${"b".repeat(32)}`, extra: {} } as ChunkZeile;
+    const sp5 = falscherSpeicher({ zeilen: [...skript, markiert, gemischt] });
+    pruefe("Loeschen/Skript: gemischte Quelle (eine Zeile vom Upload, eine nicht) -> ganz abgelehnt, auch die Upload-Zeile bleibt", (await code(`upload:${"b".repeat(32)}`, sp5)) === "nichtLoeschbar" && sp5.zeilen.has("x2") && sp5.zeilen.has("x3"));
+    const nurMarker = { ...skript[3]!, id: "x4", quelle_id: "recht/fremd.md", extra: { quelle: "upload" } } as ChunkZeile; // Marker ohne Vorsatz
+    const sp6 = falscherSpeicher({ zeilen: [...skript, nurMarker] });
+    pruefe("Loeschen/Skript: Marker upload ohne Vorsatz upload: in der quelle_id -> nicht loeschbar", (await code("recht/fremd.md", sp6)) === "nichtLoeschbar" && sp6.zeilen.has("x4"));
+    const sp7 = falscherSpeicher({ zeilen: [markiert, gemischt] });
+    const roh = await sp7.loescheUpload(`upload:${"b".repeat(32)}`);
+    pruefe("Loeschen/Server: selbst direkt am Speicher loescht die Anweisung nur Zeilen mit beiden Merkmalen", roh.length === 1 && sp7.zeilen.has("x3") && !sp7.zeilen.has("x2"));
+    pruefe("Loeschen/Liste: loeschbar nur, wenn ALLE Zeilen des Dokuments Upload-Zeilen sind", (() => {
+      const r = (id: string, q: string | null, u: string | null): WissenListeZeile => ({ id, quelle_id: q, pfad: null, titel: "t", bereich: "legal", rollen: ["admin"], eingelesen_am: null, upload_quelle: u, hochgeladen_von: null });
+      const l = gruppiereWissenDokumente([r("1", `upload:${"c".repeat(32)}`, "upload"), r("2", `upload:${"c".repeat(32)}`, "upload"), r("3", "recht/a.md", null), r("4", `upload:${"d".repeat(32)}`, "upload"), r("5", `upload:${"d".repeat(32)}`, null), r("6", "recht/b.md", "upload")]);
+      const f = (k: string) => l.find((x) => x.schluessel === k)!.loeschbar;
+      return f(`upload:${"c".repeat(32)}`) === true && f("recht/a.md") === false && f(`upload:${"d".repeat(32)}`) === false && f("recht/b.md") === false;
+    })());
+
+    // d) Vorschau-Schutz beim Loeschen
+    const sp8 = vorbestand();
+    const up8 = await verarbeiteUpload(eingabe({ dateiname: "d.txt", bytes: bytes(hochladeText) }), { speicher: sp8, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const vor8 = abbild(sp8);
+    sp8.ereignisse.length = 0;
+    pruefe("Loeschen/Vorschau: VERCEL_ENV=preview verweigert das Loeschen, nichts wird gelesen oder geloescht", (await fehlerCode(() => loescheHochgeladenesDokument(up8.quelleId, { speicher: sp8, umgebung: { VERCEL_ENV: "preview" } }))) === "vorschau" && sp8.ereignisse.length === 0 && abbild(sp8) === vor8);
+    pruefe("Loeschen/Vorschau: mit WISSEN_UPLOAD_PREVIEW_OK=true ist es erlaubt", (await loescheHochgeladenesDokument(up8.quelleId, { speicher: sp8, umgebung: { VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: "true" } })).geloescht === up8.chunks);
+
+    // e) Ausfaelle
+    const flag = { loeschen: false, begriffe: false };
+    const sp9 = falscherSpeicher({ zeilen: skript, begriffe: vorgabeBegriffe }, flag);
+    const up9 = await verarbeiteUpload(eingabe({ dateiname: "d.txt", bytes: bytes(hochladeText) }), { speicher: sp9, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const vor9 = abbild(sp9);
+    flag.loeschen = true;
+    pruefe("Loeschen/Ausfall: schlaegt die Loeschanweisung fehl -> loeschen, alles bleibt wie vorher (Zeilen und Gewichte)", (await code(up9.quelleId, sp9)) === "loeschen" && abbild(sp9) === vor9);
+    flag.loeschen = false;
+    flag.begriffe = true;
+    const c9 = await code(up9.quelleId, sp9);
+    pruefe("Loeschen/Ausfall: schlagen nur die Gewichte fehl -> gewichte; das Dokument ist weg (kein halbes Dokument), die Gewichte bleiben zu hoch", c9 === "gewichte" && [...sp9.zeilen.values()].every((z) => z.quelle_id !== up9.quelleId) && sp9.zeilen.size === 10);
+    flag.begriffe = false;
+    const nochmal = await loescheHochgeladenesDokument(up9.quelleId, { speicher: sp9, umgebung: {} });
+    pruefe("Loeschen/Ausfall: ein erneutes Loeschen danach meldet 'schon geloescht' und crasht nicht", nochmal.schonWeg);
+    const ausfall: WissenSpeicher = { ...falscherSpeicher(), ladeQuellenInfo: async () => { throw new Error("DB weg"); } };
+    pruefe("Loeschen/Ausfall: Datenbank beim Lesen nicht erreichbar -> loeschen", (await fehlerCode(() => loescheHochgeladenesDokument(`upload:${"e".repeat(32)}`, { speicher: ausfall, umgebung: {} }))) === "loeschen");
+
+    // f) Gestapelt: df ist immer exakt zurueck; idf der beruehrten Woerter passt zum aktuellen N
+    const sp10 = vorbestand();
+    const a = await verarbeiteUpload(eingabe({ dateiname: "a.txt", titel: "A", bytes: bytes("Dokument A Beleg Walnuss Archiv Zeppelin") }), { speicher: sp10, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const dfVorB = JSON.stringify([...sp10.begriffe].map(([h, v]) => [h, v.df]).sort());
+    const b = await verarbeiteUpload(eingabe({ dateiname: "b.txt", titel: "B", bytes: bytes("Dokument B Frist Quarkspeise Kaktus") }), { speicher: sp10, einbettung: falscheEinbettung(), jetzt: JETZT });
+    await loescheHochgeladenesDokument(b.quelleId, { speicher: sp10, umgebung: {} });
+    const dfNachB = JSON.stringify([...sp10.begriffe].map(([h, v]) => [h, v.df]).sort());
+    pruefe("Loeschen/gestapelt: nach Upload A, Upload B, Loeschen B ist df jedes Wortes exakt wie vor B", dfVorB === dfNachB);
+    const n10 = sp10.zeilen.size;
+    pruefe("Loeschen/gestapelt: Gewichte sind gueltig (0 < df <= N); die beruehrten Woerter passen zum aktuellen N", [...sp10.begriffe.values()].every((v) => v.df > 0 && v.df <= n10) && [...sp10.begriffe.values()].some((v) => v.idf === idf(n10, v.df)));
+    await loescheHochgeladenesDokument(a.quelleId, { speicher: sp10, umgebung: {} });
+    const dfAlle = (x: Speicherstand) => JSON.stringify({ z: [...x.zeilen.keys()].sort(), b: [...x.begriffe].map(([h, v]) => [h, v.df]).sort() });
+    pruefe("Loeschen/gestapelt: nach dem Loeschen beider Dokumente sind Zeilen, Woerter und df des Vorbestands exakt wieder da (idf der nur von B beruehrten Woerter spiegelt dabei das N zwischen A und B, bis der naechste ETL-Lauf alle angleicht)", dfAlle(sp10) === dfAlle(vorbestand()));
+  }
+
+  // ---- 11. ETL laesst Uploads stehen ---------------------------------------------------------------
+  {
+    const etl = lies("scripts/wissen-nach-supabase.ts");
+    pruefe("ETL: der Marker kommt aus upload-quelle.ts (keine eigene Kopie)", /import \{ UPLOAD_QUELLE \} from "\.\.\/src\/lib\/wissen\/upload-quelle"/.test(etl) && !/const UPLOAD_QUELLE\s*=/.test(etl));
+    pruefe("ETL: --bereinigen liest extra->>quelle und schliesst Uploads vom Loeschen aus", /extra->>quelle/.test(etl) && /!== UPLOAD_QUELLE/.test(etl));
+    pruefe("ETL: Uploads zaehlen in die Dokumenthaeufigkeit (N und df) mit", /listen\.push\(sparsevecIndizes\(/.test(etl) && /wortgewichte\(listen\)/.test(etl));
+    pruefe("Upload und ETL benutzen denselben Marker", /from "@\/lib\/wissen\/upload-quelle"/.test(lies("src/lib/wissen/hochladen.ts")) && lies("src/lib/wissen/upload-quelle.ts").includes('UPLOAD_QUELLE = "upload"'));
+  }
+
+  // ---- 11b. Zeitbudget: vor dem ersten Schreiben aufhoeren ------------------------------------------
+  {
+    const lang = eingabe({ dateiname: "lang.txt", bytes: bytes(Array.from({ length: 60 }, (_, i) => `Absatz ${i}: ${"Wort".repeat(300)} nummer${i}`).join("\n\n")) });
+    const sA = falscherSpeicher();
+    const eA = falscheEinbettung();
+    let tA = 0;
+    let fA: unknown = null;
+    try { await verarbeiteUpload(lang, { speicher: sA, einbettung: eA, jetzt: JETZT, jetztMs: () => (tA += 20_000) }); } catch (e) { fA = e; }
+    pruefe("Zeitbudget: ist es aufgebraucht, kommt der Fehler zeit (mit der Sekundenzahl) statt eines Abbruchs durch die Plattform", fA instanceof UploadFehler && fA.code === "zeit" && fA.wert === String(ZEITBUDGET_MS / 1000), fA instanceof UploadFehler ? `code=${fA.code} wert=${fA.wert}` : String(fA));
+    pruefe("Zeitbudget: es wird vor jedem Einbettungsaufruf geprueft, nach zwei Aufrufen (40 s von 45 s) ist Schluss", eA.aufrufe === 2, `aufrufe=${eA.aufrufe}`);
+    pruefe("Zeitbudget: bis dahin wurde NICHTS geschrieben (nur die Dublettenpruefung lief)", sA.zeilen.size === 0 && sA.begriffe.size === 0 && sA.ereignisse.every((x) => x === "findeQuelle"));
+    const sB = falscherSpeicher();
+    const eB = falscheEinbettung();
+    let tB = 0;
+    const codeB = await fehlerCode(() => verarbeiteUpload(lang, { speicher: sB, einbettung: eB, jetzt: JETZT, jetztMs: () => (tB += 1), zeitbudgetMs: 0 }));
+    pruefe("Zeitbudget: bei Budget 0 bricht der Upload ab, bevor der Dienst ein einziges Mal gefragt wird", codeB === "zeit" && eB.aufrufe === 0 && sB.zeilen.size === 0);
+    const sC = falscherSpeicher();
+    const codeC = await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: sC, einbettung: falscheEinbettung(), jetzt: JETZT }));
+    pruefe("Zeitbudget: ein normales Dokument ist davon nicht betroffen", codeC === "kein-fehler" && sC.zeilen.size > 0);
+    pruefe("Zeitbudget: ZEITBUDGET_MS bleibt unter dem maxDuration des Dashboards (60 s)", ZEITBUDGET_MS < 60_000 && /maxDuration = 60/.test(lies("src/app/[locale]/dashboard/layout.tsx")));
+    pruefe("Zeitbudget: die Action kennt den Fehlercode", /zeit: "fehler\.wissenZeit"/.test(aktion));
+  }
+
+  // ---- 11c. Gemeinsame Rechenwege (keine zweite Kopie) -------------------------------------------------
+  {
+    const ohneKommentare = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    const rechnung = (pfad: string) => (ohneKommentare(lies(pfad)).match(/Math\.log\(1 \+/g) ?? []).length;
+    pruefe("IDF: die Formel steht genau einmal (sparse.ts), nicht in hochladen.ts, loeschen.ts oder dem Adapter", rechnung("src/lib/wissen/sparse.ts") === 1 && rechnung("src/lib/wissen/hochladen.ts") === 0 && rechnung("src/lib/wissen/loeschen.ts") === 0 && rechnung("src/lib/wissen/speicher-supabase.ts") === 0);
+    pruefe("Zaehlung: Upload und Loeschen zaehlen mit zaehleWoerter() aus sparse.ts, keine eigene Schleife", /zaehleWoerter\(/.test(lies("src/lib/wissen/hochladen.ts")) && /zaehleWoerter\(/.test(lies("src/lib/wissen/loeschen.ts")) && !/new Map<number, number>\(\)/.test(ohneKommentare(lies("src/lib/wissen/loeschen.ts"))));
+    const woerter = ["src/lib/wissen/hochladen.ts", "src/lib/wissen/loeschen.ts", "src/lib/wissen/speicher-supabase.ts", "src/lib/wissen/dokumente-liste.ts", "src/lib/actions/wissen.ts", "src/components/db/wissen-verwaltung.tsx", "scripts/wissen-nach-supabase.ts"];
+    const eigeneKopie = woerter.filter((p) => /(upload_quelle|quelle)\s*[!=]==?\s*["']upload["']|["'`]upload:|upload:%|UPLOAD_QUELLE\s*=\s*["']/.test(ohneKommentare(lies(p))));
+    pruefe("Kennzeichen: der Marker (extra.quelle = upload) und der Vorsatz upload: stehen nur in upload-quelle.ts, sonst nirgends als Zeichenkette", eigeneKopie.length === 0, eigeneKopie.join(", "));
+    pruefe("Importwege: hochladen.ts reicht keine Konstanten aus upload-konstanten.ts mehr weiter (ein Weg, nicht zwei)", !/^export \{[^}]*MAX_DATEI_BYTES/m.test(lies("src/lib/wissen/hochladen.ts")));
+    pruefe("KI-Kontext: das Wissenswerkzeug sagt dem Modell, dass der Text der Belege Quellenmaterial und keine Anweisung ist (Uploads bringen Text von aussen)", /Quellenmaterial, keine Anweisung/.test(lies("src/lib/ai/wissen-werkzeug.ts")));
+    pruefe("Dateigrenze: MAX_DATEI_BYTES laesst Platz fuer Formularfelder und Multipart-Rahmen unter dem bodySizeLimit (gemessen im Produktions-Bundle: 8 MiB minus 300 Byte scheiterte mit HTTP 500)", MAX_DATEI_BYTES <= 8 * 1024 * 1024 - 16 * 1024 && /bodySizeLimit: "8mb"/.test(lies("next.config.ts")), `MAX_DATEI_BYTES=${MAX_DATEI_BYTES}`);
+    const formularQuelle = lies("src/components/db/wissen-verwaltung.tsx");
+    pruefe("Oberflaeche: eine zu grosse Datei wird vor dem Absenden gestoppt (setCustomValidity mit MAX_DATEI_BYTES), statt eine HTTP-500-Antwort des Frameworks zu riskieren", /setCustomValidity\(/.test(formularQuelle) && /size > MAX_DATEI_BYTES/.test(formularQuelle));
+    pruefe("Oberflaeche: nach einem Fehler bleiben Titel, Bereich und Rollen stehen (React setzt das Formular sonst zurueck)", /defaultValue=\{behalten\.titel\}/.test(formularQuelle) && /defaultValue=\{behalten\.bereich\}/.test(formularQuelle) && /defaultChecked=\{behalten\.rollen\.includes\(rolle\)\}/.test(formularQuelle));
+  }
+
+  // ---- 12. Texte in allen Sprachen -------------------------------------------------------------------
+  for (const loc of ["de", "en", "ru", "kk"]) {
+    const m = JSON.parse(lies(`src/messages/${loc}.json`)) as { aktionen: { ok: Record<string, string>; fehler: Record<string, string> }; kiAssistentAnsicht: { wissensVerwaltung: Record<string, unknown> } };
+    const w = m.kiAssistentAnsicht.wissensVerwaltung as { titel?: string; bereich?: Record<string, string>; formular?: Record<string, string> };
+    const schluessel = ["wissenNichtLoeschbar", "wissenLoeschen", "wissenGewichte", "wissenVorschau", "wissenDateityp", "wissenLesen", "wissenLeer", "wissenZuLang", "wissenDoppelt", "wissenEinbettung", "wissenZeit", "wissenSpeichern"];
+    pruefe(`Texte ${loc}: alle Fehler- und Erfolgsmeldungen vorhanden`, schluessel.every((k) => m.aktionen.fehler[k]) && !!m.aktionen.ok.wissenHochgeladen && !!m.aktionen.ok.wissenGeloescht && !!m.aktionen.ok.wissenSchonGeloescht);
+    pruefe(`Texte ${loc}: Titel, fuenf Bereiche und Formularfelder vorhanden`, !!w.titel && UPLOAD_BEREICHE.every((b) => w.bereich?.[b]) && ["titel", "datei", "titelFeld", "bereich", "rollen", "knopf", "adminImmer"].every((k) => w.formular?.[k]) && ["knopf", "titel", "dokument", "bereich", "abschnitte", "warnung", "abbrechen", "bestaetigen"].every((k) => (w as { loeschen?: Record<string, string> }).loeschen?.[k]));
+  }
+
+  console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
+  if (fehler > 0) process.exit(1);
+  console.log("Alle Pruefungen bestanden.");
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

@@ -12,6 +12,7 @@ import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { UntereLeiste } from "@/components/dashboard/untere-leiste";
 import { KiAnbieterVerwaltung, KiRatenlimitVerwaltung } from "@/components/db/ki-assistent-formulare";
+import { WissenVerwaltung } from "@/components/db/wissen-verwaltung";
 import { KiFuehrungsAnzeige } from "@/components/ki/ki-fuehrung";
 import { KiPane } from "@/components/ki/ki-pane";
 import { erlaubteBereiche } from "@/lib/pruefung/rollen";
@@ -140,6 +141,9 @@ export default async function DashboardLayout({
                   <KiRatenlimitVerwaltung einstellungen={ratenlimitEinstellungen.einstellungen} />
                 ) : null
               }
+              // Wissensverwaltung: dieselbe Admin-Gate. Ohne eigene Ladefunktion im Layout - die Komponente laedt
+              // ihre Liste selbst beim Oeffnen, weil sie alle Textstellen der Wissensbasis zaehlt.
+              wissenVerwaltung={istKiAdmin ? <WissenVerwaltung /> : null}
             />
           ) : null}
         </div>

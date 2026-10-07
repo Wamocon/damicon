@@ -108,6 +108,7 @@ export function KiPane({
   agentFaehig,
   einstellungen,
   ratenlimitVerwaltung = null,
+  wissenVerwaltung = null,
   pruefungBereiche = [],
 }: {
   verlauf: KiChatNachrichtZeile[];
@@ -119,6 +120,8 @@ export function KiPane({
   /** Ratenlimit-Verwaltung (Vibecode-Cleanup Phase 2) - nur fuer Admins, vom
    *  Layout als fertiges Element uebergeben, dasselbe Muster wie einstellungen. */
   ratenlimitVerwaltung?: ReactNode | null;
+  /** Wissensverwaltung (Upload und Liste der Wissensdokumente), nur Admin; dasselbe Muster wie ratenlimitVerwaltung. */
+  wissenVerwaltung?: ReactNode | null;
   /** Bereiche der Compliance-Pruefung, die die Rolle ausloesen darf (leer = kein Knopf). Erzwungen wird es in /api/ki-pruefung. */
   pruefungBereiche?: readonly Pruefbereich[];
 }) {
@@ -196,7 +199,7 @@ export function KiPane({
   // bleibt unberuehrt und gilt am Schreibtisch weiter.
   const agentAktiv = agentFaehig && modus === "agent" && !handy;
   const aufBuehne = darstellung === "buehne";
-  const hatEinstellungen = agentFaehig || einstellungen !== null || ratenlimitVerwaltung !== null;
+  const hatEinstellungen = agentFaehig || einstellungen !== null || ratenlimitVerwaltung !== null || wissenVerwaltung !== null;
   // Die Mehr-Ansicht gibt es nur auf dem Handy. Wer das Fenster breiter zieht,
   // waehrend sie offen ist, landet wieder im Gespraech, statt auf einer Seite
   // zu stehen, deren Knopf gerade verschwunden ist.
@@ -421,6 +424,14 @@ export function KiPane({
                       {t("ratenlimitVerwaltung.titel")}
                     </p>
                     {ratenlimitVerwaltung}
+                  </div>
+                ) : null}
+                {wissenVerwaltung ? (
+                  <div>
+                    <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      {t("wissensVerwaltung.titel")}
+                    </p>
+                    {wissenVerwaltung}
                   </div>
                 ) : null}
               </div>

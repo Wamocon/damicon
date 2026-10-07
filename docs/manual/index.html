@@ -556,6 +556,7 @@ mark.treffer-aktiv {
     <a class="toc-link toc-2" href="#anleitung-nachweiskette">4.3 Die Nachweiskette einer Lieferung zeigen</a>
     <a class="toc-link toc-2" href="#anleitung-dokument">4.4 Ein Dokument aufnehmen</a>
     <a class="toc-link toc-2" href="#anleitung-zugang">4.5 Zugang einrichten: Einladung und zweiter Faktor</a>
+    <a class="toc-link toc-2" href="#anleitung-wissensdokument">4.6 Dokument in die Wissensbasis hochladen und löschen (Administration)</a>
     <a class="toc-link toc-1" href="#referenz">05 Referenz</a>
     <a class="toc-link toc-2" href="#referenz-seiten">5.1 Seiten</a>
     <a class="toc-link toc-2" href="#referenz-rechte">5.2 Rechte je Rolle</a>
@@ -1048,7 +1049,7 @@ mark.treffer-aktiv {
 
     <section id="anleitungen">
       <h2><span class="nr">04</span> Anleitungen</h2>
-      <p>Fünf Abläufe, die den Kern des Betriebs abdecken. Die Pfade beziehen sich auf die Seitenleiste.</p>
+      <p>Sechs Abläufe, die den Kern des Betriebs abdecken. Die Pfade beziehen sich auf die Seitenleiste.</p>
 
       <h3 id="anleitung-wartezeit">4.1 Wartezeitsperre auslösen und aufheben</h3>
       <p>Nach einer Pflanzenschutzbehandlung darf ein Reihenblock bis zum Ablauf der Wartezeit nicht beerntet werden. Das Portal setzt diese Sperre selbst.</p>
@@ -1098,6 +1099,18 @@ mark.treffer-aktiv {
           <li>Eine offene Einladung lässt sich zurückziehen, solange sie nicht eingelöst ist.</li>
           <li>Für den zweiten Faktor: unten in der Seitenleiste „Sicherheit“ öffnen, auf dem Telefon denselben Punkt im Konto-Blatt.</li>
           <li>„Starten“ zeigt QR-Code und Schlüssel — beides wird nur ein einziges Mal herausgegeben. In einer Authenticator-App scannen, den sechsstelligen Code eingeben und bestätigen. Erst damit gilt der Faktor.</li>
+      </ol>
+
+      <h3 id="anleitung-wissensdokument">4.6 Dokument in die Wissensbasis hochladen und löschen (Administration)</h3>
+      <p>Die Wissensbasis enthält die Texte zu Recht, Steuern, Compliance, Audit und Risiko, aus denen der Assistent seine Belege holt. Nur die Administration darf hier Dokumente hinzufügen oder entfernen.</p>
+      <ol>
+          <li>Als Administration anmelden, das KI-Panel öffnen und „Einstellungen“ wählen. Unter dem Ratenlimit steht der Abschnitt „Wissensdokumente“.</li>
+          <li>Unter „Dokument hochladen“ eine Datei wählen (PDF, Markdown oder Text, höchstens 8 MB). Ein PDF muss Text enthalten, ein reiner Scan wird abgelehnt.</li>
+          <li>Titel eintragen, den Bereich wählen (Recht, Steuern, Compliance, Audit oder Risiko) und ankreuzen, welche Büro-Rollen das Dokument sehen dürfen. Die Administration ist immer dabei.</li>
+          <li>„Dokument hochladen“ drücken. Der Text wird zerlegt und eingebettet, bei langen Dokumenten dauert das bis zu einer Minute. Danach ist das Dokument sofort durchsuchbar und steht in der Liste, mit Bereich, Rollen, Datum, Hochgeladen von und Zahl der Abschnitte.</li>
+          <li>Dieselbe Datei lässt sich nicht zweimal hochladen. Das Portal erkennt den Inhalt und nennt den Titel des vorhandenen Dokuments. Die Originaldatei wird nicht aufbewahrt, nur der Text.</li>
+          <li>Zum Löschen bei einem hochgeladenen Dokument „Löschen“ wählen und im Fenster Titel, Bereich und Zahl der Abschnitte prüfen. Das Löschen lässt sich nicht rückgängig machen. Dokumente, die per Skript eingelesen wurden, haben keinen Löschen-Knopf.</li>
+          <li>Hochgeladene Dokumente erscheinen in der allgemeinen Trefferliste, nicht unter den bevorzugten amtlichen Rechtsquellen.</li>
       </ol>
     </section>
 
@@ -1274,6 +1287,7 @@ mark.treffer-aktiv {
             <tr><td><strong>ЭСФ / ЕСУТД</strong></td><td>Kasachstanische Pflichtsysteme für elektronische Rechnungen beziehungsweise für die Erfassung von Arbeitsverträgen.</td></tr>
             <tr><td><strong>Sprachmodus</strong></td><td>Live-Gespräch mit dem Assistenten ohne sichtbaren Chat: Himbi führt das Gespräch: Beim Zuhören steht er groß in der Mitte, beim Erklären rückt er auf breiten Bildschirmen an den linken Rand, und seine Größe richtet sich nach dem Bildschirm. Mitlaufender Text ist standardmäßig aus und lässt sich über den Untertitel-Knopf in der Leiste einschalten; der Browser merkt sich die Wahl (auf dem Handy bleibt er klein, ohne mitlaufenden Text und neben dem gezeigten Bereich, damit die Seite sichtbar bleibt), und beim Sprechen bewegt er die Lippen im Takt der Stimme (die kleine Figur in der Ecke ist solange ausgeblendet; ist Himbi in den Einstellungen ausgeschaltet, zeigt ein farbiger Kreis, ob zugehört, nachgedacht oder gesprochen wird), der Assistent kann selbst zu einem Bereich springen und ihn zeigen. Unterbrechen wie im Gespräch: einfach dazwischenreden oder auf Himbi tippen. Starten: Knopf „Gespräch“ in der Kopfzeile, oder im Chat der Senden-Knopf, solange das Eingabefeld leer ist. Der Sprachmodus darf dasselbe wie der Chat, auch etwas eintragen. Bevor eine Änderung gespeichert wird, zeigt er sie deutlich umrandet auf dem Bildschirm, und Sie geben sie mit „Ja“ frei oder lehnen sie mit „Nein“ ab. Während er erklärt, umrandet ein Rahmen genau die Stelle, über die er gerade spricht, und zugeklappte Abschnitte klappt er dafür auf. Er öffnet auch die Bereiche Feld, Hof, Büro und Markt und den Compliance-Prüfbericht, auf Wunsch gefiltert nach Audit, Steuern, Recht oder Risiko. Mit „Stopp“, „Moment“, „Warte“ oder „Nein“ halten Sie Himbi an, während er spricht oder nachdenkt. Das Gespräch bleibt offen, und Himbi weiß, bis wohin Sie zugehört haben. Was Sie direkt danach sagen, ist die nächste Frage, zum Beispiel „Stopp, zeig mir lieber die Reklamationen“. Sprechen Sie weiter, während er noch nachdenkt oder gerade erst zu antworten beginnt, hängt er Ihre Worte an die Frage an, statt nur den ersten Teil zu beantworten. Geräusche und ein kurzes „Mhm“, „Ja“ oder „Genau“ unterbrechen ihn nicht: Er wird kurz leiser und spricht dann weiter. Erst wenn Sie etwas mit Inhalt sagen, hält er an. Beenden Sie den Sprachmodus mit „Sprachmodus beenden“ oder „Tschüss Himbi“. Damit das jederzeit wirkt, hört das Mikrofon während des ganzen Gesprächs mit, auch während der Assistent spricht; seine eigene Stimme erkennt er dabei und reagiert nicht darauf. Die Stimme richtet sich immer nach der Sprache des Textes, nicht nach der eingestellten Oberflächensprache: Ein russischer Satz klingt russisch, auch wenn die Oberfläche deutsch ist, beim Vorlesen im Chat genauso wie im Gespräch. Das gilt auch für ganz kurze Antworten wie „Да.“. Solange eine Freigabe offen ist, steht im Status „Ich warte auf Ihr Ja oder Nein“. Die Freigabe erscheint erst, nachdem Himbi den Satz davor ausgesprochen hat, zum Beispiel „Ich klicke jetzt auf Anlegen“. Als Zustimmung zählen auch „Ja, bitte“, „Mach das“, „Да, конечно“ oder „Әрине“, ein „Äh“ davor stört nicht. Eine Rückfrage wie „Ja?“ gibt nichts frei. Stellen Sie stattdessen eine neue Frage, lehnt Himbi die offene Aktion ab und beantwortet dann Ihre Frage. Ein Befehl wirkt nur, wenn Ihre Äußerung damit beginnt: „Wie kann ich die Aufgabe schließen?“ beendet den Sprachmodus nicht. Bei langsamer Verbindung spricht Himbi mit etwas geringerer Tonqualität, damit die Stimme nicht stockt.</td></tr>
             <tr><td><strong>Tagesbegleiter</strong></td><td>Himbi hilft, den Arbeitstag zu organisieren. Fragen Sie, was heute ansteht oder dringend ist, nennt er höchstens drei Punkte, das Dringendste zuerst mit Frist oder Zahl, und fragt, womit Sie anfangen wollen oder ob er einen Plan für den Tag vorschlagen soll. Der Plan ist eine kurze Reihenfolge aus den Daten des Betriebs, ohne erfundene Termine. Nach einer Antwort stellt er höchstens eine Rückfrage, wenn sie weiterhilft. Eine Aktion schlägt er nur als Frage vor, und auch nach Ihrem „Ja“ wird nichts gespeichert, bevor Sie es freigegeben haben. Einmal am Tag beginnt Himbi selbst: im Sprachmodus stellt er gleich zu Beginn die Frage nach der Tageslage (sie steht danach wie jede andere Frage im Chatverlauf), sonst fragt er in einer Sprechblase, ob er sagen soll, was heute dringend ist. Abschalten lässt sich das in den Himbi-Einstellungen mit dem Schalter „Himbi beginnt den Tag mit mir“, der standardmäßig an ist.</td></tr>
+            <tr><td><strong>Wissensbasis</strong></td><td>Bestand an Texten zu Recht, Steuern, Compliance, Audit und Risiko, aus dem der Assistent seine Belege holt. Die Texte kommen per Skript oder als Upload der Administration hinein. Jede Textstelle trägt Bereich, Rollen und Herkunft.</td></tr>
             <tr><td><strong>WAMOCON</strong></td><td>WAMOCON GmbH — Auftraggeber und Entwickler von Damicon.</td></tr>
           </tbody>
         </table>

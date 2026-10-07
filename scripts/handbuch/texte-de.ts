@@ -174,7 +174,7 @@ export const de: HandbuchTexte = {
 
   anleitungen: {
     einleitung:
-      "Fünf Abläufe, die den Kern des Betriebs abdecken. Die Pfade beziehen sich auf die Seitenleiste.",
+      "Sechs Abläufe, die den Kern des Betriebs abdecken. Die Pfade beziehen sich auf die Seitenleiste.",
     liste: [
       {
         id: "wartezeit",
@@ -237,6 +237,21 @@ export const de: HandbuchTexte = {
           "Eine offene Einladung lässt sich zurückziehen, solange sie nicht eingelöst ist.",
           "Für den zweiten Faktor: unten in der Seitenleiste „Sicherheit“ öffnen, auf dem Telefon denselben Punkt im Konto-Blatt.",
           "„Starten“ zeigt QR-Code und Schlüssel — beides wird nur ein einziges Mal herausgegeben. In einer Authenticator-App scannen, den sechsstelligen Code eingeben und bestätigen. Erst damit gilt der Faktor.",
+        ],
+      },
+      {
+        id: "wissensdokument",
+        titel: "Dokument in die Wissensbasis hochladen und löschen (Administration)",
+        einleitung:
+          "Die Wissensbasis enthält die Texte zu Recht, Steuern, Compliance, Audit und Risiko, aus denen der Assistent seine Belege holt. Nur die Administration darf hier Dokumente hinzufügen oder entfernen.",
+        schritte: [
+          "Als Administration anmelden, das KI-Panel öffnen und „Einstellungen“ wählen. Unter dem Ratenlimit steht der Abschnitt „Wissensdokumente“.",
+          "Unter „Dokument hochladen“ eine Datei wählen (PDF, Markdown oder Text, höchstens 8 MB). Ein PDF muss Text enthalten, ein reiner Scan wird abgelehnt.",
+          "Titel eintragen, den Bereich wählen (Recht, Steuern, Compliance, Audit oder Risiko) und ankreuzen, welche Büro-Rollen das Dokument sehen dürfen. Die Administration ist immer dabei.",
+          "„Dokument hochladen“ drücken. Der Text wird zerlegt und eingebettet, bei langen Dokumenten dauert das bis zu einer Minute. Danach ist das Dokument sofort durchsuchbar und steht in der Liste, mit Bereich, Rollen, Datum, Hochgeladen von und Zahl der Abschnitte.",
+          "Dieselbe Datei lässt sich nicht zweimal hochladen. Das Portal erkennt den Inhalt und nennt den Titel des vorhandenen Dokuments. Die Originaldatei wird nicht aufbewahrt, nur der Text.",
+          "Zum Löschen bei einem hochgeladenen Dokument „Löschen“ wählen und im Fenster Titel, Bereich und Zahl der Abschnitte prüfen. Das Löschen lässt sich nicht rückgängig machen. Dokumente, die per Skript eingelesen wurden, haben keinen Löschen-Knopf.",
+          "Hochgeladene Dokumente erscheinen in der allgemeinen Trefferliste, nicht unter den bevorzugten amtlichen Rechtsquellen.",
         ],
       },
     ],
@@ -580,6 +595,10 @@ export const de: HandbuchTexte = {
       {
         begriff: "Tagesbegleiter",
         text: "Himbi hilft, den Arbeitstag zu organisieren. Fragen Sie, was heute ansteht oder dringend ist, nennt er höchstens drei Punkte, das Dringendste zuerst mit Frist oder Zahl, und fragt, womit Sie anfangen wollen oder ob er einen Plan für den Tag vorschlagen soll. Der Plan ist eine kurze Reihenfolge aus den Daten des Betriebs, ohne erfundene Termine. Nach einer Antwort stellt er höchstens eine Rückfrage, wenn sie weiterhilft. Eine Aktion schlägt er nur als Frage vor, und auch nach Ihrem „Ja“ wird nichts gespeichert, bevor Sie es freigegeben haben. Einmal am Tag beginnt Himbi selbst: im Sprachmodus stellt er gleich zu Beginn die Frage nach der Tageslage (sie steht danach wie jede andere Frage im Chatverlauf), sonst fragt er in einer Sprechblase, ob er sagen soll, was heute dringend ist. Abschalten lässt sich das in den Himbi-Einstellungen mit dem Schalter „Himbi beginnt den Tag mit mir“, der standardmäßig an ist.",
+      },
+      {
+        begriff: "Wissensbasis",
+        text: "Bestand an Texten zu Recht, Steuern, Compliance, Audit und Risiko, aus dem der Assistent seine Belege holt. Die Texte kommen per Skript oder als Upload der Administration hinein. Jede Textstelle trägt Bereich, Rollen und Herkunft.",
       },
       {
         begriff: "WAMOCON",

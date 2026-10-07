@@ -913,7 +913,10 @@
       "stammdatenGespeichert": "Master data saved.",
       "transkription": "Dictation accepted.",
       "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
-      "dokumentGeaendert": "Document “{wert}” updated."
+      "dokumentGeaendert": "Document “{wert}” updated.",
+      "wissenHochgeladen": "Document “{wert}” uploaded and searchable.",
+      "wissenGeloescht": "Document “{wert}” deleted.",
+      "wissenSchonGeloescht": "This document has already been deleted."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -956,7 +959,19 @@
       "transkriptionLeer": "Nothing was understood. Please speak a little louder or closer to the microphone.",
       "dateiGross": "The recording is too large.",
       "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists.",
-      "ratenlimit": "Too many requests in a short time. Please wait a moment and try again."
+      "ratenlimit": "Too many requests in a short time. Please wait a moment and try again.",
+      "wissenDateityp": "Only .pdf, .md and .txt are allowed.",
+      "wissenLesen": "The file could not be read (damaged, encrypted or not a text file).",
+      "wissenLeer": "The file contains no readable text (for a PDF: probably a scan without a text layer).",
+      "wissenZuLang": "The document is too long (at most {wert} sections). Please split it into several files.",
+      "wissenDoppelt": "This content is already in the knowledge base (“{wert}”).",
+      "wissenEinbettung": "Embedding failed. The embedding service is unreachable, nothing was saved.",
+      "wissenZeit": "Embedding takes too long (more than {wert} seconds). Nothing was saved. Please split the document into several smaller files.",
+      "wissenSpeichern": "The document could not be saved. Nothing was kept.",
+      "wissenVorschau": "Upload blocked: this preview environment writes to the same database schema as production (SUPABASE_DB_SCHEMA is not public_preview). Please upload in production or in a preview with its own schema.",
+      "wissenNichtLoeschbar": "This document cannot be deleted here. Only documents uploaded through this administration can be deleted, never documents from the import script.",
+      "wissenLoeschen": "The document could not be deleted. Nothing was changed.",
+      "wissenGewichte": "The document was deleted, but the search word weights could not be updated. This is harmless and is corrected by the next ETL run."
     },
     "einladungen": {
       "erfolg": {
@@ -2205,6 +2220,58 @@
     "mehr": "More",
     "groesser": "Enlarge panel",
     "kleiner": "Shrink panel",
+    "wissensVerwaltung": {
+      "titel": "Knowledge documents",
+      "lead": "Visible to administrators only. Load documents into the knowledge base the assistant searches for law, tax, compliance, audit and risk questions. The file itself is not kept, only its text.",
+      "bereich": {
+        "recht": "Law",
+        "steuer": "Tax",
+        "compliance": "Compliance",
+        "audit": "Audit",
+        "risiko": "Risk"
+      },
+      "herkunft": {
+        "upload": "Uploaded",
+        "skript": "Script"
+      },
+      "liste": {
+        "titel": "Existing documents",
+        "laedt": "Loading documents …",
+        "leer": "No documents in the knowledge base yet.",
+        "fehler": "The document list could not be loaded.",
+        "abgeschnitten": "The list is incomplete: the knowledge base has more passages than this view can read. Please report it.",
+        "rollen": "Roles",
+        "datum": "Loaded on",
+        "von": "By",
+        "vonSkript": "Import script",
+        "abschnitte": "Sections",
+        "keinDatum": "no date",
+        "keinBereich": "no area"
+      },
+      "formular": {
+        "titel": "Upload document",
+        "lead": "PDF, Markdown or text up to 8 MB. The content is split, embedded and searchable immediately. The same file cannot be uploaded twice.",
+        "datei": "File",
+        "dateiHinweis": "Allowed: .pdf, .md, .txt. A PDF without a text layer (pure scan) is rejected.",
+        "titelFeld": "Title",
+        "titelPlatzhalter": "for example Tax Code, excerpt",
+        "bereich": "Area",
+        "bitteWaehlen": "Please choose",
+        "rollen": "Who may see the document?",
+        "adminImmer": "Administration is always included. Other roles do not use the knowledge search.",
+        "knopf": "Upload document"
+      },
+      "loeschen": {
+        "knopf": "Delete",
+        "titel": "Delete document?",
+        "dokument": "Document",
+        "bereich": "Area",
+        "abschnitte": "Sections",
+        "warnung": "Warning: the document and all its sections are removed from the knowledge base for good. This cannot be undone. The assistant will no longer find it.",
+        "abbrechen": "Cancel",
+        "bestaetigen": "Delete permanently"
+      }
+    },
     "sprachmodus": {
       "titel": "Voice mode",
       "starten": "Start voice mode",
