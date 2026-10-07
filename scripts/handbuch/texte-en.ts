@@ -237,17 +237,21 @@ export const en: HandbuchTexte = {
       },
       {
         id: "wissensdokument",
-        titel: "Upload and delete a document in the knowledge base (administration)",
+        titel: "Upload, approve and delete a document in the knowledge base (administration)",
         einleitung:
-          "The knowledge base holds the law, tax, compliance, audit and risk texts from which the assistant takes its references. Only administration can add or remove documents here.",
+          "The knowledge base holds the law, tax, compliance, audit and risk texts from which the assistant takes its references. Only administration can add documents here, and every new document must be approved by a second person (four-eyes principle).",
         schritte: [
           "Sign in as administration, open the AI panel and choose “Settings”. The section “Knowledge documents” sits below the rate limit.",
           "Under “Upload document” choose a file (PDF, Markdown or text, at most 8 MB). A PDF must contain text, a pure scan is rejected.",
-          "Enter a title, choose the area (Law, Tax, Compliance, Audit or Risk) and tick which office roles may see the document. Administration is always included.",
-          "Press “Upload document”. The text is split and embedded, which takes up to a minute for long documents. Afterwards the document is searchable at once and appears in the list with area, roles, date, who loaded it and number of sections.",
-          "The same file cannot be uploaded twice. The portal recognises the content and names the existing document. The original file is not kept, only the text.",
+          "Enter a title, choose the area (Law, Tax, Compliance, Audit or Risk) and the source type: statute, case law, specialist literature, practice paper, internet source, forum and more. It follows where the text comes from. The portal sets the level of the source from the source type.",
+          "Not every source type fits every area: blogs, forums and internet searches are blocked for law, tax and compliance. For audit and risk they are allowed but count only as a hint, and the link to the source is required.",
+          "Choose which office roles may see the document (administration is always included) and press “Upload document”. The text is split and embedded, which takes up to a minute for long documents.",
+          "The document now appears in the list as “Awaiting approval” and is not searchable for anyone yet. The person who uploaded it cannot approve it themselves.",
+          "A second person with administration rights opens the list, chooses “Review” and reads the start of the text, source type, level and link. “Approve” makes the document searchable for the chosen roles, “Reject” blocks it.",
+          "Internet sources, forums, reference works and similar sources expire after 12 months (practice papers and internal documents after 24). The list then shows “Review due” and search no longer finds the source until a second person checks it again and extends it.",
+          "The same file cannot be uploaded twice. The original file is not kept, only the text.",
           "To delete, choose “Delete” on an uploaded document and check title, area and number of sections in the window. Deleting cannot be undone. Documents loaded by script have no delete button.",
-          "Uploaded documents appear in the general result list, not among the preferred official legal sources.",
+          "For every source the assistant names the source type, the level and the date. It labels hints from the internet, forums or AI texts as unchecked and never bases a binding statement on them alone. If there are only hints, it says that the knowledge base holds no reliable source.",
         ],
       },
     ],
@@ -570,6 +574,14 @@ export const en: HandbuchTexte = {
       {
         begriff: "Knowledge base",
         text: "The stock of texts on law, tax, compliance, audit and risk from which the assistant takes its references. Texts arrive by script or as an upload by administration. Every passage carries its area, roles and origin.",
+      },
+      {
+        begriff: "Four-eyes principle",
+        text: "An uploaded knowledge document is searchable only after a second person has approved it. The uploader does not approve. The database enforces this, not just the interface.",
+      },
+      {
+        begriff: "Source type",
+        text: "The kind of source of a knowledge document (statute, case law, specialist literature, internet source, forum and more). It determines the level, what the source is good for in which area, and when it must be reviewed again.",
       },
       {
         begriff: "Day companion",

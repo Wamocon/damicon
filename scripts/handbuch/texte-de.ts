@@ -241,17 +241,21 @@ export const de: HandbuchTexte = {
       },
       {
         id: "wissensdokument",
-        titel: "Dokument in die Wissensbasis hochladen und löschen (Administration)",
+        titel: "Dokument in die Wissensbasis hochladen, freigeben und löschen (Administration)",
         einleitung:
-          "Die Wissensbasis enthält die Texte zu Recht, Steuern, Compliance, Audit und Risiko, aus denen der Assistent seine Belege holt. Nur die Administration darf hier Dokumente hinzufügen oder entfernen.",
+          "Die Wissensbasis enthält die Texte zu Recht, Steuern, Compliance, Audit und Risiko, aus denen der Assistent seine Belege holt. Nur die Administration darf hier Dokumente hinzufügen, und jedes neue Dokument muss eine zweite Person freigeben (Vier-Augen-Prinzip).",
         schritte: [
           "Als Administration anmelden, das KI-Panel öffnen und „Einstellungen“ wählen. Unter dem Ratenlimit steht der Abschnitt „Wissensdokumente“.",
           "Unter „Dokument hochladen“ eine Datei wählen (PDF, Markdown oder Text, höchstens 8 MB). Ein PDF muss Text enthalten, ein reiner Scan wird abgelehnt.",
-          "Titel eintragen, den Bereich wählen (Recht, Steuern, Compliance, Audit oder Risiko) und ankreuzen, welche Büro-Rollen das Dokument sehen dürfen. Die Administration ist immer dabei.",
-          "„Dokument hochladen“ drücken. Der Text wird zerlegt und eingebettet, bei langen Dokumenten dauert das bis zu einer Minute. Danach ist das Dokument sofort durchsuchbar und steht in der Liste, mit Bereich, Rollen, Datum, Hochgeladen von und Zahl der Abschnitte.",
-          "Dieselbe Datei lässt sich nicht zweimal hochladen. Das Portal erkennt den Inhalt und nennt den Titel des vorhandenen Dokuments. Die Originaldatei wird nicht aufbewahrt, nur der Text.",
+          "Titel eintragen, den Bereich wählen (Recht, Steuern, Compliance, Audit oder Risiko) und die Quellenart: Gesetz, Urteil, Fachliteratur, Praxisbeitrag, Internetquelle, Forum und weitere. Sie richtet sich nach der Herkunft des Textes. Die Stufe der Quelle legt das Portal aus der Quellenart fest.",
+          "Nicht jede Quellenart passt zu jedem Bereich: Blogs, Foren und Internetrecherchen sind für Recht, Steuern und Compliance gesperrt. Für Audit und Risiko sind sie zulässig, gelten aber nur als Hinweis, und der Link zur Quelle ist Pflicht.",
+          "Festlegen, welche Büro-Rollen das Dokument sehen dürfen (die Administration ist immer dabei), und „Dokument hochladen“ drücken. Der Text wird zerlegt und eingebettet, bei langen Dokumenten dauert das bis zu einer Minute.",
+          "Das Dokument steht jetzt als „Wartet auf Freigabe“ in der Liste und ist noch für niemanden durchsuchbar. Wer hochgeladen hat, kann es nicht selbst freigeben.",
+          "Eine zweite Person mit Administrationsrecht öffnet die Liste, wählt „Prüfen“ und liest den Anfang des Textes, Quellenart, Stufe und Link. „Freigeben“ macht das Dokument für die gewählten Rollen durchsuchbar, „Ablehnen“ sperrt es.",
+          "Internetquellen, Foren, Nachschlagewerke und ähnliche Quellen laufen nach 12 Monaten ab (Praxisbeiträge und interne Ausarbeitungen nach 24). Die Liste meldet dann „Prüfung fällig“, die Suche findet die Quelle nicht mehr, bis eine zweite Person erneut prüft und verlängert.",
+          "Dieselbe Datei lässt sich nicht zweimal hochladen. Die Originaldatei wird nicht aufbewahrt, nur der Text.",
           "Zum Löschen bei einem hochgeladenen Dokument „Löschen“ wählen und im Fenster Titel, Bereich und Zahl der Abschnitte prüfen. Das Löschen lässt sich nicht rückgängig machen. Dokumente, die per Skript eingelesen wurden, haben keinen Löschen-Knopf.",
-          "Hochgeladene Dokumente erscheinen in der allgemeinen Trefferliste, nicht unter den bevorzugten amtlichen Rechtsquellen.",
+          "Der Assistent nennt zu jeder Quelle die Quellenart, die Stufe und den Stand. Hinweise aus Internet, Forum oder KI-Texten kennzeichnet er als ungeprüft und stützt nie eine verbindliche Aussage allein darauf. Gibt es nur Hinweise, sagt er, dass die Wissensbasis keine belastbare Quelle enthält.",
         ],
       },
     ],
@@ -599,6 +603,14 @@ export const de: HandbuchTexte = {
       {
         begriff: "Wissensbasis",
         text: "Bestand an Texten zu Recht, Steuern, Compliance, Audit und Risiko, aus dem der Assistent seine Belege holt. Die Texte kommen per Skript oder als Upload der Administration hinein. Jede Textstelle trägt Bereich, Rollen und Herkunft.",
+      },
+      {
+        begriff: "Vier-Augen-Prinzip",
+        text: "Ein hochgeladenes Wissensdokument ist erst durchsuchbar, wenn eine zweite Person es freigegeben hat. Wer hochgeladen hat, gibt nicht frei. Die Datenbank erzwingt das, nicht nur die Oberfläche.",
+      },
+      {
+        begriff: "Quellenart",
+        text: "Art der Quelle eines Wissensdokuments (Gesetz, Urteil, Fachliteratur, Internetquelle, Forum und weitere). Sie bestimmt die Stufe, wofür die Quelle in welchem Bereich taugt und wann sie neu zu prüfen ist.",
       },
       {
         begriff: "WAMOCON",
