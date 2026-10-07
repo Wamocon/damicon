@@ -93,12 +93,23 @@ function textAus(prompt: unknown): string {
     .join("\n");
 }
 
-type Verhalten = { verzoegerungMs?: number; syntheseFehler?: number; langeZusammenfassung?: boolean; gesehen?: Set<string>; auslassen?: Set<string>; erfundeneBelege?: Set<string>; werfeBei?: string; zaehler: { agent: number; synthese: number; nachfrage: number } };
+type Zusammenfassung = { zusammenfassung: string; prioritaeten: string[] };
+type Verhalten = { zusammenfassungen?: Zusammenfassung[]; verzoegerungMs?: number; syntheseFehler?: number; langeZusammenfassung?: boolean; gesehen?: Set<string>; auslassen?: Set<string>; erfundeneBelege?: Set<string>; werfeBei?: string; zaehler: { agent: number; synthese: number; nachfrage: number } };
 function mockModell(v: Verhalten) {
   return new MockLanguageModelV3({
     doGenerate: async () => {
       v.zaehler.synthese++;
       if (v.syntheseFehler && v.zaehler.synthese <= v.syntheseFehler) throw new Error("kurzer Ausfall");
+      // Ein Drehbuch je Versuch: so laesst sich nachstellen, dass das Modell erst in der falschen Sprache antwortet.
+      const drehbuch = v.zusammenfassungen?.[Math.min(v.zaehler.synthese, v.zusammenfassungen.length) - 1];
+      if (drehbuch) {
+        return {
+          content: [{ type: "tool-call" as const, toolCallId: "z1", toolName: "berichtAbschliessen", input: JSON.stringify(drehbuch) }],
+          finishReason: { unified: "tool-calls" as const, raw: undefined },
+          usage: nutzung,
+          warnings: [],
+        };
+      }
       return {
         content: [{ type: "tool-call" as const, toolCallId: "z1", toolName: "berichtAbschliessen", input: JSON.stringify({ zusammenfassung: v.langeZusammenfassung ? "Der Betrieb hat Luecken bei den Fristen. ".repeat(40) : "Der Betrieb hat Luecken bei den Fristen, ist aber im Datenschutz gut aufgestellt.", prioritaeten: ["Registrierung beantragen", "ESUTD-Fristen nachholen"] }) }],
         finishReason: { unified: "tool-calls" as const, raw: undefined },
@@ -239,6 +250,33 @@ async function ablauf() {
   const v9: Verhalten = { zaehler: { agent: 0, synthese: 0, nachfrage: 0 }, langeZusammenfassung: true };
   const b9 = await fuehrePruefungAus({ rolle: "admin", ersteller: { name: "A" }, bereiche: ["audit"], abgelehnt: [], sprache: "de" }, abhaengigkeiten(v9), () => {});
   pruefe("Zusammenfassung: eine sehr lange Modellantwort wird gekuerzt statt verworfen", v9.zaehler.synthese === 1 && b9.zusammenfassung.length <= 910 && b9.zusammenfassung.startsWith("Der Betrieb"), String(b9.zusammenfassung.length));
+
+  // 7b. Sprache der Zusammenfassung (24.09.2026): Oberflaeche russisch, die Zusammenfassung kam auf Deutsch.
+  //     Ein Text in der falschen Sprache wird verworfen und neu erzeugt; scheitern beide Versuche, steht der
+  //     Kennzahlentext in der verlangten Sprache da - nie ein deutscher Absatz in einem russischen Bericht.
+  const DE_TEXT: Zusammenfassung = { zusammenfassung: "Der Betrieb hat Lücken bei den Fristen, ist aber im Datenschutz gut aufgestellt.", prioritaeten: ["Registrierung beantragen und Fristen nachholen", "Lohnabrechnung fristgerecht abgeben"] };
+  const RICHTIG: Record<string, Zusammenfassung> = {
+    en: { zusammenfassung: "The business has gaps in its deadlines, but data protection is well set up overall.", prioritaeten: ["Apply for the registration and catch up on the deadlines", "Submit the payroll on time"] },
+    ru: { zusammenfassung: "У предприятия есть пробелы в сроках, но защита данных в целом организована хорошо.", prioritaeten: ["Подать заявление на регистрацию и наверстать сроки", "Сдать расчёт заработной платы вовремя"] },
+    kk: { zusammenfassung: "Кәсіпорында мерзімдер бойынша олқылықтар бар, бірақ деректерді қорғау жалпы жақсы жолға қойылған.", prioritaeten: ["Тіркеуге өтінім беріп, мерзімдерді жетілдіру", "Жалақы есебін уақтылы тапсыру"] },
+  };
+  for (const sprache of ["en", "ru", "kk"] as const) {
+    const vs: Verhalten = { zaehler: { agent: 0, synthese: 0, nachfrage: 0 }, zusammenfassungen: [DE_TEXT, RICHTIG[sprache]!] };
+    const bs = await fuehrePruefungAus({ rolle: "admin", ersteller: { name: "A" }, bereiche: ["audit"], abgelehnt: [], sprache }, abhaengigkeiten(vs), () => {});
+    pruefe(`Zusammenfassung ${sprache}: die deutsche Fassung wird verworfen, die zweite (${sprache}) gilt`, vs.zaehler.synthese === 2 && bs.zusammenfassung === RICHTIG[sprache]!.zusammenfassung && !bs.zusammenfassung.includes("Betrieb"), bs.zusammenfassung.slice(0, 50));
+    pruefe(`Zusammenfassung ${sprache}: auch die Prioritaeten sind in ${sprache}`, bs.prioritaeten.join(" ") === RICHTIG[sprache]!.prioritaeten.join(" "));
+    pruefe(`Zusammenfassung ${sprache}: kein Hinweis 'ohne Modell', der Text kommt vom Modell`, !bs.hinweise.some((h) => h.includes("ohne Modell")) );
+    const vf: Verhalten = { zaehler: { agent: 0, synthese: 0, nachfrage: 0 }, zusammenfassungen: [DE_TEXT] };
+    const bf = await fuehrePruefungAus({ rolle: "admin", ersteller: { name: "A" }, bereiche: ["audit"], abgelehnt: [], sprache }, abhaengigkeiten(vf), () => {});
+    pruefe(`Zusammenfassung ${sprache}: zweimal Deutsch -> Kennzahlentext in ${sprache}, nie der deutsche Absatz`, vf.zaehler.synthese === 2 && !bf.zusammenfassung.includes("Betrieb") && !bf.zusammenfassung.includes("Prüfungsreife") && bf.zusammenfassung.length > 20, bf.zusammenfassung.slice(0, 60));
+  }
+  // Auf Deutsch aendert sich nichts: ein deutscher Text passt, ein Versuch genuegt - auch mit kurzen Prioritaeten ohne Umlaut.
+  const vd: Verhalten = { zaehler: { agent: 0, synthese: 0, nachfrage: 0 }, zusammenfassungen: [DE_TEXT] };
+  const bd = await fuehrePruefungAus({ rolle: "admin", ersteller: { name: "A" }, bereiche: ["audit"], abgelehnt: [], sprache: "de" }, abhaengigkeiten(vd), () => {});
+  pruefe("Zusammenfassung de: ein deutscher Text passt, ein Versuch genuegt, keine Rueckfallmeldung", vd.zaehler.synthese === 1 && bd.zusammenfassung === DE_TEXT.zusammenfassung && !bd.hinweise.some((h) => h.includes("ohne Modell")));
+  const vs2: Verhalten = { zaehler: { agent: 0, synthese: 0, nachfrage: 0 }, zusammenfassungen: [RICHTIG.ru!] };
+  const bs2 = await fuehrePruefungAus({ rolle: "admin", ersteller: { name: "A" }, bereiche: ["audit"], abgelehnt: [], sprache: "de" }, abhaengigkeiten(vs2), () => {});
+  pruefe("Zusammenfassung de: ein russischer Text in einem deutschen Bericht wird ebenso verworfen", vs2.zaehler.synthese === 2 && !/[Ѐ-ӿ]/.test(bs2.zusammenfassung));
 
   // 8. Sub-Agenten: jedes Pruefungsfeld hat sein eigenes Team mit sichtbarer Uebergabe
   const v10: Verhalten = { verzoegerungMs: 500, zaehler: { agent: 0, synthese: 0, nachfrage: 0 } };

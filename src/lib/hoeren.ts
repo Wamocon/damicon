@@ -10,17 +10,31 @@
 // meldet sich beim Stoppen wieder ab. Ohne laufende Aufnahme steht der Pegel auf 0, und
 // alles, was ihn liest, verhaelt sich wie vorher.
 
+import { pegelAusZeitbereich } from "@/lib/domain/diktat";
+
 let ktx: AudioContext | null = null;
 let analyse: AnalyserNode | null = null;
 // Ausdruecklich ueber ArrayBuffer: getByteFrequencyData nimmt keinen SharedArrayBuffer,
 // und ohne diese Angabe waere der Puffer allgemeiner typisiert als die Methode erlaubt.
 let roh: Uint8Array<ArrayBuffer> | null = null;
+// Zweiter Analyser fuer die Lautstaerke (RMS) - mit laengerem Fenster als das
+// Frequenzbild, sonst zittert der Wert von Bild zu Bild.
+let zeitAnalyse: AnalyserNode | null = null;
+let zeitRoh: Uint8Array<ArrayBuffer> | null = null;
 let pegel = 0;
+let lautstaerke = 0;
 let frame = 0;
 
 /** Ein Wert zwischen 0 und 1: wie laut gerade gesprochen wird. 0, wenn nichts laeuft. */
 export function lesePegel(): number {
   return pegel;
+}
+
+/** Lautstaerke als RMS 0..1 - dieselbe Skala wie pegelAusZeitbereich() und die
+ *  Stilleerkennung des Diktats (domain/diktat.ts). Der Sprachmodus erkennt daran,
+ *  dass jemand dazwischenspricht (domain/sprachmodus.ts). 0, wenn nichts laeuft. */
+export function leseLautstaerke(): number {
+  return lautstaerke;
 }
 
 /** Das Frequenzbild, auf `anzahl` Baender gemittelt, jeweils zwischen 0 und 1.
@@ -50,6 +64,9 @@ export function starteHoeren(strom: MediaStream): () => void {
 
   try {
     ktx = new Klasse();
+    // Entsteht der Kontext erst nach der Mikrofonfreigabe, also ausserhalb der Geste,
+    // beginnt er in Safari angehalten - der Analyser laese dann nur Nullen.
+    if (ktx.state === "suspended") void ktx.resume().catch(() => {});
     const quelle = ktx.createMediaStreamSource(strom);
     analyse = ktx.createAnalyser();
     analyse.fftSize = 256;
@@ -57,6 +74,10 @@ export function starteHoeren(strom: MediaStream): () => void {
     analyse.smoothingTimeConstant = 0.72;
     quelle.connect(analyse);
     roh = new Uint8Array(new ArrayBuffer(analyse.frequencyBinCount));
+    zeitAnalyse = ktx.createAnalyser();
+    zeitAnalyse.fftSize = 1024;
+    quelle.connect(zeitAnalyse);
+    zeitRoh = new Uint8Array(new ArrayBuffer(zeitAnalyse.fftSize));
   } catch {
     // Kein Web Audio, gesperrter Kontext: die Figur schwingt dann wie bisher nach Uhr.
     stoppeHoeren();
@@ -69,6 +90,10 @@ export function starteHoeren(strom: MediaStream): () => void {
     let summe = 0;
     for (let i = 0; i < roh.length; i++) summe += roh[i]!;
     pegel = summe / roh.length / 255;
+    if (zeitAnalyse && zeitRoh) {
+      zeitAnalyse.getByteTimeDomainData(zeitRoh);
+      lautstaerke = pegelAusZeitbereich(zeitRoh);
+    }
     frame = window.requestAnimationFrame(schritt);
   };
   frame = window.requestAnimationFrame(schritt);
@@ -81,7 +106,10 @@ export function stoppeHoeren(): void {
   frame = 0;
   analyse = null;
   roh = null;
+  zeitAnalyse = null;
+  zeitRoh = null;
   pegel = 0;
+  lautstaerke = 0;
   void ktx?.close().catch(() => {});
   ktx = null;
 }

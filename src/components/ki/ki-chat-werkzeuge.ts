@@ -56,10 +56,15 @@ export function clientErgebnisseBereit(nachrichten: UIMessage[]): boolean {
 export function useKlientWerkzeuge({
   bewegeZeiger,
   istAgentModus,
+  vorAusfuehrung,
 }: {
   bewegeZeiger: ZeigerSteuerung["bewegen"];
   /** Liest den Modus bei AUSFUEHRUNG des Werkzeugs, nicht bei dessen Anstoss. */
   istAgentModus: () => boolean;
+  /** Wird vor jeder Ausfuehrung abgewartet. Der Sprachmodus haelt damit jede
+   *  sichtbare Handlung zurueck, bis die Stimme den Satz davor gesprochen hat -
+   *  sonst eilt die Fuehrung dem Gesprochenen voraus. */
+  vorAusfuehrung?: (werkzeug: string) => Promise<boolean>;
 }) {
   const [clientAktiv, setClientAktiv] = useState<string | null>(null);
   const [klickAnfrage, setKlickAnfrage] = useState<KlickAnfrageMitEntscheidung | null>(null);
@@ -105,6 +110,11 @@ export function useKlientWerkzeuge({
     void (async () => {
       setClientAktiv(aufruf.toolName);
       zugSchritte.current += 1;
+      const nochGueltig = (await vorAusfuehrung?.(aufruf.toolName)) ?? true;
+      if (!nochGueltig || abgebrochen.current) {
+        setClientAktiv(null);
+        return;
+      }
       const ergebnis = await fuehreUiWerkzeugAus(aufruf.toolName, aufruf.input, {
         zeiger: { bewegen: bewegeZeiger },
         bestaetigen: frageNutzer,

@@ -101,10 +101,13 @@ function LeistenKnopf({
 //
 // Ist Himbi abgeschaltet oder weggeschickt (Einstellung im Panel), bleibt es
 // bei der schlichten Himbeere - die Entscheidung gilt auf beiden Geraeten.
+// Ebenso im Sprachmodus: dort fuehrt Himbi selbst das Gespraech (sprach-himbi.tsx),
+// ein zweiter kleiner Himbi schien sonst hinter der Bedienleiste durch.
 function HimbiKnopf() {
   const { phase, an, weg } = useHaustierStatus();
+  const { sprachmodus } = useKiPane();
 
-  if (!an || weg) return <Himbeere groesse={20} />;
+  if (!an || weg || sprachmodus) return <Himbeere groesse={20} />;
 
   const zustand = haustierZustand({ phase, fertigUngelesen: false, schlaeft: false });
   const meldet = phase !== "ruhe";

@@ -14,6 +14,7 @@
 // Einbettungsmodell steht im Payload (embed_modell) und im Importprotokoll.
 
 import { createClient } from "@supabase/supabase-js";
+import { DATENBANK_SCHEMA } from "../src/lib/supabase/schema";
 import { qdrantAusUmgebung } from "../src/lib/wissen/qdrant";
 import { alsSparsevec, sparseIndex } from "../src/lib/wissen/sparse";
 
@@ -114,7 +115,7 @@ async function main() {
   console.log(`  ${begriffe.length} verschiedene Woerter`);
   if (args.has("--trocken")) return;
 
-  const db = createClient(url, dienstSchluessel, { auth: { persistSession: false, autoRefreshToken: false } });
+  const db = createClient(url, dienstSchluessel, { auth: { persistSession: false, autoRefreshToken: false }, db: { schema: DATENBANK_SCHEMA } });
   const zeilen = punkte.map(zeile);
   for (let i = 0; i < zeilen.length; i += 100) {
     const { error } = await db.from("wissen_chunks").upsert(zeilen.slice(i, i + 100), { onConflict: "id" });

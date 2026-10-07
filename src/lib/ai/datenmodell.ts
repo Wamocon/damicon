@@ -16,6 +16,7 @@
 //      Schema bzw. eine feste Liste geprueft; das Modell formuliert nie SQL.
 
 import { createClient } from "@/lib/supabase/server";
+import { DATENBANK_SCHEMA } from "@/lib/supabase/schema";
 
 export interface SpaltenInfo {
   name: string;
@@ -73,7 +74,13 @@ async function ladeSchema(): Promise<Map<string, TabellenInfo>> {
   if (!token || !url || !anon) return new Map();
 
   const antwort = await fetch(`${url}/rest/v1/`, {
-    headers: { apikey: anon, authorization: `Bearer ${token}`, accept: "application/openapi+json" },
+    // Accept-Profile waehlt das Schema; ohne ihn beschreibt PostgREST immer das erste freigegebene
+    headers: {
+      apikey: anon,
+      authorization: `Bearer ${token}`,
+      accept: "application/openapi+json",
+      "accept-profile": DATENBANK_SCHEMA,
+    },
     cache: "no-store",
   });
   if (!antwort.ok) return new Map();

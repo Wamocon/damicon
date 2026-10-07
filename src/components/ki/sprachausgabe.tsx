@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Square, Volume2, VolumeX } from "lucide-react";
-import { stimmeFuerOberflaeche } from "@/lib/domain/sprachausgabe";
+import { hatStimme } from "@/lib/domain/sprachausgabe";
 import { cn, istUuid } from "@/lib/utils";
+import { meldeElementWiedergabe } from "@/lib/ausgabe-pegel";
+import type { Vorlesen } from "@/components/ki/ki-chat-sprache";
 
 // Sprachausgabe im KI-Seitenpanel: je Antwort ein Vorlese-Knopf, dazu ein
 // Schalter "Antworten vorlesen" (Standard: aus - reiner Text bleibt der
@@ -18,38 +20,49 @@ export function istVorlesbar(id: string): boolean {
   return istUuid(id);
 }
 
-/** Gibt es fuer die Systemsprache ueberhaupt eine Stimme? Dieselbe Tabelle
- *  wie auf dem Server (api/ki-sprachausgabe), nur vorab: fehlt eine Stimme,
- *  erscheint erst gar kein Knopf statt eines Fehlers nach dem Klick. */
-export function stimmeVorhanden(oberflaeche: string): boolean {
-  return stimmeFuerOberflaeche(oberflaeche) !== null;
+/** Gibt es fuer diese Sprache ueberhaupt eine Stimme? Fehlt eine, erscheint gar
+ *  kein Knopf statt eines Fehlers nach dem Klick. Der Chat fragt mit der
+ *  Oberflaechensprache, und fuer alle vier gibt es eine; gelesen wird dann in der
+ *  Sprache der Antwort (hatStimme, domain/sprachausgabe.ts). */
+export function stimmeVorhanden(sprache: string): boolean {
+  return hatStimme(sprache);
 }
 
 type Hinweis = { id: string; art: "keineStimme" | "fehler" } | null;
 
 export function useSprachausgabe(sprache: string) {
-  const [vorlesen, setVorlesenZustand] = useState(false);
+  // true: an, false: ausdruecklich aus, null: nie eingestellt (domain/vorlesen-zustand.ts).
+  const [einstellung, setEinstellung] = useState<boolean | null>(null);
   const [spielt, setSpielt] = useState<string | null>(null);
   const [laedt, setLaedt] = useState<string | null>(null);
   const [hinweis, setHinweis] = useState<Hinweis>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urls = useRef(new Map<string, string>());
 
+  // Dieser Weg spielt ueber ein <audio>-Element am gemeinsamen Ausgang vorbei: Himbi im
+  // Sprachmodus hoert den Klang nicht und bewegt den Mund dann im festen Takt
+  // (lib/ausgabe-pegel.ts, meldeElementWiedergabe).
+  useEffect(() => {
+    meldeElementWiedergabe(spielt !== null);
+    return () => meldeElementWiedergabe(false);
+  }, [spielt]);
+
   useEffect(() => {
     try {
-      setVorlesenZustand(window.localStorage.getItem(SCHALTER_SCHLUESSEL) === "an");
+      const gespeichert = window.localStorage.getItem(SCHALTER_SCHLUESSEL);
+      setEinstellung(gespeichert === "an" ? true : gespeichert === "aus" ? false : null);
     } catch {
-      // Ohne lesbaren Speicher bleibt der Standard: aus.
+      // Ohne lesbaren Speicher bleibt es: nie eingestellt.
     }
-    const gespeichert = urls.current;
+    const toene = urls.current;
     return () => {
       audioRef.current?.pause();
-      for (const url of gespeichert.values()) URL.revokeObjectURL(url);
+      for (const url of toene.values()) URL.revokeObjectURL(url);
     };
   }, []);
 
   const setVorlesen = useCallback((an: boolean) => {
-    setVorlesenZustand(an);
+    setEinstellung(an);
     try {
       window.localStorage.setItem(SCHALTER_SCHLUESSEL, an ? "an" : "aus");
     } catch {
@@ -58,91 +71,196 @@ export function useSprachausgabe(sprache: string) {
     if (!an) audioRef.current?.pause();
   }, []);
 
+  // Jeder Aufruf von spiele() bekommt eine Nummer; stoppe() zaehlt weiter. Nach
+  // jedem await prueft spiele(), ob es noch dran ist - sonst setzte der
+  // Datei-Rueckfall Sekunden nach einem Stopp doch noch ein (Mikrofon, neue Frage).
+  const generation = useRef(0);
+
   const stoppe = useCallback(() => {
+    generation.current += 1;
     audioRef.current?.pause();
     setSpielt(null);
+    setLaedt(null);
   }, []);
 
   const spiele = useCallback(
-    async (id: string) => {
+    /** `antwortSprache`: die Sprache DIESER Antwort, wie der Chat-Stream sie
+     *  in den Metadaten mitschickt (api/ki-assistent, messageMetadata). Bis
+     *  zum 24.09.2026 ging hier immer die Oberflaechensprache mit, und die
+     *  Route musste sie am Text erraten - bei kurzen oder gemischten
+     *  Antworten mit der falschen Stimme.
+     *
+     *  `rest`: nur die letzten so vielen Saetze - der Strom hat mittendrin
+     *  aufgegeben, und der Anfang hat schon geklungen (ki-chat-sprache.ts). */
+    async (id: string, antwortSprache?: string, rest?: number) => {
       if (!istVorlesbar(id)) return;
+      const meine = ++generation.current;
+      const nochDran = () => meine === generation.current;
       audioRef.current?.pause();
       setHinweis(null);
-      let url = urls.current.get(id);
-      if (!url) {
-        setLaedt(id);
-        try {
-          // Eine frisch gestreamte Antwort wird serverseitig erst am Ende des
-          // Streams gespeichert - ein 404 unmittelbar danach ist meist nur
-          // dieser Moment. Deshalb ein zweiter Versuch nach kurzer Pause.
-          let antwort: Response | null = null;
-          for (const pause of [0, 1200]) {
-            if (pause) await new Promise((r) => setTimeout(r, pause));
-            antwort = await fetch("/api/ki-sprachausgabe", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({ nachrichtId: id, sprache }),
-            });
-            if (antwort.status !== 404) break;
-          }
-          if (!antwort?.ok) {
-            const grund = await antwort?.json().then((j: { grund?: string }) => j.grund).catch(() => undefined);
-            setHinweis({ id, art: grund === "keine-stimme" ? "keineStimme" : "fehler" });
+      const zielSprache = antwortSprache ?? sprache;
+      const adresse = `/api/ki-sprachausgabe?nachricht=${encodeURIComponent(id)}&sprache=${encodeURIComponent(zielSprache)}${rest === undefined ? "" : `&rest=${rest}`}`;
+
+      // Seit 28.09.2026 in Sprachbloecken (vorlesePlan in domain/
+      // sprachausgabe.ts): eine gemischte Antwort klingt je Block mit seiner
+      // Stimme, ein Block nach dem anderen - vorher las EINE Stimme alles, das
+      // russische Zitat in einer deutschen Antwort also deutsch. Die Bloecke
+      // bildet der Server aus der gespeicherten Nachricht, der Browser nennt
+      // nur ihre Nummer. Einsprachige Antworten sind ein Block wie bisher.
+      async function spieleBlock(block: number): Promise<void> {
+        const schluessel = `${id}|${rest ?? ""}|${block}`;
+        const audio = audioRef.current ?? new Audio();
+        audioRef.current = audio;
+        audio.onended = () => void weiter(block);
+        // Zwischen zwei Bloecken meldet das Element kurz "pause" (am Ende eines
+        // Blocks): dann bleibt der Knopf der Stopp.
+        audio.onpause = () => {
+          if (!audio.ended) setSpielt((aktuell) => (aktuell === id ? null : aktuell));
+        };
+
+        // Erster Weg: der Ton als Strom (GET, api/ki-sprachausgabe). Das
+        // <audio>-Element beginnt, sobald die ersten Sekunden geladen sind - bei
+        // einer langen Antwort ist das der Unterschied zwischen sofort und vielen
+        // Sekunden Stille. play() steht hier VOR jedem await: auf dem iPhone
+        // zaehlt der Ton dann noch zur Geste (Klick) und wird nicht verweigert.
+        if (!urls.current.has(schluessel)) {
+          audio.src = `${adresse}&block=${block}`;
+          // Reisst der Strom mittendrin ab, kommt kein "ended" - ohne das hier
+          // bliebe der Knopf auf "Stopp" stehen.
+          audio.onerror = () => setSpielt((aktuell) => (aktuell === id ? null : aktuell));
+          setLaedt(id);
+          try {
+            const gestartet = audio.play();
+            // Wie viele Bloecke es gibt, erst jetzt fragen - der Ton ist angestossen.
+            void bloecke();
+            await gestartet;
+            if (nochDran()) setSpielt(id);
             return;
+          } catch (f) {
+            const name = (f as Error)?.name;
+            // Eine andere Antwort wurde inzwischen gestartet, oder der Browser
+            // verweigert Ton ohne Geste - beides kein Fall fuer den Rueckfall.
+            if (name === "AbortError" || !nochDran()) return;
+            if (name === "NotAllowedError") {
+              setSpielt(null);
+              return;
+            }
+            // Sonst (404 direkt nach dem Stream, Dienst weg): der Datei-Weg
+            // unten, mit zweitem Versuch und genauer Meldung.
+          } finally {
+            setLaedt((aktuell) => (aktuell === id ? null : aktuell));
           }
-          url = URL.createObjectURL(await antwort.blob());
-          urls.current.set(id, url);
+        }
+
+        let url = urls.current.get(schluessel);
+        if (!url) {
+          setLaedt(id);
+          try {
+            // Eine frisch gestreamte Antwort wird serverseitig erst am Ende des
+            // Streams gespeichert - ein 404 unmittelbar danach ist meist nur
+            // dieser Moment. Deshalb ein zweiter Versuch nach kurzer Pause.
+            let antwort: Response | null = null;
+            for (const pause of [0, 1200]) {
+              if (pause) await new Promise((r) => setTimeout(r, pause));
+              if (!nochDran()) return;
+              antwort = await fetch("/api/ki-sprachausgabe", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ nachrichtId: id, sprache: zielSprache, rest, block }),
+              });
+              if (antwort.status !== 404) break;
+            }
+            if (!nochDran()) return;
+            if (!antwort?.ok) {
+              const grund = await antwort?.json().then((j: { grund?: string }) => j.grund).catch(() => undefined);
+              setHinweis({ id, art: grund === "keine-stimme" ? "keineStimme" : "fehler" });
+              return;
+            }
+            const blob = await antwort.blob();
+            if (!nochDran()) return;
+            url = URL.createObjectURL(blob);
+            urls.current.set(schluessel, url);
+          } catch {
+            if (nochDran()) setHinweis({ id, art: "fehler" });
+            return;
+          } finally {
+            if (nochDran()) setLaedt(null);
+          }
+        }
+        if (!nochDran()) return;
+        audio.onerror = null;
+        audio.src = url;
+        try {
+          await audio.play();
+          if (nochDran()) setSpielt(id);
         } catch {
-          setHinweis({ id, art: "fehler" });
-          return;
-        } finally {
-          setLaedt(null);
+          // Der Browser verweigert Autoplay ohne vorherige Nutzeraktion - dann
+          // bleibt der Knopf zum Selbst-Abspielen.
+          setSpielt(null);
         }
       }
-      const audio = audioRef.current ?? new Audio();
-      audioRef.current = audio;
-      audio.src = url;
-      audio.onended = () => setSpielt(null);
-      audio.onpause = () => setSpielt((aktuell) => (aktuell === id ? null : aktuell));
-      try {
-        await audio.play();
-        setSpielt(id);
-      } catch {
-        // Der Browser verweigert Autoplay ohne vorherige Nutzeraktion - dann
-        // bleibt der Knopf zum Selbst-Abspielen.
-        setSpielt(null);
+
+      // Wie viele Sprachbloecke (plan=1, nur eine Zahl). Scheitert die Frage,
+      // bleibt es bei einem Block - wie vor dem 28.09.2026.
+      let plan: Promise<number> | null = null;
+      function bloecke(): Promise<number> {
+        plan ??= fetch(`${adresse}&plan=1`)
+          .then((r) => (r.ok ? (r.json() as Promise<{ bloecke?: unknown }>) : null))
+          .then((j) => Math.max(1, Number(j?.bloecke) || 1))
+          .catch(() => 1);
+        return plan;
       }
+
+      /** Ein Block ist zu Ende: der naechste, oder der Knopf ist wieder frei. */
+      async function weiter(block: number): Promise<void> {
+        const anzahl = await bloecke();
+        if (!nochDran()) return;
+        if (block + 1 < anzahl) await spieleBlock(block + 1);
+        else setSpielt(null);
+      }
+
+      await spieleBlock(0);
     },
     [sprache],
   );
 
-  return { vorlesen, setVorlesen, spielt, laedt, hinweis, spiele, stoppe };
+  return { vorlesen: einstellung === true, einstellung, setVorlesen, spielt, laedt, hinweis, spiele, stoppe };
 }
 
 export function VorlesenKnopf({
   id,
-  zustand,
+  text,
+  sprache,
+  vorlesen,
 }: {
   id: string;
-  zustand: ReturnType<typeof useSprachausgabe>;
+  /** Der Text der Antwort - der Strom liest ihn direkt (ki-chat-sprache.ts). */
+  text: string;
+  /** Sprache dieser Antwort (Nachrichten-Metadaten), falls bekannt. */
+  sprache?: string;
+  /** Die eine Vorlese-Instanz des Chats (ki-chat-sprache.ts). */
+  vorlesen: Vorlesen;
 }) {
   const t = useTranslations("kiAssistentAnsicht");
-  const { spielt, laedt, hinweis, spiele, stoppe } = zustand;
-  const aktiv = spielt === id;
-  const beschaeftigt = laedt === id;
-  const meldung = hinweis?.id === id ? hinweis.art : null;
+  // Aktiv, sobald DIESE Nachricht gelesen oder geladen wird - ueber welchen Weg
+  // auch immer, auch live waehrend sie noch geschrieben wird. Dann ist der Knopf
+  // der Stopp. Bis zum 24.09.2026 kannte er nur sein eigenes Abspielen und
+  // startete waehrend des Live-Vorlesens eine zweite Stimme.
+  const aktiv = vorlesen.liest(id);
+  const laedt = aktiv && vorlesen.phase === "laedt";
+  const meldung = vorlesen.hinweis(id);
 
   return (
     <div className="ki-vorlesen">
       <button
         type="button"
-        onClick={() => (aktiv ? stoppe() : void spiele(id))}
-        disabled={beschaeftigt}
+        onClick={() => vorlesen.knopf(id, text, sprache)}
         aria-label={aktiv ? t("vorlesenStopp") : t("vorlesen")}
         title={aktiv ? t("vorlesenStopp") : t("vorlesen")}
+        aria-pressed={aktiv}
         className={cn("ki-vorlesen__knopf", aktiv && "ki-vorlesen__knopf--aktiv")}
       >
-        {beschaeftigt ? (
+        {laedt ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : aktiv ? (
           <Square className="h-3 w-3 fill-current" />
@@ -159,33 +277,32 @@ export function VorlesenKnopf({
   );
 }
 
-export function VorlesenSchalter({
-  zustand,
-  laedt = false,
-  spricht = false,
-}: {
-  zustand: ReturnType<typeof useSprachausgabe>;
-  /** Der erste Abschnitt wird gerade geholt - bis dahin ist es still. */
-  laedt?: boolean;
-  spricht?: boolean;
-}) {
+export function VorlesenSchalter({ vorlesen }: { vorlesen: Vorlesen }) {
   const t = useTranslations("kiAssistentAnsicht");
-  const { vorlesen, setVorlesen } = zustand;
+  // Zeigt, was wirklich passiert (ki-chat-sprache.ts, schalterAn): an, solange
+  // vorgelesen wird - auch die Zusammenfassung nach der Tour -, und ein Klick
+  // darauf ist dann der Stopp. Bis zum 24.09.2026 zeigte er nur die Einstellung:
+  // "aus", waehrend die Zusammenfassung sprach, und ein Klick schaltete ihn an.
+  const an = vorlesen.schalterAn;
   return (
     <button
       type="button"
       role="switch"
-      aria-checked={vorlesen}
-      onClick={() => setVorlesen(!vorlesen)}
-      className={cn("ki-vorlesen-schalter", vorlesen && "ki-vorlesen-schalter--an", spricht && "ki-vorlesen-schalter--spricht")}
+      aria-checked={an}
+      onClick={() => vorlesen.schalte()}
+      className={cn(
+        "ki-vorlesen-schalter",
+        an && "ki-vorlesen-schalter--an",
+        vorlesen.phase === "spricht" && "ki-vorlesen-schalter--spricht",
+      )}
     >
-      {vorlesen ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+      {an ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
       <span>{t("vorlesenAuto")}</span>
-      {/* Zwischen Absenden und dem ersten Ton vergehen ein bis zwei Sekunden.
-          Ohne ein Lebenszeichen haelt man das fuer kaputt und drueckt noch
-          einmal - deshalb drei Balken, die sich bewegen. Rein dekorativ: was
-          hier passiert, steht als Text schon im Schalter. */}
-      {laedt ? (
+      {/* Zwischen Absenden und dem ersten Ton vergeht ein Moment. Ohne ein
+          Lebenszeichen haelt man das fuer kaputt und drueckt noch einmal -
+          deshalb drei Balken, die sich bewegen. Rein dekorativ: was hier
+          passiert, steht als Text schon im Schalter. */}
+      {vorlesen.phase === "laedt" ? (
         <span className="ki-vorlesen-welle" aria-hidden="true">
           <span />
           <span />

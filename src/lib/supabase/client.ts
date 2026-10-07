@@ -1,5 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "@/lib/database.types";
+import { DB_OPTION } from "@/lib/supabase/schema";
 
 // Browser-Client (anon key). Fallback-URL statt `?? ''`, damit ein fehlender
 // Env-Wert nicht schon beim Modul-Load `supabaseUrl is required` wirft und alle
@@ -12,5 +13,6 @@ export function createClient() {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key",
+    { db: DB_OPTION },
   );
 }

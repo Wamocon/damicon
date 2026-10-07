@@ -353,7 +353,8 @@
       "target": "Target",
       "zonesTitle": "The four zones",
       "zonesDescription": "Each zone with its indicators and its modules.",
-      "openZone": "Open zone"
+      "openZone": "Open zone",
+      "moduleTitel": "Modules"
     },
     "loading": "Loading data",
     "askAi": "Ask AI",
@@ -952,6 +953,7 @@
       "transkription": "Speech recognition unavailable.",
       "transkriptionDienst": "The speech recognition service cannot be reached. Your recording is fine – please try again later.",
       "transkriptionDauer": "Speech recognition took too long. The service is probably still starting up – please try again in a minute.",
+      "transkriptionLeer": "Nothing was understood. Please speak a little louder or closer to the microphone.",
       "dateiGross": "The recording is too large.",
       "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists.",
       "ratenlimit": "Too many requests in a short time. Please wait a moment and try again."
@@ -1746,14 +1748,14 @@
   },
   "haustier": {
     "label": {
-      "ruhe": "DamiAI, your companion. Click to open the chat.",
-      "denkt": "DamiAI is working. Click to open the chat.",
-      "freigabe": "DamiAI needs your approval. Click to open the chat.",
-      "fertig": "DamiAI is done. Click to see the answer.",
+      "ruhe": "Himbi, your companion. Click to open the chat.",
+      "denkt": "Himbi is working. Click to open the chat.",
+      "freigabe": "Himbi needs your approval. Click to open the chat.",
+      "fertig": "Himbi is done. Click to see the answer.",
       "fehler": "Something went wrong. Click to open the chat.",
-      "schlaeft": "DamiAI is asleep. Click to open the chat.",
-      "spricht": "DamiAI is speaking.",
-      "tour": "DamiAI, your companion. Click to open the tour.",
+      "schlaeft": "Himbi is asleep. Click to open the chat.",
+      "spricht": "Himbi is speaking.",
+      "tour": "Himbi, your companion. Click to open the tour.",
       "kurz": {
         "ruhe": "Idle",
         "denkt": "Working",
@@ -1776,7 +1778,7 @@
       "hinweis": "Hold me down to send me away."
     },
     "willkommen": "I’m back!",
-    "zurueckholen": "Bring DamiAI back",
+    "zurueckholen": "Bring Himbi back",
     "befinden": {
       "frage": "How is your day going so far?",
       "gut": "Going well",
@@ -1788,7 +1790,12 @@
         "viel": "Then let me take the tedious part. Just ask."
       },
       "hilfe": "Where do I start?",
-      "hilfeText": "What is on today? Name the three things I should deal with first."
+      "hilfeText": "What is on today? Name the three most urgent things and ask me what I should start with."
+    },
+    "tagesgruss": {
+      "frage": "{anrede}! Shall I tell you what is urgent today?",
+      "ja": "Yes, please",
+      "nein": "Not today"
     },
     "anstupser": {
       "neuHeute": {
@@ -1811,12 +1818,16 @@
       "frageText": "Explain the area “{bereich}” to me: what can I do here?"
     },
     "einstellung": {
-      "titel": "DamiAI, your companion",
-      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely.",
+      "titel": "Himbi, your companion",
+      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold Himbi down to send him away, the tip at the bottom edge brings him back. Switched off here, Himbi stays away completely.",
       "tourTitel": "Guided tour",
-      "tourText": "Off means DamiAI stops jumping to the tiles and highlighting them by itself after a check, system-wide. The chat summary still runs automatically, just without the jumping around the page.",
+      "tourText": "Off means Himbi stops jumping to the tiles and highlighting them by himself after a check, system-wide. With “Start automatically” switched on, the chat summary still runs by itself, just without the jumping around the page.",
+      "autoTitel": "Start automatically",
+      "autoText": "Off by default. Off means neither the tour nor the chat summary starts by itself after a check, and Himbi no longer offers it on his own. The buttons “Restart tour” and “Summary in chat” stay on the overview, so you can start both yourself.",
+      "tagesbeginnTitel": "Himbi starts my day with me",
+      "tagesbeginnText": "On by default. Once a day Himbi tells you on his own what is urgent and asks what you want to start with: right at the start of a conversation, otherwise with a short question in the corner. Off means Himbi waits until you ask.",
       "bewegungTitel": "Motion",
-      "bewegungText": "Off means DamiAI stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
+      "bewegungText": "Off means Himbi stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
       "zustandTitel": "State",
       "stimmungTitel": "Expression",
       "trachtTitel": "Outfit",
@@ -1835,7 +1846,7 @@
       }
     },
     "tour": {
-      "gruss": "Hi, I am DamiAI! Shall I show you Damicon in one minute?",
+      "gruss": "Hi, I am Himbi! Shall I show you Damicon in one minute?",
       "autoStart": "I will start on my own in a moment. Click or scroll if you would rather look around yourself.",
       "start": "Start the tour",
       "nein": "No thanks",
@@ -1898,6 +1909,7 @@
       "complianceUebersichtAbrufen": "Checked compliance",
       "kuehlketteAbrufen": "Checked cold chain",
       "risikoRadarAbrufen": "Checked risk radar",
+      "tagesLageAbrufen": "Checked today's priorities",
       "oeffneBereich": "Opened {bereich}",
       "oeffnePruefBereich": "Opened {bereich}",
       "wissenSuchen": "Knowledge base searched",
@@ -2030,6 +2042,7 @@
       "complianceUebersichtAbrufen": "Checking compliance …",
       "kuehlketteAbrufen": "Checking cold chain …",
       "risikoRadarAbrufen": "Scanning risk radar …",
+      "tagesLageAbrufen": "Gathering today's priorities …",
       "oeffneBereich": "Opening {bereich} …",
       "oeffnePruefBereich": "Opening {bereich} …",
       "wissenSuchen": "Searching knowledge base …",
@@ -2048,6 +2061,7 @@
       "complianceUebersichtAbrufen": "Compliance",
       "kuehlketteAbrufen": "Cold chain",
       "risikoRadarAbrufen": "Risk radar",
+      "tagesLageAbrufen": "Overview",
       "oeffneBereich": "{bereich}",
       "oeffnePruefBereich": "{bereich}",
       "wissenSuchen": "Knowledge base",
@@ -2063,6 +2077,13 @@
       "mitarbeiterEinschalten": "Chat"
     },
     "bereichAllgemein": "the area",
+    "zielExtra": {
+      "pruefbericht": "Audit report",
+      "feld": "Field",
+      "hof": "Yard",
+      "buero": "Office",
+      "markt": "Market"
+    },
     "pruefBereich": {
       "audit": "Audit",
       "steuer": "Tax",
@@ -2183,7 +2204,39 @@
     "pruefBezugKacheln": "Jump straight to a tile",
     "mehr": "More",
     "groesser": "Enlarge panel",
-    "kleiner": "Shrink panel"
+    "kleiner": "Shrink panel",
+    "sprachmodus": {
+      "titel": "Voice mode",
+      "starten": "Start voice mode",
+      "kurz": "Talk",
+      "hinweis": "Voice mode: talk to Himbi live, no typing",
+      "einwilligungZuerst": "Please accept the AI notice in the chat first, then start voice mode again.",
+      "freigabeHinweis": "Say “Yes” to approve or “No” to decline.",
+      "beenden": "End voice mode",
+      "unterbrechen": "Tap or just start talking",
+      "stumm": "Mute microphone",
+      "fortsetzen": "Unmute microphone",
+      "untertitel": "Captions",
+      "hoertZu": "Listening …",
+      "tagesbeginn": {
+        "morgen": "Good morning, Himbi. What is on today, and what is urgent?",
+        "tag": "Hi Himbi. What is still on today, and what is urgent?",
+        "abend": "Good evening, Himbi. What is still open today, and what is urgent?"
+      },
+      "keinZugriff": "No microphone access. Please allow it in your browser settings.",
+      "liveFehlt": "Live speech recognition is not available here. Voice mode needs it.",
+      "verbindungFehlt": "The connection to speech recognition dropped. Tap Himbi to try again.",
+      "erneut": "Try again",
+      "status": {
+        "startet": "Opening microphone …",
+        "hoert": "Listening",
+        "denkt": "Checking …",
+        "spricht": "Himbi is speaking",
+        "freigabe": "Waiting for your yes or no",
+        "pausiert": "Microphone muted",
+        "fehler": "Something went wrong"
+      }
+    }
   },
   "legal": {
     "imprintTitle": "Imprint",

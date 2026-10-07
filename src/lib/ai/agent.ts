@@ -33,6 +33,7 @@ import { z } from "zod";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { anthropicBasisUrl } from "@/lib/ai/lade-anbieter";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
+import type { TagesLageProfil } from "@/lib/domain/tages-lage";
 import type { Role } from "@/lib/rbac";
 
 const MAX_WERKZEUG_SCHRITTE = 5;
@@ -74,6 +75,8 @@ export async function sendeAgentAnfrage(
   anbieter: { basisUrl: string; modell: string; apiKey: string },
   rolle: Role | null | undefined,
   verlauf: ChatNachricht[],
+  // Fuer tagesLageAbrufen ("meine" Aufgaben, Schulung, Lieferung), wie in der Route (28.09.2026).
+  profil?: TagesLageProfil,
 ): Promise<AgentErgebnis> {
   const systemNachricht = verlauf.find((n) => n.rolle === "system");
   const dialog = verlauf.filter((n) => n.rolle !== "system");
@@ -89,7 +92,7 @@ export async function sendeAgentAnfrage(
       })),
       // Nur Lesewerkzeuge: dieser Weg hat keine Oberflaeche, in der der Nutzer eine
       // Aktion freigeben koennte - eine Aktion bliebe ohne Freigabe haengen.
-      tools: baueWerkzeuge(rolle, { nurLesen: true }),
+      tools: baueWerkzeuge(rolle, { nurLesen: true, profil }),
       output: Output.object({ schema: antwortSchema }),
       stopWhen: stepCountIs(MAX_SCHRITTE_GESAMT),
     });

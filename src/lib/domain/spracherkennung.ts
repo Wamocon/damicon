@@ -18,6 +18,12 @@
 // Schluessel, 401, Dienst weg), wird nicht bis 6 s gewartet: auf einen
 // Dienst zu warten, der schon abgesagt hat, ist reine Wartezeit.
 //
+// "Nichts gehoert" ist dagegen KEIN Ausfall (seit 24.09.2026): meldet Soniox
+// "leer", ist die Aufnahme still oder unverstaendlich, und das Ergebnis
+// steht. Bis dahin lief dann Whisper auf derselben Datei los - und Whisper
+// erfindet auf Stille ganze Saetze ("Untertitel der Amara.org-Gemeinschaft",
+// "Продолжение следует..."), die als erster Text gewannen.
+//
 // Hier steht nur die Logik, ohne die Clients - so laesst sie sich mit
 // erfundenen Diensten pruefen, ohne Netz und ohne Next-Laufzeit.
 
@@ -46,9 +52,14 @@ function schlafe(ms: number, signal: AbortSignal): Promise<"zeit"> {
   });
 }
 
+/** Grund, mit dem ein Dienst sagt: ich habe zugehoert, da war nichts. */
+export const GRUND_LEER = "leer";
+
 /** Der erste Lauf mit brauchbarem Text gewinnt. Liefert keiner etwas, kommt
  *  der zuletzt gemeldete Grund zurueck - nicht der erste, denn der ist oft
- *  nur "zeitueberschreitung", waehrend der zweite sagt, was wirklich fehlt. */
+ *  nur "zeitueberschreitung", waehrend der zweite sagt, was wirklich fehlt.
+ *  Ein "leer" von Soniox entscheidet sofort: dann gibt es nichts zu erkennen,
+ *  und ein Text von Whisper waere erfunden. */
 function ersterErfolg(laeufe: ReadonlyArray<{ dienst: Dienst; lauf: Promise<Teilergebnis> }>): Promise<Erkennung> {
   return new Promise<Erkennung>((fertig) => {
     let offen = laeufe.length;
@@ -56,6 +67,7 @@ function ersterErfolg(laeufe: ReadonlyArray<{ dienst: Dienst; lauf: Promise<Teil
     for (const { dienst, lauf } of laeufe) {
       const gescheitert = (grund: string) => {
         letzterGrund = grund;
+        if (dienst === "soniox" && grund === GRUND_LEER) return fertig({ ok: false, grund: GRUND_LEER });
         if (--offen === 0) fertig({ ok: false, grund: letzterGrund });
       };
       lauf.then(
@@ -106,6 +118,8 @@ export async function erkenneMitRueckfall(
     }
     if (zuerst === "gescheitert") {
       const a = await soniox;
+      // Nichts gehoert ist ein Ergebnis, kein Ausfall - kein Whisper.
+      if (!a.ok && a.grund === GRUND_LEER) return { ok: false, grund: GRUND_LEER };
       if (!a.ok) melde(`[damicon] Soniox fehlgeschlagen, weiter mit Whisper: ${a.grund}`);
     } else {
       melde(`[damicon] Soniox braucht laenger als ${HEDGE_AB_MS} ms - Whisper laeuft parallel mit`);
@@ -122,6 +136,8 @@ export async function erkenneMitRueckfall(
     if (ergebnis.ok) {
       if (ergebnis.dienst === "soniox") whisperAbbruch.abort();
       else sonioxAbbruch.abort();
+    } else if (ergebnis.grund === GRUND_LEER) {
+      whisperAbbruch.abort();
     }
     return ergebnis;
   } finally {

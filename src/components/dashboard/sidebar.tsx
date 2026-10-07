@@ -509,6 +509,7 @@ export function DashboardSidebar() {
     <>
       <SidebarBreiteScript />
       <aside
+        data-seitenleiste
         className={cn(
           "sticky top-0 hidden h-svh shrink-0 self-start overflow-hidden border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl md:block print:hidden",
           "transition-[width] duration-200 ease-out motion-reduce:transition-none",

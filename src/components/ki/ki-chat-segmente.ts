@@ -226,6 +226,8 @@ export function erstelleBeschriftungen({
     // oeffnePruefBereich (route.ts): Kacheln der CEO-Complianceuebersicht sind keine echten
     // App-Module (modules.ts) und stehen deshalb in einer eigenen kleinen Liste.
     if (bereich && t.has(`pruefBereich.${bereich}`)) return t(`pruefBereich.${bereich}`);
+    // Zonen und der volle Pruefbericht (oeffneBereich, lib/ai/tools.ts) sind ebenfalls keine Module.
+    if (bereich && t.has(`zielExtra.${bereich}`)) return t(`zielExtra.${bereich}`);
     return bereich && bekannteBereiche.has(bereich) ? moduleT(`${bereich}.title`) : t("bereichAllgemein");
   }
 

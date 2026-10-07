@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createJsClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { DB_OPTION } from "@/lib/supabase/schema";
 
 // Server-Client fuer Server Components / Route Handler (RLS-bewusst, anon key +
 // Session-Cookie). Server-Secrets werfen fail-fast statt still zu platzhaltern.
@@ -17,6 +18,7 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(url, anon, {
+    db: DB_OPTION,
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -50,7 +52,7 @@ export function createPublicClient() {
       "NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY fehlen in der Umgebung.",
     );
   }
-  return createJsClient<Database>(url, anon);
+  return createJsClient<Database>(url, anon, { db: DB_OPTION });
 }
 
 // Service-Role-Client (umgeht RLS). Nur serverseitig, nie an den Client geben.
@@ -63,6 +65,7 @@ export function createServiceRoleClient() {
     );
   }
   return createServerClient<Database>(url, serviceKey, {
+    db: DB_OPTION,
     cookies: { getAll: () => [], setAll: () => {} },
   });
 }

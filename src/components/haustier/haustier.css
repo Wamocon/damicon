@@ -22,6 +22,11 @@
   pointer-events: none;
 }
 
+/* Im Sprachmodus ausgeblendet (verborgen in haustier-huelle.tsx). */
+.haustier[hidden] {
+  display: none;
+}
+
 .haustier[data-hoch="true"] {
   bottom: calc(84px + var(--untere-leiste-raum, 0px));
 }
@@ -220,6 +225,21 @@ html[data-ki-zieht] .haustier__verschiebung {
 }
 .haustier[data-zieht="true"] .hb-svg .hb-mund--offen {
   opacity: 1;
+}
+
+/* Lippen im Sprachmodus (himbi.tsx mit lippen, components/ki/sprach-himbi.tsx): in
+   Ruhe, beim Denken und beim Sprechen formt die Bildschleife den Mund aus dem Klang.
+   Schlaf (Pause) und Fehler behalten ihre festen Mundbilder. */
+.hb-svg[data-lippen]:is([data-zustand="ruhe"], [data-zustand="denkt"], [data-zustand="spricht"]) .hb-mund > * {
+  opacity: 0;
+}
+.hb-svg[data-lippen]:is([data-zustand="ruhe"], [data-zustand="denkt"], [data-zustand="spricht"]) .hb-mund > .hb-mund--lippen {
+  opacity: 1;
+}
+/* Das feste Sprechbild ist dort unsichtbar, soll dann aber auch nicht im Hintergrund
+   weiter animieren. */
+.hb-svg[data-lippen][data-zustand] .hb-mund--offen {
+  animation: none;
 }
 
 .hb-svg[data-zustand="freigabe"] .hb-braue--l,
@@ -1667,14 +1687,28 @@ html[data-ki-zieht] .haustier__verschiebung {
 }
 
 /* Bewegung ganz aus (Einstellung im Assistenten). Steht als Attribut am Dokument, damit
-   ein einziger Schalter alles erreicht: Figur, Aura, Kugel, Schatten. Dieselbe Wirkung
-   wie prefers-reduced-motion, nur vom Menschen selbst gewaehlt. */
+   ein einziger Schalter alles erreicht: Figur (in der Ecke wie im Sprachmodus), Aura,
+   Schatten. Dieselbe Wirkung wie prefers-reduced-motion, nur vom Menschen selbst
+   gewaehlt. !important, weil die Zustandsregeln (.hb-svg[data-zustand=...] .hb-figur und
+   die Regeln fuer Himbi im Sprachmodus) spezifischer sind: ohne !important verlor diese
+   Regel gegen jede von ihnen, und der Schalter wirkte nur auf Blaetter und Lider
+   (im Browser nachgewiesen, Gegenpruefung vom 25.09.2026). Ein Ausschalter muss gewinnen. */
 html[data-hb-still] .hb-svg *,
 html[data-hb-still] .hb-svg,
 html[data-hb-still] .hb-aura *,
 html[data-hb-still] .haustier__schatten-anim,
-html[data-hb-still] .hb-versteck__innen {
-  animation: none;
+html[data-hb-still] .hb-versteck__innen,
+html[data-hb-still] .haustier .hb,
+html[data-hb-still] .hb-zzz span,
+html[data-hb-still] .hb-konfetti span,
+html[data-hb-still] .hb-abzeichen {
+  animation: none !important;
+}
+/* Was reduzierte Bewegung stattdessen zeigt, zeigt auch der Schalter: die Traenen
+   stehen, statt mit der Animation zu verschwinden. Zzz und Konfetti bleiben wie dort
+   unsichtbar, Abzeichen und Erscheinen stehen ohne Sprung. */
+html[data-hb-still] .hb-svg[data-zustand="traurig"] .hb-traene {
+  opacity: 1;
 }
 
 /* ---- Vorschau in den Einstellungen --------------------------------------------------

@@ -1,4 +1,5 @@
 import type { createClient } from "@/lib/supabase/server";
+import { bucket } from "@/lib/supabase/buckets";
 
 // Signierte Links auf Dateien im privaten Bucket "dokumente". Der Bucket ist
 // nicht oeffentlich lesbar, ein Pfad allein nuetzt der Oberflaeche nichts.
@@ -23,7 +24,7 @@ export async function signiereDokumentPfade(
   if (pfade.length === 0) return signiert;
 
   const { data, error } = await supabase.storage
-    .from("dokumente")
+    .from(bucket("dokumente"))
     .createSignedUrls(pfade, SIGNATUR_SEKUNDEN);
 
   if (error) {

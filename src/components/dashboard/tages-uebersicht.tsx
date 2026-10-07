@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Section, StatusPill, knopfKlassen } from "@/components/ui/kit";
 import { CeoAktualisierenKnopf } from "@/components/dashboard/ceo-aktualisieren-knopf";
+import { CeoTourAktionen } from "@/components/dashboard/ceo-tour-aktionen";
 import { TagesKopf } from "@/components/dashboard/tages-kopf";
 import { TagesKachelnLive } from "@/components/dashboard/tages-kacheln-live";
 import { letzterCeoBericht } from "@/lib/data/compliance-ceo";
@@ -42,6 +43,11 @@ export async function TagesUebersicht() {
               })}
             </StatusPill>
           ) : null}
+          {/* "Zusammenfassung im Chat" und "Tour erneut starten" gehoeren in die
+              Kopfzeile, damit sie sofort ins Auge fallen (#117). Beim Umbau auf
+              diese Uebersicht (#122) ging die Einbindung mit der alten Datei
+              ceo-compliance-uebersicht.tsx verloren - am 24.09.2026 wieder da. */}
+          <CeoTourAktionen />
           <CeoAktualisierenKnopf />
         </div>
       }

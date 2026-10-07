@@ -357,7 +357,7 @@ export const de: HandbuchTexte = {
 
     schnittstellenTitel: "Schnittstellen",
     schnittstellenEinleitung:
-      "Fünf Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.",
+      "Sechs Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.",
     spalteAufgabe: "Aufgabe",
     schnittstellen: [
       {
@@ -381,8 +381,20 @@ export const de: HandbuchTexte = {
       {
         pfad: "/api/ki-sprachausgabe",
         aufgabe:
-          "Liest eine bereits gespeicherte Antwort vor. Nur über die Kennung einer vorhandenen Nachricht, nie mit frei übergebenem Text — sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte.",
+          "Liest Antworten vor: eine gespeicherte Antwort über die Kennung ihrer Nachricht, oder beim Vorlesen während des Schreibens einzelne Abschnitte, die der Chat beim Entstehen signiert hat. Nie frei übergebener Text, sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte. Die Stimme kommt vom eingestellten Anbieter (Soniox oder Sokrates); fällt er aus, spricht Sokrates. Eine gespeicherte Antwort kommt als Strom: Der Ton beginnt, während er noch erzeugt wird, statt erst nach der ganzen Datei. Spricht Soniox, ist dieser Endpunkt nur noch der Rückfall; vorgelesen wird dann über den Strom (nächster Eintrag).",
         zugriff: "Recht am KI-Assistenten",
+      },
+      {
+        pfad: "/api/ki-sprachausgabe/schluessel",
+        aufgabe:
+          "Stellt für das Vorlesen einen kurzlebigen Schlüssel aus, dazu Stimme, Tempo und Format je Sprache. Damit spricht der Browser direkt mit dem Sprachdienst: Jeder Satz geht sofort hinein, und der Ton klingt, während er entsteht, ohne Pausen zwischen den Abschnitten. Einen Schlüssel gibt es nur mit Nachweis, also für die gerade laufende Antwort oder eine eigene gespeicherte Antwort. Er öffnet genau einen Strom, ist 60 Sekunden gültig, und je Person gibt es höchstens zwölf Schlüssel pro Minute. Der eigentliche Schlüssel verlässt den Server nie. Sagt der Endpunkt ab, liest der bisherige Weg über einzelne Abschnitte vor.",
+        zugriff: "Recht am KI-Assistenten, Soniox als Sprachausgabe",
+      },
+      {
+        pfad: "/api/ki-spracherkennung",
+        aufgabe:
+          "Stellt für das Live-Diktat einen kurzlebigen Schlüssel aus: nur für die Spracherkennung, nur einmal, eine Minute zum Verbinden. Damit schickt der Browser das Gesprochene direkt an den Erkennungsdienst, und der Text erscheint schon während des Sprechens im Eingabefeld. Der eigentliche Schlüssel verlässt den Server nie. Sagt der Endpunkt ab, geht dieselbe Aufnahme wie bisher als Datei zur Erkennung.",
+        zugriff: "Recht am KI-Assistenten, Live-Diktat eingeschaltet",
       },
       {
         pfad: "/api/sync",
@@ -560,6 +572,14 @@ export const de: HandbuchTexte = {
       {
         begriff: "ЭСФ / ЕСУТД",
         text: "Kasachstanische Pflichtsysteme für elektronische Rechnungen beziehungsweise für die Erfassung von Arbeitsverträgen.",
+      },
+      {
+        begriff: "Sprachmodus",
+        text: "Live-Gespräch mit dem Assistenten ohne sichtbaren Chat: Himbi führt das Gespräch: Beim Zuhören steht er groß in der Mitte, beim Erklären rückt er auf breiten Bildschirmen an den linken Rand, und seine Größe richtet sich nach dem Bildschirm. Mitlaufender Text ist standardmäßig aus und lässt sich über den Untertitel-Knopf in der Leiste einschalten; der Browser merkt sich die Wahl (auf dem Handy bleibt er klein, ohne mitlaufenden Text und neben dem gezeigten Bereich, damit die Seite sichtbar bleibt), und beim Sprechen bewegt er die Lippen im Takt der Stimme (die kleine Figur in der Ecke ist solange ausgeblendet; ist Himbi in den Einstellungen ausgeschaltet, zeigt ein farbiger Kreis, ob zugehört, nachgedacht oder gesprochen wird), der Assistent kann selbst zu einem Bereich springen und ihn zeigen. Unterbrechen wie im Gespräch: einfach dazwischenreden oder auf Himbi tippen. Starten: Knopf „Gespräch“ in der Kopfzeile, oder im Chat der Senden-Knopf, solange das Eingabefeld leer ist. Der Sprachmodus darf dasselbe wie der Chat, auch etwas eintragen. Bevor eine Änderung gespeichert wird, zeigt er sie deutlich umrandet auf dem Bildschirm, und Sie geben sie mit „Ja“ frei oder lehnen sie mit „Nein“ ab. Während er erklärt, umrandet ein Rahmen genau die Stelle, über die er gerade spricht, und zugeklappte Abschnitte klappt er dafür auf. Er öffnet auch die Bereiche Feld, Hof, Büro und Markt und den Compliance-Prüfbericht, auf Wunsch gefiltert nach Audit, Steuern, Recht oder Risiko. Mit „Stopp“, „Moment“, „Warte“ oder „Nein“ halten Sie Himbi an, während er spricht oder nachdenkt. Das Gespräch bleibt offen, und Himbi weiß, bis wohin Sie zugehört haben. Was Sie direkt danach sagen, ist die nächste Frage, zum Beispiel „Stopp, zeig mir lieber die Reklamationen“. Sprechen Sie weiter, während er noch nachdenkt oder gerade erst zu antworten beginnt, hängt er Ihre Worte an die Frage an, statt nur den ersten Teil zu beantworten. Geräusche und ein kurzes „Mhm“, „Ja“ oder „Genau“ unterbrechen ihn nicht: Er wird kurz leiser und spricht dann weiter. Erst wenn Sie etwas mit Inhalt sagen, hält er an. Beenden Sie den Sprachmodus mit „Sprachmodus beenden“ oder „Tschüss Himbi“. Damit das jederzeit wirkt, hört das Mikrofon während des ganzen Gesprächs mit, auch während der Assistent spricht; seine eigene Stimme erkennt er dabei und reagiert nicht darauf. Die Stimme richtet sich immer nach der Sprache des Textes, nicht nach der eingestellten Oberflächensprache: Ein russischer Satz klingt russisch, auch wenn die Oberfläche deutsch ist, beim Vorlesen im Chat genauso wie im Gespräch. Das gilt auch für ganz kurze Antworten wie „Да.“. Solange eine Freigabe offen ist, steht im Status „Ich warte auf Ihr Ja oder Nein“. Die Freigabe erscheint erst, nachdem Himbi den Satz davor ausgesprochen hat, zum Beispiel „Ich klicke jetzt auf Anlegen“. Als Zustimmung zählen auch „Ja, bitte“, „Mach das“, „Да, конечно“ oder „Әрине“, ein „Äh“ davor stört nicht. Eine Rückfrage wie „Ja?“ gibt nichts frei. Stellen Sie stattdessen eine neue Frage, lehnt Himbi die offene Aktion ab und beantwortet dann Ihre Frage. Ein Befehl wirkt nur, wenn Ihre Äußerung damit beginnt: „Wie kann ich die Aufgabe schließen?“ beendet den Sprachmodus nicht. Bei langsamer Verbindung spricht Himbi mit etwas geringerer Tonqualität, damit die Stimme nicht stockt.",
+      },
+      {
+        begriff: "Tagesbegleiter",
+        text: "Himbi hilft, den Arbeitstag zu organisieren. Fragen Sie, was heute ansteht oder dringend ist, nennt er höchstens drei Punkte, das Dringendste zuerst mit Frist oder Zahl, und fragt, womit Sie anfangen wollen oder ob er einen Plan für den Tag vorschlagen soll. Der Plan ist eine kurze Reihenfolge aus den Daten des Betriebs, ohne erfundene Termine. Nach einer Antwort stellt er höchstens eine Rückfrage, wenn sie weiterhilft. Eine Aktion schlägt er nur als Frage vor, und auch nach Ihrem „Ja“ wird nichts gespeichert, bevor Sie es freigegeben haben. Einmal am Tag beginnt Himbi selbst: im Sprachmodus stellt er gleich zu Beginn die Frage nach der Tageslage (sie steht danach wie jede andere Frage im Chatverlauf), sonst fragt er in einer Sprechblase, ob er sagen soll, was heute dringend ist. Abschalten lässt sich das in den Himbi-Einstellungen mit dem Schalter „Himbi beginnt den Tag mit mir“, der standardmäßig an ist.",
       },
       {
         begriff: "WAMOCON",

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { ladePreislisten } from "@/lib/data/vorbestellungen";
 import { getSessionProfile } from "@/lib/auth";
@@ -166,6 +166,54 @@ export async function ladeKiChatVerlauf(): Promise<KiChatVerlauf> {
       }))
       .reverse(),
   };
+}
+
+// --- Antworten und Systemhinweise speichern (nur der Server) -----------------
+// Seit dem 28.09.2026 (Vibecode-Cleanup, Fund 77) legt die Sitzung des Nutzers
+// nur noch die eigene Frage an (Migration 20261113000000). Vorher konnte jedes
+// Konto mit Chat-Recht per API eine "Antwort des Assistenten" mit freiem Text
+// anlegen und ueber api/ki-sprachausgabe vorlesen lassen. Antwort,
+// Ausweichantwort und Eskalationshinweis schreibt deshalb nur noch der Server
+// mit service_role. Die profil_id kommt dabei immer aus der geprueften Sitzung
+// des Aufrufers, nie aus einer Eingabe: service_role umgeht RLS.
+//
+// Bewusst in dieser Datei und nicht in actions/ki-assistent.ts: jede
+// exportierte Funktion einer "use server"-Datei ist vom Browser aus aufrufbar.
+
+export interface KiServerZeile {
+  /** Vorab vergebene ID (route.ts: die Nachrichten-ID, die der Client schon kennt). */
+  id?: string;
+  profilId: string;
+  rolle: "assistent" | "system";
+  inhalt: string;
+  anbieterName?: string | null;
+  fallback?: boolean;
+  eskaliert?: boolean;
+  werkzeugaufrufe?: string[] | null;
+}
+
+export async function speichereKiServerZeile(
+  zeile: KiServerZeile,
+): Promise<{ error: { code?: string; message: string } | null }> {
+  try {
+    const { error } = await createServiceRoleClient()
+      .from("ki_chat_nachrichten")
+      .insert({
+        ...(zeile.id ? { id: zeile.id } : {}),
+        profil_id: zeile.profilId,
+        rolle: zeile.rolle,
+        inhalt: zeile.inhalt,
+        anbieter_name: zeile.anbieterName ?? null,
+        fallback: zeile.fallback ?? false,
+        eskaliert: zeile.eskaliert ?? false,
+        werkzeugaufrufe: zeile.werkzeugaufrufe && zeile.werkzeugaufrufe.length > 0 ? zeile.werkzeugaufrufe : null,
+      });
+    return { error };
+  } catch (fehler) {
+    // Fehlt der service_role-Schluessel, wirft createServiceRoleClient(): als
+    // Schreibfehler melden statt die Aktion mit einem 5xx abbrechen zu lassen.
+    return { error: { message: fehler instanceof Error ? fehler.message : String(fehler) } };
+  }
 }
 
 // --- Wissensgrundlage (freigegebene Preisliste) ------------------------------

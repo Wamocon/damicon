@@ -3,10 +3,12 @@ import { z } from "zod";
 import type { Role } from "@/lib/rbac";
 import { befundEingabe, gesamtKennzahlen, massnahmenplan, pruefeBefund, sha256Hex, siegelFuer, sortiereBefunde } from "@/lib/pruefung/befund";
 import { punkteFuer, type Pruefpunkt } from "@/lib/pruefung/felder";
-import { feldTitel } from "@/lib/pruefung/felder-titel";
+import { feldTitel, titelInSprache } from "@/lib/pruefung/felder-titel";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import type { Befund, Bericht, Ereignis, Nachweis } from "@/lib/pruefung/typen";
+import { sprachePasst } from "@/lib/domain/antwortsprache";
 import { fuerSprache } from "@/lib/text/umlaute";
+import { erkenneSpracheEindeutig } from "@/lib/wissen/chunker";
 import type { Beleg, SuchErgebnis } from "@/lib/wissen/suche";
 
 // Die Pruefung als Zusammenspiel vieler kleiner Helfer. Himbi plant, je Bereich leitet ein Bereichs-Himbi, und JEDES
@@ -218,7 +220,7 @@ export async function fuehrePruefungAus(
   const schreibweise = (text: string) => fuerSprache(text, anfrage.sprache);
   const bereinige = (b: Befund): Befund => ({
     ...b,
-    titel: schreibweise(b.titel),
+    titel: titelInSprache(schreibweise(b.titel), b.feld, anfrage.sprache),
     befund: schreibweise(b.befund),
     massnahmen: b.massnahmen.map((m) => ({ ...m, schritt: schreibweise(m.schritt) })),
   });
@@ -399,7 +401,13 @@ export async function fuehrePruefungAus(
       const ergebnis: { wert: { zusammenfassung: string; prioritaeten: string[] } | null } = { wert: null };
       await generateText({
         model: dep.modell,
-        system: `Du fasst eine Compliance-Prüfung für die Betriebsleitung zusammen. Nutze AUSSCHLIESSLICH die gelieferten Befunde, erfinde nichts. Prüfungsreife: ${kz.reife} von 100 (${kz.stufe}). Fasse dich kurz: die Zusammenfassung höchstens 500 Zeichen, jede Priorität höchstens 150 Zeichen. Schreibe ausschließlich in ${sprache}, ohne Sprachen zu mischen.${
+        // Die Sprachvorgabe steht ZULETZT und auf Englisch, wie beim Pruefer (systemPrompt oben): mitten in
+        // einem deutschen Satz ("Schreibe ausschliesslich in Russian") verlor sie gegen den deutschen Rest,
+        // und die Zusammenfassung - sie steht auf der Uebersicht und wird in der Tour vorgelesen - kam auf
+        // Deutsch heraus, obwohl die Oberflaeche russisch war. Dazu die Beschreibungen der Felder unten:
+        // "Drei bis vier Saetze" auf Deutsch zog das Modell ebenfalls zum Deutschen.
+        system: `Du fasst eine Compliance-Prüfung für die Betriebsleitung zusammen. Nutze AUSSCHLIESSLICH die gelieferten Befunde, erfinde nichts. Prüfungsreife: ${kz.reife} von 100 (${kz.stufe}). Fasse dich kurz: die Zusammenfassung höchstens 500 Zeichen, jede Priorität höchstens 150 Zeichen.
+LANGUAGE (highest priority, overrides everything above): Write the zusammenfassung and EVERY prioritaet ONLY in ${sprache}, consistently and without mixing languages, even though these instructions and the findings' field names are German. Legal citations and article numbers may stay as they are.${
           anfrage.sprache === "de" ? " Verwende die richtige deutsche Schreibweise mit Umlauten (ä, ö, ü) und ß, nie ae, oe oder ue." : ""
         }`,
         prompt: liste || "Keine Befunde.",
@@ -407,8 +415,8 @@ export async function fuehrePruefungAus(
           berichtAbschliessen: tool({
             description: "Liefert die Zusammenfassung und die drei wichtigsten Prioritäten.",
             inputSchema: z.object({
-              zusammenfassung: z.string().min(10).max(2000).describe("Drei bis vier Sätze: Gesamtlage, größte Risiken, was gut ist."),
-              prioritaeten: z.array(z.string().min(3).max(600)).min(1).max(5).describe("Die drei wichtigsten nächsten Schritte, dringendster zuerst."),
+              zusammenfassung: z.string().min(10).max(2000).describe(`Three to four sentences in ${sprache}: overall situation, biggest risks, what is good.`),
+              prioritaeten: z.array(z.string().min(3).max(600)).min(1).max(5).describe(`The three most important next steps in ${sprache}, most urgent first.`),
             }),
             execute: async (e) => {
               ergebnis.wert = e;
@@ -423,8 +431,21 @@ export async function fuehrePruefungAus(
         abortSignal: signal,
       });
       if (ergebnis.wert) {
-        zusammenfassung = schreibweise(kurz(ergebnis.wert.zusammenfassung, 900));
-        prioritaeten = ergebnis.wert.prioritaeten.slice(0, 3).map((p) => schreibweise(kurz(p, 260)));
+        // Der Text wird gespeichert und bleibt stehen: kommt er in einer anderen Sprache als verlangt
+        // (das Modell driftet trotz Anweisung gelegentlich ins Deutsche), wird er verworfen und beim
+        // zweiten Versuch neu erzeugt. Scheitern beide, greift unten der Kennzahlentext in der
+        // richtigen Sprache - lieber dieser als ein deutscher Absatz in einem russischen Bericht.
+        // Zusammenfassung und jede Prioritaet einzeln: gemeinsam gezaehlt, uebertoente der lange
+        // russische Text eine deutsche Prioritaet. Eindeutig oder gar nicht: ein kurzer deutscher
+        // Satz ohne Umlaut darf nicht als "Englisch" durchfallen (erkenneSpracheEindeutig).
+        const erkenner = (t: string) => erkenneSpracheEindeutig(t, 25);
+        const falsch = [ergebnis.wert.zusammenfassung, ...ergebnis.wert.prioritaeten].filter((t) => !sprachePasst(anfrage.sprache, t, erkenner));
+        if (falsch.length > 0) {
+          console.warn(`[damicon] Prüfung: Zusammenfassung, Versuch ${versuch} verworfen - ${falsch.length} Text(e) nicht in der verlangten Sprache (${anfrage.sprache})`);
+        } else {
+          zusammenfassung = schreibweise(kurz(ergebnis.wert.zusammenfassung, 900));
+          prioritaeten = ergebnis.wert.prioritaeten.slice(0, 3).map((p) => schreibweise(kurz(p, 260)));
+        }
       }
     } catch (e) {
       console.warn(`[damicon] Prüfung: Zusammenfassung, Versuch ${versuch} fehlgeschlagen:`, e instanceof Error ? e.message : e);
