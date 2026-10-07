@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { startTransition, useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Card, StatusPill } from "@/components/ui/kit";
 import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import { wissenDokumenteLaden, wissenDokumentHochladen, wissenDokumentLoeschen } from "@/lib/actions/wissen";
 import { leer, type AktionsStatus } from "@/lib/actions/status";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
-import { bereichSchluessel, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
+import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
 // Wissensverwaltung im KI-Panel (Einstellungen, unter dem Ratenlimit). Admin-only: Das Panel reicht das Element nur
 // an Rollen mit ki_assistent:manage weiter, und beide Server Actions pruefen die Berechtigung noch einmal selbst.
@@ -116,7 +116,17 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.formular");
   const tBereich = useTranslations("kiAssistentAnsicht.wissensVerwaltung.bereich");
   const tRolle = useTranslations("roles");
-  const [status, action] = useActionState(wissenDokumentHochladen, leer);
+  const tAktion = useTranslations("aktionen");
+  // React setzt ein Formular nach jeder Aktion zurueck, auch nach einem Fehler: Titel, Bereich und Rollen waeren weg
+  // (nur die Datei muss ohnehin neu gewaehlt werden). Die Eingaben werden deshalb als Vorgabewerte gemerkt, auf die
+  // das Zuruecksetzen zurueckfaellt, und nach einem Erfolg geleert.
+  const [behalten, setBehalten] = useState<{ titel: string; bereich: string; rollen: string[] }>({ titel: "", bereich: "", rollen: [] });
+  const [status, action] = useActionState(async (vorher: AktionsStatus, formData: FormData) => {
+    setBehalten({ titel: String(formData.get("titel") ?? ""), bereich: String(formData.get("bereich") ?? ""), rollen: formData.getAll("rollen").map(String) });
+    const antwort = await wissenDokumentHochladen(vorher, formData);
+    if (antwort.stand === "ok") startTransition(() => setBehalten({ titel: "", bereich: "", rollen: [] }));
+    return antwort;
+  }, leer);
   const zuletzt = useRef(status);
 
   // Nach einem erfolgreichen Upload die Liste neu laden (einmal je Rueckmeldung).
@@ -136,15 +146,24 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
             name="datei"
             required
             accept=".pdf,.md,.txt,application/pdf,text/markdown,text/plain"
+            // Eine zu grosse Datei wird schon hier gestoppt (Meldung des Browsers beim Absenden): Ueber dem Limit der Server
+            // Actions antwortet der Server nicht mit einer Meldung, sondern mit HTTP 500.
+            onChange={(e) => {
+              const datei = e.currentTarget.files?.[0];
+              e.currentTarget.setCustomValidity(datei && datei.size > MAX_DATEI_BYTES ? tAktion("fehler.zuGross") : "");
+            }}
             className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs file:font-semibold file:text-foreground"
           />
           <span className="block text-[11px] text-muted-foreground">{t("dateiHinweis")}</span>
         </label>
-        <Feld label={t("titelFeld")} name="titel" required placeholder={t("titelPlatzhalter")} />
+        <Feld label={t("titelFeld")} name="titel" required placeholder={t("titelPlatzhalter")} defaultValue={behalten.titel} />
+        {/* key: React uebernimmt ein geaendertes defaultValue bei <select> nicht; mit neuem key entsteht das Feld neu. */}
         <Auswahl
+          key={`bereich-${behalten.bereich}`}
           label={t("bereich")}
           name="bereich"
           required
+          defaultValue={behalten.bereich}
           options={[
             { wert: "", text: t("bitteWaehlen") },
             ...UPLOAD_BEREICHE.map((b) => ({ wert: b, text: tBereich(b) })),
@@ -159,7 +178,7 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
                   // Der Admin ist immer dabei: ein deaktiviertes Feld wird nicht gesendet, der Server ergaenzt ihn.
                   <input type="checkbox" checked disabled aria-describedby="wissen-admin-immer" />
                 ) : (
-                  <input type="checkbox" name="rollen" value={rolle} />
+                  <input type="checkbox" name="rollen" value={rolle} defaultChecked={behalten.rollen.includes(rolle)} />
                 )}
                 {tRolle(rolle)}
               </label>

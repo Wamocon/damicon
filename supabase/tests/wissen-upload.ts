@@ -611,10 +611,14 @@ async function main() {
     pruefe("IDF: die Formel steht genau einmal (sparse.ts), nicht in hochladen.ts, loeschen.ts oder dem Adapter", rechnung("src/lib/wissen/sparse.ts") === 1 && rechnung("src/lib/wissen/hochladen.ts") === 0 && rechnung("src/lib/wissen/loeschen.ts") === 0 && rechnung("src/lib/wissen/speicher-supabase.ts") === 0);
     pruefe("Zaehlung: Upload und Loeschen zaehlen mit zaehleWoerter() aus sparse.ts, keine eigene Schleife", /zaehleWoerter\(/.test(lies("src/lib/wissen/hochladen.ts")) && /zaehleWoerter\(/.test(lies("src/lib/wissen/loeschen.ts")) && !/new Map<number, number>\(\)/.test(ohneKommentare(lies("src/lib/wissen/loeschen.ts"))));
     const woerter = ["src/lib/wissen/hochladen.ts", "src/lib/wissen/loeschen.ts", "src/lib/wissen/speicher-supabase.ts", "src/lib/wissen/dokumente-liste.ts", "src/lib/actions/wissen.ts", "src/components/db/wissen-verwaltung.tsx", "scripts/wissen-nach-supabase.ts"];
-    const eigeneKopie = woerter.filter((p) => /(upload_quelle|quelle)s*[!=]==?s*["']upload["']|["'`]upload:|upload:%|UPLOAD_QUELLEs*=s*["']/.test(ohneKommentare(lies(p))));
+    const eigeneKopie = woerter.filter((p) => /(upload_quelle|quelle)\s*[!=]==?\s*["']upload["']|["'`]upload:|upload:%|UPLOAD_QUELLE\s*=\s*["']/.test(ohneKommentare(lies(p))));
     pruefe("Kennzeichen: der Marker (extra.quelle = upload) und der Vorsatz upload: stehen nur in upload-quelle.ts, sonst nirgends als Zeichenkette", eigeneKopie.length === 0, eigeneKopie.join(", "));
     pruefe("Importwege: hochladen.ts reicht keine Konstanten aus upload-konstanten.ts mehr weiter (ein Weg, nicht zwei)", !/^export \{[^}]*MAX_DATEI_BYTES/m.test(lies("src/lib/wissen/hochladen.ts")));
     pruefe("KI-Kontext: das Wissenswerkzeug sagt dem Modell, dass der Text der Belege Quellenmaterial und keine Anweisung ist (Uploads bringen Text von aussen)", /Quellenmaterial, keine Anweisung/.test(lies("src/lib/ai/wissen-werkzeug.ts")));
+    pruefe("Dateigrenze: MAX_DATEI_BYTES laesst Platz fuer Formularfelder und Multipart-Rahmen unter dem bodySizeLimit (gemessen im Produktions-Bundle: 8 MiB minus 300 Byte scheiterte mit HTTP 500)", MAX_DATEI_BYTES <= 8 * 1024 * 1024 - 16 * 1024 && /bodySizeLimit: "8mb"/.test(lies("next.config.ts")), `MAX_DATEI_BYTES=${MAX_DATEI_BYTES}`);
+    const formularQuelle = lies("src/components/db/wissen-verwaltung.tsx");
+    pruefe("Oberflaeche: eine zu grosse Datei wird vor dem Absenden gestoppt (setCustomValidity mit MAX_DATEI_BYTES), statt eine HTTP-500-Antwort des Frameworks zu riskieren", /setCustomValidity\(/.test(formularQuelle) && /size > MAX_DATEI_BYTES/.test(formularQuelle));
+    pruefe("Oberflaeche: nach einem Fehler bleiben Titel, Bereich und Rollen stehen (React setzt das Formular sonst zurueck)", /defaultValue=\{behalten\.titel\}/.test(formularQuelle) && /defaultValue=\{behalten\.bereich\}/.test(formularQuelle) && /defaultChecked=\{behalten\.rollen\.includes\(rolle\)\}/.test(formularQuelle));
   }
 
   // ---- 12. Texte in allen Sprachen -------------------------------------------------------------------

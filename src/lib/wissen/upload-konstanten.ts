@@ -35,5 +35,8 @@ export const UPLOAD_ROLLEN: readonly Role[] = BUERO_ROLLEN;
 export const UPLOAD_ENDUNGEN = ["pdf", "md", "txt"] as const;
 export type UploadDateityp = (typeof UPLOAD_ENDUNGEN)[number];
 
-export const MAX_DATEI_BYTES = 8 * 1024 * 1024; // gleich dem bodySizeLimit der Server Actions (next.config.ts)
+// Die Server Actions nehmen hoechstens 8 MiB je Anfrage an (bodySizeLimit in next.config.ts). Gemessen im Produktions-Bundle:
+// Neben der Datei enthaelt die Anfrage Formularfelder und den Multipart-Rahmen, schon eine Datei von 8 MiB minus 300 Byte
+// scheiterte mit HTTP 500 statt einer Meldung. 64 KiB Spielraum halten jede erlaubte Datei sicher unter dem Limit.
+export const MAX_DATEI_BYTES = 8 * 1024 * 1024 - 64 * 1024;
 export const MAX_TITEL = 200;
