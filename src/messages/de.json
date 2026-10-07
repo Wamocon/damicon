@@ -971,7 +971,8 @@
       "wissenVorschau": "Upload gesperrt: Diese Vorschau-Umgebung schreibt in dasselbe Datenbankschema wie die Produktion (SUPABASE_DB_SCHEMA ist nicht public_preview). Bitte in der Produktion oder in einer Vorschau mit eigenem Schema hochladen.",
       "wissenNichtLoeschbar": "Dieses Dokument kann hier nicht gelöscht werden. Nur über die Verwaltung hochgeladene Dokumente sind löschbar, Dokumente aus dem Einlese-Skript nie.",
       "wissenLoeschen": "Das Dokument konnte nicht gelöscht werden. Es wurde nichts verändert.",
-      "wissenGewichte": "Das Dokument wurde gelöscht, aber die Wortgewichte der Suche konnten nicht aktualisiert werden. Das ist unschädlich und wird beim nächsten ETL-Lauf ausgeglichen."
+      "wissenGewichte": "Das Dokument wurde gelöscht, aber die Wortgewichte der Suche konnten nicht aktualisiert werden. Das ist unschädlich und wird beim nächsten ETL-Lauf ausgeglichen.",
+      "wissenPdfDienst": "Der PDF-Leser steht auf dem Server nicht zur Verfügung. Das liegt nicht an der Datei, es wurde nichts gespeichert. Bitte die technische Betreuung informieren."
     },
     "einladungen": {
       "erfolg": {
