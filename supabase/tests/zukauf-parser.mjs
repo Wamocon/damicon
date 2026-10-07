@@ -65,6 +65,20 @@ console.log("== Normalfall, deutsches Excel mit Semikolon ==");
   pruefe("Zusammenfassung als Hinweis", codes(r, "hinweis").includes("summary"));
 }
 
+console.log("\n== Summenzeile: Dezimalkomma und keine Rundung auf eine Stelle (WMCNL-2379) ==");
+{
+  const csv = [
+    "Menge;Sorte;Datum;Nachbarbetrieb",
+    "140,5;Polka;2026-09-01;Nachbarbetrieb Kaskelen",
+    "88,0;Polka;2026-09-02;Nachbarbetrieb Kaskelen",
+    "61,25;Polka;2026-09-03;Nachbarbetrieb Kaskelen",
+  ].join("\n");
+  const r = parse(csv);
+  const summe = r.befunde.find((b) => b.code === "summary")?.meldung ?? "";
+  pruefe("Summe 289,75 kg mit Komma", summe.includes("289,75 kg"), summe);
+  pruefe("Kein Punkt als Dezimaltrenner in der Summe", !summe.includes("289.8"), summe);
+}
+
 console.log("\n== Komma-Trennung, Byte Order Mark, englische Ueberschriften ==");
 {
   // String.fromCharCode statt eines eingebetteten Byte-Order-Mark-Zeichens im

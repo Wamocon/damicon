@@ -66,28 +66,39 @@ export function mitGeraetZeitstempel(feld: string) {
  *
  * nach "fehler": nur nach einer Fehlermeldung bleiben die Eingaben (Anlegen-
  * Formulare leeren sich nach Erfolg wie bisher). Nach "immer": auch nach
- * Erfolg (Bearbeiten-Formulare, die den gespeicherten Stand zeigen).
+ * Erfolg (Bearbeiten-Formulare, die den gespeicherten Stand zeigen). Eine
+ * Funktion entscheidet je Ergebnis selbst; sie muss unveraenderlich sein (eine
+ * Konstante oder Modulfunktion), weil die Ref-Funktion stabil bleiben muss.
+ * anfang ist der Startwert, wenn der Rueckgabetyp mehr traegt als AktionsStatus.
  * formProps gehoeren auf das form-Element: <form {...formProps}>.
  */
-export function useBehalteEingaben(
-  aktion: (vorher: AktionsStatus, daten: FormData) => Promise<AktionsStatus>,
-  nach: "fehler" | "immer" = "fehler",
+export function useBehalteEingaben<S extends Pick<AktionsStatus, "stand"> = AktionsStatus>(
+  aktion: (vorher: S, daten: FormData) => Promise<S>,
+  nach: "fehler" | "immer" | ((ergebnis: S) => boolean) = "fehler",
+  anfang: S = leer as unknown as S,
 ) {
-  const letzterStand = useRef<AktionsStatus["stand"]>("leer");
+  const letztes = useRef<S | null>(null);
+  // Awaited<S>: useActionState verlangt den ausgepackten Typ, TypeScript kann
+  // bei einem Typparameter nicht wissen, dass S kein Promise ist.
   const [status, formAction, pending] = useActionState(
-    async (vorher: AktionsStatus, daten: FormData) => {
-      const ergebnis = await aktion(vorher, daten);
-      letzterStand.current = ergebnis.stand;
-      return ergebnis;
+    async (vorher: Awaited<S>, daten: FormData): Promise<Awaited<S>> => {
+      const ergebnis = await aktion(vorher as S, daten);
+      letztes.current = ergebnis;
+      return ergebnis as Awaited<S>;
     },
-    leer,
+    anfang as Awaited<S>,
   );
   const formRef = useCallback(
     (form: HTMLFormElement | null) => {
       if (!form) return;
       const beiReset = (event: Event) => {
-        const stand = letzterStand.current;
-        if (stand === "fehler" || (nach === "immer" && stand === "ok")) event.preventDefault();
+        const ergebnis = letztes.current;
+        if (!ergebnis) return;
+        const behalten =
+          typeof nach === "function"
+            ? nach(ergebnis)
+            : ergebnis.stand === "fehler" || (nach === "immer" && ergebnis.stand === "ok");
+        if (behalten) event.preventDefault();
       };
       form.addEventListener("reset", beiReset);
       return () => form.removeEventListener("reset", beiReset);
@@ -249,6 +260,8 @@ export function SubmitKnopf({
   status,
   symbol,
   breit,
+  name,
+  wert,
 }: {
   label?: string;
   variante?: "primaer" | "leise";
@@ -264,6 +277,9 @@ export function SubmitKnopf({
   /** Symbol vor der Beschriftung, etwa in der Nachweiskette. */
   symbol?: ReactNode;
   breit?: boolean;
+  /** Name und Wert des Knopfs gehen mit ins Formular: ein Formular, zwei Wege (Pruefen, Importieren). */
+  name?: string;
+  wert?: string;
 }) {
   const { pending: kontextPending } = useFormStatus();
   const pending = pendingProp ?? (form ? false : kontextPending);
@@ -275,6 +291,8 @@ export function SubmitKnopf({
     <Button
       type="submit"
       form={form}
+      name={name}
+      value={wert}
       laedt={pending}
       erledigt={erledigt}
       variante={variante}

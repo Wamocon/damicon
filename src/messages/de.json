@@ -868,6 +868,7 @@
       "mwstSchwelleGeprueft": "Geprüft - Umsatz der letzten 12 Monate: {wert} ₸.",
       "mwstRegistriert": "Als MwSt-registriert markiert, seit {wert}.",
       "zukaufImport": "{wert} Position(en) importiert.",
+      "zukaufVorschau": "{wert} Position(en) geprüft und in Ordnung. Noch nichts übernommen: mit „Jetzt importieren“ speichern, nach einer Änderung am Text bitte erneut prüfen.",
       "zukaufPreis": "Preis nachgetragen.",
       "kostentraeger": "Kostenträger \"{wert}\" angelegt.",
       "buchung": "Buchung \"{wert}\" erfasst.",
@@ -2747,7 +2748,8 @@
       "bekannteSorten": "Bekannte Sorten",
       "feldLabel": "CSV-Daten",
       "platzhalter": "menge;sorte;datum;nachbarbetrieb\n210;Polka;2026-09-01;Nachbarbetrieb Kaskelen",
-      "knopf": "Prüfen und importieren",
+      "knopf": "Prüfen",
+      "importKnopf": "Jetzt importieren",
       "befundeTitle": "Prüfergebnis",
       "spalteAllgemein": "allgemein",
       "spalte": {

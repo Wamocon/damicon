@@ -868,6 +868,7 @@
       "mwstSchwelleGeprueft": "Checked - revenue over the last 12 months: {wert} ₸.",
       "mwstRegistriert": "Marked as VAT-registered, effective {wert}.",
       "zukaufImport": "{wert} position(s) imported.",
+      "zukaufVorschau": "{wert} position(s) checked and valid. Nothing has been saved yet: use “Import now” to save, and check again after changing the text.",
       "zukaufPreis": "Price added.",
       "kostentraeger": "Cost object \"{wert}\" created.",
       "buchung": "Posting \"{wert}\" recorded.",
@@ -2747,7 +2748,8 @@
       "bekannteSorten": "Known varieties",
       "feldLabel": "CSV data",
       "platzhalter": "quantity;variety;date;supplier\n210;Polka;2026-09-01;Kaskelen neighbouring farm",
-      "knopf": "Check and import",
+      "knopf": "Check",
+      "importKnopf": "Import now",
       "befundeTitle": "Check results",
       "spalteAllgemein": "general",
       "spalte": {

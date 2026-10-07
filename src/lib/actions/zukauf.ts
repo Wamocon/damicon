@@ -11,6 +11,7 @@ import {
   zukaufDbFehler,
   zukaufImportFehler,
   zukaufImportOk,
+  zukaufVorschauOk,
   zukaufZugriffsFehler,
   type ZukaufImportStatus,
 } from "@/lib/actions/zukauf-status";
@@ -42,9 +43,14 @@ function protokolliere(
   return protokolliereBasis(profil, aktion, "aggregator", ressourceId, metadata);
 }
 
-// Prueft die eingefuegte Eingabe und schreibt nur, wenn KEIN Fehlerbefund
-// vorliegt (keine Teiluebernahme) - Warnungen und Hinweise blockieren nicht,
-// bleiben aber in der Rueckgabe sichtbar, auch nach einem erfolgreichen Lauf.
+// Zwei Schritte (WMCNL-2378): "pruefen" meldet nur, was der Import taete, und
+// schreibt nichts; erst "importieren" schreibt. Beide Schritte pruefen die
+// Eingabe selbst - der Server vertraut keiner Vorschau aus dem Browser. Fehlt
+// der Schritt, gilt "pruefen": ohne ausdruecklichen Auftrag wird nie geschrieben.
+//
+// Geschrieben wird nur, wenn KEIN Fehlerbefund vorliegt (keine Teiluebernahme) -
+// Warnungen und Hinweise blockieren nicht, bleiben aber in der Rueckgabe
+// sichtbar, auch nach einem erfolgreichen Lauf.
 export async function zukaufImportieren(
   _status: ZukaufImportStatus,
   formData: FormData,
@@ -77,6 +83,10 @@ export async function zukaufImportieren(
   }
   if (ergebnis.zeilen.length === 0) {
     return zukaufImportFehler("fehler.eingabe", ergebnis.befunde);
+  }
+
+  if (text(formData, "schritt") !== "importieren") {
+    return zukaufVorschauOk(ergebnis.befunde, "ok.zukaufVorschau", String(ergebnis.zeilen.length));
   }
 
   const supabase = await createClient();
