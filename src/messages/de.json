@@ -932,6 +932,8 @@
       "lohnFaktorMin": "„Faktor minimal“ darf höchstens 1 sein.",
       "lohnFaktorMax": "„Faktor maximal“ muss mindestens 1 sein.",
       "lohnPeriodeReihenfolge": "„Periode bis“ liegt vor „Periode von“. Bitte die Daten prüfen.",
+      "lohnBrutto": "Das Brutto ist keine gültige Zahl. Bitte einen Betrag in ₸ eintragen, nicht negativ, zum Beispiel 300000.",
+      "lohnKeinSatz": "Es ist kein gesetzlicher Abzugssatz lesbar. Entweder fehlt ein Satz für heute, oder Ihre Rolle darf die Sätze nicht einsehen.",
       "qualitaetsfaktorKorridor": "Der Qualitätsfaktor ist Pflicht und muss zwischen 0,90 und 1,10 liegen.",
       "gesperrt": "Reihenblock {wert} ist wartezeitgesperrt - keine Pflückaufgabe möglich.",
       "mwstSchwelleUeberschritten": "Die MwSt-Registrierungsschwelle wurde überschritten - Meldefrist: {wert}.",
@@ -2684,6 +2686,14 @@
         "jahr": "Jahr",
         "monat": "Monat (1–12)",
         "knopf": "Monatsabzüge berechnen"
+      },
+      "vorschau": {
+        "titel": "Abzüge für ein Brutto vorrechnen",
+        "lead": "Gibt ein Monatsbrutto ein und zeigt ОПВ, ВОСМС, ИПН, Netto und Arbeitgeberlast nach dem geltenden Satz. Nichts wird gespeichert. So lässt sich jede Rechenregel gezielt prüfen, auch der Zweig mit positivem ИПН (ab rund 147.000 ₸ im Monat).",
+        "brutto": "Monatsbrutto in ₸",
+        "knopf": "Vorrechnen",
+        "ipnGrundlage": "ИПН-Bemessungsgrundlage",
+        "satzStand": "Gerechnet mit dem Satz, der seit {datum} gilt. Rundung auf zwei Nachkommastellen je Betrag, wie in den Monatsabzügen."
       }
     },
     "kz": {
@@ -2714,7 +2724,8 @@
         "netto": "Netto",
         "arbeitgeberkosten": "Kosten Arbeitgeber"
       }
-    }
+    },
+    "ausserhalbKorridor": "Dieser Faktor liegt außerhalb des Korridors des aktuellen Lohnsatzes. Er stammt aus dem Altbestand, eine freigegebene Abrechnung ändert sich nicht still."
   },
   "zukaufAnsicht": {
     "statsTitle": "Zukauf auf einen Blick",

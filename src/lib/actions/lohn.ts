@@ -11,7 +11,12 @@ import {
 } from "@/lib/actions/status";
 import type { Json } from "@/lib/database.types";
 import { einsAus } from "@/lib/data/util";
-import { lohnStatus, type LohnStatus } from "@/lib/domain/lohn";
+import {
+  bruttoLesen,
+  lohnStatus,
+  type AbzugsVorschauStatus,
+  type LohnStatus,
+} from "@/lib/domain/lohn";
 import { text, zahl, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Lohnabrechnung mit Qualitaetsfaktor (WMCNL-1444). Die eigentliche Rechnung
@@ -81,6 +86,49 @@ export async function lohnSatzAnlegen(
   await protokolliere(profil, "lohn.satz_angelegt", data.id, { gueltig_ab: data.gueltig_ab });
   aktualisiere(formData);
   return ok("ok.lohnSatz", data.gueltig_ab);
+}
+
+// Gesetzliche Abzuege fuer ein frei eingegebenes Monatsbrutto vorrechnen
+// (WMCNL-2304). Schreibt nichts: die Rechenregel steht in der Datenbank
+// (lohn_kz_abzuege_berechnen), die RPC sucht nur den Satz zum heutigen Tag
+// heraus. Wer die Saetze nicht lesen darf, bekommt von ihr keine Zeile.
+export async function lohnAbzuegeVorschau(
+  _status: AbzugsVorschauStatus,
+  formData: FormData,
+): Promise<AbzugsVorschauStatus> {
+  try {
+    await requirePermission("lohn", "create");
+  } catch (error) {
+    return { stand: "fehler", meldung: zugriffsFehler(error).meldung };
+  }
+
+  const brutto = bruttoLesen(text(formData, "brutto"));
+  if (brutto === null || brutto > 100_000_000) return { stand: "fehler", meldung: "fehler.lohnBrutto" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("lohn_kz_abzuege_vorschau", {
+    p_brutto_monat_tenge: brutto,
+  });
+  if (error) return { stand: "fehler", meldung: dbFehler(error).meldung };
+
+  const zeile = data?.[0];
+  if (!zeile) return { stand: "fehler", meldung: "fehler.lohnKeinSatz" };
+
+  return {
+    stand: "ok",
+    vorschau: {
+      satzGueltigAb: zeile.satz_gueltig_ab,
+      bruttoTenge: brutto,
+      opvTenge: Number(zeile.opv_tenge),
+      vosmsTenge: Number(zeile.vosms_tenge),
+      ipnBemessungsgrundlageTenge: Number(zeile.ipn_bemessungsgrundlage_tenge),
+      ipnTenge: Number(zeile.ipn_tenge),
+      nettoTenge: Number(zeile.netto_tenge),
+      arbeitgeberlastTenge:
+        Number(zeile.opvr_tenge) + Number(zeile.so_tenge) + Number(zeile.sn_tenge) + Number(zeile.osms_tenge),
+      arbeitgeberkostenGesamtTenge: Number(zeile.arbeitgeberkosten_gesamt_tenge),
+    },
+  };
 }
 
 // Periode berechnen: ruft die RPC auf, die Grundlohn, Mengenkomponente und

@@ -3922,6 +3922,22 @@ export type Database = {
           vosms_tenge: number
         }[]
       }
+      lohn_kz_abzuege_vorschau: {
+        Args: { p_brutto_monat_tenge: number; p_stichtag?: string }
+        Returns: {
+          arbeitgeberkosten_gesamt_tenge: number
+          ipn_bemessungsgrundlage_tenge: number
+          ipn_tenge: number
+          netto_tenge: number
+          opv_tenge: number
+          opvr_tenge: number
+          osms_tenge: number
+          satz_gueltig_ab: string
+          sn_tenge: number
+          so_tenge: number
+          vosms_tenge: number
+        }[]
+      }
       lohn_monat_abzuege_berechnen: {
         Args: { p_jahr: number; p_monat: number }
         Returns: {

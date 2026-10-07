@@ -932,6 +932,8 @@
       "lohnFaktorMin": "“Factor minimum” must not be greater than 1.",
       "lohnFaktorMax": "“Factor maximum” must be at least 1.",
       "lohnPeriodeReihenfolge": "“Period to” is before “Period from”. Please check the dates.",
+      "lohnBrutto": "The gross amount is not a valid number. Please enter an amount in ₸, not negative, for example 300000.",
+      "lohnKeinSatz": "No statutory deduction rate can be read. Either there is no rate for today, or your role may not view the rates.",
       "qualitaetsfaktorKorridor": "The quality factor is required and must be between 0.90 and 1.10.",
       "gesperrt": "Row block {wert} is locked for the pre-harvest interval - no picking task possible.",
       "mwstSchwelleUeberschritten": "The VAT registration threshold has been crossed - notification due: {wert}.",
@@ -2684,6 +2686,14 @@
         "jahr": "Year",
         "monat": "Month (1–12)",
         "knopf": "Calculate monthly deductions"
+      },
+      "vorschau": {
+        "titel": "Calculate deductions for a gross amount",
+        "lead": "Enter a monthly gross amount to see ОПВ, ВОСМС, ИПН, net pay and employer burden at the current rate. Nothing is saved. This lets you check every rule on purpose, including the branch with positive ИПН (from roughly 147,000 ₸ a month).",
+        "brutto": "Monthly gross in ₸",
+        "knopf": "Calculate",
+        "ipnGrundlage": "ИПН tax base",
+        "satzStand": "Calculated with the rate in force since {datum}. Each amount is rounded to two decimals, as in the monthly deductions."
       }
     },
     "kz": {
@@ -2714,7 +2724,8 @@
         "netto": "Net",
         "arbeitgeberkosten": "Employer cost"
       }
-    }
+    },
+    "ausserhalbKorridor": "This factor is outside the corridor of the current pay rate. It comes from legacy data, and an approved settlement does not change silently."
   },
   "zukaufAnsicht": {
     "statsTitle": "Purchasing at a glance",

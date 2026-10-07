@@ -1037,6 +1037,46 @@ await mussScheitern(
     `verarbeitet ${lauf1[0].verarbeitet}/${lauf2[0].verarbeitet}, Zeilen danach ${nachZweitemLauf[0].anzahl}`,
   );
 
+  // 13g. WMCNL-2304: ein frei gewaehltes Brutto vorrechnen. 300 000 Tenge sind
+  // der von Hand nachgerechnete Normalfall aus 13a, 150 000 laufen durch den
+  // Zweig mit positivem ИПН (der in den Seed-Daten nie vorkommt: alle
+  // Monatsbruttos liegen unter dem Freibetrag von 129 750).
+  await alsRolle(db, "authenticated", buchhaltung.rows[0].id);
+  const { rows: vorschau300 } = await db.query("select * from public.lohn_kz_abzuege_vorschau(300000);");
+  check(
+    "Lohn-KZ: die Vorschau fuer 300 000 Tenge trifft die von Hand gerechneten Betraege",
+    vorschau300.length === 1 &&
+      Number(vorschau300[0].opv_tenge) === 30000 &&
+      Number(vorschau300[0].ipn_tenge) === 13425 &&
+      Number(vorschau300[0].netto_tenge) === 250575,
+    `ОПВ ${vorschau300[0]?.opv_tenge}, ИПН ${vorschau300[0]?.ipn_tenge}, netto ${vorschau300[0]?.netto_tenge}`,
+  );
+  const { rows: vorschau150 } = await db.query("select * from public.lohn_kz_abzuege_vorschau(150000);");
+  // 150 000 - 15 000 (ОПВ) - 3 000 (ВОСМС) - 129 750 (Freibetrag) = 2 250 -> ИПН 225
+  check(
+    "Lohn-KZ: ueber dem Freibetrag fuehrt die Vorschau in den Zweig mit positivem ИПН",
+    Number(vorschau150[0].ipn_bemessungsgrundlage_tenge) === 2250 && Number(vorschau150[0].ipn_tenge) === 225,
+    `Grundlage ${vorschau150[0]?.ipn_bemessungsgrundlage_tenge}, ИПН ${vorschau150[0]?.ipn_tenge}`,
+  );
+  let negativFehler = null;
+  try {
+    await db.query("select * from public.lohn_kz_abzuege_vorschau(-1);");
+  } catch (e) {
+    negativFehler = e?.cause?.code ?? e?.code;
+  }
+  check("Lohn-KZ: ein negatives Brutto wird abgewiesen", negativFehler === "22023", `errcode: ${negativFehler}`);
+  await alsAdmin(db);
+
+  // Ohne Leserecht auf die Saetze gibt die Vorschau keine Zeile zurueck.
+  const kundeVorschau = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-kunde-lohn-kz@damicon.demo', '{"role":"kunde"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", kundeVorschau.rows[0].id);
+  const { rows: ohneRecht } = await db.query("select * from public.lohn_kz_abzuege_vorschau(300000);");
+  await alsAdmin(db);
+  check("Lohn-KZ: wer die Saetze nicht lesen darf, bekommt keine Vorschau", ohneRecht.length === 0, `Zeilen: ${ohneRecht.length}`);
+
   // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
