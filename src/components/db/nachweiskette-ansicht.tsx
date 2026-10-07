@@ -74,6 +74,8 @@ export async function NachweiskettenKarte({
   const gerissen = schwerste === "verstoss";
   const warnung = schwerste === "warnung";
   const verstoesse = kette.behandlungen.filter((b) => !b.eingehalten);
+  const steigenSumme = kette.steigen.reduce((summe, s) => summe + (s.gewichtKg ?? 0), 0);
+  const mengeAusSteigen = c.mengeKg <= 0 && steigenSumme > 0;
 
   // Breit zweispaltig: links Kuehlung, Mengen und Steigen, rechts der
   // Rueckstandsnachweis und das Erfassen. Die Karte steht in der
@@ -158,11 +160,26 @@ export async function NachweiskettenKarte({
             </ul>
           ) : null}
 
-          {/* Menge und Ausschuss */}
+          {/* Menge und Ausschuss. Die gemeldete Menge der Charge steht erst nach
+              "Menge melden" (WMCNL-2471): bis dahin zeigt die Karte die Summe
+              der erfassten Steigengewichte und sagt, woher die Zahl kommt,
+              statt bei erfassten Steigen 0 kg zu behaupten. */}
           <dl className="mt-4 grid grid-cols-1 gap-2 text-center @xs/kette:grid-cols-3">
             {(
               [
-                [t("menge"), kg(format, c.mengeKg)],
+                [
+                  t("menge"),
+                  mengeAusSteigen ? (
+                    <span key="menge" title={t("mengeAusSteigenHinweis")}>
+                      {kg(format, steigenSumme)}
+                      <span className="block text-[10px] font-semibold text-muted-foreground">
+                        {t("mengeAusSteigen")}
+                      </span>
+                    </span>
+                  ) : (
+                    kg(format, c.mengeKg)
+                  ),
+                ],
                 [t("ausschuss"), kg(format, c.ausschussKg)],
                 // Springt, sobald eine erfasste Steige dazukommt (K4). Der key
                 // wirkt nicht, react/jsx-key verlangt ihn im Array-Literal.

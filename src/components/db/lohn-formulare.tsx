@@ -15,6 +15,7 @@ import {
   FormularKarte,
   PfadFeld,
   SubmitKnopf,
+  useBehalteEingaben,
 } from "@/components/db/formular-kit";
 import type { LohnStatus } from "@/lib/domain/lohn";
 import { formularZiel } from "@/lib/formular-ziele";
@@ -25,13 +26,13 @@ import { formularZiel } from "@/lib/formular-ziele";
 // Neuer Lohnsatz. Ein vorheriger, noch offener Satz wird von der Datenbank
 // automatisch zum neuen Gueltigkeitsbeginn geschlossen - kein Feld dafuer noetig.
 export function LohnSatzAnlegenFormular() {
-  const [status, action] = useActionState(lohnSatzAnlegen, leer);
+  const { status, pending, formProps } = useBehalteEingaben(lohnSatzAnlegen);
   const t = useTranslations("lohnAnsicht.formular.satz");
   const heute = new Date().toISOString().slice(0, 10);
 
   return (
     <FormularKarte id={formularZiel.lohnsatz} titel={t("titel")} beschreibung={t("lead")}>
-      <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+      <form {...formProps} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         <PfadFeld />
         <Feld label={t("gueltigAb")} name="gueltig_ab" type="date" defaultValue={heute} required />
         <Feld label={t("stundenlohn")} name="stundenlohn_tenge" inputMode="decimal" required />
@@ -46,7 +47,7 @@ export function LohnSatzAnlegenFormular() {
         <Feld label={t("max")} name="qualitaetsfaktor_max" inputMode="decimal" defaultValue="1.10" />
         <Feld label={t("notiz")} name="notiz" />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} status={status} />
+          <SubmitKnopf label={t("knopf")} status={status} pending={pending} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />
@@ -60,17 +61,17 @@ export function LohnSatzAnlegenFormular() {
 // freigegebene/ausgezahlte Abrechnungen der gewaehlten Periode bleiben
 // unangetastet (siehe Erfolgsmeldung und Hinweistext im Formular).
 export function LohnPeriodeBerechnenFormular() {
-  const [status, action] = useActionState(lohnPeriodeBerechnen, leer);
+  const { status, pending, formProps } = useBehalteEingaben(lohnPeriodeBerechnen);
   const t = useTranslations("lohnAnsicht.formular.berechnen");
 
   return (
     <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
-      <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+      <form {...formProps} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         <PfadFeld />
         <Feld label={t("periodeStart")} name="periode_start" type="date" required />
         <Feld label={t("periodeEnde")} name="periode_ende" type="date" required />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} status={status} />
+          <SubmitKnopf label={t("knopf")} status={status} pending={pending} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />
@@ -85,13 +86,13 @@ export function LohnPeriodeBerechnenFormular() {
 // Datumsbereichs wie beim Lohnsatz oben - ОПВ/ВОСМС/ИПН sind gesetzlich
 // Monatsgroessen, siehe Migrationskopf.
 export function LohnMonatAbzuegeBerechnenFormular() {
-  const [status, action] = useActionState(lohnMonatAbzuegeBerechnen, leer);
+  const { status, pending, formProps } = useBehalteEingaben(lohnMonatAbzuegeBerechnen);
   const t = useTranslations("lohnAnsicht.formular.abzuegeBerechnen");
   const heute = new Date();
 
   return (
     <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
-      <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+      <form {...formProps} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         <PfadFeld />
         <Feld
           label={t("jahr")}
@@ -108,7 +109,7 @@ export function LohnMonatAbzuegeBerechnenFormular() {
           required
         />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} status={status} />
+          <SubmitKnopf label={t("knopf")} status={status} pending={pending} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />

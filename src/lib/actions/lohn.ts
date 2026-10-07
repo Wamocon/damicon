@@ -52,16 +52,14 @@ export async function lohnSatzAnlegen(
   const max = zahl(formData, "qualitaetsfaktor_max");
   const notiz = text(formData, "notiz") || null;
 
-  if (
-    !gueltigAb ||
-    stundenlohn === null || stundenlohn < 0 ||
-    kgSatz === null || kgSatz < 0 ||
-    (ziel !== null && (ziel <= 0 || ziel >= 100)) ||
-    (min !== null && min > 1) ||
-    (max !== null && max < 1)
-  ) {
-    return fehler("fehler.eingabe");
-  }
+  // Jedes Feld meldet sich einzeln (WMCNL-2297): "etwas ist unvollstaendig"
+  // sagt nicht, wo man nachsehen soll. Die Reihenfolge ist die des Formulars.
+  if (!gueltigAb) return fehler("fehler.lohnGueltigAb");
+  if (stundenlohn === null || stundenlohn < 0) return fehler("fehler.lohnStundenlohn");
+  if (kgSatz === null || kgSatz < 0) return fehler("fehler.lohnKgSatz");
+  if (ziel !== null && (ziel <= 0 || ziel >= 100)) return fehler("fehler.lohnZiel");
+  if (min !== null && min > 1) return fehler("fehler.lohnFaktorMin");
+  if (max !== null && max < 1) return fehler("fehler.lohnFaktorMax");
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -103,7 +101,7 @@ export async function lohnPeriodeBerechnen(
   const periodeStart = text(formData, "periode_start");
   const periodeEnde = text(formData, "periode_ende");
   if (!periodeStart || !periodeEnde) return fehler("fehler.eingabe");
-  if (periodeEnde < periodeStart) return fehler("fehler.eingabe");
+  if (periodeEnde < periodeStart) return fehler("fehler.lohnPeriodeReihenfolge");
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("lohn_periode_berechnen", {
