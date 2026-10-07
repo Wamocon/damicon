@@ -317,7 +317,25 @@
     "codeLabel": "Code from the app",
     "bestaetigenKnopf": "Confirm",
     "erfolg": "Second factor set up and active.",
-    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is mandatory, enforcing it per role is a later expansion step."
+    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is mandatory, enforcing it per role is a later expansion step.",
+    "uebersicht": {
+      "titel": "Multi-factor status of all accounts",
+      "lead": "For administrators only: which accounts have set up a second factor and which still work without one. Unprotected accounts are listed first.",
+      "konten": "Accounts with sign-in",
+      "geschuetzt": "With a second factor",
+      "ungeschuetzt": "Without a second factor",
+      "ungeschuetztHinweis": "These accounts are open if the password becomes known.",
+      "col": {
+        "name": "Name",
+        "rolle": "Role",
+        "email": "Email",
+        "status": "Second factor"
+      },
+      "aktiv": "{anzahl, plural, one {active, # factor} other {active, # factors}}",
+      "nichtEingerichtet": "not set up",
+      "keineKonten": "There is no account with sign-in yet.",
+      "nichtGeladen": "The status could not be loaded. Nothing can be concluded about how well the accounts are protected. Please reload the page."
+    }
   },
   "suche": {
     "titel": "Search",

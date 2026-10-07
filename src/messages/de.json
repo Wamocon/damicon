@@ -317,7 +317,25 @@
     "codeLabel": "Code aus der App",
     "bestaetigenKnopf": "Bestätigen",
     "erfolg": "Zweiter Faktor eingerichtet und aktiv.",
-    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
+    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt.",
+    "uebersicht": {
+      "titel": "Mehrfaktor-Status aller Konten",
+      "lead": "Nur für die Administration: welche Konten einen zweiten Faktor eingerichtet haben und welche noch ohne ihn arbeiten. Konten ohne Schutz stehen oben.",
+      "konten": "Konten mit Anmeldung",
+      "geschuetzt": "Mit zweitem Faktor",
+      "ungeschuetzt": "Ohne zweiten Faktor",
+      "ungeschuetztHinweis": "Diese Konten sind bei bekanntem Passwort offen.",
+      "col": {
+        "name": "Name",
+        "rolle": "Rolle",
+        "email": "E-Mail",
+        "status": "Zweiter Faktor"
+      },
+      "aktiv": "{anzahl, plural, one {aktiv, # Faktor} other {aktiv, # Faktoren}}",
+      "nichtEingerichtet": "nicht eingerichtet",
+      "keineKonten": "Es gibt noch kein Konto mit Anmeldung.",
+      "nichtGeladen": "Der Status konnte nicht geladen werden. Es lässt sich daraus nichts über den Schutz der Konten ablesen. Bitte die Seite neu laden."
+    }
   },
   "suche": {
     "titel": "Suche",

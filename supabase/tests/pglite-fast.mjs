@@ -1724,6 +1724,47 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
+// --- 20. MFA-Status aller Konten fuer die Administration (WMCNL-2479) -------------
+{
+  const { rows: admins } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-admin-mfa@damicon.demo', '{"role":"admin"}'::jsonb) returning id;`,
+  );
+  // Die Konten aus den Abschnitten davor: ein bestaetigter Faktor fuer die
+  // Brigade, ein unbestaetigter fuer die Leitung (zaehlt nicht).
+  await db.query("insert into auth.mfa_factors (user_id, status) values ($1, 'verified');", [brigadeAuthId]);
+  await db.query("insert into auth.mfa_factors (user_id, status) values ($1, 'unverified');", [leitungAuthId]);
+
+  await alsRolle(db, "authenticated", admins[0].id);
+  const { rows: uebersicht } = await db.query("select * from public.mfa_status_je_konto();");
+  const jeEmail = Object.fromEntries(uebersicht.map((z) => [z.email, z.faktoren]));
+  check(
+    "MFA-Uebersicht: ein bestaetigter Faktor zaehlt, ein unbestaetigter nicht",
+    jeEmail["it-brigade@damicon.demo"] === 1 && jeEmail["it-leitung@damicon.demo"] === 0,
+    `Brigade: ${jeEmail["it-brigade@damicon.demo"]}, Leitung: ${jeEmail["it-leitung@damicon.demo"]}`,
+  );
+  check(
+    "MFA-Uebersicht: Konten ohne Schutz stehen zuerst",
+    uebersicht.length > 1 && uebersicht[0].faktoren === 0 && uebersicht[uebersicht.length - 1].faktoren >= 1,
+    `erste Zeile: ${uebersicht[0]?.faktoren}, letzte: ${uebersicht[uebersicht.length - 1]?.faktoren}`,
+  );
+  await alsAdmin(db);
+
+  // Ohne die Rolle admin gibt es 42501, keine leere Liste.
+  await alsRolle(db, "authenticated", leitungAuthId);
+  let leitungFehler = null;
+  try {
+    await db.query("select * from public.mfa_status_je_konto();");
+  } catch (e) {
+    leitungFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check("MFA-Uebersicht: die Betriebsleitung bekommt 42501", leitungFehler === "42501", `errcode: ${leitungFehler}`);
+
+  await db.query("delete from auth.mfa_factors where user_id in ($1, $2);", [brigadeAuthId, leitungAuthId]);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);

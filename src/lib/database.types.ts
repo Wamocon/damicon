@@ -3960,6 +3960,16 @@ export type Database = {
         }
         Returns: number
       }
+      mfa_status_je_konto: {
+        Args: never
+        Returns: {
+          email: string
+          faktoren: number
+          profil_id: string
+          rolle: Database["public"]["Enums"]["app_role"]
+          voller_name: string
+        }[]
+      }
       mwst_schwelle_pruefen: {
         Args: never
         Returns: {
