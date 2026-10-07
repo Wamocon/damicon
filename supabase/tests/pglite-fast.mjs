@@ -1694,6 +1694,36 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
+// --- 19. Abschluss ohne Fotobeleg hat einen eigenen Fehlercode (WMCNL-2492) ----
+// Die Oberflaeche meldete "Die Wartezeit ist noch nicht abgelaufen", weil der
+// Abschluss ohne Beleg mit 23514 abgelehnt wurde und dbFehler() 23514 auf die
+// Wartezeit-Meldung abbildet. DA006 trennt die beiden Faelle.
+{
+  // Ein Block ohne Sperre: blockId ist an dieser Stelle durch die Abschnitte
+  // davor wartezeitgesperrt.
+  const { rows: freierBlock } = await db.query(
+    "select id from public.reihenbloecke where status <> 'wartezeitgesperrt' limit 1;",
+  );
+  const { rows: neueAufgabe } = await db.query(
+    `insert into public.pflueckaufgaben (code, reihenblock_id, zielmenge_kg, status, ist_menge_kg, qualitaetsfaktor)
+     values ('PA-IT-BELEG-1', $1, 5, 'beleg_pruefung', 5, 1.00) returning id;`,
+    [freierBlock[0].id],
+  );
+  await alsRolle(db, "authenticated", leitungAuthId);
+  const ohneBeleg = await (async () => {
+    try {
+      await db.query("update public.pflueckaufgaben set status = 'abgeschlossen' where id = $1;", [neueAufgabe[0].id]);
+      return null;
+    } catch (e) {
+      return e?.cause?.code ?? e?.code ?? String(e).slice(0, 80);
+    }
+  })();
+  check("Pflueckaufgabe: Abschluss ohne Fotobeleg meldet DA006 statt 23514", ohneBeleg === "DA006", `errcode: ${ohneBeleg}`);
+  await alsAdmin(db);
+  await db.query("delete from public.pflueckaufgaben where id = $1;", [neueAufgabe[0].id]);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);
