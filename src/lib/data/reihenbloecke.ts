@@ -168,7 +168,15 @@ export async function ladePsmMittel(): Promise<PsmOption[]> {
 export interface ProfilOption {
   id: string;
   vollerName: string;
+  /** Profilrolle: gleiche Namen sind so unterscheidbar (WMCNL-2292). */
+  rolle: string;
 }
+
+// Wer eine Behandlung erfassen darf, also auch ausfuehren kann: dieselben Rollen,
+// die rbac.ts fuer die Ressource "pflanzenschutz" vorsieht (Migrationskopf
+// 20260918000000). Die Liste zeigte vorher jedes Konto, auch Kunden, Erzeuger und
+// Pfluecker.
+const AUSFUEHRENDE_ROLLEN = ["admin", "betriebsleitung", "brigade"] as const;
 
 // Anforderung 2.4: fuer die Auswahl der durchfuehrenden Person beim Erfassen
 // einer Behandlung.
@@ -177,7 +185,8 @@ export async function ladeProfile(): Promise<ProfilOption[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name")
+    .select("id, full_name, role")
+    .in("role", [...AUSFUEHRENDE_ROLLEN])
     .order("full_name");
-  return (data ?? []).map((p) => ({ id: p.id, vollerName: p.full_name }));
+  return (data ?? []).map((p) => ({ id: p.id, vollerName: p.full_name, rolle: p.role }));
 }

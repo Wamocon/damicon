@@ -85,7 +85,14 @@ export function LieferungAnlegenFormular({
   );
 }
 
-export function UebergabeErfassenFormular({ lieferungId }: { lieferungId: string }) {
+export function UebergabeErfassenFormular({
+  lieferungId,
+  kundeName,
+}: {
+  lieferungId: string;
+  /** Kunde der Lieferung: der Hinweis nennt ihn, damit klar ist, wessen Person gemeint ist (WMCNL-2391). */
+  kundeName: string;
+}) {
   const [status, action] = useActionState(uebergabeErfassen, leer);
   const t = useTranslations("lieferungenAnsicht");
 
@@ -99,6 +106,7 @@ export function UebergabeErfassenFormular({ lieferungId }: { lieferungId: string
         name="empfaenger_name"
         required
         placeholder={t("empfaengerNamePlatzhalter")}
+        hinweis={t("empfaengerHinweis", { kunde: kundeName })}
       />
       <label className="block space-y-1">
         <span className="text-[11px] font-semibold text-card-foreground">{t("beleg")}</span>
