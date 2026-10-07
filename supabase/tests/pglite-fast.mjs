@@ -1619,6 +1619,41 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.role', '', false);");
 }
 
+// --- 18. Wettermessungen: Loeschrecht und ein Tag, eine Zeile (WMCNL-2389) ------
+// Die Aktualisierung loescht den Bestand und schreibt ihn neu. Ohne DELETE-Policy
+// loescht RLS keine Zeile, ohne Fehler zu melden - die Saison verdoppelte sich
+// bei jedem Klick.
+{
+  const tag = "2026-01-05";
+  const ohneDublette = async (name, sql, params = []) => {
+    try {
+      await db.query(sql, params);
+      return null;
+    } catch (e) {
+      return e?.cause?.code ?? e?.code ?? name;
+    }
+  };
+
+  await alsRolle(db, "authenticated", leitungAuthId);
+  const erste = await ohneDublette("erste", "insert into public.wetter_messungen (gemessen_am, temp_min_c, temp_max_c) values ($1, 1, 5);", [tag]);
+  const zweite = await ohneDublette("zweite", "insert into public.wetter_messungen (gemessen_am, temp_min_c, temp_max_c) values ($1, 2, 6);", [tag]);
+  check("Wetter: ein Tag ist nur einmal in der betriebsweiten Reihe moeglich", erste === null && zweite === "23505", `erste: ${erste}, zweite: ${zweite}`);
+
+  const geloescht = await db.query("delete from public.wetter_messungen where gemessen_am = $1 and feldparzelle_id is null;", [tag]);
+  check("Wetter: die Betriebsleitung darf Wettermessungen loeschen (Aktualisierung ersetzt den Bestand)", geloescht.affectedRows === 1, `geloeschte Zeilen: ${geloescht.affectedRows}`);
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  await alsAdmin(db);
+  await db.query("insert into public.wetter_messungen (gemessen_am, temp_min_c, temp_max_c) values ($1, 1, 5);", [tag]);
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  const brigadeLoescht = await db.query("delete from public.wetter_messungen where gemessen_am = $1 and feldparzelle_id is null;", [tag]);
+  check("Wetter: die Brigade darf keine Wettermessung loeschen", brigadeLoescht.affectedRows === 0, `geloeschte Zeilen: ${brigadeLoescht.affectedRows}`);
+
+  await alsAdmin(db);
+  await db.query("delete from public.wetter_messungen where gemessen_am = $1 and feldparzelle_id is null;", [tag]);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);

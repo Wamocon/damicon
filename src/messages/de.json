@@ -1731,6 +1731,7 @@
     "keineDaten": "Noch keine Wetterdaten erfasst.",
     "tageTitel": "Letzte 14 Tage",
     "tageLead": "Tagesminimum, Tagesmaximum, Niederschlag und die kumulierte Temperatursumme bis zu diesem Tag.",
+    "veraltet": "Die Messreihe endet am {datum}. Mit „Jetzt aktualisieren“ unten kommen die fehlenden Tage dazu.",
     "col": {
       "datum": "Datum",
       "min": "Min.",

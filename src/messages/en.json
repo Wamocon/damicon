@@ -1731,6 +1731,7 @@
     "keineDaten": "No weather data recorded yet.",
     "tageTitel": "Last 14 days",
     "tageLead": "Daily minimum, daily maximum, precipitation and the cumulative temperature sum up to that day.",
+    "veraltet": "The series ends on {datum}. “Update now” below adds the missing days.",
     "col": {
       "datum": "Date",
       "min": "Min.",
