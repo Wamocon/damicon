@@ -3,6 +3,12 @@
 // die Skript-Dokumente gruppieren nach quelle_id (wie sie das Einlese-Skript vergibt), notfalls nach Pfad.
 // Reine Funktion, ohne Datenbank, damit sie testbar bleibt.
 
+import { istUploadZeile, UPLOAD_QUELLE } from "@/lib/wissen/upload-quelle";
+
+/** Die Spalten, die die Liste liest (PostgREST-Schreibweise, Aliase fuer extra->>...). Eine Stelle fuer Action und Test. */
+export const LISTE_SPALTEN =
+  "id, quelle_id, pfad, titel, bereich, rollen, eingelesen_am, upload_quelle:extra->>quelle, hochgeladen_von:extra->>hochgeladen_von_name";
+
 /** Nur die leichten Spalten: Text und Vektoren werden fuer die Liste nie gelesen. */
 export interface WissenListeZeile {
   id: string;
@@ -33,7 +39,6 @@ export interface WissenDokumentZeile {
   loeschbar: boolean;
 }
 
-const istUploadZeile = (z: WissenListeZeile) => z.upload_quelle === "upload" && (z.quelle_id ?? "").startsWith("upload:");
 
 export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[]): WissenDokumentZeile[] {
   const gruppen = new Map<string, WissenDokumentZeile>();
@@ -49,7 +54,7 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[]): W
         datum: z.eingelesen_am,
         hochgeladenVon: z.hochgeladen_von,
         chunks: 1,
-        herkunft: z.upload_quelle === "upload" ? "upload" : "skript",
+        herkunft: z.upload_quelle === UPLOAD_QUELLE ? "upload" : "skript",
         loeschbar: istUploadZeile(z),
       });
       continue;

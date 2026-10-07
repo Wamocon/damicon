@@ -914,8 +914,8 @@
       "transkription": "Dictation accepted.",
       "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
       "dokumentGeaendert": "Document “{wert}” updated.",
-      "wissenHochgeladen": "Document \"{wert}\" uploaded and searchable.",
-      "wissenGeloescht": "Document \"{wert}\" deleted.",
+      "wissenHochgeladen": "Document “{wert}” uploaded and searchable.",
+      "wissenGeloescht": "Document “{wert}” deleted.",
       "wissenSchonGeloescht": "This document has already been deleted."
     },
     "fehler": {
@@ -964,10 +964,11 @@
       "wissenLesen": "The file could not be read (damaged, encrypted or not a text file).",
       "wissenLeer": "The file contains no readable text (for a PDF: probably a scan without a text layer).",
       "wissenZuLang": "The document is too long (at most {wert} sections). Please split it into several files.",
-      "wissenDoppelt": "This content is already in the knowledge base (\"{wert}\").",
+      "wissenDoppelt": "This content is already in the knowledge base (“{wert}”).",
       "wissenEinbettung": "Embedding failed. The embedding service is unreachable, nothing was saved.",
+      "wissenZeit": "Embedding takes too long (more than {wert} seconds). Nothing was saved. Please split the document into several smaller files.",
       "wissenSpeichern": "The document could not be saved. Nothing was kept.",
-      "wissenVorschau": "Upload blocked: the preview environment does not write to the knowledge base because it may share the production database. Please upload in production or in an environment with its own database.",
+      "wissenVorschau": "Upload blocked: this preview environment writes to the same database schema as production (SUPABASE_DB_SCHEMA is not public_preview). Please upload in production or in a preview with its own schema.",
       "wissenNichtLoeschbar": "This document cannot be deleted here. Only documents uploaded through this administration can be deleted, never documents from the import script.",
       "wissenLoeschen": "The document could not be deleted. Nothing was changed.",
       "wissenGewichte": "The document was deleted, but the search word weights could not be updated. This is harmless and is corrected by the next ETL run."
@@ -2238,6 +2239,7 @@
         "laedt": "Loading documents …",
         "leer": "No documents in the knowledge base yet.",
         "fehler": "The document list could not be loaded.",
+        "abgeschnitten": "The list is incomplete: the knowledge base has more passages than this view can read. Please report it.",
         "rollen": "Roles",
         "datum": "Loaded on",
         "von": "By",

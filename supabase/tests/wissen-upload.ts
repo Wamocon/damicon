@@ -20,24 +20,20 @@ import type { Einbettung } from "@/lib/wissen/embed";
 import { gruppiereWissenDokumente, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
 import {
-  BEREICH_WERT,
   erlaubteRollen,
   pruefeUploadUmgebung,
-  idf,
   inhaltsHash,
   MAX_CHUNKS,
-  MAX_DATEI_BYTES,
   UploadFehler,
-  UPLOAD_BEREICHE,
-  UPLOAD_ROLLEN,
-  uploadQuelleId,
   verarbeiteUpload,
+  ZEITBUDGET_MS,
   type ChunkZeile,
   type UploadEingabe,
   type WissenSpeicher,
 } from "@/lib/wissen/hochladen";
-import { bereichSchluessel } from "@/lib/wissen/upload-konstanten";
-import { alsSparsevec, sparseDokument, sparseIndex, sparsevecIndizes, tokens, wortgewichte } from "@/lib/wissen/sparse";
+import { BEREICH_WERT, bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
+import { alsSparsevec, idf, sparseDokument, sparseIndex, sparsevecIndizes, tokens, wortgewichte } from "@/lib/wissen/sparse";
+import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import type { RpcKlient } from "@/lib/wissen/supabase-suche";
 import { sucheWissen } from "@/lib/wissen/suche";
 
@@ -135,7 +131,7 @@ function falscherSpeicher(
     async ladeQuellenInfo(quelleId) {
       ereignisse.push("ladeQuellenInfo");
       const z = [...zeilen.values()].filter((r) => r.quelle_id === quelleId);
-      const fremd = z.filter((r) => !(r.extra.quelle === "upload" && (r.quelle_id ?? "").startsWith("upload:"))).length;
+      const fremd = z.filter((r) => !istUploadZeile({ quelle_id: r.quelle_id, upload_quelle: typeof r.extra.quelle === "string" ? r.extra.quelle : null })).length;
       return { anzahl: z.length, fremd, titel: z[0]?.titel ?? null, bereich: z[0]?.bereich ?? null };
     },
     async loescheUpload(quelleId) {
@@ -270,20 +266,28 @@ async function main() {
   pruefe("Bereiche: Anzeige kehrt legal wieder zu recht um, Korpuswerte bleiben", bereichSchluessel("legal") === "recht" && bereichSchluessel("steuer") === "steuer" && bereichSchluessel("amtlich") === "amtlich" && bereichSchluessel("nk-214-viii") === "nk-214-viii");
 
   // ---- 2b. Vorschau-Schutz -----------------------------------------------------------------------
+  // Seit dem Schema-Schalter (SUPABASE_DB_SCHEMA) bestimmt das Schema, wohin die App schreibt. Gesperrt ist nur noch
+  // eine Vorschau, die auf public (Produktion) schreiben wuerde.
   {
-    const wirft = (env: Record<string, string | undefined>) => { try { pruefeUploadUmgebung(env); return false; } catch (e) { return e instanceof UploadFehler && e.code === "vorschau"; } };
-    pruefe("Vorschau-Schutz: VERCEL_ENV=preview wird abgelehnt", wirft({ VERCEL_ENV: "preview" }));
-    pruefe("Vorschau-Schutz: WISSEN_UPLOAD_PREVIEW_OK=true hebt die Sperre auf", !wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: "true" }));
+    const wirft = (env: Record<string, string | undefined>, schema = "public") => { try { pruefeUploadUmgebung(env, schema); return false; } catch (e) { return e instanceof UploadFehler && e.code === "vorschau"; } };
+    pruefe("Vorschau-Schutz: VERCEL_ENV=preview mit Schema public wird abgelehnt", wirft({ VERCEL_ENV: "preview" }));
+    pruefe("Vorschau-Schutz: eine Vorschau mit eigenem Schema public_preview ist frei (sie schreibt in die Kopie)", !wirft({ VERCEL_ENV: "preview" }, "public_preview"));
+    pruefe("Vorschau-Schutz: WISSEN_UPLOAD_PREVIEW_OK=true hebt die Sperre auf (auch bei Schema public, eigene Datenbank)", !wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: "true" }));
     pruefe("Vorschau-Schutz: nur der Wert true gilt (1, yes, TRUE, leer nicht)", ["1", "yes", "TRUE", "", "false"].every((v) => wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: v })));
     pruefe("Vorschau-Schutz: Produktion, Development und lokal (ohne VERCEL_ENV) sind frei", !wirft({ VERCEL_ENV: "production" }) && !wirft({ VERCEL_ENV: "development" }) && !wirft({}));
-    pruefe("Vorschau-Schutz: das Flag allein erlaubt nichts anderes (preview bleibt zu ohne Flag)", wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: undefined }));
+    pruefe("Vorschau-Schutz: das Flag allein erlaubt nichts anderes (preview mit public bleibt zu ohne Flag)", wirft({ VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: undefined }));
     const s = falscherSpeicher();
     const e = falscheEinbettung();
-    const code = await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s, einbettung: e, jetzt: JETZT, umgebung: { VERCEL_ENV: "preview" } }));
-    pruefe("Vorschau-Schutz: verarbeiteUpload in der Vorschau -> vorschau, nichts gelesen, eingebettet oder geschrieben", code === "vorschau" && e.aufrufe === 0 && s.ereignisse.length === 0 && s.zeilen.size === 0);
-    const frei = await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s, einbettung: e, jetzt: JETZT, umgebung: { VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: "true" } }));
+    const code = await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s, einbettung: e, jetzt: JETZT, umgebung: { VERCEL_ENV: "preview" }, schema: "public" }));
+    pruefe("Vorschau-Schutz: verarbeiteUpload in der Vorschau mit Schema public -> vorschau, nichts gelesen, eingebettet oder geschrieben", code === "vorschau" && e.aufrufe === 0 && s.ereignisse.length === 0 && s.zeilen.size === 0);
+    const frei = await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: s, einbettung: e, jetzt: JETZT, umgebung: { VERCEL_ENV: "preview", WISSEN_UPLOAD_PREVIEW_OK: "true" }, schema: "public" }));
     pruefe("Vorschau-Schutz: mit Freigabe laeuft der Upload", frei === "kein-fehler" && s.zeilen.size > 0);
+    const s2 = falscherSpeicher();
+    const frei2 = await fehlerCode(() => verarbeiteUpload(eingabe({ titel: "Zweites Dokument", bytes: bytes("Anderer Inhalt Nachtigall Tintenfass.") }), { speicher: s2, einbettung: falscheEinbettung(), jetzt: JETZT, umgebung: { VERCEL_ENV: "preview" }, schema: "public_preview" }));
+    pruefe("Vorschau-Schutz: Vorschau mit Schema public_preview darf hochladen, ohne Flag", frei2 === "kein-fehler" && s2.zeilen.size > 0);
     pruefe("Vorschau-Schutz: die Action meldet den Fall mit eigener Meldung", /vorschau: "fehler\.wissenVorschau"/.test(aktion) && aktion.indexOf("pruefeUploadUmgebung();") < aktion.indexOf("arrayBuffer()"));
+    const hochladenOhneKommentare = lies("src/lib/wissen/hochladen.ts").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    pruefe("Vorschau-Schutz: das Schema kommt aus der App (DATENBANK_SCHEMA), nicht aus einer zweiten Regel", /DATENBANK_SCHEMA/.test(hochladenOhneKommentare) && !/NEXT_PUBLIC_DB_SCHEMA|SUPABASE_DB_SCHEMA/.test(hochladenOhneKommentare));
   }
 
   // ---- 3. Eingabepruefung -----------------------------------------------------------------------
@@ -347,9 +351,12 @@ async function main() {
     const alle = [...sp.zeilen.values()].map((z) => z.text).join(" ");
     pruefe("Upload (.pdf): Text wird aus dem PDF gelesen und gespeichert", rp.chunks > 0 && /Schneeeule/.test(alle) && /dreissig Tage/.test(alle), alle.slice(0, 80));
     const sm = falscherSpeicher();
-    await verarbeiteUpload(eingabe({ dateiname: "front.md", bytes: bytes("---\ntitel: Fremder Titel\nquelle_id: fremd\nchunk_id: fremd\nautoritaetsstufe: 2\n---\n\nInhalt Frontmatter Eisvogel.\n") }), { speicher: sm, einbettung: falscheEinbettung(), jetzt: JETZT });
+    const ergFront = await verarbeiteUpload(eingabe({ dateiname: "front.md", bytes: bytes("---\ntitel: Fremder Titel\nquelle_id: fremd\nchunk_id: fremd\nautoritaetsstufe: 2\n---\n\nInhalt Frontmatter Eisvogel.\n") }), { speicher: sm, einbettung: falscheEinbettung(), jetzt: JETZT });
     const z = [...sm.zeilen.values()][0]!;
     pruefe("Upload (.md mit Frontmatter): Titel, Quelle und Kennung setzt der Upload, die Stufe bleibt erhalten", z.titel === "Testkodex Zypresse" && z.quelle_id?.startsWith("upload:") === true && z.chunk_id === z.quelle_id && z.autoritaetsstufe === 2);
+    pruefe("Upload (.md mit Frontmatter): die Stufe steht im Ergebnis, damit die Action sie protokolliert (Stufe 1 bis 3 belegt die bevorzugten Rechtsplaetze)", ergFront.autoritaetsstufe === 2 && /autoritaetsstufe: ergebnis\.autoritaetsstufe/.test(aktion));
+    const ohneFront = await verarbeiteUpload(eingabe({ dateiname: "ohne.txt", bytes: bytes("Ohne Frontmatter Silberdistel.") }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT });
+    pruefe("Upload (.txt): ohne Frontmatter bleibt die Stufe leer (null)", ohneFront.autoritaetsstufe === null);
   }
 
   // ---- 6. Dublette -------------------------------------------------------------------------------
@@ -464,8 +471,8 @@ async function main() {
     pruefe("Loeschen/Protokoll: das vorhandene Muster protokolliere() schreibt wissen.geloescht (wer, was, wann ueber audit_events)", /protokolliere\(profil, "wissen\.geloescht"/.test(rumpf));
     const loe = lies("src/lib/wissen/loeschen.ts");
     pruefe("Loeschen: der Vorschau-Schutz steht als erstes in der Loeschfunktion", loe.indexOf("pruefeUploadUmgebung(") > 0 && loe.indexOf("pruefeUploadUmgebung(") < loe.indexOf("istUploadQuelleId(quelleId)"));
-    const adapter = lies("src/lib/wissen/hochladen.ts");
-    pruefe("Loeschen/Adapter: die DELETE-Anweisung filtert selbst auf quelle_id, 'upload:%' und extra->>quelle = upload", /\.delete\(\)[\s\S]{0,200}\.like\("quelle_id", "upload:%"\)[\s\S]{0,80}\.eq\("extra->>quelle", UPLOAD_QUELLE\)/.test(adapter));
+    const adapter = lies("src/lib/wissen/speicher-supabase.ts");
+    pruefe("Loeschen/Adapter: die DELETE-Anweisung filtert selbst auf quelle_id, 'upload:%' und extra->>quelle = upload", /\.delete\(\)[\s\S]{0,200}\.like\("quelle_id", UPLOAD_QUELLE_MUSTER\)[\s\S]{0,80}\.eq\("extra->>quelle", UPLOAD_QUELLE\)/.test(adapter));
     const ui = lies("src/components/db/wissen-verwaltung.tsx");
     pruefe("Loeschen/UI: der Knopf erscheint nur bei loeschbar, mit Bestaetigungsfenster", /dokument\.loeschbar \?/.test(ui) && /showModal\(\)/.test(ui));
 
@@ -568,17 +575,53 @@ async function main() {
   // ---- 11. ETL laesst Uploads stehen ---------------------------------------------------------------
   {
     const etl = lies("scripts/wissen-nach-supabase.ts");
-    pruefe("ETL: Marker upload ist definiert", /const UPLOAD_QUELLE = "upload"/.test(etl));
+    pruefe("ETL: der Marker kommt aus upload-quelle.ts (keine eigene Kopie)", /import \{ UPLOAD_QUELLE \} from "\.\.\/src\/lib\/wissen\/upload-quelle"/.test(etl) && !/const UPLOAD_QUELLE\s*=/.test(etl));
     pruefe("ETL: --bereinigen liest extra->>quelle und schliesst Uploads vom Loeschen aus", /extra->>quelle/.test(etl) && /!== UPLOAD_QUELLE/.test(etl));
     pruefe("ETL: Uploads zaehlen in die Dokumenthaeufigkeit (N und df) mit", /listen\.push\(sparsevecIndizes\(/.test(etl) && /wortgewichte\(listen\)/.test(etl));
-    pruefe("Upload und ETL benutzen denselben Marker", lies("src/lib/wissen/hochladen.ts").includes('UPLOAD_QUELLE = "upload"'));
+    pruefe("Upload und ETL benutzen denselben Marker", /from "@\/lib\/wissen\/upload-quelle"/.test(lies("src/lib/wissen/hochladen.ts")) && lies("src/lib/wissen/upload-quelle.ts").includes('UPLOAD_QUELLE = "upload"'));
+  }
+
+  // ---- 11b. Zeitbudget: vor dem ersten Schreiben aufhoeren ------------------------------------------
+  {
+    const lang = eingabe({ dateiname: "lang.txt", bytes: bytes(Array.from({ length: 60 }, (_, i) => `Absatz ${i}: ${"Wort".repeat(300)} nummer${i}`).join("\n\n")) });
+    const sA = falscherSpeicher();
+    const eA = falscheEinbettung();
+    let tA = 0;
+    let fA: unknown = null;
+    try { await verarbeiteUpload(lang, { speicher: sA, einbettung: eA, jetzt: JETZT, jetztMs: () => (tA += 20_000) }); } catch (e) { fA = e; }
+    pruefe("Zeitbudget: ist es aufgebraucht, kommt der Fehler zeit (mit der Sekundenzahl) statt eines Abbruchs durch die Plattform", fA instanceof UploadFehler && fA.code === "zeit" && fA.wert === String(ZEITBUDGET_MS / 1000), fA instanceof UploadFehler ? `code=${fA.code} wert=${fA.wert}` : String(fA));
+    pruefe("Zeitbudget: es wird vor jedem Einbettungsaufruf geprueft, nach zwei Aufrufen (40 s von 45 s) ist Schluss", eA.aufrufe === 2, `aufrufe=${eA.aufrufe}`);
+    pruefe("Zeitbudget: bis dahin wurde NICHTS geschrieben (nur die Dublettenpruefung lief)", sA.zeilen.size === 0 && sA.begriffe.size === 0 && sA.ereignisse.every((x) => x === "findeQuelle"));
+    const sB = falscherSpeicher();
+    const eB = falscheEinbettung();
+    let tB = 0;
+    const codeB = await fehlerCode(() => verarbeiteUpload(lang, { speicher: sB, einbettung: eB, jetzt: JETZT, jetztMs: () => (tB += 1), zeitbudgetMs: 0 }));
+    pruefe("Zeitbudget: bei Budget 0 bricht der Upload ab, bevor der Dienst ein einziges Mal gefragt wird", codeB === "zeit" && eB.aufrufe === 0 && sB.zeilen.size === 0);
+    const sC = falscherSpeicher();
+    const codeC = await fehlerCode(() => verarbeiteUpload(eingabe(), { speicher: sC, einbettung: falscheEinbettung(), jetzt: JETZT }));
+    pruefe("Zeitbudget: ein normales Dokument ist davon nicht betroffen", codeC === "kein-fehler" && sC.zeilen.size > 0);
+    pruefe("Zeitbudget: ZEITBUDGET_MS bleibt unter dem maxDuration des Dashboards (60 s)", ZEITBUDGET_MS < 60_000 && /maxDuration = 60/.test(lies("src/app/[locale]/dashboard/layout.tsx")));
+    pruefe("Zeitbudget: die Action kennt den Fehlercode", /zeit: "fehler\.wissenZeit"/.test(aktion));
+  }
+
+  // ---- 11c. Gemeinsame Rechenwege (keine zweite Kopie) -------------------------------------------------
+  {
+    const ohneKommentare = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    const rechnung = (pfad: string) => (ohneKommentare(lies(pfad)).match(/Math\.log\(1 \+/g) ?? []).length;
+    pruefe("IDF: die Formel steht genau einmal (sparse.ts), nicht in hochladen.ts, loeschen.ts oder dem Adapter", rechnung("src/lib/wissen/sparse.ts") === 1 && rechnung("src/lib/wissen/hochladen.ts") === 0 && rechnung("src/lib/wissen/loeschen.ts") === 0 && rechnung("src/lib/wissen/speicher-supabase.ts") === 0);
+    pruefe("Zaehlung: Upload und Loeschen zaehlen mit zaehleWoerter() aus sparse.ts, keine eigene Schleife", /zaehleWoerter\(/.test(lies("src/lib/wissen/hochladen.ts")) && /zaehleWoerter\(/.test(lies("src/lib/wissen/loeschen.ts")) && !/new Map<number, number>\(\)/.test(ohneKommentare(lies("src/lib/wissen/loeschen.ts"))));
+    const woerter = ["src/lib/wissen/hochladen.ts", "src/lib/wissen/loeschen.ts", "src/lib/wissen/speicher-supabase.ts", "src/lib/wissen/dokumente-liste.ts", "src/lib/actions/wissen.ts", "src/components/db/wissen-verwaltung.tsx", "scripts/wissen-nach-supabase.ts"];
+    const eigeneKopie = woerter.filter((p) => /(upload_quelle|quelle)s*[!=]==?s*["']upload["']|["'`]upload:|upload:%|UPLOAD_QUELLEs*=s*["']/.test(ohneKommentare(lies(p))));
+    pruefe("Kennzeichen: der Marker (extra.quelle = upload) und der Vorsatz upload: stehen nur in upload-quelle.ts, sonst nirgends als Zeichenkette", eigeneKopie.length === 0, eigeneKopie.join(", "));
+    pruefe("Importwege: hochladen.ts reicht keine Konstanten aus upload-konstanten.ts mehr weiter (ein Weg, nicht zwei)", !/^export \{[^}]*MAX_DATEI_BYTES/m.test(lies("src/lib/wissen/hochladen.ts")));
+    pruefe("KI-Kontext: das Wissenswerkzeug sagt dem Modell, dass der Text der Belege Quellenmaterial und keine Anweisung ist (Uploads bringen Text von aussen)", /Quellenmaterial, keine Anweisung/.test(lies("src/lib/ai/wissen-werkzeug.ts")));
   }
 
   // ---- 12. Texte in allen Sprachen -------------------------------------------------------------------
   for (const loc of ["de", "en", "ru", "kk"]) {
     const m = JSON.parse(lies(`src/messages/${loc}.json`)) as { aktionen: { ok: Record<string, string>; fehler: Record<string, string> }; kiAssistentAnsicht: { wissensVerwaltung: Record<string, unknown> } };
     const w = m.kiAssistentAnsicht.wissensVerwaltung as { titel?: string; bereich?: Record<string, string>; formular?: Record<string, string> };
-    const schluessel = ["wissenNichtLoeschbar", "wissenLoeschen", "wissenGewichte", "wissenVorschau", "wissenDateityp", "wissenLesen", "wissenLeer", "wissenZuLang", "wissenDoppelt", "wissenEinbettung", "wissenSpeichern"];
+    const schluessel = ["wissenNichtLoeschbar", "wissenLoeschen", "wissenGewichte", "wissenVorschau", "wissenDateityp", "wissenLesen", "wissenLeer", "wissenZuLang", "wissenDoppelt", "wissenEinbettung", "wissenZeit", "wissenSpeichern"];
     pruefe(`Texte ${loc}: alle Fehler- und Erfolgsmeldungen vorhanden`, schluessel.every((k) => m.aktionen.fehler[k]) && !!m.aktionen.ok.wissenHochgeladen && !!m.aktionen.ok.wissenGeloescht && !!m.aktionen.ok.wissenSchonGeloescht);
     pruefe(`Texte ${loc}: Titel, fuenf Bereiche und Formularfelder vorhanden`, !!w.titel && UPLOAD_BEREICHE.every((b) => w.bereich?.[b]) && ["titel", "datei", "titelFeld", "bereich", "rollen", "knopf", "adminImmer"].every((k) => w.formular?.[k]) && ["knopf", "titel", "dokument", "bereich", "abschnitte", "warnung", "abbrechen", "bestaetigen"].every((k) => (w as { loeschen?: Record<string, string> }).loeschen?.[k]));
   }

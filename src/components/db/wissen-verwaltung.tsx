@@ -17,6 +17,7 @@ export function WissenVerwaltung() {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
   const [dokumente, setDokumente] = useState<WissenDokumentZeile[] | null>(null);
   const [ladefehler, setLadefehler] = useState(false);
+  const [abgeschnitten, setAbgeschnitten] = useState(false);
   const [loeschMeldung, setLoeschMeldung] = useState<AktionsStatus>(leer);
   const [, starte] = useTransition();
 
@@ -25,6 +26,7 @@ export function WissenVerwaltung() {
       const antwort = await wissenDokumenteLaden();
       setDokumente(antwort.dokumente);
       setLadefehler(antwort.fehler);
+      setAbgeschnitten(antwort.abgeschnitten);
     });
   }, []);
 
@@ -39,6 +41,7 @@ export function WissenVerwaltung() {
       <div>
         <p className="mb-2 text-[11px] font-semibold text-card-foreground">{t("liste.titel")}</p>
         <AktionsMeldung status={loeschMeldung} />
+        {abgeschnitten ? <p role="status" className="mb-2 text-[11px] font-semibold text-destructive">{t("liste.abgeschnitten")}</p> : null}
         {ladefehler ? (
           <Card className="text-center text-xs text-destructive">{t("liste.fehler")}</Card>
         ) : dokumente === null ? (

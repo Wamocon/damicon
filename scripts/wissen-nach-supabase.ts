@@ -17,6 +17,7 @@ import { createClient } from "@supabase/supabase-js";
 import { DATENBANK_SCHEMA } from "../src/lib/supabase/schema";
 import { qdrantAusUmgebung } from "../src/lib/wissen/qdrant";
 import { alsSparsevec, sparseIndex, sparsevecIndizes, wortgewichte } from "../src/lib/wissen/sparse";
+import { UPLOAD_QUELLE } from "../src/lib/wissen/upload-quelle";
 
 interface QdrantPunkt {
   id: string;
@@ -30,10 +31,10 @@ const BEKANNT = new Set([
   "teile", "kontext", "text", "rollen", "eingelesen_am", "embed_modell",
 ]);
 
-// Zeilen, die der Admin-Upload (src/lib/wissen/hochladen.ts) angelegt hat, tragen extra.quelle = "upload". Sie stehen
-// nicht in Qdrant. Der ETL fasst sie nicht an: --bereinigen loescht sie nicht, und ihre Woerter und ihre Anzahl
-// gehen in die Dokumenthaeufigkeit (df, N) ein, damit ein ETL-Lauf die Gewichte der Uploads nicht zuruecksetzt.
-const UPLOAD_QUELLE = "upload";
+// Zeilen, die der Admin-Upload (src/lib/wissen/hochladen.ts) angelegt hat, tragen extra.quelle = UPLOAD_QUELLE
+// (src/lib/wissen/upload-quelle.ts, dieselbe Konstante wie im Upload). Sie stehen nicht in Qdrant. Der ETL fasst sie
+// nicht an: --bereinigen loescht sie nicht, und ihre Woerter und ihre Anzahl gehen in die Dokumenthaeufigkeit (df, N)
+// ein, damit ein ETL-Lauf die Gewichte der Uploads nicht zuruecksetzt.
 
 const str = (v: unknown): string | null => (typeof v === "string" && v !== "" ? v : null);
 const zahl = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);

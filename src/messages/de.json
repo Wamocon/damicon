@@ -914,8 +914,8 @@
       "transkription": "Diktat übernommen.",
       "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
       "dokumentGeaendert": "Dokument „{wert}“ aktualisiert.",
-      "wissenHochgeladen": "Dokument \"{wert}\" hochgeladen und durchsuchbar.",
-      "wissenGeloescht": "Dokument \"{wert}\" gelöscht.",
+      "wissenHochgeladen": "Dokument „{wert}“ hochgeladen und durchsuchbar.",
+      "wissenGeloescht": "Dokument „{wert}“ gelöscht.",
       "wissenSchonGeloescht": "Dieses Dokument ist bereits gelöscht."
     },
     "fehler": {
@@ -964,10 +964,11 @@
       "wissenLesen": "Die Datei konnte nicht gelesen werden (beschädigt, verschlüsselt oder keine Textdatei).",
       "wissenLeer": "Die Datei enthält keinen lesbaren Text (bei einem PDF: vermutlich ein Scan ohne Textebene).",
       "wissenZuLang": "Das Dokument ist zu lang (höchstens {wert} Abschnitte). Bitte in mehrere Dateien teilen.",
-      "wissenDoppelt": "Dieser Inhalt ist bereits in der Wissensbasis (\"{wert}\").",
+      "wissenDoppelt": "Dieser Inhalt ist bereits in der Wissensbasis („{wert}“).",
       "wissenEinbettung": "Die Einbettung ist fehlgeschlagen. Der Einbettungsdienst ist nicht erreichbar, es wurde nichts gespeichert.",
+      "wissenZeit": "Das Einbetten dauert zu lange (mehr als {wert} Sekunden). Es wurde nichts gespeichert. Bitte das Dokument in mehrere kleinere Dateien teilen.",
       "wissenSpeichern": "Das Dokument konnte nicht gespeichert werden. Es wurde nichts übernommen.",
-      "wissenVorschau": "Upload gesperrt: In der Vorschau-Umgebung wird nicht in die Wissensbasis geschrieben, weil sie dieselbe Datenbank wie die Produktion nutzen kann. Bitte in der Produktion oder in einer Umgebung mit eigener Datenbank hochladen.",
+      "wissenVorschau": "Upload gesperrt: Diese Vorschau-Umgebung schreibt in dasselbe Datenbankschema wie die Produktion (SUPABASE_DB_SCHEMA ist nicht public_preview). Bitte in der Produktion oder in einer Vorschau mit eigenem Schema hochladen.",
       "wissenNichtLoeschbar": "Dieses Dokument kann hier nicht gelöscht werden. Nur über die Verwaltung hochgeladene Dokumente sind löschbar, Dokumente aus dem Einlese-Skript nie.",
       "wissenLoeschen": "Das Dokument konnte nicht gelöscht werden. Es wurde nichts verändert.",
       "wissenGewichte": "Das Dokument wurde gelöscht, aber die Wortgewichte der Suche konnten nicht aktualisiert werden. Das ist unschädlich und wird beim nächsten ETL-Lauf ausgeglichen."
@@ -2238,6 +2239,7 @@
         "laedt": "Dokumente werden geladen …",
         "leer": "Noch keine Dokumente in der Wissensbasis.",
         "fehler": "Die Dokumentliste konnte nicht geladen werden.",
+        "abgeschnitten": "Die Liste ist unvollständig: Die Wissensbasis hat mehr Textstellen, als diese Ansicht lesen kann. Bitte melden.",
         "rollen": "Rollen",
         "datum": "Eingelesen am",
         "von": "Von",

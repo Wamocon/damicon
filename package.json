@@ -56,7 +56,7 @@
     "test:wissen-backend": "npx --yes tsx supabase/tests/wissen-backend.ts",
     "test:wissen-upload": "npx --yes tsx supabase/tests/wissen-upload.ts",
     "test:wissen-etl": "npx --yes tsx supabase/tests/wissen-etl-unveraendert.ts",
-    "test:wissen-db": "node --env-file=.env.local supabase/tests/wissen-pgvector.mjs",
+    "test:wissen-db": "node --env-file=.env.local supabase/tests/wissen-pgvector.mjs && npx --yes tsx --env-file=.env.local supabase/tests/wissen-upload-db.ts",
     "test:pruefung": "npx --yes tsx supabase/tests/pruefung.ts",
     "test:kit": "npx --yes tsx supabase/tests/kit-bausteine.tsx",
     "test:finanz-zeitraum": "npx --yes tsx supabase/tests/finanz-zeitraum.ts",

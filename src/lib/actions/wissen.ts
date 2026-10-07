@@ -7,8 +7,10 @@ import { fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/st
 import { aktualisiere, protokolliere, text } from "@/lib/actions/formular-helfer";
 import { wissenEinbettung } from "@/lib/wissen/embed";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
-import { MAX_DATEI_BYTES, pruefeUploadUmgebung, supabaseSpeicher, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
-import { gruppiereWissenDokumente, type WissenDokumentZeile, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
+import { pruefeUploadUmgebung, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
+import { MAX_DATEI_BYTES } from "@/lib/wissen/upload-konstanten";
+import { supabaseSpeicher } from "@/lib/wissen/speicher-supabase";
+import { gruppiereWissenDokumente, LISTE_SPALTEN, type WissenDokumentZeile, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
 
 // Admin-Upload in die Wissensbasis (Recht, Steuer, Compliance, Audit, Risiko). Dieselbe Berechtigung wie die
 // Anbieter- und Ratenlimit-Verwaltung: requirePermission("ki_assistent", "manage") - laut rbac.ts nur admin.
@@ -31,6 +33,7 @@ const FEHLER_SCHLUESSEL: Record<UploadFehler["code"], string> = {
   zuLang: "fehler.wissenZuLang",
   doppelt: "fehler.wissenDoppelt",
   einbettung: "fehler.wissenEinbettung",
+  zeit: "fehler.wissenZeit",
   speichern: "fehler.wissenSpeichern",
   nichtLoeschbar: "fehler.wissenNichtLoeschbar",
   loeschen: "fehler.wissenLoeschen",
@@ -75,6 +78,8 @@ export async function wissenDokumentHochladen(
       bereich: text(formData, "bereich"),
       quelle_id: ergebnis.quelleId,
       abschnitte: ergebnis.chunks,
+      // Wer ein Frontmatter mit Stufe 1 bis 3 hochlaedt, belegt die bevorzugten Rechtsplaetze: das gehoert ins Protokoll.
+      autoritaetsstufe: ergebnis.autoritaetsstufe,
     });
     aktualisiere(formData);
     return ok("ok.wissenHochgeladen", text(formData, "titel"));
@@ -91,6 +96,8 @@ export async function wissenDokumentHochladen(
 export interface WissenDokumenteAntwort {
   dokumente: WissenDokumentZeile[];
   fehler: boolean;
+  /** Die Wissensbasis hat mehr Textstellen, als die Liste lesen darf (MAX_SEITEN x SEITE): sie ist unvollstaendig. */
+  abgeschnitten: boolean;
 }
 
 const SEITE = 1000;
@@ -102,25 +109,29 @@ export async function wissenDokumenteLaden(): Promise<WissenDokumenteAntwort> {
   try {
     await requirePermission("ki_assistent", "manage");
   } catch {
-    return { dokumente: [], fehler: true };
+    return { dokumente: [], fehler: true, abgeschnitten: false };
   }
   try {
     const db = await createClient();
     const zeilen: WissenListeZeile[] = [];
+    let abgeschnitten = true; // bleibt wahr, wenn die Schleife ohne letzte (kurze) Seite endet
     for (let seite = 0; seite < MAX_SEITEN; seite++) {
       const { data, error } = await db
         .from("wissen_chunks")
-        .select("id, quelle_id, pfad, titel, bereich, rollen, eingelesen_am, upload_quelle:extra->>quelle, hochgeladen_von:extra->>hochgeladen_von_name")
+        .select(LISTE_SPALTEN)
         .order("id")
         .range(seite * SEITE, seite * SEITE + SEITE - 1);
       if (error) throw new Error(error.message);
       zeilen.push(...((data ?? []) as unknown as WissenListeZeile[]));
-      if (!data || data.length < SEITE) break;
+      if (!data || data.length < SEITE) {
+        abgeschnitten = false;
+        break;
+      }
     }
-    return { dokumente: gruppiereWissenDokumente(zeilen), fehler: false };
+    return { dokumente: gruppiereWissenDokumente(zeilen), fehler: false, abgeschnitten };
   } catch (error) {
     console.error("[damicon] Wissensdokumente laden fehlgeschlagen:", error);
-    return { dokumente: [], fehler: true };
+    return { dokumente: [], fehler: true, abgeschnitten: false };
   }
 }
 

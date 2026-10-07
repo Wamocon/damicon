@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Role } from "@/lib/rbac";
 import {
   chunkiere,
@@ -21,10 +20,9 @@ import {
   type UploadBereich,
   type UploadDateityp,
 } from "@/lib/wissen/upload-konstanten";
-import { alsSparsevec, sparseDokument, sparseIndex } from "@/lib/wissen/sparse";
-
-export { BEREICH_WERT, MAX_DATEI_BYTES, MAX_TITEL, UPLOAD_BEREICHE, UPLOAD_ENDUNGEN, UPLOAD_ROLLEN };
-export type { UploadBereich, UploadDateityp };
+import { alsSparsevec, idf, sparseDokument, sparseIndex, zaehleWoerter } from "@/lib/wissen/sparse";
+import { DATENBANK_SCHEMA } from "@/lib/supabase/schema";
+import { UPLOAD_QUELLE, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 
 // Admin-Upload in die BESTEHENDE Wissensbasis (public.wissen_chunks). Kein zweiter
 // Index, keine zweite Suche, keine zweite Einbettung: Zerlegen (chunkiere), Einbetten
@@ -41,9 +39,10 @@ export type { UploadBereich, UploadDateityp };
 export const MAX_CHUNKS = 400; // Obergrenze je Dokument: die Einbettung laeuft synchron in der Server Action
 export const EINBETTUNG_BATCH = 8; // wie --batch im Einlese-Skript
 export const SCHREIB_BATCH = 100; // wie im ETL
-
-/** Marker in `extra.quelle`: der ETL-Spiegelmodus (--bereinigen) laesst solche Zeilen stehen. */
-export const UPLOAD_QUELLE = "upload";
+/** Zeitbudget fuer Lesen und Einbetten in Millisekunden. dashboard/layout.tsx erlaubt 60 Sekunden (maxDuration);
+ *  die restlichen 15 Sekunden gehoeren dem Schreiben und der Antwort. Ist das Budget aufgebraucht, bricht der Upload
+ *  VOR dem ersten Schreiben ab: dann bleibt garantiert nichts zurueck, auch wenn die Plattform sonst hart beendet. */
+export const ZEITBUDGET_MS = 45_000;
 
 export type UploadFehlerCode =
   | "eingabe"
@@ -55,6 +54,7 @@ export type UploadFehlerCode =
   | "zuLang"
   | "doppelt"
   | "einbettung"
+  | "zeit"
   | "speichern"
   | "nichtLoeschbar"
   | "loeschen"
@@ -131,17 +131,6 @@ function normalisiere(text: string): string {
 
 export function inhaltsHash(text: string): string {
   return createHash("sha256").update(normalisiere(text)).digest("hex");
-}
-
-/** Quell-Kennung eines hochgeladenen Dokuments. Sie steckt in `quelle_id` (indiziert), darueber findet der
- *  Dublettenschutz denselben Inhalt wieder, und die Liste gruppiert danach. */
-export function uploadQuelleId(hash: string): string {
-  return `upload:${hash.slice(0, 32)}`;
-}
-
-/** Hat eine quelle_id die Form, die nur der Upload vergibt? (Das Skript vergibt Pfade wie "recht/nk-rk.md".) */
-export function istUploadQuelleId(quelleId: string): boolean {
-  return /^upload:[0-9a-f]{32}$/.test(quelleId);
 }
 
 // ---------------------------------------------------------------- Zeilen bauen
@@ -301,15 +290,13 @@ export interface WissenSpeicher {
   loescheBegriffe(indizes: number[]): Promise<void>;
 }
 
-/** IDF wie im ETL (scripts/wissen-nach-supabase.ts): ln(1 + (N - df + 0.5) / (df + 0.5)). */
-export function idf(n: number, df: number): number {
-  return Number(Math.log(1 + (n - df + 0.5) / (df + 0.5)).toFixed(6));
-}
-
 export interface UploadErgebnis {
   chunks: number;
   quelleId: string;
   hash: string;
+  /** Stufe, die ein Markdown-Frontmatter mitbrachte (sonst null). Stufe 1 bis 3 belegt die bevorzugten Plaetze fuer
+   *  Recht und amtliche Texte; die Action schreibt sie deshalb ins Protokoll. */
+  autoritaetsstufe: number | null;
 }
 
 export interface UploadEingabe {
@@ -328,21 +315,31 @@ export interface UploadAbhaengigkeiten {
   jetzt?: () => Date;
   /** Umgebungsvariablen; nur fuer Tests, sonst process.env. */
   umgebung?: Record<string, string | undefined>;
+  /** Datenbankschema; nur fuer Tests, sonst das der App (DATENBANK_SCHEMA). */
+  schema?: string;
+  /** Zeitbudget in Millisekunden und Uhr (Millisekunden); nur fuer Tests. */
+  zeitbudgetMs?: number;
+  jetztMs?: () => number;
 }
 
-/** Vorschau-Schutz: Eine Vercel-Preview-Umgebung teilt sich bisher dieselbe Datenbank (und damit dasselbe Schema
- *  `public`) wie die Produktion, weil die App kein Schema waehlt. Ein Upload von dort wuerde in die Produktions-
- *  Wissensbasis schreiben. Deshalb verweigert der Upload in VERCEL_ENV=preview, solange nicht ausdruecklich
- *  WISSEN_UPLOAD_PREVIEW_OK=true gesetzt ist (nur setzen, wenn die Vorschau eine eigene Datenbank hat). */
-export function pruefeUploadUmgebung(env: Record<string, string | undefined> = process.env): void {
-  if (env.VERCEL_ENV === "preview" && env.WISSEN_UPLOAD_PREVIEW_OK !== "true") throw new UploadFehler("vorschau");
+/** Vorschau-Schutz: Eine Vercel-Vorschau darf nicht in die Produktions-Wissensbasis schreiben. Wohin die App schreibt,
+ *  bestimmt das Datenbankschema (SUPABASE_DB_SCHEMA, src/lib/supabase/schema.ts): Eine Vorschau mit `public_preview`
+ *  arbeitet in der Kopie und ist frei. Gesperrt ist nur der Rest, naemlich VERCEL_ENV=preview mit Schema `public`.
+ *  WISSEN_UPLOAD_PREVIEW_OK=true hebt die Sperre auf (nur setzen, wenn die Vorschau eine eigene Datenbank hat). */
+export function pruefeUploadUmgebung(env: Record<string, string | undefined> = process.env, schema: string = DATENBANK_SCHEMA): void {
+  if (env.VERCEL_ENV !== "preview" || env.WISSEN_UPLOAD_PREVIEW_OK === "true") return;
+  if (schema !== "public") return;
+  throw new UploadFehler("vorschau");
 }
 
 /** Der ganze Weg: pruefen, Text lesen, Dublette erkennen, zerlegen, einbetten, schreiben, Wortgewichte nachfuehren.
  *  Wirft ausschliesslich UploadFehler. Die Rolle der hochladenden Person prueft der Aufrufer (Server Action). */
 export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeiten): Promise<UploadErgebnis> {
   // 0. Umgebung: nie aus einer Vorschau in die gemeinsame Datenbank schreiben.
-  pruefeUploadUmgebung(d.umgebung ?? process.env);
+  pruefeUploadUmgebung(d.umgebung ?? process.env, d.schema);
+  const uhr = d.jetztMs ?? Date.now;
+  const beginn = uhr();
+  const budget = d.zeitbudgetMs ?? ZEITBUDGET_MS;
 
   // 1. Eingabe - vor jedem Parsen, die Dateigroesse zuerst (ein PDF-Parser soll nie eine Riesendatei sehen).
   const titel = e.titel.trim();
@@ -385,6 +382,8 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
   const vektoren: number[][] = [];
   try {
     for (let i = 0; i < chunks.length; i += EINBETTUNG_BATCH) {
+      // Vor jedem Aufruf: Reicht die Zeit nicht, hoert der Upload hier auf, solange noch nichts geschrieben ist.
+      if (uhr() - beginn > budget) throw new UploadFehler("zeit", String(Math.round(budget / 1000)));
       const teil = chunks.slice(i, i + EINBETTUNG_BATCH);
       const dicht = await d.einbettung.einbetten(teil.map(einbettungsText));
       if (dicht.length !== teil.length || dicht.some((v) => v.length !== d.einbettung.dimension)) {
@@ -393,6 +392,7 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
       vektoren.push(...dicht);
     }
   } catch (ursache) {
+    if (ursache instanceof UploadFehler) throw ursache;
     throw new UploadFehler("einbettung", undefined, ursache);
   }
 
@@ -402,8 +402,7 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
   try {
     await d.speicher.schreibeChunks(gebaut.map((g) => g.zeile));
 
-    const zaehler = new Map<number, number>();
-    for (const g of gebaut) for (const idx of g.sparseIndizes) zaehler.set(idx, (zaehler.get(idx) ?? 0) + 1);
+    const zaehler = zaehleWoerter(gebaut.map((g) => g.sparseIndizes));
     const bisher = await d.speicher.leseDokumenthaeufigkeit([...zaehler.keys()]);
     const n = await d.speicher.zaehleChunks();
     await d.speicher.schreibeBegriffe(
@@ -417,83 +416,5 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
     throw new UploadFehler("speichern", undefined, ursache);
   }
 
-  return { chunks: chunks.length, quelleId, hash };
-}
-
-// ------------------------------------------------------------ Speicher: Supabase
-
-const SCHREIB_FEHLER = (was: string, e: { message: string } | null) => {
-  if (e) throw new Error(`${was}: ${e.message}`);
-};
-
-/** Speicher auf dem service_role-Client. Schreiben darf in wissen_chunks/wissen_begriffe nur der Dienst (RLS). */
-export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
-  return {
-    async findeQuelle(quelleId) {
-      const { data, error } = await db.from("wissen_chunks").select("titel").eq("quelle_id", quelleId).limit(1);
-      SCHREIB_FEHLER("Dublettenpruefung", error);
-      const zeile = data?.[0] as { titel: string | null } | undefined;
-      return zeile ? { titel: zeile.titel } : null;
-    },
-    async schreibeChunks(zeilen) {
-      for (let i = 0; i < zeilen.length; i += SCHREIB_BATCH) {
-        const { error } = await db.from("wissen_chunks").upsert(zeilen.slice(i, i + SCHREIB_BATCH), { onConflict: "id" });
-        SCHREIB_FEHLER("wissen_chunks", error);
-      }
-    },
-    async loescheQuelle(quelleId) {
-      const { error } = await db.from("wissen_chunks").delete().eq("quelle_id", quelleId);
-      SCHREIB_FEHLER("Aufraeumen", error);
-    },
-    async leseDokumenthaeufigkeit(indizes) {
-      const aus = new Map<number, number>();
-      for (let i = 0; i < indizes.length; i += 500) {
-        const { data, error } = await db.from("wissen_begriffe").select("hash, df").in("hash", indizes.slice(i, i + 500));
-        SCHREIB_FEHLER("wissen_begriffe (lesen)", error);
-        for (const r of (data ?? []) as { hash: number; df: number }[]) aus.set(r.hash, r.df);
-      }
-      return aus;
-    },
-    async schreibeBegriffe(zeilen) {
-      for (let i = 0; i < zeilen.length; i += 2000) {
-        const { error } = await db.from("wissen_begriffe").upsert(zeilen.slice(i, i + 2000), { onConflict: "hash" });
-        SCHREIB_FEHLER("wissen_begriffe", error);
-      }
-    },
-    async zaehleChunks() {
-      const { count, error } = await db.from("wissen_chunks").select("id", { count: "exact", head: true });
-      SCHREIB_FEHLER("Zaehlung", error);
-      return count ?? 0;
-    },
-    async ladeQuellenInfo(quelleId) {
-      const { data, error } = await db
-        .from("wissen_chunks")
-        .select("titel, bereich, quelle_id, upload:extra->>quelle")
-        .eq("quelle_id", quelleId)
-        .limit(1000);
-      SCHREIB_FEHLER("Loeschen (lesen)", error);
-      const zeilen = (data ?? []) as unknown as { titel: string | null; bereich: string | null; quelle_id: string | null; upload: string | null }[];
-      const fremd = zeilen.filter((z) => !(z.upload === UPLOAD_QUELLE && (z.quelle_id ?? "").startsWith("upload:"))).length;
-      return { anzahl: zeilen.length, fremd, titel: zeilen[0]?.titel ?? null, bereich: zeilen[0]?.bereich ?? null };
-    },
-    async loescheUpload(quelleId) {
-      // Eine einzige DELETE-Anweisung: entweder verschwinden alle Zeilen des Dokuments oder keine. Beide Bedingungen
-      // stehen hier noch einmal im Filter. RETURNING liefert nur, was dieser Aufruf wirklich geloescht hat.
-      const { data, error } = await db
-        .from("wissen_chunks")
-        .delete()
-        .eq("quelle_id", quelleId)
-        .like("quelle_id", "upload:%")
-        .eq("extra->>quelle", UPLOAD_QUELLE)
-        .select("sparse");
-      SCHREIB_FEHLER("Loeschen", error);
-      return ((data ?? []) as unknown as { sparse: unknown }[]).map((z) => String(z.sparse));
-    },
-    async loescheBegriffe(indizes) {
-      for (let i = 0; i < indizes.length; i += 500) {
-        const { error } = await db.from("wissen_begriffe").delete().in("hash", indizes.slice(i, i + 500));
-        SCHREIB_FEHLER("wissen_begriffe (loeschen)", error);
-      }
-    },
-  };
+  return { chunks: chunks.length, quelleId, hash, autoritaetsstufe: chunks[0]?.meta.autoritaetsstufe ?? null };
 }

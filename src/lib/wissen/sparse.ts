@@ -86,16 +86,29 @@ export function sparsevecIndizes(text: string): number[] {
   return innen.split(",").map((paar) => Number(paar.split(":")[0]));
 }
 
-/** Dokumenthaeufigkeit (df) und IDF je Wort fuer wissen_begriffe. `chunkIndizes` hat je Textstelle die Wort-Indizes
- *  (schon mit sparseIndex abgebildet); ein Wort zaehlt je Textstelle einmal, N ist die Zahl der Textstellen.
- *  idf = ln(1 + (N - df + 0.5) / (df + 0.5)). Reihenfolge des Ergebnisses: erstes Auftreten. Vom ETL
- *  (scripts/wissen-nach-supabase.ts) benutzt; die Rechnung ist die, die dort vorher inline stand. */
-export function wortgewichte(chunkIndizes: Iterable<readonly number[]>): { hash: number; df: number; idf: number }[] {
+/** IDF eines Wortes: ln(1 + (N - df + 0.5) / (df + 0.5)), auf sechs Stellen gerundet. Die EINE Formel fuer ETL,
+ *  Upload und Loeschen (vorher stand sie in sparse.ts und noch einmal in hochladen.ts). */
+export function idf(n: number, df: number): number {
+  return Number(Math.log(1 + (n - df + 0.5) / (df + 0.5)).toFixed(6));
+}
+
+/** Dokumenthaeufigkeit (df) je Wort: ein Wort zaehlt je Textstelle einmal. `chunkIndizes` hat je Textstelle die
+ *  Wort-Indizes (schon mit sparseIndex abgebildet). Reihenfolge des Ergebnisses: erstes Auftreten. Upload und
+ *  Loeschen zaehlen damit die Woerter EINES Dokuments, der ETL (ueber wortgewichte) den ganzen Korpus. */
+export function zaehleWoerter(chunkIndizes: Iterable<readonly number[]>): Map<number, number> {
   const df = new Map<number, number>();
-  let n = 0;
   for (const indizes of chunkIndizes) {
-    n += 1;
     for (const idx of new Set(indizes)) df.set(idx, (df.get(idx) ?? 0) + 1);
   }
-  return [...df].map(([hash, d]) => ({ hash, df: d, idf: Number(Math.log(1 + (n - d + 0.5) / (d + 0.5)).toFixed(6)) }));
+  return df;
+}
+
+/** Dokumenthaeufigkeit (df) und IDF je Wort fuer wissen_begriffe. `chunkIndizes` hat je Textstelle die Wort-Indizes
+ *  (schon mit sparseIndex abgebildet); ein Wort zaehlt je Textstelle einmal, N ist die Zahl der Textstellen.
+ *  Reihenfolge des Ergebnisses: erstes Auftreten. Vom ETL (scripts/wissen-nach-supabase.ts) benutzt; die Rechnung
+ *  ist die, die dort vorher inline stand. */
+export function wortgewichte(chunkIndizes: Iterable<readonly number[]>): { hash: number; df: number; idf: number }[] {
+  const liste = [...chunkIndizes];
+  const n = liste.length;
+  return [...zaehleWoerter(liste)].map(([hash, d]) => ({ hash, df: d, idf: idf(n, d) }));
 }
