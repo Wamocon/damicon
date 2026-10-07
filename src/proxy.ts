@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { routing } from "@/i18n/routing";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { DB_OPTION } from "@/lib/supabase/schema";
 import { mfaHerausforderungOffen } from "@/lib/domain/mfa";
 
 // Next.js 16: `src/proxy.ts` ersetzt das veraltete `middleware.ts`.
@@ -46,6 +47,7 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      db: DB_OPTION,
       cookies: {
         getAll() {
           return request.cookies.getAll();

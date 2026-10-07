@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { bucket } from "@/lib/supabase/buckets";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import {
   pflueckaufgaben as demoPflueckaufgaben,
@@ -202,7 +203,7 @@ export async function ladeAufgabe(id: string): Promise<AufgabeLaden> {
   const signiert = new Map<string, string>();
   if (pfade.length > 0) {
     const { data: urls, error: signaturFehler } = await supabase.storage
-      .from("belege")
+      .from(bucket("belege"))
       .createSignedUrls(pfade, SIGNATUR_SEKUNDEN);
     if (signaturFehler) {
       console.error("[damicon] Belege nicht signierbar:", signaturFehler.message);

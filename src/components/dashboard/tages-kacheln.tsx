@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, ChevronRight, FileDown, FileJson, ShieldCheck, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronRight, FileDown, FileJson, ShieldCheck } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import {
   type AufklappbarSteuerung,
   type ComplianceTourSchritt,
-  useComplianceTourSteuerung,
   useRegistriereComplianceTour,
 } from "@/components/dashboard/compliance-tour-kontext";
 import { berichtAlsPdfSpeichern } from "@/components/pruefung/bericht-pdf";
@@ -232,7 +231,6 @@ export function TagesKacheln({ bericht }: { bericht: Bericht | null }) {
   // Dritter Parameter aufklappbarSteuerung: damit oeffnet/schliesst die Tour Massnahmen und
   // Einschraenkungen ueber die typisierte Prop oben statt ueber eine DOM-Suche.
   useRegistriereComplianceTour(tourSchritte, bericht ? { id: bericht.id, kontext: berichtKontext(bericht) } : null, aufklappbarSteuerung);
-  const tourSteuerung = useComplianceTourSteuerung();
 
   return (
     <>
@@ -243,11 +241,9 @@ export function TagesKacheln({ bericht }: { bericht: Bericht | null }) {
       <div className="pr-kacheln-bereich">
         <div className="pr-kacheln-bereich__kopf">
           <h3 className="pr-abschnitt__titel">{t("bericht.befunde")}</h3>
-          {tourSteuerung.verfuegbar && !tourSteuerung.aktiv ? (
-            <button type="button" className="pr-tour-neustart" onClick={tourSteuerung.starten}>
-              <Sparkles className="h-3.5 w-3.5" aria-hidden /> {tc("tour.neustart")}
-            </button>
-          ) : null}
+          {/* "Tour erneut starten" steht mit "Zusammenfassung im Chat" in der
+              Kopfzeile der Uebersicht (CeoTourAktionen in tages-uebersicht.tsx),
+              nicht noch einmal hier. */}
         </div>
 
         <div className="pr-kacheln">

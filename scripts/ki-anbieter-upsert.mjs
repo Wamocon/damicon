@@ -29,6 +29,7 @@
 // --basis-url. Erfordert Node 22.18 oder neuer (liest schluessel.ts direkt).
 
 import { createClient } from "@supabase/supabase-js";
+import { DATENBANK_SCHEMA } from "./datenbank-schema.mjs";
 import { verschluessleApiKey } from "../src/lib/ai/schluessel.ts";
 
 function option(name, standard) {
@@ -62,7 +63,7 @@ if (!lokal && !process.argv.includes("--ja")) {
   abbruch("Das Ziel ist eine gehostete Datenbank. Zur Bestaetigung mit --ja erneut aufrufen.");
 }
 
-const db = createClient(url, dienstSchluessel, { auth: { persistSession: false } });
+const db = createClient(url, dienstSchluessel, { auth: { persistSession: false }, db: { schema: DATENBANK_SCHEMA } });
 const chiffrat = verschluessleApiKey(apiKey);
 
 const { data: vorhanden, error: leseFehler } = await db.from("ki_anbieter").select("id").eq("name", name).maybeSingle();

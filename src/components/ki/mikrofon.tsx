@@ -4,11 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Loader2, Mic, Square } from "lucide-react";
 import { MikrofonWelle } from "@/components/ki/mikrofon-welle";
-import { transkribiereSprachnachricht } from "@/lib/actions/ki-assistent";
+import { meldeLiveDiktat, transkribiereSprachnachricht } from "@/lib/actions/ki-assistent";
+import { liveDiktatMoeglich, starteLiveSitzung, type LiveSitzung } from "@/components/ki/diktat-live";
 import { starteHoeren, stoppeHoeren } from "@/lib/hoeren";
 import { leer } from "@/lib/actions/status";
 import {
   aufnahmeDateiname,
+  AUFNAHME_VORGABEN,
+  AUFNAHME_STUECK_MS,
   diktatEinstellungen,
   erzeugeStilleWaechter,
   pegelAusZeitbereich,
@@ -27,6 +30,16 @@ import { cn } from "@/lib/utils";
 // Stilleerkennung ist eine Schaetzung, kein Versprechen - in lauter Umgebung
 // kann sie danebenliegen, und dann muss man sie uebergehen koennen.
 //
+// Zwei Wege, derselbe Knopf (seit 24.09.2026):
+//
+//   - LIVE (Schalter KI_DIKTAT_LIVE): der Browser streamt direkt zu Soniox
+//     (components/ki/diktat-live.ts). Der Text erscheint waehrend des
+//     Sprechens im Feld (beiZwischentext), das Ende der Aeusserung erkennt
+//     das Modell selbst.
+//   - DATEI: die ganze Aufnahme geht am Ende ueber die Server Action - der
+//     bisherige Weg, und zugleich der Rueckfall fuer jedes Problem im
+//     Live-Weg. Die Audiostuecke werden deshalb immer mitgesammelt.
+//
 // Der erkannte Text landet IMMER nur im Eingabefeld, nie direkt im Chat.
 // Bis zum 22.09.2026 gab es dafuer eine Rueckgabe "beiSenden", die ihn sofort
 // abschickte - das erspart einen Klick, nimmt aber die Gelegenheit, ein
@@ -35,6 +48,8 @@ import { cn } from "@/lib/utils";
 export function MikrofonKnopf({
   beiText,
   beiAufnahme,
+  beiStart,
+  beiZwischentext,
   className,
   deaktiviert = false,
 }: {
@@ -44,6 +59,13 @@ export function MikrofonKnopf({
   beiText: (text: string, sprachen?: string[]) => void;
   /** Meldet, ob gerade aufgenommen wird - fuer eine Welle ausserhalb dieses Knopfs. */
   beiAufnahme?: (an: boolean) => void;
+  /** Sofort beim Klick, noch bevor das Mikrofon offen ist: der Moment, in
+   *  dem jede Wiedergabe verstummen muss - sonst landet die Stimme des
+   *  Assistenten in der Aufnahme. */
+  beiStart?: () => void;
+  /** Nur im Live-Weg: was das Modell bis jetzt gehoert hat. Ein leerer Text
+   *  heisst "nichts mehr anzeigen" (Abbruch, Rueckfall auf den Datei-Weg). */
+  beiZwischentext?: (text: string) => void;
   className?: string;
   deaktiviert?: boolean;
 }) {
@@ -64,6 +86,7 @@ export function MikrofonKnopf({
   // recorder.onstop. Ueber ein Ref, weil onstop sonst den Stand von damals
   // saehe.
   const grundRef = useRef<StilleErgebnis>("weiter");
+  const liveRef = useRef<LiveSitzung | null>(null);
 
   /** Mikrofon, Tonanalyse und Bildschleife freigeben. Mehrfach aufrufbar. */
   function raeumeAuf() {
@@ -84,6 +107,8 @@ export function MikrofonKnopf({
   // Komponente verschwindet (Panel zu, Seitenwechsel mitten im Diktat).
   useEffect(() => {
     return () => {
+      liveRef.current?.abbrechen();
+      liveRef.current = null;
       const r = recorderRef.current;
       if (r && r.state !== "inactive") r.stop();
       stoppeHoeren();
@@ -99,6 +124,11 @@ export function MikrofonKnopf({
    *  Bild waere sechzig Durchlaeufe des ganzen Chatfensters je Sekunde. */
   function beobachte(strom: MediaStream, recorder: MediaRecorder) {
     const kontext = new AudioContext();
+    // Entsteht der Kontext nach dem await auf getUserMedia, gilt er auf dem
+    // iPhone womoeglich nicht mehr als Folge der Geste und startet
+    // "suspended" - dann misst er nur Stille, und die Aufnahme endete nach
+    // 4 s als "leer", obwohl gesprochen wurde.
+    if (kontext.state === "suspended") void kontext.resume().catch(() => {});
     const quelle = kontext.createMediaStreamSource(strom);
     const analyse = kontext.createAnalyser();
     analyse.fftSize = 1024;
@@ -135,7 +165,7 @@ export function MikrofonKnopf({
         }
       }
 
-      const ergebnis = waechter.melde(pegel, performance.now());
+      const ergebnis = beachte(waechter.melde(pegel, performance.now()));
       if (ergebnis !== "weiter") {
         grundRef.current = ergebnis;
         if (recorder.state !== "inactive") recorder.stop();
@@ -148,20 +178,62 @@ export function MikrofonKnopf({
     tonRef.current = { kontext, bild: requestAnimationFrame(schritt) };
   }
 
+  /** Solange der Live-Weg traegt, entscheidet das Modell ueber das Ende der
+   *  Aeusserung (Endpunkt), nicht die Lautstaerkeregel - die verwirft leise
+   *  Sprechende und schneidet Denkpausen ab. Die Regel bleibt nur Gurt:
+   *  die Hoechstdauer gilt immer, und "leer" nur, wenn auch das Modell
+   *  nichts gehoert hat. Faellt der Live-Weg aus, gilt sie wieder ganz. */
+  function beachte(ergebnis: StilleErgebnis): StilleErgebnis {
+    const live = liveRef.current;
+    if (!live || !live.traegt()) return ergebnis;
+    if (ergebnis === "stopp-stille") return "weiter";
+    if (ergebnis === "stopp-leer" && live.hatGehoert()) return "weiter";
+    return ergebnis;
+  }
+
   async function starten() {
     setMeldung(null);
     grundRef.current = "weiter";
+    beiStart?.();
+    // Der Live-Weg startet SOFORT beim Klick: Schluessel und Verbindung
+    // laufen, waehrend der Browser noch nach der Mikrofon-Erlaubnis fragt.
+    // Was bis dahin aufgenommen wird, puffert die Sitzung.
+    liveRef.current?.abbrechen();
+    const live = liveDiktatMoeglich()
+      ? starteLiveSitzung({
+          sprache,
+          beiStand: (stand) => beiZwischentext?.(stand.anzeige),
+          beiEndpunkt: () => {
+            // Das Modell hat das Ende gehoert - wie eine Stille, nur klueger.
+            const r = recorderRef.current;
+            if (r && r.state !== "inactive") r.stop();
+          },
+        })
+      : null;
+    liveRef.current = live;
     try {
       // Das Oeffnen des Mikrofons dauert - bis dahin zeigt der Knopf, dass
       // er daran ist, aber NICHT "hoert zu". Wer zu frueh spricht, verliert
       // sonst die ersten Worte, bevor ueberhaupt aufgenommen wird.
       setZustand("oeffnet");
-      const strom = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(strom);
+      const strom = await navigator.mediaDevices.getUserMedia({ audio: AUFNAHME_VORGABEN });
+      let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(strom);
+      } catch (fehler) {
+        // Ohne Recorder kein Diktat - aber das Mikrofon darf nicht offen
+        // bleiben (rote Anzeige im Browser, ohne dass jemand aufnimmt).
+        strom.getTracks().forEach((spur) => spur.stop());
+        throw fehler;
+      }
       const teile: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) teile.push(e.data);
+        if (e.data.size === 0) return;
+        teile.push(e.data);
+        // Dasselbe Stueck auch live - die Sammlung oben bleibt fuer den
+        // Rueckfall liegen.
+        liveRef.current?.sende(e.data);
       };
 
       recorder.onstop = async () => {
@@ -169,6 +241,31 @@ export function MikrofonKnopf({
         raeumeAuf();
         const typ = recorder.mimeType || "audio/webm";
         const aufnahme = new Blob(teile, { type: typ });
+        const sitzung = liveRef.current;
+        liveRef.current = null;
+
+        // Erst der Live-Weg: traegt er, ist der Text schon fast fertig.
+        if (sitzung) {
+          setZustand("laeuft");
+          const ergebnis = await sitzung.beende();
+          if (ergebnis.ok) {
+            setZustand("bereit");
+            if (ergebnis.text) {
+              beiText(ergebnis.text, ergebnis.sprachen);
+              void meldeLiveDiktat(ergebnis.text.length, ergebnis.sprachen).catch(() => {});
+            } else {
+              beiZwischentext?.("");
+              setMeldung(tAktion("fehler.transkriptionLeer"));
+            }
+            return;
+          }
+          // Live gescheitert: Anzeige zuruecksetzen, dieselbe Aufnahme als
+          // Datei. Der Grund steht nur in der Konsole - fuer die Person
+          // zaehlt, dass ihr Diktat ankommt.
+          console.warn("[damicon] Live-Diktat nicht moeglich, weiter als Datei:", ergebnis.grund);
+          beiZwischentext?.("");
+        }
+
         // "stopp-leer": die Stilleerkennung hat nie Sprache gehoert. Diese
         // Aufnahme gar nicht erst zur Erkennung schicken - sie ergaebe
         // bestenfalls erfundene Woerter aus Umgebungsgeraeusch.
@@ -204,7 +301,10 @@ export function MikrofonKnopf({
         }
       };
 
-      recorder.start();
+      // In kurzen Stuecken statt am Stueck: nur so kann der Live-Weg
+      // mitlaufen. Fuer den Datei-Weg aendert das nichts - die Stuecke
+      // ergeben zusammen dieselbe Datei.
+      recorder.start(AUFNAHME_STUECK_MS);
       recorderRef.current = recorder;
       // Denselben Strom auch mithoeren: daraus speist sich der Streifen neben dem Knopf
       // und die Frequenzkugel hinter der Figur (lib/hoeren.ts). Schlaegt das fehl,
@@ -215,6 +315,8 @@ export function MikrofonKnopf({
     } catch {
       // Kein Mikrofon, keine Erlaubnis, kein HTTPS - fuer die Nutzerin
       // dasselbe Ergebnis: es geht gerade nicht.
+      liveRef.current?.abbrechen();
+      liveRef.current = null;
       raeumeAuf();
       setZustand("bereit");
       setMeldung(t("keinZugriff"));

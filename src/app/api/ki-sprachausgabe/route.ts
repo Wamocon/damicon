@@ -10,20 +10,35 @@
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
-import { erzeugeSprachausgabe } from "@/lib/ai/sprachausgabe-client";
-import { istSprachausgabeSprache, sprachausgabePfad, stimmeFuerOberflaeche, textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
-import { istSprache, stimmenSprache } from "@/lib/domain/antwortsprache";
-import { erkenneSprache } from "@/lib/wissen/chunker";
+import { erzeugeSprachausgabeMitRueckfall, oeffneSprachausgabeStromMitRueckfall } from "@/lib/ai/sprachausgabe-client";
+import {
+  istSprachausgabeSprache,
+  sprachausgabePfad,
+  sprechfassung,
+  stimmenFuer,
+  textFuerSprachausgabe,
+  vorlesePlan,
+  type SprachausgabeSprache,
+} from "@/lib/domain/sprachausgabe";
+import { fuerSprache } from "@/lib/text/umlaute";
+import { after } from "next/server";
+import { istSprache } from "@/lib/domain/antwortsprache";
 import { pruefeAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 import { ladeRatenlimitGrenze, ratenlimitUeberschritten, skaliereFuerSprachausgabe } from "@/lib/ai/ratenbegrenzung";
 import { istUuid } from "@/lib/utils";
+import { leseAuswahl, waehleVorleseTeil, type Auswahl } from "@/lib/domain/vorlese-auswahl";
 
 // Zwischenspeicher: Bucket "ki-sprachausgabe" (Migration 20261101000000),
 // privat und nur ueber service_role erreichbar. Die Berechtigung haengt an der
 // ANTWORT - deshalb wird der Bucket erst angefasst, NACHDEM die Zeile mit der
 // Sitzung des Nutzers gelesen wurde (RLS). Wer die Antwort nicht sehen darf,
 // kommt hier nie an, auch mit geratener ID nicht.
+//
+// Preview und Produktion teilen sich diesen Bucket (GEMEINSAME_BUCKETS in
+// scripts/preview-umschreiben.mjs). Getrennt sind sie seit 29.09.2026 ueber den
+// Ablagepfad: sprachausgabePfad() legt ausserhalb von public unter dem Schema ab
+// (Cleanup-Fund 83), sonst belegte eine Preview das Audio einer Produktionsantwort vor.
 const BUCKET = "ki-sprachausgabe";
 
 export const maxDuration = 60;
@@ -33,12 +48,15 @@ function fehler(status: number, grund: string, extra: Record<string, string> = {
   return Response.json({ grund, ...extra }, { status });
 }
 
-export async function POST(req: Request) {
+type Profil = NonNullable<Awaited<ReturnType<typeof getSessionProfile>>>;
+
+/** Anmeldung, Berechtigung und Ratenbegrenzung - fuer beide Methoden gleich. */
+async function zugang(): Promise<{ ok: true; profil: Profil } | { ok: false; antwort: Response }> {
   const profil = await getSessionProfile();
-  if (!profil) return fehler(401, "nicht-angemeldet");
+  if (!profil) return { ok: false, antwort: fehler(401, "nicht-angemeldet") };
   // Dieselbe Berechtigung wie der Chat selbst: wer nicht chatten darf, hat
   // auch keine Antworten zum Vorlesen.
-  if (!hasPermission(profil.role, "ki_assistent", "create")) return fehler(403, "keine-berechtigung");
+  if (!hasPermission(profil.role, "ki_assistent", "create")) return { ok: false, antwort: fehler(403, "keine-berechtigung") };
 
   // Ratenbegrenzung (Vibecode-Cleanup Phase 2): lib/ai/ratenbegrenzung.ts,
   // eigener Namensraum ("tts:"), getrennt vom Chat-Zaehler in
@@ -50,10 +68,40 @@ export async function POST(req: Request) {
   // (skaliereFuerSprachausgabe) - ohne Admin-Einstellung gilt kein Limit.
   const ratenGrenze = await ladeRatenlimitGrenze(profil.role);
   if (ratenlimitUeberschritten(`tts:${profil.id}`, skaliereFuerSprachausgabe(ratenGrenze))) {
-    return fehler(429, "ratenlimit");
+    return { ok: false, antwort: fehler(429, "ratenlimit") };
   }
+  return { ok: true, profil };
+}
 
-  let body: { nachrichtId?: unknown; sprache?: unknown; abschnitt?: unknown };
+/** Eine fertige Antwort als STROM: GET, damit ein <audio>-Element die Adresse
+ *  direkt abspielen kann - es beginnt, sobald die ersten Sekunden da sind,
+ *  statt auf die ganze Datei zu warten (Weg 1 per POST unten). Bis zum
+ *  24.09.2026 gab es nur diesen POST-Weg, und bei einer langen Antwort
+ *  vergingen viele Sekunden, bis der erste Ton kam.
+ *
+ *  Dieselben Pruefungen wie POST, nur die Nachrichten-ID und die Sprache
+ *  kommen aus der Adresse. Das Anmelde-Cookie ist SameSite=Lax (Standard von
+ *  @supabase/ssr, lib/supabase setzt nichts anderes): eine fremde
+ *  Seite, die diese Adresse als <audio> einbindet, schickt es nicht mit. */
+export async function GET(req: Request) {
+  const z = await zugang();
+  if (!z.ok) return z.antwort;
+  const adresse = new URL(req.url);
+  const auswahl = leseAuswahl(adresse.searchParams.get("rest"), adresse.searchParams.get("block"));
+  if (!auswahl) return fehler(400, "ungueltige-eingabe");
+  // plan=1: nur, wie viele Sprachbloecke es gibt (JSON, kein Ton). Der Knopf
+  // fragt das, WAEHREND der erste Block schon klingt - ein <audio>-Element
+  // kann die Kopfzeilen seiner Antwort nicht lesen.
+  const art = adresse.searchParams.get("plan") === "1" ? "plan" : "strom";
+  return fertigeAntwort(adresse.searchParams.get("nachricht") ?? "", adresse.searchParams.get("sprache") ?? "de", art, auswahl);
+}
+
+export async function POST(req: Request) {
+  const z = await zugang();
+  if (!z.ok) return z.antwort;
+  const { profil } = z;
+
+  let body: { nachrichtId?: unknown; sprache?: unknown; abschnitt?: unknown; rest?: unknown; block?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -96,13 +144,20 @@ export async function POST(req: Request) {
       return fehler(403, "nicht-erlaubt");
     }
 
-    // Die Sprache kommt vom Zug, nicht aus der Oberflaeche und nicht je
-    // Abschnitt neu geraten: alle Abschnitte eines Zuges klingen gleich.
+    // Die Sprache kommt vom Zug, nicht aus der Oberflaeche und nicht hier
+    // neu geraten. Seit 28.09.2026 kann sie je Abschnitt abweichen: der Server
+    // gibt jedem data-satz die Sprache seines Satzes mit (satzSprache,
+    // api/ki-assistent), damit ein russisches Zitat in einer deutschen Antwort
+    // nicht mit deutscher Stimme klingt. Der Browser reicht sie hier durch.
     const zugSprache = istSprache(body.sprache) ? body.sprache : "de";
-    const stimmeDesZuges = istSprachausgabeSprache(zugSprache) ? stimmeFuerOberflaeche(zugSprache) : null;
-    if (!stimmeDesZuges) return fehler(422, "keine-stimme", { sprache: zugSprache });
+    const stimmenDesZuges = istSprachausgabeSprache(zugSprache) ? stimmenFuer(zugSprache) : [];
+    if (!istSprachausgabeSprache(zugSprache) || stimmenDesZuges.length === 0) {
+      return fehler(422, "keine-stimme", { sprache: zugSprache });
+    }
 
-    const erzeugt = await erzeugeSprachausgabe(abschnittText, stimmeDesZuges);
+    // Signiert ist der Text, wie er aus dem Stream kam; die Sprechfassung
+    // entsteht erst hier, nach der Pruefung.
+    const erzeugt = await erzeugeSprachausgabeMitRueckfall(zumSprechen(abschnittText, zugSprache), stimmenDesZuges);
     if (!erzeugt.ok) {
       // Vibecode-Cleanup-Fund (Phase 2): erzeugt.grund kann interne Details
       // enthalten (Name einer Umgebungsvariable, bis zu 200 Zeichen
@@ -137,12 +192,25 @@ export async function POST(req: Request) {
   }
 
   // --- Weg 1: eine fertige, gespeicherte Antwort ---------------------------
-  const nachrichtId = typeof body.nachrichtId === "string" ? body.nachrichtId : "";
-  if (!istUuid(nachrichtId)) return fehler(400, "ungueltige-eingabe");
   // "sprache" ist jetzt die Sprache DIESER ANTWORT (L), die der Chat-Stream
   // mitgeschickt hat - nicht mehr die Oberflaechensprache. Fehlt sie (alter
   // Browser-Tab, direkter Aufruf), faengt die Gegenprobe unten das auf.
-  const gemeldeteSprache = typeof body.sprache === "string" ? body.sprache : "de";
+  const auswahl = leseAuswahl(body.rest, body.block);
+  if (!auswahl) return fehler(400, "ungueltige-eingabe");
+  return fertigeAntwort(
+    typeof body.nachrichtId === "string" ? body.nachrichtId : "",
+    typeof body.sprache === "string" ? body.sprache : "de",
+    "datei",
+    auswahl,
+  );
+}
+
+/** Weg 1 fuer beide Methoden. `art`: "strom" - der Ton geht weiter, waehrend
+ *  er entsteht (GET), "datei" - als fertige Datei (POST, der bewaehrte
+ *  Rueckfall), "plan" - nur die Zahl der Sprachbloecke. */
+async function fertigeAntwort(nachrichtId: string, gemeldeteSprache: string, art: "strom" | "datei" | "plan", auswahl: Auswahl): Promise<Response> {
+  const alsStrom = art === "strom";
+  if (!istUuid(nachrichtId)) return fehler(400, "ungueltige-eingabe");
 
   const supabase = await createClient();
   const { data: nachricht, error } = await supabase
@@ -155,8 +223,8 @@ export async function POST(req: Request) {
   // die Route verraet nicht, ob eine fremde ID existiert.
   if (!nachricht || nachricht.rolle !== "assistent") return fehler(404, "nicht-gefunden");
 
-  const text = textFuerSprachausgabe(nachricht.inhalt);
-  if (!text) return fehler(422, "kein-text");
+  const ganzerText = textFuerSprachausgabe(nachricht.inhalt);
+  if (!ganzerText) return fehler(422, "kein-text");
 
   // Die Stimme folgt der Sprache DIESER ANTWORT, nicht der Einstellung.
   //
@@ -166,44 +234,123 @@ export async function POST(req: Request) {
   //
   // Zwei Quellen, in dieser Reihenfolge:
   //   1. L, vom Chat-Stream mitgeschickt.
-  //   2. der fertige Text selbst - er ist der Beleg. Weicht er eindeutig ab,
+  //   2. der fertige Text selbst - er ist der Beleg. Weicht er klar ab,
   //      gewinnt er: lieber die richtige Stimme zum vorhandenen Text als
   //      beides falsch.
+  //
+  // Seit 28.09.2026 zusaetzlich je Satz (vorlesePlan): eine gemischte Antwort
+  // zerfaellt in Sprachbloecke, und der Browser holt sie einzeln (`block`).
+  // Gelesen wird immer die gespeicherte Nachricht; der Browser nennt nur Zahlen.
   const gewuenscht = istSprache(gemeldeteSprache) ? gemeldeteSprache : "de";
-  const gepruefte = stimmenSprache(gewuenscht, text, (t) => erkenneSprache(t, 10));
-  if (gepruefte.abweichung) {
+  const plan = vorlesePlan(nachricht.inhalt, gewuenscht, { rest: auswahl.rest });
+  if (plan.abweichung) {
     // Nur zaehlen, nie den Text: haeuft sich das, stimmt etwas mit der
     // Anweisung ans Modell nicht.
-    console.warn("[damicon] Sprachausgabe: Antworttext ist " + gepruefte.sprache + ", angekuendigt war " + gewuenscht);
+    console.warn("[damicon] Sprachausgabe: Antworttext ist " + plan.sprache + ", angekuendigt war " + gewuenscht);
   }
-  const sprache = istSprachausgabeSprache(gepruefte.sprache) ? gepruefte.sprache : "de";
-  const stimme = stimmeFuerOberflaeche(sprache);
-  if (!stimme) return fehler(422, "keine-stimme", { sprache });
+  if (art === "plan") return Response.json({ bloecke: plan.bloecke.length }, { headers: { "cache-control": "no-store" } });
+
+  // Ganze Antwort oder ein Block: domain/vorlese-auswahl.ts.
+  const gewaehlt = waehleVorleseTeil(auswahl, plan, ganzerText);
+  if (!gewaehlt) return fehler(422, "kein-block");
+  const { text, teil } = gewaehlt;
+  const sprache = istSprachausgabeSprache(gewaehlt.sprache) ? gewaehlt.sprache : "de";
+  const stimmen = stimmenFuer(sprache);
+  if (stimmen.length === 0) return fehler(422, "keine-stimme", { sprache });
 
   const dienst = createServiceRoleClient();
-  const pfad = sprachausgabePfad(nachrichtId, stimme);
+  // Gesucht wird unter der BEVORZUGTEN Stimme. Hat beim letzten Mal der
+  // Rueckfall gesprochen, liegt das Audio unter dessen Pfad - dann wird neu
+  // erzeugt, und die bessere Stimme bekommt ihre Chance.
+  const pfad = sprachausgabePfad(nachrichtId, stimmen[0], teil);
 
-  // 1. Schon einmal vorgelesen? Dann ohne Caesar ausliefern.
+  // 1. Schon einmal vorgelesen? Dann ohne Dienst ausliefern.
   const { data: gespeichert } = await dienst.storage.from(BUCKET).download(pfad);
   if (gespeichert) {
     return audioAntwort(await gespeichert.arrayBuffer(), gespeichert.type || "audio/mpeg", sprache, "treffer");
   }
 
-  // 2. Sonst erzeugen lassen ...
-  const ergebnis = await erzeugeSprachausgabe(text, stimme);
+  // 2. Sonst erzeugen lassen - als Strom ...
+  if (alsStrom) {
+    const geoeffnet = await oeffneSprachausgabeStromMitRueckfall(zumSprechen(text, sprache), stimmen);
+    if (!geoeffnet.ok) {
+      console.error("[damicon] Sprachausgabe (Strom) fehlgeschlagen:", geoeffnet.grund);
+      return fehler(502, "dienst-nicht-erreichbar");
+    }
+    // Ein Zweig geht an den Hoerer, der andere in den Zwischenspeicher. Der
+    // zweite wird erst in after() gelesen und puffert bis dahin - bei einer
+    // Antwort bis MAX_SPRACHAUSGABE_ZEICHEN ein paar Megabyte. Bricht der
+    // Hoerer ab (Stopp), laeuft der Ablage-Zweig trotzdem zu Ende, und das
+    // naechste Vorlesen kommt aus dem Speicher.
+    const [zumHoerer, zurAblage] = geoeffnet.strom.tee();
+    const ablagePfad = sprachausgabePfad(nachrichtId, geoeffnet.stimme, teil);
+    const typ = geoeffnet.typ || "audio/mpeg";
+    after(async () => {
+      const teile: Uint8Array[] = [];
+      let groesse = 0;
+      const leser = zurAblage.getReader();
+      try {
+        for (;;) {
+          const { done, value } = await leser.read();
+          if (done) break;
+          teile.push(value);
+          groesse += value.byteLength;
+        }
+      } catch {
+        // Strom abgerissen: nichts ablegen, sonst laege ein halber Ton im Speicher.
+        return;
+      }
+      if (groesse === 0) return;
+      const audio = new Uint8Array(groesse);
+      let stelle = 0;
+      for (const teil of teile) {
+        audio.set(teil, stelle);
+        stelle += teil.byteLength;
+      }
+      const { error: ablageFehler } = await dienst.storage.from(BUCKET).upload(ablagePfad, audio, { contentType: typ, upsert: false });
+      if (ablageFehler) console.error("[damicon] Sprachausgabe nicht zwischengespeichert:", ablageFehler.message);
+    });
+    return new Response(zumHoerer, {
+      status: 200,
+      headers: {
+        "content-type": typ,
+        // Nicht im Browser behalten: bricht der Strom ab, laege dort ein halber
+        // Ton. Beim naechsten Mal kommt er ohnehin fertig aus dem Speicher.
+        "cache-control": "no-store",
+        "x-damicon-zwischenspeicher": "strom",
+        "x-damicon-sprache": sprache,
+      },
+    });
+  }
+
+  // ... oder als ganze Datei.
+  const ergebnis = await erzeugeSprachausgabeMitRueckfall(zumSprechen(text, sprache), stimmen);
   if (!ergebnis.ok) {
     console.error("[damicon] Sprachausgabe fehlgeschlagen:", ergebnis.grund);
     return fehler(502, "dienst-nicht-erreichbar");
   }
 
-  // 3. ... und ablegen. Ein Fehler beim Ablegen darf die fertige Antwort nicht
+  // 3. ... und ablegen, NACH der Antwort (after): wer zuhoert, wartet nicht
+  // auf den Speicher. Ein Fehler beim Ablegen darf die fertige Antwort nicht
   // kaputtmachen - dann bleibt es beim naechsten Mal eben wieder langsam.
-  const { error: ablageFehler } = await dienst.storage
-    .from(BUCKET)
-    .upload(pfad, ergebnis.audio, { contentType: ergebnis.typ, upsert: false });
-  if (ablageFehler) console.error("[damicon] Sprachausgabe nicht zwischengespeichert:", ablageFehler.message);
+  const ablagePfad = sprachausgabePfad(nachrichtId, ergebnis.stimme, teil);
+  const audio = ergebnis.audio;
+  after(async () => {
+    const { error: ablageFehler } = await dienst.storage
+      .from(BUCKET)
+      .upload(ablagePfad, audio, { contentType: ergebnis.typ, upsert: false });
+    if (ablageFehler) console.error("[damicon] Sprachausgabe nicht zwischengespeichert:", ablageFehler.message);
+  });
 
-  return audioAntwort(ergebnis.audio, ergebnis.typ, sprache, "neu");
+  return audioAntwort(audio, ergebnis.typ, sprache, "neu");
+}
+
+/** Der Text, wie ihn die Stimme bekommt: Symbole und Tausendertrennung als
+ *  Worte (sprechfassung), und auf Deutsch echte Umlaute - schreibt das Modell
+ *  "Pruefung", liest die Stimme sonst "Pru-efung". In der Anzeige greift
+ *  dieselbe Korrektur schon (ki-chat.tsx), beim Vorlesen fehlte sie. */
+function zumSprechen(text: string, sprache: SprachausgabeSprache): string {
+  return sprechfassung(fuerSprache(text, sprache), sprache);
 }
 
 function audioAntwort(audio: ArrayBuffer, typ: string, sprache: string, herkunft: "treffer" | "neu") {

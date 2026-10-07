@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import { cn } from "@/lib/utils";
 
-// Kleines Anzeige-Portal fuer DamiAI: zeigt, worauf man gerade getippt hat - das
+// Kleines Anzeige-Portal fuer Himbi: zeigt, worauf man gerade getippt hat - das
 // KI-Innovator-Abzeichen (Sterne auf dem Chapan) oder das Damicon-Siegel (Anstecknadel
 // auf der Kappe), beide in haustier-dashboard.tsx. Rein zum Anschauen - Escape, Klick
 // daneben oder der Knopf schliessen es wieder.

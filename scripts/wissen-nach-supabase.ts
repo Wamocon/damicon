@@ -14,6 +14,7 @@
 // Einbettungsmodell steht im Payload (embed_modell) und im Importprotokoll.
 
 import { createClient } from "@supabase/supabase-js";
+import { DATENBANK_SCHEMA } from "../src/lib/supabase/schema";
 import { qdrantAusUmgebung } from "../src/lib/wissen/qdrant";
 import { alsSparsevec, sparseIndex, sparsevecIndizes, wortgewichte } from "../src/lib/wissen/sparse";
 
@@ -109,7 +110,7 @@ async function main() {
   if (dimensionen.length !== 1 || dimensionen[0] !== 1024) throw new Error(`Unerwartete Vektorgroesse: ${dimensionen.join(", ")} (erwartet 1024).`);
   console.log(`  ${punkte.length} Punkte, Modell ${modelle.join(", ")}, Dimension ${dimensionen[0]}`);
 
-  const db = createClient(url, dienstSchluessel, { auth: { persistSession: false, autoRefreshToken: false } });
+  const db = createClient(url, dienstSchluessel, { auth: { persistSession: false, autoRefreshToken: false }, db: { schema: DATENBANK_SCHEMA } });
 
   // Dokumenthaeufigkeit je Wort (ein Wort zaehlt je Textstelle einmal): wortgewichte() in sparse.ts.
   const listen: number[][] = punkte.map((p) => p.vector.text.indices.map(sparseIndex));

@@ -100,6 +100,9 @@ export function transkriptionZugangsHeader():
  *    - alles andere -> die Erkennung selbst lieferte nichts Brauchbares. */
 export function transkriptionsMeldung(grund: string): string {
   if (grund === "zeitueberschreitung") return "fehler.transkriptionDauer";
+  // Der Dienst lief und hat nichts gehoert. Nicht "nicht moeglich" - das las
+  // sich wie ein Ausfall, obwohl nur leise oder gar nicht gesprochen wurde.
+  if (grund === "leer") return "fehler.transkriptionLeer";
   if (/^(dienst-nicht-erreichbar|zugang-|http-5)/.test(grund)) return "fehler.transkriptionDienst";
   return "fehler.transkription";
 }
@@ -192,8 +195,9 @@ export async function transkribiereAudio(
     }
 
     const json = (await antwort.json().catch(() => null)) as { text?: unknown } | null;
-    const text = typeof json?.text === "string" ? json.text.trim() : "";
-    if (!text) return { ok: false, grund: "antwort-unerwartete-form" };
+    if (typeof json?.text !== "string") return { ok: false, grund: "antwort-unerwartete-form" };
+    const text = json.text.trim();
+    if (!text || istWhisperErfindung(text)) return { ok: false, grund: "leer" };
     return { ok: true, text };
   } catch (error) {
     // Ein geworfener fetch heisst: der Dienst war nicht zu erreichen (kein
@@ -208,6 +212,27 @@ export async function transkribiereAudio(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/** Saetze, die Whisper auf Stille oder Rauschen erfindet. Sie stammen aus
+ *  den Untertiteln, mit denen das Modell trainiert wurde, und tauchen in
+ *  jeder Sprache auf - unabhaengig davon, was gesagt wurde. Ein Diktat, das
+ *  NUR aus so einem Satz besteht, ist keins. Bewusst nur ganze Treffer: ein
+ *  echter Satz, der zufaellig "Untertitel" enthaelt, bleibt stehen. */
+const WHISPER_ERFINDUNGEN = [
+  /^untertitel (der|von|im auftrag)/i,
+  /amara\.org/i,
+  // Nur mit "fuers Zuschauen": ein schlichtes "Danke" ist ein echtes Diktat.
+  /^vielen dank f(ü|ue)rs (zuschauen|zusehen)[.!]*$/i,
+  /^(thanks|thank you) for watching[.!]*$/i,
+  /^продолжение следует[.…!]*$/i,
+  /^(субтитры (сделал|создавал)|редактор субтитров)/i,
+  /^спасибо за просмотр[.!]*$/i,
+];
+
+export function istWhisperErfindung(text: string): boolean {
+  const t = text.trim();
+  return t.length > 0 && t.length < 90 && WHISPER_ERFINDUNGEN.some((muster) => muster.test(t));
 }
 
 /** Kurzer Anstoss, damit Caesar sein Modell laedt, bevor jemand aufnimmt.

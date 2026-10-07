@@ -103,8 +103,10 @@ export function istGueltigerTag(tag: string): boolean {
   );
 }
 
-/** Kalenderrechnung auf "JJJJ-MM-TT", unabhaengig von jeder Zeitzone. */
-function tagePlus(tag: string, tage: number): string {
+/** Kalenderrechnung auf "JJJJ-MM-TT", unabhaengig von jeder Zeitzone. Exportiert seit dem
+ *  29.09.2026 fuer die Tageslage (lib/domain/tages-lage.ts), die vorher eine Kopie hatte (Fund 59
+ *  der Pruefung vom 28.09.2026). */
+export function tagePlus(tag: string, tage: number): string {
   const [jahr, monat, t] = tag.split("-").map(Number);
   return new Date(Date.UTC(jahr, monat - 1, t + tage)).toISOString().slice(0, 10);
 }

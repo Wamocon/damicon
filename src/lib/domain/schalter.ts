@@ -34,3 +34,19 @@ export function sprachausgabeLiveAn(): boolean {
 export function agentSeitenansichtAn(): boolean {
   return schalterAn(process.env.KI_AGENT_SEITENANSICHT);
 }
+
+/** Live-Diktat: der Browser streamt direkt zu Soniox (stt-rt-v5), der Text
+ *  erscheint waehrend des Sprechens. Aus heisst: der Datei-Weg wie bisher.
+ *  Zusaetzlich muessen SONIOX_API_KEY und SONIOX_API_URL stehen - das prueft
+ *  die Schluessel-Route (api/ki-spracherkennung), die ohne beides absagt; der
+ *  Browser faellt dann still auf den Datei-Weg zurueck. */
+export function diktatLiveAn(): boolean {
+  return schalterAn(process.env.KI_DIKTAT_LIVE);
+}
+
+/** Sprechertrennung im Gespraech (domain/diktat-live.ts, LiveOptionen): Soniox liefert je Wort
+ *  eine Sprechernummer, und Himbi nimmt nur den Hauptsprecher als Frage oder Unterbrechung.
+ *  Aus, bis eine Messung zeigt, dass die Zuordnung in Echtzeit traegt. */
+export function sprechertrennungAn(): boolean {
+  return schalterAn(process.env.KI_SPRECHERTRENNUNG);
+}

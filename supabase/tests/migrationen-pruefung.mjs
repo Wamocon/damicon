@@ -37,6 +37,10 @@ check("Freigabe-Zeile erlaubt DROP TABLE", mit("20261027000000_x.sql", "-- migra
 check("Wort im Kommentar loest keinen Alarm aus", mit("20261027000000_x.sql", "-- drop table wird hier nicht ausgefuehrt\nselect 1;").length === 0);
 check("Wort in einer Zeichenkette loest keinen Alarm aus", mit("20261027000000_x.sql", "select 'drop table x';").length === 0);
 check("drop policy und drop function sind erlaubt", mit("20261027000000_x.sql", "drop policy p on t; drop function f();").length === 0);
+check("neue Migration, die sich nicht fuer public_preview umschreiben laesst, wird abgelehnt",
+  mit("20261027000000_x.sql", "create table auth.x (id int);").some((f) => f.includes("public_preview")));
+check("neue Migration mit Auth-Trigger ist in Ordnung",
+  mit("20261027000000_x.sql", "create trigger t after insert on auth.users for each row execute function public.f();").length === 0);
 check("zerstoerendeAnweisungen findet mehrere", zerstoerendeAnweisungen("drop table a; truncate b;").length === 2);
 check("zerstoerende Anweisung in schon vorhandener Datei wird nicht erneut bemaengelt",
   pruefe({ dateien: basis.dateien, inhalte: { [basis.dateien[0]]: "drop table t;" }, basis }).length === 0);

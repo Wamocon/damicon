@@ -353,7 +353,8 @@
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
       "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
-      "openZone": "Zone öffnen"
+      "openZone": "Zone öffnen",
+      "moduleTitel": "Module"
     },
     "loading": "Daten werden geladen",
     "askAi": "KI fragen",
@@ -955,6 +956,7 @@
       "transkription": "Spracherkennung nicht möglich.",
       "transkriptionDienst": "Der Spracherkennungsdienst ist nicht erreichbar. Die Aufnahme hat geklappt – bitte später noch einmal versuchen.",
       "transkriptionDauer": "Die Spracherkennung hat zu lange gebraucht. Der Dienst startet vermutlich gerade – bitte in einer Minute noch einmal versuchen.",
+      "transkriptionLeer": "Nichts verstanden. Bitte etwas lauter oder näher am Mikrofon sprechen.",
       "dateiGross": "Die Aufnahme ist zu groß.",
       "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits.",
       "ratenlimit": "Zu viele Anfragen in kurzer Zeit. Bitte kurz warten und es erneut versuchen.",
@@ -1760,14 +1762,14 @@
   },
   "haustier": {
     "label": {
-      "ruhe": "DamiAI, dein Begleiter. Klicken öffnet den Chat.",
-      "denkt": "DamiAI arbeitet gerade. Klicken öffnet den Chat.",
-      "freigabe": "DamiAI braucht deine Freigabe. Klicken öffnet den Chat.",
-      "fertig": "DamiAI ist fertig. Klicken zeigt die Antwort.",
+      "ruhe": "Himbi, dein Begleiter. Klicken öffnet den Chat.",
+      "denkt": "Himbi arbeitet gerade. Klicken öffnet den Chat.",
+      "freigabe": "Himbi braucht deine Freigabe. Klicken öffnet den Chat.",
+      "fertig": "Himbi ist fertig. Klicken zeigt die Antwort.",
       "fehler": "Etwas ist schiefgelaufen. Klicken öffnet den Chat.",
-      "schlaeft": "DamiAI schläft. Klicken öffnet den Chat.",
-      "spricht": "DamiAI spricht.",
-      "tour": "DamiAI, dein Begleiter. Klicken öffnet die Tour.",
+      "schlaeft": "Himbi schläft. Klicken öffnet den Chat.",
+      "spricht": "Himbi spricht.",
+      "tour": "Himbi, dein Begleiter. Klicken öffnet die Tour.",
       "kurz": {
         "ruhe": "Ruhe",
         "denkt": "Arbeitet",
@@ -1790,7 +1792,7 @@
       "hinweis": "Halte mich gedrückt, um mich wegzuschicken."
     },
     "willkommen": "Da bin ich wieder!",
-    "zurueckholen": "DamiAI zurückholen",
+    "zurueckholen": "Himbi zurückholen",
     "befinden": {
       "frage": "Wie läuft dein Tag bisher?",
       "gut": "Läuft gut",
@@ -1802,7 +1804,12 @@
         "viel": "Dann nehme ich dir das Lästige ab. Frag mich einfach."
       },
       "hilfe": "Womit anfangen?",
-      "hilfeText": "Was steht heute an? Nenn mir die drei Dinge, um die ich mich zuerst kümmern sollte."
+      "hilfeText": "Was steht heute an? Nenn mir die drei dringendsten Dinge und frag mich, womit ich anfangen soll."
+    },
+    "tagesgruss": {
+      "frage": "{anrede}! Soll ich dir sagen, was heute dringend ist?",
+      "ja": "Ja, bitte",
+      "nein": "Heute nicht"
     },
     "anstupser": {
       "neuHeute": {
@@ -1825,12 +1832,16 @@
       "frageText": "Erkläre mir den Bereich „{bereich}“: Was kann ich hier tun?"
     },
     "einstellung": {
-      "titel": "DamiAI, dein Begleiter",
-      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg.",
+      "titel": "Himbi, dein Begleiter",
+      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf Himbi gedrückt halten, die Spitze am unteren Rand holt ihn zurück. Hier ausgeschaltet bleibt Himbi ganz weg.",
       "tourTitel": "Geführte Tour",
-      "tourText": "Aus heißt: DamiAI springt nach einer Prüfung nicht mehr selbst zu den Kacheln und hebt sie nicht mehr hervor, systemweit. Die Zusammenfassung im Chat kommt trotzdem weiter automatisch, nur ohne das Herumspringen auf der Seite.",
+      "tourText": "Aus heißt: Himbi springt nach einer Prüfung nicht mehr selbst zu den Kacheln und hebt sie nicht mehr hervor, systemweit. Ist „Automatisch starten“ eingeschaltet, kommt die Zusammenfassung im Chat trotzdem weiter von selbst, nur ohne das Herumspringen auf der Seite.",
+      "autoTitel": "Automatisch starten",
+      "autoText": "Standardmäßig aus. Aus heißt: nach einer Prüfung startet weder die Tour noch die Zusammenfassung im Chat von selbst, und Himbi fragt auch nicht mehr von sich aus nach. Die Knöpfe „Tour erneut starten“ und „Zusammenfassung im Chat“ in der Übersicht bleiben, damit startest du beides selbst.",
+      "tagesbeginnTitel": "Himbi beginnt den Tag mit mir",
+      "tagesbeginnText": "Standardmäßig an. Einmal am Tag nennt Himbi von sich aus, was dringend ist, und fragt, womit du anfangen willst: im Gespräch gleich zu Beginn, sonst mit einer kurzen Frage in der Ecke. Aus heißt: Himbi wartet, bis du fragst.",
       "bewegungTitel": "Bewegung",
-      "bewegungText": "Aus heißt: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
+      "bewegungText": "Aus heißt: Himbi bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
       "zustandTitel": "Zustand",
       "stimmungTitel": "Miene",
       "trachtTitel": "Tracht",
@@ -1849,7 +1860,7 @@
       }
     },
     "tour": {
-      "gruss": "Hallo, ich bin DamiAI! Soll ich dir Damicon in einer Minute zeigen?",
+      "gruss": "Hallo, ich bin Himbi! Soll ich dir Damicon in einer Minute zeigen?",
       "autoStart": "Ich lege gleich von allein los. Klick oder scrolle, wenn du lieber selbst schaust.",
       "start": "Tour starten",
       "nein": "Nein danke",
@@ -1912,6 +1923,7 @@
       "complianceUebersichtAbrufen": "Compliance geprüft",
       "kuehlketteAbrufen": "Kühlkette geprüft",
       "risikoRadarAbrufen": "Risiko-Radar geprüft",
+      "tagesLageAbrufen": "Tageslage geprüft",
       "oeffneBereich": "{bereich} geöffnet",
       "oeffnePruefBereich": "{bereich} geöffnet",
       "wissenSuchen": "Wissensbasis durchsucht",
@@ -2044,6 +2056,7 @@
       "complianceUebersichtAbrufen": "Prüfe Compliance …",
       "kuehlketteAbrufen": "Prüfe Kühlkette …",
       "risikoRadarAbrufen": "Durchsuche Risiko-Radar …",
+      "tagesLageAbrufen": "Stelle die Tageslage zusammen …",
       "oeffneBereich": "Öffne {bereich} …",
       "oeffnePruefBereich": "Öffne {bereich} …",
       "wissenSuchen": "Durchsuche Wissensbasis …",
@@ -2062,6 +2075,7 @@
       "complianceUebersichtAbrufen": "Compliance",
       "kuehlketteAbrufen": "Kühlkette",
       "risikoRadarAbrufen": "Risiko-Radar",
+      "tagesLageAbrufen": "Übersicht",
       "oeffneBereich": "{bereich}",
       "oeffnePruefBereich": "{bereich}",
       "wissenSuchen": "Wissensbasis",
@@ -2077,6 +2091,13 @@
       "mitarbeiterEinschalten": "Chat"
     },
     "bereichAllgemein": "den Bereich",
+    "zielExtra": {
+      "pruefbericht": "Prüfbericht",
+      "feld": "Feld",
+      "hof": "Hof",
+      "buero": "Büro",
+      "markt": "Markt"
+    },
     "pruefBereich": {
       "audit": "Audit",
       "steuer": "Steuern",
@@ -2247,6 +2268,38 @@
         "warnung": "Achtung: Das Dokument und alle seine Abschnitte werden endgültig aus der Wissensbasis entfernt. Das kann nicht rückgängig gemacht werden. Der Assistent findet es danach nicht mehr.",
         "abbrechen": "Abbrechen",
         "bestaetigen": "Endgültig löschen"
+      }
+    },
+    "sprachmodus": {
+      "titel": "Sprachmodus",
+      "starten": "Sprachmodus starten",
+      "kurz": "Gespräch",
+      "hinweis": "Sprachmodus: live mit Himbi sprechen, ohne zu tippen",
+      "einwilligungZuerst": "Bitte zuerst im Chat dem Hinweis zur KI-Nutzung zustimmen, dann den Sprachmodus neu starten.",
+      "freigabeHinweis": "Sagen Sie „Ja“ zum Freigeben oder „Nein“ zum Ablehnen.",
+      "beenden": "Sprachmodus beenden",
+      "unterbrechen": "Antippen oder einfach dazwischenreden",
+      "stumm": "Mikrofon stummschalten",
+      "fortsetzen": "Mikrofon wieder einschalten",
+      "untertitel": "Untertitel",
+      "hoertZu": "Ich höre zu …",
+      "tagesbeginn": {
+        "morgen": "Guten Morgen, Himbi. Was steht heute an und was ist dringend?",
+        "tag": "Hallo Himbi. Was steht heute noch an und was ist dringend?",
+        "abend": "Guten Abend, Himbi. Was ist heute noch offen und was ist dringend?"
+      },
+      "keinZugriff": "Kein Mikrofonzugriff. Bitte in den Browsereinstellungen erlauben.",
+      "liveFehlt": "Die Live-Spracherkennung steht hier nicht zur Verfügung. Der Sprachmodus braucht sie.",
+      "verbindungFehlt": "Die Verbindung zur Spracherkennung ist abgerissen. Tippen Sie auf Himbi, um es erneut zu versuchen.",
+      "erneut": "Erneut versuchen",
+      "status": {
+        "startet": "Mikrofon wird geöffnet …",
+        "hoert": "Ich höre zu",
+        "denkt": "Ich schaue nach …",
+        "spricht": "Himbi spricht",
+        "freigabe": "Ich warte auf Ihr Ja oder Nein",
+        "pausiert": "Mikrofon stummgeschaltet",
+        "fehler": "Etwas ist schiefgegangen"
       }
     }
   },

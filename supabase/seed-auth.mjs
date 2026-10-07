@@ -14,6 +14,7 @@
 // =============================================================================
 
 import { createClient } from "@supabase/supabase-js";
+import { DATENBANK_SCHEMA } from "../scripts/datenbank-schema.mjs";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -25,7 +26,7 @@ if (!url || !serviceKey) {
   process.exit(1);
 }
 
-const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
+const admin = createClient(url, serviceKey, { auth: { persistSession: false }, db: { schema: DATENBANK_SCHEMA } });
 
 export const demoPasswort = "DamiconDemo2026!";
 

@@ -2,6 +2,7 @@
 // Dienstschluessel. Die Rolle wird trotzdem als Filter (p_rolle) mitgegeben, die Rollenwirkung der
 // Suche ist also dieselbe wie in der Anwendung; nur die Zeilensicherheit der Sitzung entfaellt.
 import { createClient } from "@supabase/supabase-js";
+import { DATENBANK_SCHEMA } from "../src/lib/supabase/schema";
 import type { RpcKlient } from "../src/lib/wissen/supabase-suche";
 
 export function supabaseKlient(): RpcKlient | undefined {
@@ -9,5 +10,5 @@ export function supabaseKlient(): RpcKlient | undefined {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const schluessel = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !schluessel) throw new Error("WISSEN_BACKEND=supabase braucht NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY.");
-  return createClient(url, schluessel, { auth: { persistSession: false, autoRefreshToken: false } }) as unknown as RpcKlient;
+  return createClient(url, schluessel, { auth: { persistSession: false, autoRefreshToken: false }, db: { schema: DATENBANK_SCHEMA } }) as unknown as RpcKlient;
 }

@@ -12,6 +12,9 @@
 #           5. Nachpruefung: danach darf nichts mehr offen sein (upToDate)
 #           6. PostgREST-Schema neu laden (sonst kennt die API neue Spalten/Funktionen nicht)
 #
+# Preview : Nur public (Production). Das Schema public_preview der Preview-Umgebungen migriert
+#           datenbank-migration-preview.yml schon bei jedem Push in einen Pull Request.
+#
 # Schutz  : - Umgebung "Production": in Settings -> Environments -> Production Pflicht-Reviewer eintragen,
 #             dann wartet jeder Lauf VOR dem Anwenden auf eine Freigabe.
 #           - Nur ein Lauf gleichzeitig; ein laufender wird nie abgebrochen (halbe Migration waere schlimmer).

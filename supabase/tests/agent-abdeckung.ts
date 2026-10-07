@@ -370,7 +370,8 @@ pruefe("Doppelabsendung: Freigabekarte warnt, wenn dasselbe Formular kurz zuvor 
 // Lange Agentenlaeufe: die Route kuerzt alte Werkzeugausgaben, BEVOR sie die Grenze prueft (gemessen: nach
 // etwa acht Seitenschnappschuessen antwortete sie mit 413 und der Chat zeigte "KI nicht erreichbar").
 const kuerzenPos = routeQuelle2.indexOf("const nachrichten = alteAusgabenKuerzen(");
-const grenzePos = routeQuelle2.indexOf("JSON.stringify(nachrichten).length > MAX_VERLAUF_ZEICHEN");
+// Seit 29.09.2026 misst die Route die Laenge in einem try (tief verschachtelte Ausgaben warfen dort).
+const grenzePos = routeQuelle2.indexOf("verlaufZeichen = JSON.stringify(nachrichten).length;");
 pruefe("Route: Verlauf wird gekuerzt, DANN gegen die Grenze geprueft", kuerzenPos > 0 && grenzePos > kuerzenPos);
 pruefe("Chat: 'verlauf zu gross' (413) hat eine eigene Meldung, kein Fake-Ausfall", chatFehlerArt(new Error("verlauf zu gross")) === "zulang");
 pruefe("Chat: 'Neu beginnen' und Meldung in allen Sprachen", sprachen.every((sp) => typeof holen(texte[sp], "kiAssistentAnsicht.fehler.zuLang") === "string" && typeof holen(texte[sp], "kiAssistentAnsicht.fehler.neuBeginnen") === "string"));
@@ -411,7 +412,7 @@ pruefe("Agent-Modus, keine Rechtsfrage: weiterhin 'required'", JSON.stringify(wa
 pruefe("Assistent, keine Rechtsfrage: nichts erzwingen", waehleSchritt(eingabe({ frage: "Hallo" })) === undefined);
 const routeQuelle3 = liesQuelle("src/app/api/ki-assistent/route.ts", "utf8");
 pruefe("Route nutzt waehleSchritt in prepareStep", routeQuelle3.includes("waehleSchritt({") && routeQuelle3.includes('wissenAngeboten: "wissenSuchen" in werkzeuge'));
-pruefe("Route: ohne Wissensbasis gilt OHNE_QUELLEN_ANWEISUNG (kein Rechtsrat aus Trainingswissen)", routeQuelle3.includes('"wissenSuchen" in werkzeuge ? QUELLEN_ANWEISUNG : OHNE_QUELLEN_ANWEISUNG') && routeQuelle3.includes("NICHT aus deinem Trainingswissen"));
+pruefe("Route: ohne Wissensbasis gilt OHNE_QUELLEN_ANWEISUNG (kein Rechtsrat aus Trainingswissen)", routeQuelle3.includes('"wissenSuchen" in werkzeuge ? quellenAnweisung(antwortSprache) : OHNE_QUELLEN_ANWEISUNG') && routeQuelle3.includes("NICHT aus deinem Trainingswissen"));
 
 // --- Auftrag des Assistenten: kein kostenloser Allzweck-Chatbot (lib/ai/bereich-schutz.ts) ----------------
 const zweckentfremdet = [

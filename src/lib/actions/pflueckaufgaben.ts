@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { bucket } from "@/lib/supabase/buckets";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import {
   dbFehler,
@@ -387,7 +388,7 @@ export async function belegKern(
   const pfad = `${aufgabeId}/${aktionId ?? crypto.randomUUID()}-${art}.${belegEndung(datei)}`;
 
   const { error: uploadFehler } = await supabase.storage
-    .from("belege")
+    .from(bucket("belege"))
     .upload(pfad, datei, { contentType: datei.type || "image/jpeg", upsert: !!aktionId });
 
   if (uploadFehler) {
@@ -423,7 +424,7 @@ export async function belegKern(
     // Nur beim echten Fehlschlag aufraeumen - beim ignorierten Konflikt (kein
     // error, aber auch keine Zeile) referenziert der frueher erfolgreiche
     // Versuch dieselbe (gerade erneut hochgeladene) Datei weiterhin gueltig.
-    await supabase.storage.from("belege").remove([pfad]);
+    await supabase.storage.from(bucket("belege")).remove([pfad]);
     return { erledigt: false, status: dbFehler(error) };
   }
   if (!data) {

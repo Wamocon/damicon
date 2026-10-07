@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
-import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
+import { ladeKiChatVerlauf, ladeWissensPreislisten, speichereKiServerZeile } from "@/lib/data/ki-assistent";
 import {
   baueGesamtWissenskontext,
   baueSystemPrompt,
@@ -17,11 +17,14 @@ import {
 import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
+import { profilFuerTagesLage } from "@/lib/domain/tages-lage";
 import { ladeRatenlimitGrenze, ratenlimitUeberschritten } from "@/lib/ai/ratenbegrenzung";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import { transkribiereAudio, transkriptionsMeldung, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
 import { spracherkennungAnbieter, transkribiereMitSoniox } from "@/lib/ai/soniox-client";
 import { erkenneMitRueckfall } from "@/lib/domain/spracherkennung";
+import { diktatKontext } from "@/lib/domain/diktat-live";
+import { after } from "next/server";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
@@ -84,7 +87,9 @@ function baueVerlaufFuerModell(
     ...bisherigerVerlauf
       .filter((n) => n.rolle !== "system")
       .slice(-MAX_VERLAUF_FUER_MODELL)
-      .map((n) => ({ rolle: n.rolle, inhalt: n.inhalt })),
+      // Fragen hoechstens so lang, wie sie gestellt werden duerfen: aeltere Zeilen stammen aus der
+      // Zeit vor der Grenze in der Datenbank (20261114000000, Gegenpruefung vom 29.09.2026).
+      .map((n) => ({ rolle: n.rolle, inhalt: n.rolle === "nutzer" ? n.inhalt.slice(0, MAX_NACHRICHT_LAENGE) : n.inhalt })),
     { rolle: "nutzer", inhalt: nachricht },
   ];
 }
@@ -186,6 +191,8 @@ export async function kiNachrichtSenden(
           { basisUrl: anbieter.basis_url, modell: anbieter.modell, apiKey },
           profil.role,
           verlaufFuerModell,
+          // Dieser Weg kennt keine Rollenvorschau: immer das eigene Profil.
+          profilFuerTagesLage(profil, false),
         );
         if (antwort.ok) {
           antwortText = antwort.text;
@@ -221,13 +228,15 @@ export async function kiNachrichtSenden(
     antwortText = t("antwort");
   }
 
-  const { error: assistentFehler } = await supabase.from("ki_chat_nachrichten").insert({
-    profil_id: profil.id,
+  // Antwort und Eskalation schreibt nur der Server (service_role), die Sitzung
+  // darf seit 28.09.2026 nur die eigene Frage anlegen: speichereKiServerZeile.
+  const { error: assistentFehler } = await speichereKiServerZeile({
+    profilId: profil.id,
     rolle: "assistent",
     inhalt: antwortText,
-    anbieter_name: anbieterName,
+    anbieterName,
     fallback,
-    werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : null,
+    werkzeugaufrufe,
   });
   if (assistentFehler) return dbFehler(assistentFehler);
 
@@ -239,8 +248,8 @@ export async function kiNachrichtSenden(
     { rolle: "assistent" as const, fallback },
   ];
   if (fallback && sollteAutomatischEskalieren(aktuellerVerlauf)) {
-    await supabase.from("ki_chat_nachrichten").insert({
-      profil_id: profil.id,
+    await speichereKiServerZeile({
+      profilId: profil.id,
       rolle: "system",
       inhalt: await getTranslations("kiAssistentAnsicht").then((tt) => tt("eskalationAutomatisch")),
       eskaliert: true,
@@ -264,9 +273,9 @@ export async function kiEskalationAnfordern(
   }
 
   const t = await getTranslations("kiAssistentAnsicht");
-  const supabase = await createClient();
-  const { error } = await supabase.from("ki_chat_nachrichten").insert({
-    profil_id: profil.id,
+  // Systemzeile: nur ueber den Server (service_role), siehe speichereKiServerZeile.
+  const { error } = await speichereKiServerZeile({
+    profilId: profil.id,
     rolle: "system",
     inhalt: t("eskalationAngefordert"),
     eskaliert: true,
@@ -314,14 +323,27 @@ export async function transkribiereSprachnachricht(
 
   const name = audio instanceof File && audio.name ? audio.name : "aufnahme.webm";
 
+  // Diktat kostet beim Dienstleister Geld - dieselbe Grenze wie der Chat,
+  // eigener Zaehler ("stt:"), damit Diktieren nicht das Chat-Budget frisst.
+  // Ohne Admin-Einstellung gilt, wie beim Chat, kein Limit.
+  if (ratenlimitUeberschritten(`stt:${profil.id}`, await ladeRatenlimitGrenze(profil.role))) {
+    return fehler("fehler.ratenlimit");
+  }
+
   // Wer erkennt und was passiert, wenn ein Dienst hakt, steht in
   // ai/spracherkennung.ts: Soniox zuerst, ab 6 s laeuft Whisper parallel mit,
   // der erste brauchbare Text gewinnt. Die Oberflaechensprache geht als
   // Hinweis mit - ungeprueft, beide Clients lassen nur zu, was sie kennen.
+  // Dazu die Fachwoerter der Anwendung (context) und das Aufraeumen beim
+  // Dienstleister NACH der Antwort (after) statt davor.
   const sprachHinweis = text(formData, "sprache");
   const antwort = await erkenneMitRueckfall(
     spracherkennungAnbieter() === "soniox"
-      ? (abbruch) => transkribiereMitSoniox(audio, name, sprachHinweis, abbruch)
+      ? (abbruch) =>
+          transkribiereMitSoniox(audio, name, sprachHinweis, abbruch, {
+            kontext: diktatKontext(),
+            imHintergrund: (arbeit) => after(arbeit),
+          })
       : null,
     (abbruch) => transkribiereAudio(audio, name, sprachHinweis, abbruch),
   );
@@ -343,6 +365,25 @@ export async function transkribiereSprachnachricht(
   });
 
   return ok("ok.transkription", antwort.text, gehoerteSprachen);
+}
+
+/** Das Live-Diktat laeuft am Server vorbei (Browser direkt zu Soniox, siehe
+ *  domain/diktat-live.ts). Damit es im Protokoll trotzdem genauso steht wie
+ *  der Datei-Weg, meldet der Browser danach, DASS diktiert wurde - Zahl der
+ *  Zeichen und gehoerte Sprachen, nie den Text. Die Angaben kommen vom
+ *  Browser und werden deshalb nur in engen Grenzen uebernommen. */
+export async function meldeLiveDiktat(zeichen: number, sprachen: string[]): Promise<void> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("ki_assistent", "create");
+  } catch {
+    return;
+  }
+  const anzahl = Number.isInteger(zeichen) && zeichen >= 0 && zeichen <= 100_000 ? zeichen : 0;
+  const gehoert = Array.isArray(sprachen)
+    ? [...new Set(sprachen.filter((s): s is string => typeof s === "string" && /^[a-z]{2}$/.test(s)))].slice(0, 8)
+    : [];
+  await protokolliere(profil, "ki_chat.diktat", { zeichen: anzahl, dienst: "soniox-live", sprachen: gehoert });
 }
 
 /** Stoesst das Laden des Spracherkennungsmodells an, damit die erste echte

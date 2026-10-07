@@ -1,4 +1,4 @@
-/* Feld-Lader (feld-lader.tsx): DamiAI geht den Feldweg entlang, waehrend etwas laedt.
+/* Feld-Lader (feld-lader.tsx): Himbi geht den Feldweg entlang, waehrend etwas laedt.
    Reines CSS/SVG - kein Google Font, kein Bild aus dem Netz, laeuft also auch dort, wo
    das Geraet gerade offline ist (public/sw.js). Bewegung NUR ueber transform und opacity,
    wie ueberall bei Himbi, und alles an prefers-reduced-motion gebunden. */
