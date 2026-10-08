@@ -29,6 +29,7 @@ const FEHLER_SCHLUESSEL: Record<UploadFehler["code"], string> = {
   dateityp: "fehler.wissenDateityp",
   zuGross: "fehler.zuGross",
   lesen: "fehler.wissenLesen",
+  pdfDienst: "fehler.wissenPdfDienst",
   leer: "fehler.wissenLeer",
   zuLang: "fehler.wissenZuLang",
   doppelt: "fehler.wissenDoppelt",

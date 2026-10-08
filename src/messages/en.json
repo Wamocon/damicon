@@ -1004,7 +1004,8 @@
       "wissenVorschau": "Upload blocked: this preview environment writes to the same database schema as production (SUPABASE_DB_SCHEMA is not public_preview). Please upload in production or in a preview with its own schema.",
       "wissenNichtLoeschbar": "This document cannot be deleted here. Only documents uploaded through this administration can be deleted, never documents from the import script.",
       "wissenLoeschen": "The document could not be deleted. Nothing was changed.",
-      "wissenGewichte": "The document was deleted, but the search word weights could not be updated. This is harmless and is corrected by the next ETL run."
+      "wissenGewichte": "The document was deleted, but the search word weights could not be updated. This is harmless and is corrected by the next ETL run.",
+      "wissenPdfDienst": "The PDF reader is not available on the server. This is not caused by your file, nothing was saved. Please inform technical support."
     },
     "einladungen": {
       "erfolg": {

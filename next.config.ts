@@ -3,6 +3,13 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
+// Dateien, die PDF.js zur Laufzeit ueber berechnete Pfade nachlaedt (Linux/glibc ist die Plattform von Vercel).
+const PDF_DATEIEN = [
+  "./node_modules/@napi-rs/canvas/**/*",
+  "./node_modules/@napi-rs/canvas-linux-x64-gnu/**/*",
+  "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+];
+
 const nextConfig: NextConfig = {
   // Datenbankschema (public oder public_preview) beim Build fuer Server, Proxy und Browser festlegen.
   // Quelle ist SUPABASE_DB_SCHEMA; NEXT_PUBLIC_DB_SCHEMA setzt der Deploy-Workflow als Ueberschreibung.
@@ -35,6 +42,14 @@ const nextConfig: NextConfig = {
   // der Schluessel als Glob ausgewertet wird.
   outputFileTracingIncludes: {
     "/\\[locale\\]/dashboard/handbuch": ["./docs/manual/index*.html"],
+    // Wissens-Upload (PDF): Die Server Action laeuft in der Funktion der Seite, auf der das Formular steht (das KI-Panel
+    // haengt im Layout, also in jeder Dashboard-Route). Dort muessen @napi-rs/canvas samt Linux-Binaerdatei und der
+    // PDF.js-Worker mitgeliefert werden: pdfjs-dist laedt sie ueber berechnete Pfade, die die Ablaufverfolgung allein
+    // nicht findet (Vercel-Log: "Cannot find module '@napi-rs/canvas'", dann "DOMMatrix is not defined"). Zusaetzlich zum
+    // festen Import von "pdf-parse/worker" in src/lib/wissen/hochladen.ts, der dasselbe nach sich zieht.
+    // Pruefung nach dem Build: npm run pruefe:pdf-ablaufverfolgung.
+    "/\\[locale\\]/dashboard": PDF_DATEIEN,
+    "/\\[locale\\]/dashboard/**": PDF_DATEIEN,
   },
 };
 
