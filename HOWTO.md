@@ -251,6 +251,12 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA app
 **3. Schema über die Supabase API zugänglich machen:**
 Gehe zu `Project Settings → API → Exposed schemas` und füge deinen Schema-Namen hinzu.
 
+#### Migrationsregel und Drift-Check
+
+**Keine Migration ohne Migrationsdatei.** Beide Migrations-Workflows springen nur an, wenn eine Datei unter `supabase/migrations/` im Pull Request liegt. Eine Änderung, die direkt gegen die Cloud läuft (`supabase db push`, SQL im Dashboard, MCP `apply_migration` oder `execute_sql`), sehen sie nicht. Die Regel steht in `CLAUDE.md`. Ein Hook (`.claude/hooks/cloud-datenbank-sperre.mjs`, eingebunden in `.claude/settings.json`) sperrt für Claude Code die Schreibzugriffe auf die Cloud-Datenbank. Er ist eine Leitplanke gegen Versehen, kein Sicherheitsrand. Im Notfall setzt nur ein Mensch `DAMICON_CLOUD_DB_FREIGABE=1` vor dem Start von Claude und reicht danach sofort die Datei nach.
+
+**Drift-Check:** `datenbank-drift.yml` läuft täglich um 04:17 UTC und von Hand, nur lesend. `scripts/pruefe-drift.mjs` vergleicht die Dateien auf `main` mit den Verläufen von `public` und `public_preview` (Migration ohne Datei, Datei nicht angewendet, Datei nach dem Anwenden geändert). `scripts/preview-abgleich.mjs` vergleicht die Struktur beider Schemas, sobald sie denselben Stand haben. Der Lauf repariert nichts: Wer eine Abweichung findet, schreibt die fehlende Migration als Datei in einen Pull Request. Bekannte Altlasten, die sich nicht mehr beheben lassen, stehen mit Begründung in `supabase/drift-bekannt.txt`. Grenze: Solange offene Pull Requests `public_preview` vor `public` schieben, überspringt der Strukturabgleich und meldet eine Warnung.
+
 #### Preview-Schema `public_preview`
 
 Production und Preview teilen eine Supabase-Datenbank. Preview-Umgebungen bekommen mit `public_preview` eine eigene Kopie von `public` (Struktur und Daten). Jede Migration läuft deshalb in zwei Workflows:
@@ -306,6 +312,7 @@ Dieses Projekt nutzt den **zentralen Wamocon CI/CD-Workflow** aus [`Wamocon/gith
 | **LP Generator** | `lp-generator.yml` | **Manuell** - kein Auto-Trigger | Generiert eine Landing Page in einem neuen Repo |
 | **Datenbank-Migration Preview** | `datenbank-migration-preview.yml` | **Automatisch** bei jedem Push in einen PR, der Migrationen ändert | Wendet die Migrationen umgeschrieben auf `public_preview` an (siehe Abschnitt 3) |
 | **Datenbank-Migration** | `datenbank-migration.yml` | **Automatisch** nach dem Merge nach `main`, wenn Migrationen dabei sind | Wendet die Migrationen per `supabase db push` auf `public` (Production) an |
+| **Datenbank-Drift** | `datenbank-drift.yml` | **Automatisch** täglich und von Hand | Prüft nur lesend, ob Migrationsdateien, `public` und `public_preview` übereinstimmen (siehe Migrationsregel und Drift-Check) |
 
 > ⚠️ **Kein automatisches Deployment:** Weder ein PR noch ein Push auf `main` startet automatisch ein Deployment. Alle Deployments werden manuell über den Actions-Tab gestartet.
 
@@ -730,6 +737,12 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA app
 **3. Expose the schema via the Supabase API:**
 Go to `Project Settings → API → Exposed schemas` and add your custom schema name.
 
+#### Migration rule and drift check
+
+**No migration without a migration file.** Both migration workflows only start when a file under `supabase/migrations/` is part of the pull request. They cannot see a change run directly against the cloud (`supabase db push`, SQL in the dashboard, MCP `apply_migration` or `execute_sql`). The rule is written down in `CLAUDE.md`. A hook (`.claude/hooks/cloud-datenbank-sperre.mjs`, registered in `.claude/settings.json`) blocks write access to the cloud database for Claude Code. It is a guard rail against mistakes, not a security boundary. In an emergency only a human sets `DAMICON_CLOUD_DB_FREIGABE=1` before starting Claude, and then submits the file right away.
+
+**Drift check:** `datenbank-drift.yml` runs daily at 04:17 UTC and by hand, read-only. `scripts/pruefe-drift.mjs` compares the files on `main` with the histories of `public` and `public_preview` (migration without a file, file not applied, file changed after it was applied). `scripts/preview-abgleich.mjs` compares the structure of both schemas once they are at the same state. The run repairs nothing: whoever finds a difference writes the missing migration as a file in a pull request. Known legacy items that can no longer be fixed are listed with a reason in `supabase/drift-bekannt.txt`. Limit: while open pull requests keep `public_preview` ahead of `public`, the structure comparison is skipped and reports a warning.
+
 #### Preview schema `public_preview`
 
 Production and preview share one Supabase database. Preview environments get their own copy of `public` (structure and data) called `public_preview`. Every migration therefore runs in two workflows:
@@ -785,6 +798,7 @@ This project uses the **centralized Wamocon CI/CD workflow** from [`Wamocon/gith
 | **LP Generator** | `lp-generator.yml` | **Manual only** - no auto-trigger | Generates a landing page in a new repo |
 | **Datenbank-Migration Preview** | `datenbank-migration-preview.yml` | **Automatic** on every push to a PR that changes migrations | Applies the rewritten migrations to `public_preview` (see section 3) |
 | **Datenbank-Migration** | `datenbank-migration.yml` | **Automatic** after the merge into `main` when migrations are included | Applies the migrations to `public` (production) with `supabase db push` |
+| **Datenbank-Drift** | `datenbank-drift.yml` | **Automatic** daily and by hand | Read-only check that migration files, `public` and `public_preview` agree (see migration rule and drift check) |
 
 > ⚠️ **No automatic deployment:** Neither a PR nor a push to `main` triggers a deployment automatically. All deployments are started manually from the Actions tab.
 
