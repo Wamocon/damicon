@@ -1765,6 +1765,71 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
+// --- 21. Lohnsaetze fuer den Pfluecker lesbar, Demo-Brigade am richtigen Ort ------
+// WMCNL-2420: "Wer danach bezahlt wird, darf die Grundlage sehen" stand im Text,
+// die Policies liessen nur das Buero lesen. WMCNL-2414/2298: das Demo-Konto der
+// Brigade haengte an der Brigade ohne Feldaufgaben.
+{
+  const { rows: pickerLohn } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-picker-lohn@damicon.demo', '{"role":"picker"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", pickerLohn[0].id);
+  const { rows: saetze } = await db.query("select id from public.lohn_saetze;");
+  const { rows: steuerSaetze } = await db.query("select id from public.lohn_steuersaetze_kz;");
+  check(
+    "Lohn: ein Pfluecker liest den Lohnsatz und den gesetzlichen Abzugssatz seiner Bezahlung",
+    saetze.length >= 1 && steuerSaetze.length >= 1,
+    `Lohnsaetze: ${saetze.length}, Abzugssaetze: ${steuerSaetze.length}`,
+  );
+  const schreiben = await db.query("update public.lohn_saetze set notiz = 'x' where id = $1;", [saetze[0].id]);
+  check("Lohn: der Pfluecker darf den Lohnsatz nicht aendern", schreiben.affectedRows === 0, `geaenderte Zeilen: ${schreiben.affectedRows}`);
+  await alsAdmin(db);
+
+  // Ein Kunde liest die Saetze weiterhin nicht.
+  const { rows: kundeLohn } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-kunde-lohnsatz@damicon.demo', '{"role":"kunde"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", kundeLohn[0].id);
+  const { rows: kundeSaetze } = await db.query("select id from public.lohn_saetze;");
+  await alsAdmin(db);
+  check("Lohn: ein Kunde liest die Lohnsaetze weiterhin nicht", kundeSaetze.length === 0, `Zeilen: ${kundeSaetze.length}`);
+
+  // Die Zuordnung des Demo-Kontos: die Migration selbst wird ausgefuehrt, wie
+  // beim Datenbank-Push ohne angemeldete Person (profil_zuordnung_schuetzen
+  // greift nur bei auth.uid() is not null; alsAdmin() raeumt die Claims nicht).
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  const { rows: bruNord } = await db.query("select id from public.brigaden where name = 'Brigade Nord';");
+  const { rows: bruNachbar } = await db.query("select id from public.brigaden where name = 'Brigade Nachbarbetrieb';");
+  await db.query(
+    `insert into auth.users (email, raw_app_meta_data) values ('brigade@damicon.demo', '{"role":"brigade"}'::jsonb);`,
+  );
+  await db.query(
+    `insert into auth.users (email, raw_app_meta_data) values ('brigade-zwei@damicon.demo', '{"role":"brigade"}'::jsonb);`,
+  );
+  await db.query("update public.profiles set brigade_id = $1 where email = 'brigade@damicon.demo';", [bruNachbar[0].id]);
+  await db.query("update public.profiles set brigade_id = $1 where email = 'brigade-zwei@damicon.demo';", [bruNachbar[0].id]);
+  const migration = readFileSync(join(MIGRATIONEN_DIR, "20261122000000_demo_brigade_konto_auf_brigade_nord.sql"), "utf8");
+  await db.exec(migration);
+  await db.exec(migration); // ein zweiter Lauf aendert nichts
+  const { rows: zuordnung } = await db.query(
+    "select email, brigade_id from public.profiles where email in ('brigade@damicon.demo', 'brigade-zwei@damicon.demo') order by email;",
+  );
+  const jeEmail = Object.fromEntries(zuordnung.map((z) => [z.email, z.brigade_id]));
+  check(
+    "Brigade: das Demo-Konto haengt nach der Migration an Brigade Nord",
+    jeEmail["brigade@damicon.demo"] === bruNord[0].id,
+    `brigade_id: ${jeEmail["brigade@damicon.demo"]}`,
+  );
+  check(
+    "Brigade: ein anderes Konto an Brigade Nachbarbetrieb bleibt unberuehrt",
+    jeEmail["brigade-zwei@damicon.demo"] === bruNachbar[0].id,
+    `brigade_id: ${jeEmail["brigade-zwei@damicon.demo"]}`,
+  );
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);
