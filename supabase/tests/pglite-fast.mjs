@@ -857,7 +857,58 @@ await mussScheitern(
     `erster: ${mengeErst[0].ergebnis}, zweiter: ${mengeReplay[0].ergebnis}`,
   );
 
+  // WMCNL-2452: eine Rolle ohne Leserecht auf pflueckaufgaben und ohne
+  // Schreibrecht auf sync_protokoll (picker) bekam fuer beide Funktionen einen
+  // rohen 42501 statt der sauberen Antwort 'berechtigung'.
   await alsAdmin(db);
+  const { rows: picker } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-picker@damicon.demo', '{"role":"picker"}'::jsonb)
+     returning id;`,
+  );
+  await alsRolle(db, "authenticated", picker[0].id);
+  const pickerAktion = crypto.randomUUID();
+  let pickerMenge = null;
+  let pickerStatus = null;
+  let pickerFehler = "";
+  try {
+    pickerMenge = (
+      await db.query("select * from public.sync_menge_melden($1, $2, 12.5, 1.0);", [
+        pickerAktion,
+        aufgabeId,
+      ])
+    ).rows[0];
+    pickerStatus = (
+      await db.query(
+        "select * from public.sync_aufgabe_status_setzen($1, $2, 'angenommen', 'offen');",
+        [crypto.randomUUID(), aufgabeId],
+      )
+    ).rows[0];
+  } catch (e) {
+    pickerFehler = e?.cause?.code ?? e?.code ?? String(e).slice(0, 80);
+  }
+  check(
+    "Sync: eine Rolle ohne Protokollrecht bekommt 'berechtigung' statt eines RLS-Fehlers",
+    pickerMenge?.ergebnis === "berechtigung" && pickerStatus?.ergebnis === "berechtigung",
+    pickerFehler
+      ? `Fehler ${pickerFehler}`
+      : `Menge: ${pickerMenge?.ergebnis}, Status: ${pickerStatus?.ergebnis}`,
+  );
+
+  await alsAdmin(db);
+  const { rows: pickerProtokoll } = await db.query(
+    "select 1 from public.sync_protokoll where aktion_id = $1;",
+    [pickerAktion],
+  );
+  const { rows: pickerAufgabe } = await db.query(
+    "select status from public.pflueckaufgaben where id = $1;",
+    [aufgabeId],
+  );
+  check(
+    "Sync: die abgewiesene Aktion der Rolle ohne Protokollrecht schreibt weder Protokoll noch Aufgabe",
+    pickerProtokoll.length === 0 && pickerAufgabe[0].status === "in_arbeit",
+    `Protokollzeilen: ${pickerProtokoll.length}, Status: ${pickerAufgabe[0].status}`,
+  );
   // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
@@ -985,6 +1036,46 @@ await mussScheitern(
     lauf1[0].verarbeitet === lauf2[0].verarbeitet && nachZweitemLauf[0].anzahl === 2,
     `verarbeitet ${lauf1[0].verarbeitet}/${lauf2[0].verarbeitet}, Zeilen danach ${nachZweitemLauf[0].anzahl}`,
   );
+
+  // 13g. WMCNL-2304: ein frei gewaehltes Brutto vorrechnen. 300 000 Tenge sind
+  // der von Hand nachgerechnete Normalfall aus 13a, 150 000 laufen durch den
+  // Zweig mit positivem ИПН (der in den Seed-Daten nie vorkommt: alle
+  // Monatsbruttos liegen unter dem Freibetrag von 129 750).
+  await alsRolle(db, "authenticated", buchhaltung.rows[0].id);
+  const { rows: vorschau300 } = await db.query("select * from public.lohn_kz_abzuege_vorschau(300000);");
+  check(
+    "Lohn-KZ: die Vorschau fuer 300 000 Tenge trifft die von Hand gerechneten Betraege",
+    vorschau300.length === 1 &&
+      Number(vorschau300[0].opv_tenge) === 30000 &&
+      Number(vorschau300[0].ipn_tenge) === 13425 &&
+      Number(vorschau300[0].netto_tenge) === 250575,
+    `ОПВ ${vorschau300[0]?.opv_tenge}, ИПН ${vorschau300[0]?.ipn_tenge}, netto ${vorschau300[0]?.netto_tenge}`,
+  );
+  const { rows: vorschau150 } = await db.query("select * from public.lohn_kz_abzuege_vorschau(150000);");
+  // 150 000 - 15 000 (ОПВ) - 3 000 (ВОСМС) - 129 750 (Freibetrag) = 2 250 -> ИПН 225
+  check(
+    "Lohn-KZ: ueber dem Freibetrag fuehrt die Vorschau in den Zweig mit positivem ИПН",
+    Number(vorschau150[0].ipn_bemessungsgrundlage_tenge) === 2250 && Number(vorschau150[0].ipn_tenge) === 225,
+    `Grundlage ${vorschau150[0]?.ipn_bemessungsgrundlage_tenge}, ИПН ${vorschau150[0]?.ipn_tenge}`,
+  );
+  let negativFehler = null;
+  try {
+    await db.query("select * from public.lohn_kz_abzuege_vorschau(-1);");
+  } catch (e) {
+    negativFehler = e?.cause?.code ?? e?.code;
+  }
+  check("Lohn-KZ: ein negatives Brutto wird abgewiesen", negativFehler === "22023", `errcode: ${negativFehler}`);
+  await alsAdmin(db);
+
+  // Ohne Leserecht auf die Saetze gibt die Vorschau keine Zeile zurueck.
+  const kundeVorschau = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-kunde-lohn-kz@damicon.demo', '{"role":"kunde"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", kundeVorschau.rows[0].id);
+  const { rows: ohneRecht } = await db.query("select * from public.lohn_kz_abzuege_vorschau(300000);");
+  await alsAdmin(db);
+  check("Lohn-KZ: wer die Saetze nicht lesen darf, bekommt keine Vorschau", ohneRecht.length === 0, `Zeilen: ${ohneRecht.length}`);
 
   // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
@@ -1566,6 +1657,177 @@ await mussScheitern(
   await alsAdmin(db);
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
   await db.query("select set_config('request.jwt.claim.role', '', false);");
+}
+
+// --- 18. Wettermessungen: Loeschrecht und ein Tag, eine Zeile (WMCNL-2389) ------
+// Die Aktualisierung loescht den Bestand und schreibt ihn neu. Ohne DELETE-Policy
+// loescht RLS keine Zeile, ohne Fehler zu melden - die Saison verdoppelte sich
+// bei jedem Klick.
+{
+  const tag = "2026-01-05";
+  const ohneDublette = async (name, sql, params = []) => {
+    try {
+      await db.query(sql, params);
+      return null;
+    } catch (e) {
+      return e?.cause?.code ?? e?.code ?? name;
+    }
+  };
+
+  await alsRolle(db, "authenticated", leitungAuthId);
+  const erste = await ohneDublette("erste", "insert into public.wetter_messungen (gemessen_am, temp_min_c, temp_max_c) values ($1, 1, 5);", [tag]);
+  const zweite = await ohneDublette("zweite", "insert into public.wetter_messungen (gemessen_am, temp_min_c, temp_max_c) values ($1, 2, 6);", [tag]);
+  check("Wetter: ein Tag ist nur einmal in der betriebsweiten Reihe moeglich", erste === null && zweite === "23505", `erste: ${erste}, zweite: ${zweite}`);
+
+  const geloescht = await db.query("delete from public.wetter_messungen where gemessen_am = $1 and feldparzelle_id is null;", [tag]);
+  check("Wetter: die Betriebsleitung darf Wettermessungen loeschen (Aktualisierung ersetzt den Bestand)", geloescht.affectedRows === 1, `geloeschte Zeilen: ${geloescht.affectedRows}`);
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  await alsAdmin(db);
+  await db.query("insert into public.wetter_messungen (gemessen_am, temp_min_c, temp_max_c) values ($1, 1, 5);", [tag]);
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  const brigadeLoescht = await db.query("delete from public.wetter_messungen where gemessen_am = $1 and feldparzelle_id is null;", [tag]);
+  check("Wetter: die Brigade darf keine Wettermessung loeschen", brigadeLoescht.affectedRows === 0, `geloeschte Zeilen: ${brigadeLoescht.affectedRows}`);
+
+  await alsAdmin(db);
+  await db.query("delete from public.wetter_messungen where gemessen_am = $1 and feldparzelle_id is null;", [tag]);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 19. Abschluss ohne Fotobeleg hat einen eigenen Fehlercode (WMCNL-2492) ----
+// Die Oberflaeche meldete "Die Wartezeit ist noch nicht abgelaufen", weil der
+// Abschluss ohne Beleg mit 23514 abgelehnt wurde und dbFehler() 23514 auf die
+// Wartezeit-Meldung abbildet. DA006 trennt die beiden Faelle.
+{
+  // Ein Block ohne Sperre: blockId ist an dieser Stelle durch die Abschnitte
+  // davor wartezeitgesperrt.
+  const { rows: freierBlock } = await db.query(
+    "select id from public.reihenbloecke where status <> 'wartezeitgesperrt' limit 1;",
+  );
+  const { rows: neueAufgabe } = await db.query(
+    `insert into public.pflueckaufgaben (code, reihenblock_id, zielmenge_kg, status, ist_menge_kg, qualitaetsfaktor)
+     values ('PA-IT-BELEG-1', $1, 5, 'beleg_pruefung', 5, 1.00) returning id;`,
+    [freierBlock[0].id],
+  );
+  await alsRolle(db, "authenticated", leitungAuthId);
+  const ohneBeleg = await (async () => {
+    try {
+      await db.query("update public.pflueckaufgaben set status = 'abgeschlossen' where id = $1;", [neueAufgabe[0].id]);
+      return null;
+    } catch (e) {
+      return e?.cause?.code ?? e?.code ?? String(e).slice(0, 80);
+    }
+  })();
+  check("Pflueckaufgabe: Abschluss ohne Fotobeleg meldet DA006 statt 23514", ohneBeleg === "DA006", `errcode: ${ohneBeleg}`);
+  await alsAdmin(db);
+  await db.query("delete from public.pflueckaufgaben where id = $1;", [neueAufgabe[0].id]);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 20. MFA-Status aller Konten fuer die Administration (WMCNL-2479) -------------
+{
+  const { rows: admins } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-admin-mfa@damicon.demo', '{"role":"admin"}'::jsonb) returning id;`,
+  );
+  // Die Konten aus den Abschnitten davor: ein bestaetigter Faktor fuer die
+  // Brigade, ein unbestaetigter fuer die Leitung (zaehlt nicht).
+  await db.query("insert into auth.mfa_factors (user_id, status) values ($1, 'verified');", [brigadeAuthId]);
+  await db.query("insert into auth.mfa_factors (user_id, status) values ($1, 'unverified');", [leitungAuthId]);
+
+  await alsRolle(db, "authenticated", admins[0].id);
+  const { rows: uebersicht } = await db.query("select * from public.mfa_status_je_konto();");
+  const jeEmail = Object.fromEntries(uebersicht.map((z) => [z.email, z.faktoren]));
+  check(
+    "MFA-Uebersicht: ein bestaetigter Faktor zaehlt, ein unbestaetigter nicht",
+    jeEmail["it-brigade@damicon.demo"] === 1 && jeEmail["it-leitung@damicon.demo"] === 0,
+    `Brigade: ${jeEmail["it-brigade@damicon.demo"]}, Leitung: ${jeEmail["it-leitung@damicon.demo"]}`,
+  );
+  check(
+    "MFA-Uebersicht: Konten ohne Schutz stehen zuerst",
+    uebersicht.length > 1 && uebersicht[0].faktoren === 0 && uebersicht[uebersicht.length - 1].faktoren >= 1,
+    `erste Zeile: ${uebersicht[0]?.faktoren}, letzte: ${uebersicht[uebersicht.length - 1]?.faktoren}`,
+  );
+  await alsAdmin(db);
+
+  // Ohne die Rolle admin gibt es 42501, keine leere Liste.
+  await alsRolle(db, "authenticated", leitungAuthId);
+  let leitungFehler = null;
+  try {
+    await db.query("select * from public.mfa_status_je_konto();");
+  } catch (e) {
+    leitungFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check("MFA-Uebersicht: die Betriebsleitung bekommt 42501", leitungFehler === "42501", `errcode: ${leitungFehler}`);
+
+  await db.query("delete from auth.mfa_factors where user_id in ($1, $2);", [brigadeAuthId, leitungAuthId]);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 21. Lohnsaetze fuer den Pfluecker lesbar, Demo-Brigade am richtigen Ort ------
+// WMCNL-2420: "Wer danach bezahlt wird, darf die Grundlage sehen" stand im Text,
+// die Policies liessen nur das Buero lesen. WMCNL-2414/2298: das Demo-Konto der
+// Brigade haengte an der Brigade ohne Feldaufgaben.
+{
+  const { rows: pickerLohn } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-picker-lohn@damicon.demo', '{"role":"picker"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", pickerLohn[0].id);
+  const { rows: saetze } = await db.query("select id from public.lohn_saetze;");
+  const { rows: steuerSaetze } = await db.query("select id from public.lohn_steuersaetze_kz;");
+  check(
+    "Lohn: ein Pfluecker liest den Lohnsatz und den gesetzlichen Abzugssatz seiner Bezahlung",
+    saetze.length >= 1 && steuerSaetze.length >= 1,
+    `Lohnsaetze: ${saetze.length}, Abzugssaetze: ${steuerSaetze.length}`,
+  );
+  const schreiben = await db.query("update public.lohn_saetze set notiz = 'x' where id = $1;", [saetze[0].id]);
+  check("Lohn: der Pfluecker darf den Lohnsatz nicht aendern", schreiben.affectedRows === 0, `geaenderte Zeilen: ${schreiben.affectedRows}`);
+  await alsAdmin(db);
+
+  // Ein Kunde liest die Saetze weiterhin nicht.
+  const { rows: kundeLohn } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-kunde-lohnsatz@damicon.demo', '{"role":"kunde"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", kundeLohn[0].id);
+  const { rows: kundeSaetze } = await db.query("select id from public.lohn_saetze;");
+  await alsAdmin(db);
+  check("Lohn: ein Kunde liest die Lohnsaetze weiterhin nicht", kundeSaetze.length === 0, `Zeilen: ${kundeSaetze.length}`);
+
+  // Die Zuordnung des Demo-Kontos: die Migration selbst wird ausgefuehrt, wie
+  // beim Datenbank-Push ohne angemeldete Person (profil_zuordnung_schuetzen
+  // greift nur bei auth.uid() is not null; alsAdmin() raeumt die Claims nicht).
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  const { rows: bruNord } = await db.query("select id from public.brigaden where name = 'Brigade Nord';");
+  const { rows: bruNachbar } = await db.query("select id from public.brigaden where name = 'Brigade Nachbarbetrieb';");
+  await db.query(
+    `insert into auth.users (email, raw_app_meta_data) values ('brigade@damicon.demo', '{"role":"brigade"}'::jsonb);`,
+  );
+  await db.query(
+    `insert into auth.users (email, raw_app_meta_data) values ('brigade-zwei@damicon.demo', '{"role":"brigade"}'::jsonb);`,
+  );
+  await db.query("update public.profiles set brigade_id = $1 where email = 'brigade@damicon.demo';", [bruNachbar[0].id]);
+  await db.query("update public.profiles set brigade_id = $1 where email = 'brigade-zwei@damicon.demo';", [bruNachbar[0].id]);
+  const migration = readFileSync(join(MIGRATIONEN_DIR, "20261122000000_demo_brigade_konto_auf_brigade_nord.sql"), "utf8");
+  await db.exec(migration);
+  await db.exec(migration); // ein zweiter Lauf aendert nichts
+  const { rows: zuordnung } = await db.query(
+    "select email, brigade_id from public.profiles where email in ('brigade@damicon.demo', 'brigade-zwei@damicon.demo') order by email;",
+  );
+  const jeEmail = Object.fromEntries(zuordnung.map((z) => [z.email, z.brigade_id]));
+  check(
+    "Brigade: das Demo-Konto haengt nach der Migration an Brigade Nord",
+    jeEmail["brigade@damicon.demo"] === bruNord[0].id,
+    `brigade_id: ${jeEmail["brigade@damicon.demo"]}`,
+  );
+  check(
+    "Brigade: ein anderes Konto an Brigade Nachbarbetrieb bleibt unberuehrt",
+    jeEmail["brigade-zwei@damicon.demo"] === bruNachbar[0].id,
+    `brigade_id: ${jeEmail["brigade-zwei@damicon.demo"]}`,
+  );
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
 // --- Aufraeumen ---------------------------------------------------------------

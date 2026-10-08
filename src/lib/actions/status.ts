@@ -75,6 +75,12 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // (fehler.regel), sonst zeigt die Oberflaeche faelschlich "Wartezeit
       // ist noch nicht abgelaufen", obwohl genau das nicht die Ursache ist.
       return fehler("fehler.reihenblockGesperrt");
+    case "DA006":
+      // pflueckaufgabe_freigabe_pruefen() (WMCNL-2492): der Abschluss
+      // verlangt einen Fotobeleg. Eigener Code statt der ueberladenen
+      // 23514-Sammelklasse (fehler.regel), sonst meldete die Oberflaeche
+      // "Die Wartezeit ist noch nicht abgelaufen", obwohl nur der Beleg fehlte.
+      return fehler("fehler.belegFehlt");
     default:
       return fehler("fehler.unbekannt");
   }

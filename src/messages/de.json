@@ -317,7 +317,25 @@
     "codeLabel": "Code aus der App",
     "bestaetigenKnopf": "Bestätigen",
     "erfolg": "Zweiter Faktor eingerichtet und aktiv.",
-    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
+    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt.",
+    "uebersicht": {
+      "titel": "Mehrfaktor-Status aller Konten",
+      "lead": "Nur für die Administration: welche Konten einen zweiten Faktor eingerichtet haben und welche noch ohne ihn arbeiten. Konten ohne Schutz stehen oben.",
+      "konten": "Konten mit Anmeldung",
+      "geschuetzt": "Mit zweitem Faktor",
+      "ungeschuetzt": "Ohne zweiten Faktor",
+      "ungeschuetztHinweis": "Diese Konten sind bei bekanntem Passwort offen.",
+      "col": {
+        "name": "Name",
+        "rolle": "Rolle",
+        "email": "E-Mail",
+        "status": "Zweiter Faktor"
+      },
+      "aktiv": "{anzahl, plural, one {# Faktor aktiv} other {# Faktoren aktiv}}",
+      "nichtEingerichtet": "nicht eingerichtet",
+      "keineKonten": "Es gibt noch kein Konto mit Anmeldung.",
+      "nichtGeladen": "Der Status konnte nicht geladen werden. Es lässt sich daraus nichts über den Schutz der Konten ablesen. Bitte die Seite neu laden."
+    }
   },
   "suche": {
     "titel": "Suche",
@@ -488,7 +506,7 @@
       "ueberfaellig": "Überfällig",
       "ueberfaelligHinweis": "Termin verstrichen, noch keine Pflückaufgabe dazu",
       "gesperrt": "Gesperrt",
-      "gesperrtHinweis": "Fällt in eine laufende Wartezeitsperre",
+      "gesperrtHinweis": "Reihenblöcke mit laufender Wartezeitsperre, wie auf der Reihenblockseite",
       "erledigt": "Erledigt"
     },
     "tabelleTitel": "Termine",
@@ -506,6 +524,10 @@
     },
     "tage": "Tage",
     "ueberfaelligLabel": "überfällig",
+    "sperreFreiAb": "Wartezeitsperre, frei ab {datum}",
+    "sperreLaeuft": "Wartezeitsperre läuft, Ernte gesperrt",
+    "vorgezogenLabel": "vorgezogen",
+    "vorgezogenHinweis": "Der Termin liegt noch in der Zukunft, die Pflückaufgabe dazu ist aber schon angelegt.",
     "ueberspringenKnopf": "Überspringen",
     "reaktivierenKnopf": "Reaktivieren",
     "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Temperatursumme steht im Wetter-Modul. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
@@ -679,7 +701,7 @@
     "lohn": {
       "title": "Qualitätsfaktor-Lohn",
       "navTitle": "Qualitätsfaktor-Lohn",
-      "description": "Kombimodell aus Grundvergütung, Mengenkomponente und Qualitätsfaktor. Reiner Stücklohn drückt auf Menge, quetscht Beeren und ist bei der Himbeere wertvernichtend.",
+      "description": "Hier wird der Lohn der Pflückerinnen und Pflücker für einen Zeitraum berechnet: Grundlohn aus den Arbeitsstunden plus ein Mengenanteil aus den gepflückten Kilogramm, multipliziert mit einem Qualitätsfaktor (weniger Ausschuss, höherer Faktor). Ergebnis ist eine Abrechnung je Person, die die Buchhaltung freigibt und auszahlt, samt gesetzlichen Abzügen.",
       "summary": "Grundlohn plus Menge plus Qualitätsfaktor. Der Qualitätsfaktor ist keine Option, sondern Voraussetzung.",
       "todo": "Mindestlohn als feste Untergrenze, Pflege der Lohnsätze mit Vorschau auf den Korridor, Lohnzettel als PDF je Pflücker, Vorschusskonto."
     },
@@ -749,8 +771,8 @@
     "schulungen": {
       "title": "Schulungsvideos",
       "navTitle": "Schulungen",
-      "description": "Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon - Videos je Kernprozess, mit Bildern statt Text.",
-      "summary": "Bebilderte Kurzeinarbeitung in sechs Schritten, mehrsprachig, mit eigenem Fortschritt je Person, dazu die Pflichtschulungen.",
+      "description": "Mehrsprachige Kurzeinarbeitung der Saisonkräfte auf dem Telefon: sechs Schritte, je ein großes Piktogramm mit wenig Text, dazu die Pflichtschulungen.",
+      "summary": "Kurzeinarbeitung in sechs Schritten mit Piktogramm, mehrsprachig, mit eigenem Fortschritt je Person, dazu die Pflichtschulungen.",
       "todo": "Videos je Kernprozess, gedreht und auf Kasachisch und Russisch vertont."
     },
     "kanaele": {
@@ -864,6 +886,7 @@
       "mwstSchwelleGeprueft": "Geprüft - Umsatz der letzten 12 Monate: {wert} ₸.",
       "mwstRegistriert": "Als MwSt-registriert markiert, seit {wert}.",
       "zukaufImport": "{wert} Position(en) importiert.",
+      "zukaufVorschau": "{wert} Position(en) geprüft und in Ordnung. Noch nichts übernommen: mit „Jetzt importieren“ speichern, nach einer Änderung am Text bitte erneut prüfen.",
       "zukaufPreis": "Preis nachgetragen.",
       "kostentraeger": "Kostenträger \"{wert}\" angelegt.",
       "buchung": "Buchung \"{wert}\" erfasst.",
@@ -920,6 +943,15 @@
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
+      "lohnGueltigAb": "„Gültig ab“ fehlt. Bitte ein Datum eintragen.",
+      "lohnStundenlohn": "„Stundenlohn“ fehlt oder ist keine gültige Zahl. Bitte einen Betrag in ₸ eintragen, nicht negativ.",
+      "lohnKgSatz": "„kg-Satz“ fehlt oder ist keine gültige Zahl. Bitte einen Betrag in ₸ eintragen, nicht negativ.",
+      "lohnZiel": "„Ziel-Ausschussquote“ muss größer als 0 und kleiner als 100 Prozent sein.",
+      "lohnFaktorMin": "„Faktor minimal“ darf höchstens 1 sein.",
+      "lohnFaktorMax": "„Faktor maximal“ muss mindestens 1 sein.",
+      "lohnPeriodeReihenfolge": "„Periode bis“ liegt vor „Periode von“. Bitte die Daten prüfen.",
+      "lohnBrutto": "Das Brutto ist keine gültige Zahl. Bitte einen Betrag in ₸ eintragen, nicht negativ, zum Beispiel 300000.",
+      "lohnKeinSatz": "Es ist kein gesetzlicher Abzugssatz lesbar. Entweder fehlt ein Satz für heute, oder Ihre Rolle darf die Sätze nicht einsehen.",
       "qualitaetsfaktorKorridor": "Der Qualitätsfaktor ist Pflicht und muss zwischen 0,90 und 1,10 liegen.",
       "gesperrt": "Reihenblock {wert} ist wartezeitgesperrt - keine Pflückaufgabe möglich.",
       "mwstSchwelleUeberschritten": "Die MwSt-Registrierungsschwelle wurde überschritten - Meldefrist: {wert}.",
@@ -933,6 +965,7 @@
       "nichtGefunden": "Der Datensatz wurde nicht gefunden oder ist nicht mehr bearbeitbar.",
       "regel": "Nicht möglich: Die Wartezeit ist noch nicht abgelaufen.",
       "reihenblockGesperrt": "Nicht möglich: Der Reihenblock ist wartezeitgesperrt und muss zusätzlich über Reihenblöcke freigegeben werden.",
+      "belegFehlt": "Ohne Fotobeleg lässt sich die Aufgabe nicht abschließen. Bitte zuerst einen Fotobeleg hochladen.",
       "unbekannt": "Der Vorgang ist fehlgeschlagen. Bitte noch einmal versuchen. Bleibt es dabei, melden Sie ihn mit der Uhrzeit bei der Administration.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
@@ -942,7 +975,7 @@
       "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden.",
       "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten.",
       "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben.",
-      "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden.",
+      "zustand": "Der Eintrag hat sich zwischenzeitlich geändert, zum Beispiel weil jemand anderes die Aufgabe schon weitergesetzt hat. Bitte die Seite neu laden.",
       "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird.",
       "begruendungFehlt": "Eine Abweichung braucht eine Begründung.",
       "wetterdienst": "Der Wetterdienst hat gerade keine Daten geliefert. Bitte später erneut versuchen.",
@@ -1660,7 +1693,10 @@
   },
   "sync": {
     "knopf": {
-      "label": "Synchronisierung"
+      "label": "Synchronisierung",
+      "online": "Netzstatus: online. Synchronisierung öffnen",
+      "offline": "Netzstatus: offline. Synchronisierung öffnen",
+      "wartend": "{anzahl, plural, one {# Eintrag wartet} other {# Einträge warten}}"
     },
     "panelTitel": "Synchronisierung",
     "online": "Online",
@@ -1720,6 +1756,7 @@
     "keineDaten": "Noch keine Wetterdaten erfasst.",
     "tageTitel": "Letzte 14 Tage",
     "tageLead": "Tagesminimum, Tagesmaximum, Niederschlag und die kumulierte Temperatursumme bis zu diesem Tag.",
+    "veraltet": "Die Messreihe endet am {datum}. Mit „Jetzt aktualisieren“ unten kommen die fehlenden Tage dazu.",
     "col": {
       "datum": "Datum",
       "min": "Min.",
@@ -2328,6 +2365,8 @@
     "lead": "Charge, Kühlkurve, Steigen mit Person und Rückstandsnachweis - die Kette, die Handel und Behörde sehen wollen.",
     "keineCharge": "Zu dieser Aufgabe gehört noch keine Charge. Sie entsteht beim Anlegen der Pflückaufgabe.",
     "menge": "Menge",
+    "mengeAusSteigen": "aus den Steigen",
+    "mengeAusSteigenHinweis": "Die Menge ist noch nicht gemeldet. Angezeigt wird die Summe der bisher erfassten Steigengewichte.",
     "ausschuss": "Ausschuss",
     "steigen": "Steigen",
     "steigenTitel": "Steigen mit Person",
@@ -2670,6 +2709,14 @@
         "jahr": "Jahr",
         "monat": "Monat (1–12)",
         "knopf": "Monatsabzüge berechnen"
+      },
+      "vorschau": {
+        "titel": "Abzüge für ein Brutto vorrechnen",
+        "lead": "Gibt ein Monatsbrutto ein und zeigt ОПВ, ВОСМС, ИПН, Netto und Arbeitgeberlast nach dem geltenden Satz. Nichts wird gespeichert. So lässt sich jede Rechenregel gezielt prüfen, auch der Zweig mit positivem ИПН (ab rund 147.000 ₸ im Monat).",
+        "brutto": "Monatsbrutto in ₸",
+        "knopf": "Vorrechnen",
+        "ipnGrundlage": "ИПН-Bemessungsgrundlage",
+        "satzStand": "Gerechnet mit dem Satz, der seit {datum} gilt. Rundung auf zwei Nachkommastellen je Betrag, wie in den Monatsabzügen."
       }
     },
     "kz": {
@@ -2700,7 +2747,8 @@
         "netto": "Netto",
         "arbeitgeberkosten": "Kosten Arbeitgeber"
       }
-    }
+    },
+    "ausserhalbKorridor": "Dieser Faktor liegt außerhalb des Korridors des aktuellen Lohnsatzes. Er stammt aus dem Altbestand, eine freigegebene Abrechnung ändert sich nicht still."
   },
   "zukaufAnsicht": {
     "statsTitle": "Zukauf auf einen Blick",
@@ -2735,7 +2783,8 @@
       "bekannteSorten": "Bekannte Sorten",
       "feldLabel": "CSV-Daten",
       "platzhalter": "menge;sorte;datum;nachbarbetrieb\n210;Polka;2026-09-01;Nachbarbetrieb Kaskelen",
-      "knopf": "Prüfen und importieren",
+      "knopf": "Prüfen",
+      "importKnopf": "Jetzt importieren",
       "befundeTitle": "Prüfergebnis",
       "spalteAllgemein": "allgemein",
       "spalte": {
@@ -2925,8 +2974,9 @@
     "menge": "Menge",
     "bestellt": "bestellt",
     "geliefertAm": "Zugestellt am",
-    "empfaengerName": "Empfänger",
+    "empfaengerName": "Entgegengenommen von",
     "empfaengerNamePlatzhalter": "Name der entgegennehmenden Person",
+    "empfaengerHinweis": "Die Person, die die Ware bei {kunde} entgegennimmt, nicht der Name eines Kunden.",
     "beleg": "Foto (optional)",
     "uebergabeErfassen": "Übergabe erfassen",
     "stornieren": "Stornieren",

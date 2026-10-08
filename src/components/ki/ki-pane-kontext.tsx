@@ -10,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useRouter } from "@/i18n/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { setzeHervorhebung } from "@/components/ki/hervorhebung";
 import { klappeAuf, stelleZu } from "@/components/ki/ui-steuerung";
 import { erzeugeNavigationsMerker, stehtAufZiel } from "@/components/ki/fuehrung-ziel";
@@ -371,6 +371,25 @@ export function KiPaneProvider({
   );
 
   const entferneBezug = useCallback(() => speichereBezug(null), [speichereBezug]);
+
+  // WMCNL-2477: der Pruefbezug gehoert zu der Seite, auf der man nach dem Bericht
+  // gefragt hat. Wer weiterklickt, etwa zu den Pflueckaufgaben, sah dort weiter
+  // "Bezug: Pruefbericht ..." samt Compliance-Kacheln, obwohl die Frage dort
+  // niemand zum Bericht stellt. Beim Seitenwechsel faellt der Bezug deshalb weg;
+  // ein Neuladen derselben Seite behaelt ihn (siehe oben).
+  const seitenPfad = usePathname();
+  const bezugSeite = useRef<string | null>(null);
+  useEffect(() => {
+    if (!pruefBezug) {
+      bezugSeite.current = null;
+      return;
+    }
+    if (bezugSeite.current === null) {
+      bezugSeite.current = seitenPfad;
+      return;
+    }
+    if (bezugSeite.current !== seitenPfad) speichereBezug(null);
+  }, [seitenPfad, pruefBezug, speichereBezug]);
 
   const frageStellen = useCallback((frage: string) => stosseAn(frage, false), [stosseAn]);
 

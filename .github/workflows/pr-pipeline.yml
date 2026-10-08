@@ -51,8 +51,18 @@ jobs:
   # Uebersetzungsschluessel und kaputte Migrationen fallen erst hier auf.
   # Die Fachregeln von Damicon liegen in der Datenbank - ohne diesen Lauf
   # waeren Sperrlogik und Rollenrechte in der CI ungeprueft.
+  #
+  # needs: autofix (WMCNL-2482): der Auto-Fix schreibt Korrekturen als Commit in den
+  # Pull-Request-Branch. Ohne diese Kette lief dieser Job parallel dazu und
+  # pruefte unter Umstaenden noch den Stand vor der Korrektur. validate haengt
+  # aus demselben Grund an autofix; beide laufen danach nebeneinander. Der Job wartet
+  # nur auf das Ende des Auto-Fix und folgt nicht seinem Ergebnis: scheitert der
+  # Auto-Fix (etwa bei Dependabot, das nicht in den Branch schreiben darf), laeuft
+  # der Datenbanktest trotzdem, wie vor dieser Kette.
   datenbank:
     name: Build und Integrationstests
+    needs: autofix
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

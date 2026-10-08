@@ -39,6 +39,17 @@ create table if not exists auth.users (
   created_at          timestamptz not null default now()
 );
 
+-- Eingerichtete zweite Faktoren (MFA). Nur die Spalten, die public.mfa_status_je_konto()
+-- liest (WMCNL-2479); die echte Tabelle des Auth-Dienstes hat mehr.
+create table if not exists auth.mfa_factors (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references auth.users(id) on delete cascade,
+  status        text not null default 'unverified',
+  factor_type   text not null default 'totp',
+  friendly_name text,
+  created_at    timestamptz not null default now()
+);
+
 -- auth.uid()/auth.role() lesen normalerweise den JWT-Claim der eingehenden
 -- Anfrage. Ohne PostgREST/GoTrue simuliert der Test das ueber eine Session-
 -- Variable: select set_config('request.jwt.claim.sub', '<uuid>', false).

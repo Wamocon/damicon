@@ -9,7 +9,7 @@ import { getSessionProfile } from "@/lib/auth";
 import type { Locale } from "@/i18n/routing";
 
 // Mehrsprachige Kurzeinarbeitung als bebilderte Checkliste (Anforderung
-// 2.12). Bebildert ueber ein Lucide-Icon je Schritt statt eigener
+// 2.12). Bebildert ueber ein grosses Lucide-Piktogramm je Schritt statt eigener
 // Bilddateien - automatisch offline verfuegbar, gleiches Prinzip wie die
 // Qualitaetsreferenz aus Anforderung 2.9.
 export async function EinarbeitungAnsicht() {
@@ -48,12 +48,15 @@ export async function EinarbeitungAnsicht() {
               className={schritt.erledigt ? "border-success/30 bg-success/[0.04]" : undefined}
             >
               <div className="flex items-start gap-3">
+                {/* Das Piktogramm ist die Bebilderung des Schritts (WMCNL-2455): gross
+                    genug, um es auf dem Telefon als Bild zu lesen, nicht als Zierde
+                    neben dem Titel. */}
                 <div
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                  className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ${
                     schritt.erledigt ? "bg-success/15 text-success" : "bg-primary/10 text-primary"
                   }`}
                 >
-                  <Icon name={schritt.icon} className="h-4.5 w-4.5" />
+                  <Icon name={schritt.icon} className="h-8 w-8" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-1.5 text-sm font-black text-card-foreground">

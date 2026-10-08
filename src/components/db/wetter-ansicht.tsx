@@ -6,6 +6,7 @@ import { ladeWetterUebersicht } from "@/lib/data/wetter";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
+import { heuteIso } from "@/lib/data/util";
 
 // Wetteranbindung mit Temperatursummen-Heuristik (Anforderung 2.13). Reine
 // Beobachtungsgroesse fuer die Mengenprognose, kein Prognosemodell - siehe
@@ -26,6 +27,10 @@ export async function WetterAnsicht() {
   const juengsteTage = uebersicht.tage.slice(-14).reverse();
 
   const tag = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium" });
+  // Die Messreihe wird von Hand aktualisiert (kein Hintergrundjob): endet sie
+  // vor heute, sagt die Seite das, statt einen alten Stand als aktuell
+  // erscheinen zu lassen (WMCNL-2389).
+  const veraltet = uebersicht.quelle === "db" && letzterTag !== null && letzterTag.datum < heuteIso();
 
   return (
     <div className="space-y-6">
@@ -53,6 +58,11 @@ export async function WetterAnsicht() {
       </Section>
 
       <Section title={t("tageTitel")} description={t("tageLead")}>
+        {veraltet && letzterTag ? (
+          <p className="rounded-lg border border-warning/25 bg-warning/[0.08] px-3 py-2 text-xs font-semibold text-warning">
+            {t("veraltet", { datum: tag(letzterTag.datum) })}
+          </p>
+        ) : null}
         {juengsteTage.length === 0 ? (
           <LeererZustand titel={t("keineDaten")} modul="wetter" />
         ) : (

@@ -264,6 +264,11 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("integrationen"),
     ...crud("foerdermittel"),
     ...view("b2b_portal"),
+    // WMCNL-2451: Rechnung und Preiskontrolle brauchen die Preislisten. Lesen
+    // darf jede angemeldete Rolle auf Datenbankebene (preislisten_select_intern),
+    // nur das Schreiben bleibt beim Buero (has_office_access) - hier fehlte nur
+    // das view-Recht, das Modul war fuer die Buchhaltung gesperrt.
+    ...view("preislisten"),
     // Die Gutschrift ist eine Finanzbuchung - deshalb auch fuer die
     // Buchhaltung Bearbeitungsrecht, nicht nur Ansicht.
     ...crud("reklamationen"),

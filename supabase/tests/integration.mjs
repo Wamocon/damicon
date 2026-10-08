@@ -1092,8 +1092,8 @@ if (leitung && brigade) {
     .update({ status: "abgeschlossen" })
     .eq("id", belegTestAufgabe.id);
   check(
-    "Pflueckaufgaben-Regel: Abschluss ohne Fotobeleg wird abgelehnt (WMCNL-2373)",
-    abschlussOhneBelegFehler?.code === "23514",
+    "Pflueckaufgaben-Regel: Abschluss ohne Fotobeleg wird abgelehnt, mit eigenem Code (WMCNL-2373, WMCNL-2492)",
+    abschlussOhneBelegFehler?.code === "DA006",
     abschlussOhneBelegFehler?.code ?? "kein Fehler",
   );
   await admin.from("media_belege").insert({ pflueckaufgabe_id: belegTestAufgabe.id, art: "schale" });

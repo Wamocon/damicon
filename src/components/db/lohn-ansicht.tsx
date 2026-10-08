@@ -2,6 +2,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, DataTable, Section, Stat, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
+  LohnAbzuegeVorschauFormular,
   LohnMonatAbzuegeBerechnenFormular,
   LohnPeriodeBerechnenFormular,
   LohnSatzAnlegenFormular,
@@ -32,6 +33,21 @@ export async function LohnAnsicht() {
 
   const geld = (n: number) => `${format.number(Math.round(n))} ₸`;
   const zahl1 = (n: number, stellen = 1) => format.number(n, { maximumFractionDigits: stellen });
+  // Der Faktor hat immer zwei Nachkommastellen (WMCNL-2392): an den
+  // Korridorgrenzen 0,90 und 1,10 muss man sehen, ob ein Wert genau auf der
+  // Grenze liegt oder gerundet wurde. "1" und "1,1" lassen das offen.
+  const faktor = (n: number) =>
+    format.number(n, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // Die gesetzlichen Abzuege stehen auf zwei Stellen genau in der Datenbank. Wer
+  // jeden Betrag einzeln auf volle Tenge rundet, sieht Brutto minus Abzuege
+  // ungleich Netto, obwohl die Rechnung stimmt (WMCNL-2305).
+  const geldGenau = (n: number) =>
+    `${format.number(n, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₸`;
+  // Ein Faktor ausserhalb des Korridors des aktuellen Lohnsatzes wird
+  // gekennzeichnet (WMCNL-2308): so etwas stammt aus Altbestand, nicht aus der
+  // Berechnung, und eine freigegebene Abrechnung aendert sich nicht still.
+  const ausserhalbKorridor = (n: number) =>
+    satz !== null && (n < satz.qualitaetsfaktorMin - 1e-9 || n > satz.qualitaetsfaktorMax + 1e-9);
   const datum = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium" });
 
   const { satz, historie, abrechnungen, positionen, steuersatzKz, monatsabzuege, abschlussLuecken } =
@@ -67,7 +83,7 @@ export async function LohnAnsicht() {
             />
             <Stat
               label={t("stat.korridor")}
-              value={`${zahl1(satz.qualitaetsfaktorMin, 2)} – ${zahl1(satz.qualitaetsfaktorMax, 2)}`}
+              value={`${faktor(satz.qualitaetsfaktorMin)} – ${faktor(satz.qualitaetsfaktorMax)}`}
               helper={satz.gueltigAb ? `${t("stat.gueltigAb")} ${datum(satz.gueltigAb)}` : undefined}
             />
           </div>
@@ -117,7 +133,7 @@ export async function LohnAnsicht() {
                 {zahl1(s.qualitaetsZielAusschussquote)} %
               </td>
               <td className="px-3 py-2.5 text-muted-foreground">
-                {zahl1(s.qualitaetsfaktorMin, 2)} – {zahl1(s.qualitaetsfaktorMax, 2)}
+                {faktor(s.qualitaetsfaktorMin)} – {faktor(s.qualitaetsfaktorMax)}
               </td>
             </tr>
           ))}
@@ -184,8 +200,20 @@ export async function LohnAnsicht() {
                   {a.ausschussquote === null ? "–" : `${zahl1(a.ausschussquote)} %`}
                 </td>
                 <td className="px-3 py-2.5">
-                  <StatusPill tone={a.qualitaetsfaktor > 1 ? "success" : a.qualitaetsfaktor < 1 ? "warning" : "neutral"}>
-                    {zahl1(a.qualitaetsfaktor, 2)}
+                  <StatusPill
+                    tone={
+                      ausserhalbKorridor(a.qualitaetsfaktor)
+                        ? "danger"
+                        : a.qualitaetsfaktor > 1
+                          ? "success"
+                          : a.qualitaetsfaktor < 1
+                            ? "warning"
+                            : "neutral"
+                    }
+                    title={ausserhalbKorridor(a.qualitaetsfaktor) ? t("ausserhalbKorridor") : undefined}
+                  >
+                    {faktor(a.qualitaetsfaktor)}
+                    {ausserhalbKorridor(a.qualitaetsfaktor) ? " !" : ""}
                   </StatusPill>
                 </td>
                 <td className="px-3 py-2.5 text-muted-foreground">{geld(a.grundlohnTenge)}</td>
@@ -257,7 +285,7 @@ export async function LohnAnsicht() {
                 </td>
                 <td className="px-3 py-2.5 text-muted-foreground">{zahl1(p.mengeKg)} kg</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{zahl1(p.ausschussAnteiligKg)} kg</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{zahl1(p.qualitaetsfaktor, 2)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{faktor(p.qualitaetsfaktor)}</td>
                 <td className="px-3 py-2.5 font-semibold text-foreground">{geld(p.betragTenge)}</td>
               </tr>
             ))
@@ -305,6 +333,7 @@ export async function LohnAnsicht() {
         ) : null}
 
         {darfBerechnen ? <LohnMonatAbzuegeBerechnenFormular /> : null}
+        {darfBerechnen ? <LohnAbzuegeVorschauFormular /> : null}
 
         <DataTable
           head={[
@@ -334,18 +363,18 @@ export async function LohnAnsicht() {
                 <td className="px-3 py-2.5 text-muted-foreground">
                   {monatName(m.monat)} {m.jahr}
                 </td>
-                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.bruttoGesamtTenge)}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.opvTenge)}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.vosmsTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geldGenau(m.bruttoGesamtTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geldGenau(m.opvTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geldGenau(m.vosmsTenge)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">
                   {m.ipnTenge === 0 ? (
                     <StatusPill tone="success">{kzt("steuerfrei")}</StatusPill>
                   ) : (
-                    geld(m.ipnTenge)
+                    geldGenau(m.ipnTenge)
                   )}
                 </td>
-                <td className="px-3 py-2.5 font-bold text-foreground">{geld(m.nettoTenge)}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.arbeitgeberkostenGesamtTenge)}</td>
+                <td className="px-3 py-2.5 font-bold text-foreground">{geldGenau(m.nettoTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geldGenau(m.arbeitgeberkostenGesamtTenge)}</td>
               </tr>
             ))
           )}

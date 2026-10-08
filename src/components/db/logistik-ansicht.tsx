@@ -170,7 +170,7 @@ export async function LogistikAnsicht() {
 
                 {darfErfassen && l.status === "geplant" ? (
                   <>
-                    <UebergabeErfassenFormular lieferungId={l.id} />
+                    <UebergabeErfassenFormular lieferungId={l.id} kundeName={l.kunde} />
                     <LieferungStornierenKnopf lieferungId={l.id} />
                   </>
                 ) : null}

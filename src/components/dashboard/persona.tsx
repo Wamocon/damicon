@@ -25,14 +25,23 @@ import { cn } from "@/lib/utils";
 const STORAGE_KEY = "damicon-persona";
 const listeners = new Set<() => void>();
 
+// WMCNL-2478: die gewaehlte Vorschau-Rolle gehoerte dem Browser, nicht dem Konto.
+// Wer sich nach einem Admin am selben Browser anmeldete, bekam dessen Vorschau
+// (zuletzt "Geschaeftsfuehrung") und sah eine eingeschraenkte Navigation, die er
+// nie gewaehlt hatte. Im DB-Modus haengt der Schluessel deshalb am Konto. Der
+// Demo-Modus hat kein Konto und behaelt den gemeinsamen Schluessel.
+function speicherSchluessel(demoModus: boolean, email: string | null): string {
+  return demoModus || !email ? STORAGE_KEY : `${STORAGE_KEY}:${email.toLowerCase()}`;
+}
+
 function subscribe(callback: () => void) {
   listeners.add(callback);
   return () => listeners.delete(callback);
 }
 
-function readRole(fallback: Role): Role {
+function readRole(fallback: Role, schluessel: string): Role {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(schluessel);
     if (stored && (roles as readonly string[]).includes(stored)) {
       return stored as Role;
     }
@@ -78,21 +87,25 @@ export function PersonaProvider({
   demoModus?: boolean;
 }) {
   const darfWechseln = demoModus || echteRolle === "admin";
+  const schluessel = speicherSchluessel(demoModus, email);
   const gespeichert = useSyncExternalStore(
     subscribe,
-    () => readRole(echteRolle),
+    () => readRole(echteRolle, schluessel),
     () => echteRolle,
   );
   const role = darfWechseln ? gespeichert : echteRolle;
 
-  const setRole = useCallback((next: Role) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // ignore
-    }
-    listeners.forEach((listener) => listener());
-  }, []);
+  const setRole = useCallback(
+    (next: Role) => {
+      try {
+        localStorage.setItem(schluessel, next);
+      } catch {
+        // ignore
+      }
+      listeners.forEach((listener) => listener());
+    },
+    [schluessel],
+  );
 
   const value = useMemo(
     () => ({ role, echteRolle, name, email, darfWechseln, demoModus, setRole }),
