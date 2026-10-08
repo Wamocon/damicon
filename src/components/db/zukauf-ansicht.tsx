@@ -43,7 +43,13 @@ export async function ZukaufAnsicht() {
   // Beispielzeile zu zeigen.
   const siehtAbrechnung = live && hasPermission(profil?.role, "aggregator", "view") && abrechnung.erlaubt;
 
-  const zahl1 = (n: number) => format.number(n, { maximumFractionDigits: 1 });
+  // Zwei Nachkommastellen, damit die Summe zu den Einzelzeilen passt: 140,5 +
+  // 88 + 61,25 sind 289,75 kg (WMCNL-2379).
+  const zahl1 = (n: number) => format.number(n, { maximumFractionDigits: 2 });
+  // Die Kennzahl zaehlt die aufgenommenen Nachbarbetriebe, nicht nur die mit
+  // einer Zukaufposition (WMCNL-2387). Wer die Betriebsliste nicht lesen darf,
+  // sieht mindestens die Betriebe mit Positionen.
+  const anzahlNachbarbetriebe = Math.max(nachbarbetriebe.length, liste.stats.nachbarbetriebe);
   const geld = (n: number) => `${format.number(Math.round(n))} ₸`;
   const datum = (iso: string | null) =>
     iso ? format.dateTime(new Date(iso), { dateStyle: "medium" }) : "–";
@@ -58,7 +64,7 @@ export async function ZukaufAnsicht() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label={t("stat.positionen")} value={String(liste.stats.positionen)} />
           <Stat label={t("stat.menge")} value={`${zahl1(liste.stats.summeMengeKg)} kg`} />
-          <Stat label={t("stat.nachbarbetriebe")} value={String(liste.stats.nachbarbetriebe)} />
+          <Stat label={t("stat.nachbarbetriebe")} value={String(anzahlNachbarbetriebe)} />
           <Stat
             label={t("stat.offenePreise")}
             value={String(liste.stats.offenePreise)}

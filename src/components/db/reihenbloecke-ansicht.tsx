@@ -46,6 +46,7 @@ export async function ReihenbloeckeAnsicht({
   const s = await getTranslations("reihenblockStatus");
   const hint = await getTranslations("reihenblockStatusHint");
   const a = await getTranslations("aktionen");
+  const rollenT = await getTranslations("roles");
 
   const aktiverFilter = (kachelReihenfolge as string[]).includes(statusFilter ?? "")
     ? (statusFilter as ReihenblockStatus)
@@ -225,7 +226,7 @@ export async function ReihenbloeckeAnsicht({
             wert: m.id,
             text: `${m.name} (${m.wartezeitTage} ${t("days")})`,
           }))}
-          profile={ausfuehrendeProfile.map((p) => ({ wert: p.id, text: p.vollerName }))}
+          profile={ausfuehrendeProfile.map((p) => ({ wert: p.id, text: `${p.vollerName} (${rollenT(p.rolle)})` }))}
         />
       ) : null}
 

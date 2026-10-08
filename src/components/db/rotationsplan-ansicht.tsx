@@ -31,10 +31,12 @@ export async function RotationsplanAnsicht() {
 
   const datum = (iso: string) => format.dateTime(new Date(`${iso}T00:00:00`), { dateStyle: "medium" });
 
-  const { eintraege } = uebersicht;
-  const geplant = eintraege.filter((e) => e.status === "geplant" && !e.ueberfaellig).length;
+  const { eintraege, gesperrteBloecke } = uebersicht;
+  const geplant = eintraege.filter((e) => e.status === "geplant" && !e.ueberfaellig && !e.blockGesperrt).length;
   const ueberfaellig = eintraege.filter((e) => e.ueberfaellig).length;
-  const gesperrt = eintraege.filter((e) => e.status === "gesperrt").length;
+  // Gezaehlt werden die gesperrten Bloecke, wie auf der Reihenblockseite - nicht
+  // die Termine, die zufaellig in eine Sperre fallen (WMCNL-2388).
+  const gesperrt = gesperrteBloecke.length;
   const erledigt = eintraege.filter((e) => e.status === "erledigt").length;
 
   return (
@@ -96,15 +98,35 @@ export async function RotationsplanAnsicht() {
                 <td className="px-3 py-2.5 text-muted-foreground">{datum(e.geplantFuer)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{e.intervallTage} {t("tage")}</td>
                 <td className="px-3 py-2.5">
-                  <StatusPill tone={e.ueberfaellig ? "warning" : rotationsplanStatusMeta[e.status].tone}>
-                    {e.ueberfaellig ? t("ueberfaelligLabel") : st(e.status)}
-                  </StatusPill>
+                  {e.blockGesperrt ? (
+                    // WMCNL-2300: ein Block in der Wartezeitsperre ist kein
+                    // ueberfaelliger Termin, sondern darf gar nicht beerntet werden.
+                    <StatusPill
+                      tone="danger"
+                      title={e.sperreFreiAb ? t("sperreFreiAb", { datum: datum(e.sperreFreiAb) }) : t("sperreLaeuft")}
+                    >
+                      {st("gesperrt")}
+                    </StatusPill>
+                  ) : e.vorgezogen ? (
+                    <StatusPill tone="info" title={t("vorgezogenHinweis")}>
+                      {t("vorgezogenLabel")}
+                    </StatusPill>
+                  ) : (
+                    <StatusPill tone={e.ueberfaellig ? "warning" : rotationsplanStatusMeta[e.status].tone}>
+                      {e.ueberfaellig ? t("ueberfaelligLabel") : st(e.status)}
+                    </StatusPill>
+                  )}
+                  {e.blockGesperrt && e.sperreFreiAb ? (
+                    <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                      {t("sperreFreiAb", { datum: datum(e.sperreFreiAb) })}
+                    </span>
+                  ) : null}
                 </td>
                 <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
                   {e.pflueckaufgabeCode ?? "–"}
                 </td>
                 <td className="px-3 py-2.5">
-                  {darfPflegen && (e.status === "geplant" || e.ueberfaellig) ? (
+                  {darfPflegen && (e.status === "geplant" || e.ueberfaellig) && !e.blockGesperrt ? (
                     <RotationsplanUeberspringenFormular id={e.id} />
                   ) : darfPflegen && e.status === "uebersprungen" ? (
                     <RotationsplanReaktivierenFormular id={e.id} />

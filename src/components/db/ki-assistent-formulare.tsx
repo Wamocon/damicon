@@ -161,7 +161,7 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
                     <p>{n.inhalt}</p>
                     {n.werkzeugaufrufe && n.werkzeugaufrufe.length > 0 ? (
                       <div className="mt-1.5 flex flex-wrap gap-1">
-                        {n.werkzeugaufrufe.filter((name) => name !== "oeffneBereich").map((name, index) => {
+                        {n.werkzeugaufrufe.filter((name) => name !== "oeffneBereich" && name !== "ohneAnsicht").map((name, index) => {
                           const Icon = werkzeugIcon[name] ?? Radar;
                           return (
                             <span

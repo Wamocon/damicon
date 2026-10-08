@@ -317,7 +317,25 @@
     "codeLabel": "Code from the app",
     "bestaetigenKnopf": "Confirm",
     "erfolg": "Second factor set up and active.",
-    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is mandatory, enforcing it per role is a later expansion step."
+    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is mandatory, enforcing it per role is a later expansion step.",
+    "uebersicht": {
+      "titel": "Multi-factor status of all accounts",
+      "lead": "For administrators only: which accounts have set up a second factor and which still work without one. Unprotected accounts are listed first.",
+      "konten": "Accounts with sign-in",
+      "geschuetzt": "With a second factor",
+      "ungeschuetzt": "Without a second factor",
+      "ungeschuetztHinweis": "These accounts are open if the password becomes known.",
+      "col": {
+        "name": "Name",
+        "rolle": "Role",
+        "email": "Email",
+        "status": "Second factor"
+      },
+      "aktiv": "{anzahl, plural, one {# factor active} other {# factors active}}",
+      "nichtEingerichtet": "not set up",
+      "keineKonten": "There is no account with sign-in yet.",
+      "nichtGeladen": "The status could not be loaded. Nothing can be concluded about how well the accounts are protected. Please reload the page."
+    }
   },
   "suche": {
     "titel": "Search",
@@ -488,7 +506,7 @@
       "ueberfaellig": "Overdue",
       "ueberfaelligHinweis": "Date has passed, no picking task yet",
       "gesperrt": "Locked",
-      "gesperrtHinweis": "Falls within an active pre-harvest-interval lock",
+      "gesperrtHinweis": "Row blocks with a running waiting-period lock, as on the row blocks page",
       "erledigt": "Done"
     },
     "tabelleTitel": "Dates",
@@ -506,6 +524,10 @@
     },
     "tage": "days",
     "ueberfaelligLabel": "overdue",
+    "sperreFreiAb": "Waiting-period lock, free from {datum}",
+    "sperreLaeuft": "Waiting-period lock running, harvest blocked",
+    "vorgezogenLabel": "brought forward",
+    "vorgezogenHinweis": "The date is still in the future, but the picking task for it has already been created.",
     "ueberspringenKnopf": "Skip",
     "reaktivierenKnopf": "Reactivate",
     "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included here - the growing-degree-day total is in the weather module. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
@@ -679,7 +701,7 @@
     "lohn": {
       "title": "Quality-factor pay",
       "navTitle": "Quality-factor pay",
-      "description": "A combined model of base pay, a volume component and a quality factor. A pure piece rate pushes for volume, squeezes berries and is value-destroying for the raspberry.",
+      "description": "This is where pickers' pay is calculated for a period: base pay from hours worked plus a volume share from the kilograms picked, multiplied by a quality factor (less waste, higher factor). The result is one settlement per person, which accounting approves and pays out, including the statutory deductions.",
       "summary": "Base pay plus volume plus a quality factor. The quality factor is not optional but a precondition.",
       "todo": "The minimum wage as a hard floor, editing the pay rates with a preview of the corridor, a payslip as PDF per picker, an advance account."
     },
@@ -749,8 +771,8 @@
     "schulungen": {
       "title": "Training videos",
       "navTitle": "Training",
-      "description": "Multilingual, image-based short onboarding of seasonal workers on the phone - videos per core process, with pictures instead of text.",
-      "summary": "An illustrated six-step induction, multilingual, with its own progress per person, plus the mandatory training.",
+      "description": "Multilingual short induction of seasonal workers on the phone: six steps, each with a large pictogram and little text, plus the mandatory training.",
+      "summary": "A six-step induction with pictograms, multilingual, with its own progress per person, plus the mandatory training.",
       "todo": "Videos per core process, filmed and dubbed into Kazakh and Russian."
     },
     "kanaele": {
@@ -864,6 +886,7 @@
       "mwstSchwelleGeprueft": "Checked - revenue over the last 12 months: {wert} ₸.",
       "mwstRegistriert": "Marked as VAT-registered, effective {wert}.",
       "zukaufImport": "{wert} position(s) imported.",
+      "zukaufVorschau": "{wert} position(s) checked and valid. Nothing has been saved yet: use “Import now” to save, and check again after changing the text.",
       "zukaufPreis": "Price added.",
       "kostentraeger": "Cost object \"{wert}\" created.",
       "buchung": "Posting \"{wert}\" recorded.",
@@ -920,6 +943,15 @@
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
+      "lohnGueltigAb": "“Valid from” is missing. Please enter a date.",
+      "lohnStundenlohn": "“Hourly rate” is missing or not a valid number. Please enter an amount in ₸, not negative.",
+      "lohnKgSatz": "“Per-kg rate” is missing or not a valid number. Please enter an amount in ₸, not negative.",
+      "lohnZiel": "“Target waste rate” must be greater than 0 and less than 100 percent.",
+      "lohnFaktorMin": "“Factor minimum” must not be greater than 1.",
+      "lohnFaktorMax": "“Factor maximum” must be at least 1.",
+      "lohnPeriodeReihenfolge": "“Period to” is before “Period from”. Please check the dates.",
+      "lohnBrutto": "The gross amount is not a valid number. Please enter an amount in ₸, not negative, for example 300000.",
+      "lohnKeinSatz": "No statutory deduction rate can be read. Either there is no rate for today, or your role may not view the rates.",
       "qualitaetsfaktorKorridor": "The quality factor is required and must be between 0.90 and 1.10.",
       "gesperrt": "Row block {wert} is locked for the pre-harvest interval - no picking task possible.",
       "mwstSchwelleUeberschritten": "The VAT registration threshold has been crossed - notification due: {wert}.",
@@ -933,6 +965,7 @@
       "nichtGefunden": "The record was not found or can no longer be edited.",
       "regel": "Not possible: the pre-harvest interval has not elapsed yet.",
       "reihenblockGesperrt": "Not possible: the row block is still under a pre-harvest lock and must also be released under Row blocks.",
+      "belegFehlt": "The task cannot be closed without a photo receipt. Please upload a photo receipt first.",
       "unbekannt": "The action failed. Please try again. If it keeps failing, report it to your administrator with the time it happened.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
@@ -942,7 +975,7 @@
       "keinKunde": "Your account has no B2B client assigned. Please contact the administration.",
       "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below.",
       "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",
-      "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page.",
+      "zustand": "The entry has changed in the meantime, for example because someone else has already moved the task on. Please reload the page.",
       "einwilligung": "Please confirm the notice above before sending the first message.",
       "begruendungFehlt": "A deviation needs a reason.",
       "wetterdienst": "The weather service did not return any data just now. Please try again later.",
@@ -1660,7 +1693,10 @@
   },
   "sync": {
     "knopf": {
-      "label": "Sync status"
+      "label": "Sync status",
+      "online": "Network status: online. Open synchronization",
+      "offline": "Network status: offline. Open synchronization",
+      "wartend": "{anzahl, plural, one {# entry waiting} other {# entries waiting}}"
     },
     "panelTitel": "Sync status",
     "online": "Online",
@@ -1720,6 +1756,7 @@
     "keineDaten": "No weather data recorded yet.",
     "tageTitel": "Last 14 days",
     "tageLead": "Daily minimum, daily maximum, precipitation and the cumulative temperature sum up to that day.",
+    "veraltet": "The series ends on {datum}. “Update now” below adds the missing days.",
     "col": {
       "datum": "Date",
       "min": "Min.",
@@ -2328,6 +2365,8 @@
     "lead": "Batch, cooling curve, crates with the person and residue proof - the chain that trade and authorities want to see.",
     "keineCharge": "This task has no batch yet. It is created together with the picking task.",
     "menge": "Quantity",
+    "mengeAusSteigen": "from the crates",
+    "mengeAusSteigenHinweis": "The quantity has not been reported yet. The total of the crate weights recorded so far is shown.",
     "ausschuss": "Rejects",
     "steigen": "Crates",
     "steigenKontrollieren": "Inspect",
@@ -2670,6 +2709,14 @@
         "jahr": "Year",
         "monat": "Month (1–12)",
         "knopf": "Calculate monthly deductions"
+      },
+      "vorschau": {
+        "titel": "Calculate deductions for a gross amount",
+        "lead": "Enter a monthly gross amount to see ОПВ, ВОСМС, ИПН, net pay and employer burden at the current rate. Nothing is saved. This lets you check every rule on purpose, including the branch with positive ИПН (from roughly 147,000 ₸ a month).",
+        "brutto": "Monthly gross in ₸",
+        "knopf": "Calculate",
+        "ipnGrundlage": "ИПН tax base",
+        "satzStand": "Calculated with the rate in force since {datum}. Each amount is rounded to two decimals, as in the monthly deductions."
       }
     },
     "kz": {
@@ -2700,7 +2747,8 @@
         "netto": "Net",
         "arbeitgeberkosten": "Employer cost"
       }
-    }
+    },
+    "ausserhalbKorridor": "This factor is outside the corridor of the current pay rate. It comes from legacy data, and an approved settlement does not change silently."
   },
   "zukaufAnsicht": {
     "statsTitle": "Purchasing at a glance",
@@ -2735,7 +2783,8 @@
       "bekannteSorten": "Known varieties",
       "feldLabel": "CSV data",
       "platzhalter": "quantity;variety;date;supplier\n210;Polka;2026-09-01;Kaskelen neighbouring farm",
-      "knopf": "Check and import",
+      "knopf": "Check",
+      "importKnopf": "Import now",
       "befundeTitle": "Check results",
       "spalteAllgemein": "general",
       "spalte": {
@@ -2925,8 +2974,9 @@
     "menge": "Quantity",
     "bestellt": "ordered",
     "geliefertAm": "Delivered on",
-    "empfaengerName": "Recipient",
+    "empfaengerName": "Received by",
     "empfaengerNamePlatzhalter": "Name of the person receiving the delivery",
+    "empfaengerHinweis": "The person who takes the goods at {kunde}, not a customer name.",
     "beleg": "Photo (optional)",
     "uebergabeErfassen": "Record handover",
     "stornieren": "Cancel",

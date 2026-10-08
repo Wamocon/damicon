@@ -2,12 +2,15 @@ import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { PageHeader, Card } from "@/components/ui/kit";
 import { MfaVerwaltung } from "@/components/auth/mfa-verwaltung";
+import { MfaUebersicht } from "@/components/auth/mfa-uebersicht";
+import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 // Sicherheit/MFA (Anforderung 4.9, P0). Kontoseite, kein Zonen-Modul - jede
 // angemeldete Rolle verwaltet hier ausschliesslich den eigenen zweiten
-// Faktor, deshalb ausserhalb von lib/modules.ts und ohne rbac-Gate.
+// Faktor, deshalb ausserhalb von lib/modules.ts und ohne rbac-Gate. Die
+// Administration sieht zusaetzlich den Status aller Konten (WMCNL-2479).
 export default async function SicherheitPage({
   params,
 }: {
@@ -31,11 +34,13 @@ export default async function SicherheitPage({
   const supabase = await createClient();
   const { data: faktoren } = await supabase.auth.mfa.listFactors();
   const totpFaktoren = (faktoren?.totp ?? []).filter((f) => f.status === "verified");
+  const profil = await getSessionProfile();
 
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} description={t("description")} />
       <MfaVerwaltung bestehend={totpFaktoren.map((f) => ({ id: f.id, name: f.friendly_name ?? f.id }))} />
+      {profil?.role === "admin" ? <MfaUebersicht /> : null}
     </div>
   );
 }

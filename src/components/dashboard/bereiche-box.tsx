@@ -9,7 +9,7 @@ import { KennzahlBox } from "@/components/dashboard/kennzahl-box";
 import { Section, StatusPill } from "@/components/ui/kit";
 import { kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
 import { auffaelligeZuerst } from "@/lib/domain/zielstand";
-import { zones } from "@/lib/modules";
+import { sichtbareModule, zones } from "@/lib/modules";
 import type { Datenquelle } from "@/lib/supabase/config";
 
 // Die vier Bereiche unter dem Compliance-Report: je ein Einstieg mit den Kennzahlen seiner
@@ -73,7 +73,13 @@ export function BereicheBox({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle
       }
     >
       <div className="grid gap-4 lg:grid-cols-2">
-        {zones.map((zone) => {
+        {zones
+          // Eine Zone, in der die Rolle kein einziges Modul oeffnen darf, wird nicht als
+          // Einstieg angeboten (WMCNL-2385): sie fuehrte auf eine leere Seite ("Fuer die
+          // aktive Rolle ist in dieser Zone kein Modul freigegeben"). Fuer einen Pfluecker
+          // bleibt so, was er wirklich oeffnen kann.
+          .filter((zone) => sichtbareModule(role, zone.key).length > 0)
+          .map((zone) => {
           const Symbol = SYMBOL[zone.icon] ?? Sprout;
           // Vier je Bereich, Auffaelliges zuerst, der Rest aufgefuellt mit dem, was im Ziel
           // liegt. Hat die Rolle weniger freigegeben, stehen eben weniger da.

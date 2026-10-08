@@ -478,7 +478,10 @@ function zusammenfassungHinzufuegen(
   // andere Befundtext hier, der ueber `code` uebersetzt wird (die
   // Oberflaeche zeigt "wert" fuer den Code "summary" per Passthrough an,
   // siehe zukaufAnsicht.import.befund.summary in den messages).
-  const summaryText = `${zeilen.length} Position(en), ${summeKg.toFixed(1)} kg gesamt, ${sortenAnzahl} Sorte(n), ${betriebeAnzahl} Nachbarbetrieb(e).`;
+  // Mengen mit Komma und ohne Rundung auf eine Stelle (WMCNL-2379): 140,5 + 88
+  // + 61,25 sind 289,75 kg, nicht "289.8".
+  const summeText = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 2 }).format(summeKg);
+  const summaryText = `${zeilen.length} Position(en), ${summeText} kg gesamt, ${sortenAnzahl} Sorte(n), ${betriebeAnzahl} Nachbarbetrieb(e).`;
   befundHinzufuegen({
     stufe: "hinweis",
     code: "summary",

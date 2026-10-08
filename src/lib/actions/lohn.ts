@@ -11,7 +11,12 @@ import {
 } from "@/lib/actions/status";
 import type { Json } from "@/lib/database.types";
 import { einsAus } from "@/lib/data/util";
-import { lohnStatus, type LohnStatus } from "@/lib/domain/lohn";
+import {
+  bruttoLesen,
+  lohnStatus,
+  type AbzugsVorschauStatus,
+  type LohnStatus,
+} from "@/lib/domain/lohn";
 import { text, zahl, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Lohnabrechnung mit Qualitaetsfaktor (WMCNL-1444). Die eigentliche Rechnung
@@ -52,16 +57,14 @@ export async function lohnSatzAnlegen(
   const max = zahl(formData, "qualitaetsfaktor_max");
   const notiz = text(formData, "notiz") || null;
 
-  if (
-    !gueltigAb ||
-    stundenlohn === null || stundenlohn < 0 ||
-    kgSatz === null || kgSatz < 0 ||
-    (ziel !== null && (ziel <= 0 || ziel >= 100)) ||
-    (min !== null && min > 1) ||
-    (max !== null && max < 1)
-  ) {
-    return fehler("fehler.eingabe");
-  }
+  // Jedes Feld meldet sich einzeln (WMCNL-2297): "etwas ist unvollstaendig"
+  // sagt nicht, wo man nachsehen soll. Die Reihenfolge ist die des Formulars.
+  if (!gueltigAb) return fehler("fehler.lohnGueltigAb");
+  if (stundenlohn === null || stundenlohn < 0) return fehler("fehler.lohnStundenlohn");
+  if (kgSatz === null || kgSatz < 0) return fehler("fehler.lohnKgSatz");
+  if (ziel !== null && (ziel <= 0 || ziel >= 100)) return fehler("fehler.lohnZiel");
+  if (min !== null && min > 1) return fehler("fehler.lohnFaktorMin");
+  if (max !== null && max < 1) return fehler("fehler.lohnFaktorMax");
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -85,6 +88,49 @@ export async function lohnSatzAnlegen(
   return ok("ok.lohnSatz", data.gueltig_ab);
 }
 
+// Gesetzliche Abzuege fuer ein frei eingegebenes Monatsbrutto vorrechnen
+// (WMCNL-2304). Schreibt nichts: die Rechenregel steht in der Datenbank
+// (lohn_kz_abzuege_berechnen), die RPC sucht nur den Satz zum heutigen Tag
+// heraus. Wer die Saetze nicht lesen darf, bekommt von ihr keine Zeile.
+export async function lohnAbzuegeVorschau(
+  _status: AbzugsVorschauStatus,
+  formData: FormData,
+): Promise<AbzugsVorschauStatus> {
+  try {
+    await requirePermission("lohn", "create");
+  } catch (error) {
+    return { stand: "fehler", meldung: zugriffsFehler(error).meldung };
+  }
+
+  const brutto = bruttoLesen(text(formData, "brutto"));
+  if (brutto === null || brutto > 100_000_000) return { stand: "fehler", meldung: "fehler.lohnBrutto" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("lohn_kz_abzuege_vorschau", {
+    p_brutto_monat_tenge: brutto,
+  });
+  if (error) return { stand: "fehler", meldung: dbFehler(error).meldung };
+
+  const zeile = data?.[0];
+  if (!zeile) return { stand: "fehler", meldung: "fehler.lohnKeinSatz" };
+
+  return {
+    stand: "ok",
+    vorschau: {
+      satzGueltigAb: zeile.satz_gueltig_ab,
+      bruttoTenge: brutto,
+      opvTenge: Number(zeile.opv_tenge),
+      vosmsTenge: Number(zeile.vosms_tenge),
+      ipnBemessungsgrundlageTenge: Number(zeile.ipn_bemessungsgrundlage_tenge),
+      ipnTenge: Number(zeile.ipn_tenge),
+      nettoTenge: Number(zeile.netto_tenge),
+      arbeitgeberlastTenge:
+        Number(zeile.opvr_tenge) + Number(zeile.so_tenge) + Number(zeile.sn_tenge) + Number(zeile.osms_tenge),
+      arbeitgeberkostenGesamtTenge: Number(zeile.arbeitgeberkosten_gesamt_tenge),
+    },
+  };
+}
+
 // Periode berechnen: ruft die RPC auf, die Grundlohn, Mengenkomponente und
 // Qualitaetsfaktor je Pfluecker rechnet und lohn_abrechnungen/lohn_positionen
 // schreibt. Bereits freigegebene/ausgezahlte Abrechnungen laesst die Funktion
@@ -103,7 +149,7 @@ export async function lohnPeriodeBerechnen(
   const periodeStart = text(formData, "periode_start");
   const periodeEnde = text(formData, "periode_ende");
   if (!periodeStart || !periodeEnde) return fehler("fehler.eingabe");
-  if (periodeEnde < periodeStart) return fehler("fehler.eingabe");
+  if (periodeEnde < periodeStart) return fehler("fehler.lohnPeriodeReihenfolge");
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("lohn_periode_berechnen", {
