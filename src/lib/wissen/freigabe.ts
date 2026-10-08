@@ -8,7 +8,7 @@ import { istUploadQuelleId } from "@/lib/wissen/upload-quelle";
 //
 // Zwei Schichten, die sich nicht aufeinander verlassen:
 //   1. Hier: Vorschau-Schutz, Form der quelle_id, nur Upload-Zeilen, nur im richtigen Status, nicht die eigene Person.
-//   2. Datenbank: ein Waechter (Trigger wissen_pruefung_wache, Migration 20261115000000) lehnt dieselben Faelle ab, auch
+//   2. Datenbank: ein Waechter (Trigger wissen_pruefung_wache, Migration 20261124000000) lehnt dieselben Faelle ab, auch
 //      wenn hier ein Fehler stuende. Die UPDATE-Anweisung filtert ausserdem selbst auf Marker und Status.
 // Ist die Freigabe einmal erteilt, bleibt sie: freigegeben und abgelehnt aendern sich nicht mehr (Trigger).
 

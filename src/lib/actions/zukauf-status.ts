@@ -19,6 +19,8 @@ export interface ZukaufImportStatus {
   /** Uebersetzungsschluessel unterhalb "aktionen", wie bei AktionsStatus. */
   meldung?: string;
   wert?: string;
+  /** Nur geprueft, nichts geschrieben (WMCNL-2378): die Oberflaeche bietet jetzt "Importieren" an. */
+  vorschau?: boolean;
 }
 
 export const leerZukaufImport: ZukaufImportStatus = {
@@ -34,6 +36,14 @@ export function zukaufImportOk(
   wert?: string,
 ): ZukaufImportStatus {
   return { stand: "ok", befunde, uebernommen, meldung, wert };
+}
+
+export function zukaufVorschauOk(
+  befunde: ZukaufBefund[],
+  meldung: string,
+  wert?: string,
+): ZukaufImportStatus {
+  return { stand: "ok", befunde, uebernommen: 0, meldung, wert, vorschau: true };
 }
 
 export function zukaufImportFehler(

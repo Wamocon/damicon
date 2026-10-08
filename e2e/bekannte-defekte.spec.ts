@@ -2,29 +2,25 @@ import { test, expect } from "@playwright/test";
 import { anmelden } from "./helpers";
 
 /**
- * Isolierter Nachweis fuer zwei waehrend der Testausfuehrung WMCNL-2411
- * (21.09.2026) gefundene und in Jira erfasste Defekte. Beide Tests sind
- * bewusst als erwartet fehlschlagend markiert (test.fail): sobald der
- * jeweilige Bug behoben wird, meldet Playwright den Test als "unexpectedly
- * passed" und macht dadurch sichtbar, dass der zugehoerige Jira-Vorgang
- * geschlossen und dieser Testfall wieder in den normalen Ablauf
- * (geschaeftsprozess.spec.ts) uebernommen werden kann.
+ * Nachweis fuer zwei waehrend der Testausfuehrung WMCNL-2411 (21.09.2026)
+ * gefundene Defekte. Beide waren bis zum 08.10.2026 als erwartet fehlschlagend
+ * markiert (test.fail). Sie sind behoben (Migrationen 20261121000000 und
+ * 20261122000000), die Markierung ist entfernt: die Tests laufen jetzt als
+ * gewoehnliche Regressionstests. Gegen eine Datenbank ohne diese Migrationen
+ * schlagen sie fehl, und das zu Recht.
  *
- * Achtung, schreibend: ist WMCNL-2414 behoben, nimmt der erste Test eine
- * offene Pflueckaufgabe tatsaechlich an. Nicht gegen eine Datenbank laufen
- * lassen, deren Daten erhalten bleiben sollen.
+ * Achtung, schreibend: der erste Test nimmt eine offene Pflueckaufgabe
+ * tatsaechlich an. Nicht gegen eine Datenbank laufen lassen, deren Daten
+ * erhalten bleiben sollen.
  */
 
 test("WMCNL-2414: Brigade kann eine offene Pflückaufgabe annehmen", async ({ page }) => {
-  test.fail(true, "Bug WMCNL-2414: 'Ihre Rolle darf diesen Vorgang nicht ausführen.'");
-
   await anmelden(page, "brigade");
   await page.goto("/de/dashboard/feld/pflueckaufgaben?status=zu-erledigen");
 
   // Die Liste zeigt 20 Aufgaben je Seite, spaeteste Faelligkeit zuerst: eine
   // offene steht nicht zwingend auf Seite 1. Findet sich keine, wird der Test
-  // uebersprungen - unter test.fail zaehlte ein Scheitern an der Vorbedingung
-  // sonst als erwarteter Fehler, und ein behobener Bug fiele nie auf.
+  // uebersprungen statt als Fehler gewertet.
   // Nur Eintraege der Liste: Pillen und Filter nennen ebenfalls Status.
   const eintraege = page.locator("[data-eintrag]");
   let offeneAufgabe = null;
@@ -52,8 +48,6 @@ test("WMCNL-2414: Brigade kann eine offene Pflückaufgabe annehmen", async ({ pa
 });
 
 test("WMCNL-2420: Pflücker sieht den eigenen Lohnsatz als Berechnungsgrundlage", async ({ page }) => {
-  test.fail(true, "Bug WMCNL-2420: Lohnsatz-Abschnitt zeigt 'Noch kein Lohnsatz hinterlegt.'");
-
   await anmelden(page, "pfluecker");
   await page.goto("/de/dashboard/buero/lohn");
 

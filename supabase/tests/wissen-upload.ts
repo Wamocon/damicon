@@ -214,7 +214,7 @@ function falscheSuche(speicher: Speicherstand, sitzungsRolle: Role, heute = "202
       const punkte = new Map<string, number>();
       for (const f of fragen) {
         const sichtbar = [...speicher.zeilen.values()]
-          .filter((z) => z.pruefstatus === "freigegeben" && z.rollen.includes(sitzungsRolle)) // RLS (Migration 20261115000000)
+          .filter((z) => z.pruefstatus === "freigegeben" && z.rollen.includes(sitzungsRolle)) // RLS (Migration 20261124000000)
           .filter((z) => !z.pruefen_bis || z.pruefen_bis >= heute) // Wiedervorlage
           .filter((z) => pRolle === null || z.rollen.includes(pRolle))
           .filter((z) => !nurAktuell || !z.ist_ueberholt)

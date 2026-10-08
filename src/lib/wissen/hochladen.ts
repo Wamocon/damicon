@@ -59,6 +59,7 @@ export type UploadFehlerCode =
   | "dateityp"
   | "zuGross"
   | "lesen"
+  | "pdfDienst"
   | "leer"
   | "zuLang"
   | "doppelt"
@@ -114,10 +115,34 @@ export function erlaubteRollen(angekreuzt: readonly string[]): Role[] {
 
 // ----------------------------------------------------------- Text aus der Datei
 
+/** Laedt pdf-parse so, dass es auch in einer Vercel-Funktion (nur die von der Ablaufverfolgung gefundenen Dateien) laeuft.
+ *
+ *  Zwei Dinge sind dort anders als lokal, wo alles aus node_modules da ist:
+ *  1. PDF.js laedt seinen Worker mit `import(this.workerSrc)` ("./pdf.worker.mjs") und das native @napi-rs/canvas mit
+ *     `createRequire(...)`. Beides sind berechnete Pfade, die die Ablaufverfolgung (nft) nicht findet: Die Dateien fehlen
+ *     in der Funktion. Ohne canvas gibt es kein DOMMatrix, und pdf.mjs bricht schon beim Import ab ("DOMMatrix is not
+ *     defined"); ohne Worker-Datei scheitert das Parsen ("Setting up fake worker failed").
+ *  2. `pdf-parse/worker` liefert den Worker als data:-URL (`getData()`, keine Datei noetig) und importiert @napi-rs/canvas
+ *     und pdf.worker.mjs mit festen Namen, die nft verfolgt. Deshalb: ZUERST `pdf-parse/worker` laden (stellt canvas bereit,
+ *     bevor pdf.mjs DOMMatrix braucht), dann pdf-parse, dann den Worker setzen. Die Reihenfolge ist Absicht.
+ *  Schlaegt schon das Laden fehl, liegt es am Server und nicht an der Datei: eigener Fehler "pdfDienst", nicht "lesen". */
+async function ladePdfParse() {
+  try {
+    const worker = await import("pdf-parse/worker");
+    const { PDFParse } = await import("pdf-parse");
+    PDFParse.setWorker(worker.getData());
+    return PDFParse;
+  } catch (ursache) {
+    // Die echte Ursache ins Serverprotokoll (die Meldung an die Person nennt sie bewusst nicht).
+    console.error("[damicon] PDF-Leser konnte nicht geladen werden:", ursache);
+    throw new UploadFehler("pdfDienst", undefined, ursache);
+  }
+}
+
 /** PDF ueber pdf-parse (v2: Klasse PDFParse). Wirft bei kaputten oder verschluesselten Dateien. */
 async function pdfText(bytes: Uint8Array): Promise<string> {
   // Import erst hier: pdf-parse zieht PDF.js mit, das ein .txt-Upload nicht braucht.
-  const { PDFParse } = await import("pdf-parse");
+  const PDFParse = await ladePdfParse();
   const parser = new PDFParse({ data: bytes });
   try {
     const ergebnis = await parser.getText();
@@ -129,14 +154,13 @@ async function pdfText(bytes: Uint8Array): Promise<string> {
   }
 }
 
-/** Liest den Text einer Datei. Jeder Fehler (kaputtes PDF, Binaerdatei als .txt) wird zu UploadFehler("lesen"),
- *  nie zu einer ungefangenen Ausnahme. Ein PDF ohne Textebene (Scan) ergibt "" und damit spaeter "leer". */
 export async function extrahiereText(bytes: Uint8Array, typ: UploadDateityp): Promise<string> {
   try {
     if (typ === "pdf") return await pdfText(bytes);
     if (bytes.includes(0)) throw new Error("Binaerdatei: enthaelt Nullbytes");
     return new TextDecoder("utf-8").decode(bytes).replace(/^﻿/, "");
   } catch (ursache) {
+    if (ursache instanceof UploadFehler) throw ursache; // z. B. "pdfDienst": nicht der Datei anlasten
     throw new UploadFehler("lesen", undefined, ursache);
   }
 }
@@ -255,7 +279,7 @@ export interface ChunkZeile {
   eingelesen_am: string;
   embed_modell: string;
   extra: Record<string, unknown>;
-  // Typisierung und Pruefung (Migration 20261115000000). Ein Upload beginnt IMMER ungeprueft; die Datenbank erzwingt das.
+  // Typisierung und Pruefung (Migration 20261124000000). Ein Upload beginnt IMMER ungeprueft; die Datenbank erzwingt das.
   quellenart: string;
   textgrundlage: string;
   pruefstatus: string;

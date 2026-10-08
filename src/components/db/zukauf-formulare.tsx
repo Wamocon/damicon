@@ -1,12 +1,19 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { nachbarbetriebAnlegen, zukaufImportieren, zukaufPreisNachtragen } from "@/lib/actions/zukauf";
-import { leerZukaufImport } from "@/lib/actions/zukauf-status";
+import { leerZukaufImport, type ZukaufImportStatus } from "@/lib/actions/zukauf-status";
 import { leer } from "@/lib/actions/status";
-import { AktionsMeldung, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
+import {
+  AktionsMeldung,
+  Feld,
+  FormularKarte,
+  PfadFeld,
+  SubmitKnopf,
+  useBehalteEingaben,
+} from "@/components/db/formular-kit";
 import type { ZukaufBefund } from "@/lib/import/zukauf-parser";
 import { formularZiel } from "@/lib/formular-ziele";
 
@@ -56,6 +63,12 @@ function ZukaufBefundeListe({ befunde }: { befunde: ZukaufBefund[] }) {
   );
 }
 
+// Nach einer bestandenen Pruefung bleibt der Text stehen, damit "Importieren"
+// genau ihn uebernimmt. Nach dem Import und im Leerzustand wird er geleert.
+function behalteNachPruefung(ergebnis: ZukaufImportStatus): boolean {
+  return ergebnis.stand === "fehler" || ergebnis.vorschau === true;
+}
+
 export function ZukaufImportFormular({
   nachbarbetriebe,
   sorten,
@@ -63,13 +76,24 @@ export function ZukaufImportFormular({
   nachbarbetriebe: string[];
   sorten: string[];
 }) {
-  const [status, action] = useActionState(zukaufImportieren, leerZukaufImport);
+  // Zwei Schritte (WMCNL-2378): erst pruefen, dann bewusst importieren. Der Text
+  // bleibt nach einer Pruefung und nach einem Fehler stehen (WMCNL-2297-Muster);
+  // nach dem Import leert sich das Feld.
+  const { status, pending, formProps } = useBehalteEingaben(
+    zukaufImportieren,
+    behalteNachPruefung,
+    leerZukaufImport,
+  );
+  const [verworfen, setVerworfen] = useState<typeof status | null>(null);
   const t = useTranslations("zukaufAnsicht.import");
   const at = useTranslations("aktionen");
+  // "Importieren" gilt nur fuer den Text, der geprueft wurde: jede Aenderung
+  // am Text macht die Vorschau ungueltig.
+  const darfImportieren = status.vorschau === true && verworfen !== status;
 
   return (
     <FormularKarte id={formularZiel.zukauf} titel={t("titel")} beschreibung={t("lead")}>
-      <form action={action} className="space-y-2.5">
+      <form {...formProps} className="space-y-2.5">
         <PfadFeld />
 
         <div className="rounded-lg border border-border bg-muted/20 p-2.5 text-[11px] leading-4 text-muted-foreground">
@@ -95,11 +119,30 @@ export function ZukaufImportFormular({
             required
             rows={6}
             placeholder={t("platzhalter")}
+            onChange={() => setVerworfen(status)}
             className="w-full rounded-lg border border-border bg-background px-2.5 py-2 font-mono text-xs text-foreground outline-none transition focus:border-primary"
           />
         </label>
 
-        <SubmitKnopf label={t("knopf")} status={status} />
+        <div className="flex flex-wrap items-center gap-2">
+          <SubmitKnopf
+            label={t("knopf")}
+            variante={darfImportieren ? "leise" : "primaer"}
+            status={status}
+            pending={pending}
+            name="schritt"
+            wert="pruefen"
+          />
+          {darfImportieren ? (
+            <SubmitKnopf
+              label={t("importKnopf")}
+              status={status}
+              pending={pending}
+              name="schritt"
+              wert="importieren"
+            />
+          ) : null}
+        </div>
 
         {status.stand !== "leer" && status.meldung ? (
           <p
@@ -170,18 +213,18 @@ export function ZukaufPreisNachtragenFormular({ id }: { id: string }) {
 // wer beim Import auf "unbekannter Betrieb" stoesst, legt ihn genau hier an
 // und laedt die Datei erneut, ohne die Seite zu verlassen.
 export function NachbarbetriebFormular() {
-  const [status, action] = useActionState(nachbarbetriebAnlegen, leer);
+  const { status, pending, formProps } = useBehalteEingaben(nachbarbetriebAnlegen);
   const t = useTranslations("zukaufAnsicht.betriebAufnehmen");
 
   return (
     <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
-      <form action={action} className="grid gap-2.5 sm:grid-cols-3">
+      <form {...formProps} className="grid gap-2.5 sm:grid-cols-3">
         <PfadFeld />
         <Feld label={t("name")} name="name" required placeholder="Nachbarbetrieb Kaskelen" />
         <Feld label={t("ort")} name="ort" placeholder="Kaskelen" />
         <Feld label={t("kontakt")} name="kontakt" placeholder="+7 ..." />
         <div className="sm:col-span-3 flex flex-wrap items-center gap-3">
-          <SubmitKnopf label={t("knopf")} status={status} />
+          <SubmitKnopf label={t("knopf")} status={status} pending={pending} />
           <AktionsMeldung status={status} />
         </div>
       </form>

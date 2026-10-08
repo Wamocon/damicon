@@ -26,6 +26,48 @@ export const lohnStatusMeta: Record<
   ausgezahlt: { tone: "success" },
 };
 
+// Vorschau der gesetzlichen Abzuege fuer ein frei eingegebenes Monatsbrutto
+// (WMCNL-2304). Reine Anzeige, nichts davon wird gespeichert.
+export interface AbzugsVorschau {
+  satzGueltigAb: string;
+  bruttoTenge: number;
+  opvTenge: number;
+  vosmsTenge: number;
+  ipnBemessungsgrundlageTenge: number;
+  ipnTenge: number;
+  nettoTenge: number;
+  arbeitgeberlastTenge: number;
+  arbeitgeberkostenGesamtTenge: number;
+}
+
+export interface AbzugsVorschauStatus {
+  stand: "leer" | "ok" | "fehler";
+  /** Uebersetzungsschluessel unterhalb "aktionen", wie bei AktionsStatus. */
+  meldung?: string;
+  vorschau?: AbzugsVorschau;
+}
+
+export const leerAbzugsVorschau: AbzugsVorschauStatus = { stand: "leer" };
+
+/**
+ * Liest ein Bruttomonatsgehalt, wie man es in Kasachstan und Deutschland
+ * tippt: Leerzeichen und Punkte als Tausendertrenner ("300 000", "300.000"),
+ * Komma oder Punkt als Dezimaltrenner. Ein einzelner Punkt mit weniger oder
+ * mehr als drei Ziffern danach ist ein Dezimalpunkt ("1234.5"). `null` heisst:
+ * keine Zahl.
+ */
+export function bruttoLesen(roh: string): number | null {
+  const ohneLeer = roh.replace(/[\s\u00a0\u202f]/g, "");
+  if (ohneLeer === "") return null;
+  const tausenderPunkte = /^\d{1,3}(\.\d{3})+(,\d+)?$/.test(ohneLeer);
+  const normal = tausenderPunkte
+    ? ohneLeer.replace(/\./g, "").replace(",", ".")
+    : ohneLeer.replace(",", ".");
+  if (!/^\d+(\.\d+)?$/.test(normal)) return null;
+  const wert = Number(normal);
+  return Number.isFinite(wert) ? wert : null;
+}
+
 export interface LohnSatz {
   id: string;
   gueltigAb: string;

@@ -36,16 +36,23 @@ export async function ladeWetterUebersicht(): Promise<WetterUebersicht> {
   const start = saisonStart(new Date().getFullYear());
   const { data, error } = await supabase
     .from("wetter_messungen")
-    .select("gemessen_am, temp_min_c, temp_max_c, niederschlag_mm, temperatursumme")
+    .select("gemessen_am, temp_min_c, temp_max_c, niederschlag_mm, temperatursumme, created_at")
     .is("feldparzelle_id", null)
     .gte("gemessen_am", start)
-    .order("gemessen_am", { ascending: true });
+    .order("gemessen_am", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (error || !data) return demoUebersicht("fehler");
 
+  // Ein Tag, eine Zeile (WMCNL-2389): die Datenbank erzwingt das seit
+  // 20261116000000, der Bestand davor konnte Tage doppelt tragen. Gilt die
+  // zuletzt geschriebene Zeile, weil ihre Temperatursumme zum letzten Lauf passt.
+  const jeTag = new Map<string, (typeof data)[number]>();
+  for (const zeile of data) jeTag.set(zeile.gemessen_am, zeile);
+
   return {
     quelle: "db",
-    tage: data.map((t) => ({
+    tage: [...jeTag.values()].map((t) => ({
       datum: t.gemessen_am,
       tempMinC: t.temp_min_c === null ? null : Number(t.temp_min_c),
       tempMaxC: t.temp_max_c === null ? null : Number(t.temp_max_c),

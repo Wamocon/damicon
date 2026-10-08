@@ -517,6 +517,8 @@ where not exists (select 1 from public.lohn_saetze where gueltig_ab = '2026-01-0
 
 -- Diese zwei Zeilen stammen aus der Zeit vor der Satztabelle und tragen
 -- hartkodierte Betraege ohne Rechengrundlage (der Bug, den WMCNL-1444 behebt).
+-- Beide Faktoren liegen im Korridor des Lohnsatzes (0,90 bis 1,10); bis
+-- WMCNL-2308 stand hier 1,11, ausserhalb der eigenen Konfiguration.
 -- Sie bleiben als Bestandsdaten stehen (Periode 25.-31.08. hat ohnehin keine
 -- granularen Arbeitszeiten/Steigen hinterlegt, eine Neuberechnung wuerde sie
 -- schlicht nicht antreffen); die tatsaechlich berechneten Abrechnungen fuer
@@ -528,7 +530,7 @@ insert into public.lohn_abrechnungen
 select p.id, '2026-08-25'::date, '2026-08-31'::date, 35000, v.menge, v.qf, v.gesamt, 'entwurf'
 from (values
   ('MAL-0417', 22000, 1.06, 60420),
-  ('MAL-0418', 24500, 1.11, 65895)
+  ('MAL-0418', 24500, 1.10, 65450)
 ) as v(ausweis, menge, qf, gesamt)
 join public.pfluecker p on p.ausweis = v.ausweis
 where not exists (

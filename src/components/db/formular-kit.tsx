@@ -1,11 +1,20 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useActionState,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { useFormStatus } from "react-dom";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-import type { AktionsStatus } from "@/lib/actions/status";
+import { leer, type AktionsStatus } from "@/lib/actions/status";
 import { Button, feldKlassen } from "@/components/ui/kit";
 import { haptikEreignis, haptikTipp } from "@/lib/haptik";
 
@@ -39,6 +48,64 @@ export function mitGeraetZeitstempel(feld: string) {
       eingabe.value = new Date().toISOString();
     }
   };
+}
+
+/**
+ * useActionState fuer ein Formular, das seine Eingaben behaelt.
+ *
+ * React 19 setzt ein Formular mit action={...} nach jedem Absenden auf seine
+ * Ausgangswerte zurueck, auch nach einer Fehlermeldung. Wer sich vertippt, muss
+ * dann alles neu eintragen (WMCNL-2297, WMCNL-2383), und ein Bearbeiten-Formular
+ * zeigt nach dem Speichern wieder den alten Stand (WMCNL-2310).
+ *
+ * Der Reset ist ein gewoehnliches form.reset() und feuert ein abbrechbares
+ * "reset"-Ereignis. Ein onReset-Handler von React hilft nicht: React schaltet
+ * seine eigenen Ereignisse waehrend des Commits ab, in dem es zuruecksetzt. Der
+ * Listener haengt deshalb nativ am Formular, und die Ref-Funktion ist stabil,
+ * sonst haengt React sie im selben Commit vor dem Reset ab.
+ *
+ * nach "fehler": nur nach einer Fehlermeldung bleiben die Eingaben (Anlegen-
+ * Formulare leeren sich nach Erfolg wie bisher). Nach "immer": auch nach
+ * Erfolg (Bearbeiten-Formulare, die den gespeicherten Stand zeigen). Eine
+ * Funktion entscheidet je Ergebnis selbst; sie muss unveraenderlich sein (eine
+ * Konstante oder Modulfunktion), weil die Ref-Funktion stabil bleiben muss.
+ * anfang ist der Startwert, wenn der Rueckgabetyp mehr traegt als AktionsStatus.
+ * formProps gehoeren auf das form-Element: <form {...formProps}>.
+ */
+export function useBehalteEingaben<S extends Pick<AktionsStatus, "stand"> = AktionsStatus>(
+  aktion: (vorher: S, daten: FormData) => Promise<S>,
+  nach: "fehler" | "immer" | ((ergebnis: S) => boolean) = "fehler",
+  anfang: S = leer as unknown as S,
+) {
+  const letztes = useRef<S | null>(null);
+  // Awaited<S>: useActionState verlangt den ausgepackten Typ, TypeScript kann
+  // bei einem Typparameter nicht wissen, dass S kein Promise ist.
+  const [status, formAction, pending] = useActionState(
+    async (vorher: Awaited<S>, daten: FormData): Promise<Awaited<S>> => {
+      const ergebnis = await aktion(vorher as S, daten);
+      letztes.current = ergebnis;
+      return ergebnis as Awaited<S>;
+    },
+    anfang as Awaited<S>,
+  );
+  const formRef = useCallback(
+    (form: HTMLFormElement | null) => {
+      if (!form) return;
+      const beiReset = (event: Event) => {
+        const ergebnis = letztes.current;
+        if (!ergebnis) return;
+        const behalten =
+          typeof nach === "function"
+            ? nach(ergebnis)
+            : ergebnis.stand === "fehler" || (nach === "immer" && ergebnis.stand === "ok");
+        if (behalten) event.preventDefault();
+      };
+      form.addEventListener("reset", beiReset);
+      return () => form.removeEventListener("reset", beiReset);
+    },
+    [nach],
+  );
+  return { status, pending, formProps: { action: formAction, ref: formRef } };
 }
 
 export function Feld({
@@ -103,6 +170,7 @@ export function Auswahl({
   defaultValue,
   value,
   onChange,
+  beiAenderung,
 }: {
   label: string;
   name: string;
@@ -118,6 +186,8 @@ export function Auswahl({
   /** Gesteuerte Auswahl, siehe Feld. */
   value?: string;
   onChange?: (wert: string) => void;
+  /** Meldet die gewaehlte Option, ohne das Feld selbst zu steuern (es bleibt unkontrolliert). */
+  beiAenderung?: (wert: string) => void;
 }) {
   return (
     <label className="block space-y-1">
@@ -127,7 +197,15 @@ export function Auswahl({
       <select
         name={name}
         required={required}
-        {...(value !== undefined ? { value, onChange: (e) => onChange?.(e.target.value) } : { defaultValue })}
+        {...(value !== undefined ? { value } : { defaultValue })}
+        onChange={
+          onChange || beiAenderung
+            ? (event) => {
+                onChange?.(event.target.value);
+                beiAenderung?.(event.target.value);
+              }
+            : undefined
+        }
         className={feldKlassen}
       >
         {options.map((option) => (
@@ -199,6 +277,8 @@ export function SubmitKnopf({
   status,
   symbol,
   breit,
+  name,
+  wert,
 }: {
   label?: string;
   variante?: "primaer" | "leise";
@@ -214,9 +294,12 @@ export function SubmitKnopf({
   /** Symbol vor der Beschriftung, etwa in der Nachweiskette. */
   symbol?: ReactNode;
   breit?: boolean;
+  /** Name und Wert des Knopfs gehen mit ins Formular: ein Formular, zwei Wege (Pruefen, Importieren). */
+  name?: string;
+  wert?: string;
 }) {
   const { pending: kontextPending } = useFormStatus();
-  const pending = form ? (pendingProp ?? false) : kontextPending;
+  const pending = pendingProp ?? (form ? false : kontextPending);
   const erledigt = useAbsendeErgebnis(status);
   const t = useTranslations("aktionen");
   const text = label ?? t("anlegen");
@@ -225,6 +308,8 @@ export function SubmitKnopf({
     <Button
       type="submit"
       form={form}
+      name={name}
+      value={wert}
       laedt={pending}
       erledigt={erledigt}
       variante={variante}

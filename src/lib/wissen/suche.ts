@@ -41,7 +41,7 @@ export interface Beleg {
   bereich: string;
   text: string;
   punktzahl: number;
-  /** Typisierung (Migration 20261115000000): null bei Bestand ohne Typisierung. */
+  /** Typisierung (Migration 20261124000000): null bei Bestand ohne Typisierung. */
   quellenart: string | null;
   textgrundlage: string | null;
   /** Wofuer die Quelle in ihrem Bereich taugt: ja, hinweis (nie allein tragend). Berechnet aus quellenart.ts, nicht gespeichert. */

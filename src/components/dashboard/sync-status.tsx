@@ -109,6 +109,9 @@ export function SyncStatus() {
   const konflikte = eintraege.filter((e) => e.status === "konflikt").length;
 
   const Icon = !online ? CloudOff : Wifi;
+  const knopfText = `${online ? t("knopf.online") : t("knopf.offline")}${
+    wartend + konflikte > 0 ? `, ${t("knopf.wartend", { anzahl: wartend + konflikte })}` : ""
+  }`;
   // Der Rahmen der Auslöse-Schaltflaeche uebernimmt denselben Ton wie das
   // Panel - auffaellig nur, wenn etwas Aufmerksamkeit braucht (offline oder
   // Konflikt), sonst identisch zu den Nachbar-Schaltflaechen in der Topbar.
@@ -121,9 +124,14 @@ export function SyncStatus() {
 
   return (
     <div className="relative" ref={panelRef}>
+      {/* WMCNL-2413: das Symbol war da, sagte aber nirgends in Worten, ob das
+          Geraet online ist. Wer nach "Netz", "Offline" oder "Online" suchte
+          (Hilfstechnik, Tooltip), fand nichts. Beschriftung und Tooltip nennen
+          jetzt den Netzstatus und die Zahl der wartenden Eintraege. */}
       <button
         type="button"
-        aria-label={t("knopf.label")}
+        aria-label={knopfText}
+        title={knopfText}
         onClick={() => setOffen((wert) => !wert)}
         className={`relative inline-flex h-9 w-9 items-center justify-center rounded-lg border ${rahmenTon} bg-card text-foreground transition-colors hover:bg-muted`}
       >

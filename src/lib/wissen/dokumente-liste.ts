@@ -24,7 +24,7 @@ export interface WissenListeZeile {
   upload_quelle: string | null;
   /** extra->>hochgeladen_von_name */
   hochgeladen_von: string | null;
-  // Typisierung und Pruefung (Migration 20261115000000); fehlen bei Zeilen aus aelteren Quellen.
+  // Typisierung und Pruefung (Migration 20261124000000); fehlen bei Zeilen aus aelteren Quellen.
   autoritaetsstufe?: number | null;
   quellenart?: string | null;
   pruefstatus?: string | null;
