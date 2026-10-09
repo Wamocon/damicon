@@ -947,7 +947,8 @@
       "wissenSchonGeloescht": "Dieses Dokument ist bereits gelöscht.",
       "wissenFreigegeben": "Dokument „{wert}“ freigegeben und durchsuchbar.",
       "wissenAbgelehnt": "Dokument „{wert}“ abgelehnt. Es bleibt gesperrt und lässt sich löschen.",
-      "wissenVerlaengert": "Dokument „{wert}“ verlängert und wieder durchsuchbar."
+      "wissenVerlaengert": "Dokument „{wert}“ verlängert und wieder durchsuchbar.",
+      "wissenEingeordnet": "{wert} Dokumente eingeordnet."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1021,7 +1022,10 @@
       "wissenNichtPruefbar": "Dieses Dokument wartet nicht auf eine Prüfung, oder jemand anderes hat gerade entschieden.",
       "wissenSelbstFreigabe": "Vier-Augen-Prinzip: Wer ein Dokument hochgeladen hat, gibt es nicht frei. Bitte eine zweite Person bitten.",
       "wissenFreigeben": "Die Entscheidung konnte nicht gespeichert werden. Es wurde nichts verändert.",
-      "wissenPdfDienst": "Der PDF-Leser steht auf dem Server nicht zur Verfügung. Das liegt nicht an der Datei, es wurde nichts gespeichert. Bitte die technische Betreuung informieren."
+      "wissenPdfDienst": "Der PDF-Leser steht auf dem Server nicht zur Verfügung. Das liegt nicht an der Datei, es wurde nichts gespeichert. Bitte die technische Betreuung informieren.",
+      "wissenEinordnenLeer": "Es gibt nichts einzuordnen: Die Auswahl ist leer oder ungültig.",
+      "wissenEinordnen": "Die Einordnung konnte nicht gespeichert werden. Es wurde nichts oder nur ein Teil geändert, bitte die Liste neu laden und prüfen.",
+      "wissenClusterPasstNicht": "Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz. Bitte als Cluster Internet-Quelle wählen."
     },
     "einladungen": {
       "erfolg": {
@@ -2359,8 +2363,8 @@
         "url": "Link zur Quelle",
         "urlHinweis": "Pflicht bei Internetquelle und Forum, sonst freiwillig. Der Link ist der Herkunftsnachweis für die Prüfung.",
         "freigabeHinweis": "Nach dem Hochladen wartet das Dokument auf die Freigabe durch eine zweite Person (Vier-Augen-Prinzip). Erst dann ist es durchsuchbar.",
-        "clusterHinweis": "Zuerst die grobe Herkunft wählen, danach die genaue Quellenart.",
-        "zuerstCluster": "Zuerst den Cluster wählen"
+        "clusterHinweis": "Der Weg, auf dem der Text zu uns kam, unabhängig von der Quellenart: Ein Gesetz von einer Regierungsseite bleibt eine Rechtsnorm, hat aber den Cluster Internet-Quelle.",
+        "clusterZwang": "Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz."
       },
       "loeschen": {
         "knopf": "Löschen",
@@ -2438,9 +2442,73 @@
         "internet": "Internet-Quelle"
       },
       "clusterBeispiel": {
-        "buecher": "Fachbücher, Kommentare, Lehrbücher, Nachschlagewerke",
-        "publikationen": "Gesetze, Urteile, Behördenschreiben, Normen, Studien, Whitepaper, interne Ausarbeitungen",
-        "internet": "Webseiten, Foren, Rechercheergebnisse, KI-Zusammenfassungen"
+        "buecher": "Buch: Fachbuch, Kommentar, Lehrbuch, Lexikon (gedruckt oder E-Book)",
+        "publikationen": "Amtsblatt, Zeitschrift, Fachaufsatz, Studie, Whitepaper, interne Ausarbeitung",
+        "internet": "Webseite (auch amtliche), Forum, Blog, Rechercheergebnis"
+      },
+      "einordnen": {
+        "titel": "Bestand einordnen",
+        "lead": "Diese Dokumente wurden vor der Typisierung eingelesen und haben noch keine Quellenart und keinen Cluster. Die Seite macht zu jedem einen Vorschlag aus Link, bisheriger Stufe und Rechtsstelle. Nichts wird von allein gespeichert: Sie prüfen, ändern, wählen aus und bestätigen, nachdem Sie die Wirkung auf die Suche gesehen haben.",
+        "zaehler": "Noch nicht eingeordnet: {offen} von {gesamt}",
+        "alleErledigt": "Alle Dokumente sind eingeordnet.",
+        "filter": {
+          "titel": "Nach Vorschlag filtern",
+          "alle": "Alle"
+        },
+        "sicherheit": {
+          "hoch": "Sicher",
+          "mittel": "Plausibel",
+          "niedrig": "Unsicher"
+        },
+        "grund": {
+          "rechtsstelle": "Rechtsstelle vorhanden, amtliche Seite",
+          "amtlicheSeite": "Amtliche Seite",
+          "wikipedia": "Wikipedia",
+          "forum": "Forum oder Frage-Antwort-Seite",
+          "blog": "Blog oder Artikelplattform",
+          "stufe": "nach der bisherigen Stufe",
+          "keinLink": "kein Link vorhanden"
+        },
+        "spalte": {
+          "dokument": "Dokument",
+          "stufe": "Stufe",
+          "bereich": "Bereich",
+          "art": "Quellenart",
+          "cluster": "Cluster",
+          "vorschlag": "Vorschlag"
+        },
+        "bitteWaehlen": "Bitte wählen",
+        "waehlen": "Dokument auswählen",
+        "schaltflaeche": {
+          "sichere": "Sichere Vorschläge auswählen",
+          "seite": "Alle auf dieser Seite auswählen",
+          "aufheben": "Auswahl aufheben",
+          "pruefen": "Einordnung prüfen ({anzahl})",
+          "zurueck": "Zurück",
+          "weiter": "Weiter"
+        },
+        "seite": "Seite {seite} von {seiten}",
+        "gewaehlt": "{anzahl} ausgewählt",
+        "unvollstaendig": "Nur Dokumente mit Quellenart und Cluster lassen sich auswählen.",
+        "dialog": {
+          "titel": "Einordnung prüfen und speichern",
+          "lead": "Das ändert sich für die Suche:",
+          "dokumente": "Dokumente: {anzahl}, Abschnitte: {abschnitte}",
+          "gesperrt": "Nicht mehr auffindbar in ihrem Bereich: {anzahl}",
+          "gesperrtKurz": "nicht mehr auffindbar",
+          "nurHinweis": "Nur noch als Hinweis: {anzahl}",
+          "stufe": "Stufe ändert sich: {anzahl}",
+          "verlassenPrimaer": "Verlassen die reservierten Plätze für Rechtsquellen: {anzahl}",
+          "kommenInPrimaer": "Bekommen Zugang zu den reservierten Plätzen für Rechtsquellen: {anzahl}",
+          "nichtsBesonderes": "Für diese Dokumente verhält sich die Suche unverändert.",
+          "liste": "Betroffene Dokumente",
+          "stufeVonNach": "Stufe {alt} auf {neu}",
+          "weitere": "und {anzahl} weitere",
+          "hinweisStufe": "Die Stufe folgt der Quellenart, wie bei einem Upload. Die bisherige Stufe steht im Protokoll.",
+          "hinweisProtokoll": "Jede Einordnung wird protokolliert (Person, Dokument, Art, Cluster, Stufe vorher und nachher).",
+          "abbrechen": "Abbrechen",
+          "speichern": "Einordnung speichern"
+        }
       }
     },
     "sprachmodus": {

@@ -3,12 +3,12 @@
 // die Skript-Dokumente gruppieren nach quelle_id (wie sie das Einlese-Skript vergibt), notfalls nach Pfad.
 // Reine Funktion, ohne Datenbank, damit sie testbar bleibt.
 
-import { istPruefstatus, nutzungFuer, type Nutzung, type Pruefstatus } from "@/lib/wissen/quellenart";
+import { istCluster, istPruefstatus, nutzungFuer, type Cluster, type Nutzung, type Pruefstatus } from "@/lib/wissen/quellenart";
 import { istUploadZeile, UPLOAD_QUELLE } from "@/lib/wissen/upload-quelle";
 
 /** Die Spalten, die die Liste liest (PostgREST-Schreibweise, Aliase fuer extra->>...). Eine Stelle fuer Action und Test. */
 export const LISTE_SPALTEN =
-  "id, quelle_id, pfad, titel, bereich, rollen, eingelesen_am, autoritaetsstufe, quellenart, pruefstatus, pruefen_bis, url, " +
+  "id, quelle_id, pfad, titel, bereich, rollen, eingelesen_am, autoritaetsstufe, quellenart, cluster, pruefstatus, pruefen_bis, url, rechtsstelle, " +
   "upload_quelle:extra->>quelle, hochgeladen_von:extra->>hochgeladen_von_name, hochgeladen_von_id:extra->>hochgeladen_von";
 
 /** Nur die leichten Spalten: Text und Vektoren werden fuer die Liste nie gelesen. */
@@ -24,9 +24,12 @@ export interface WissenListeZeile {
   upload_quelle: string | null;
   /** extra->>hochgeladen_von_name */
   hochgeladen_von: string | null;
-  // Typisierung und Pruefung (Migration 20261124000000); fehlen bei Zeilen aus aelteren Quellen.
+  // Typisierung und Pruefung (Migrationen 20261124000000 und 20261125000000); fehlen bei Zeilen aus aelteren Quellen.
   autoritaetsstufe?: number | null;
   quellenart?: string | null;
+  cluster?: string | null;
+  /** Fundstelle im Gesetz oder Erlass (Frontmatter des Einlese-Skripts): ein Hinweis auf eine Rechtsquelle. */
+  rechtsstelle?: string | null;
   pruefstatus?: string | null;
   pruefen_bis?: string | null;
   url?: string | null;
@@ -34,8 +37,12 @@ export interface WissenListeZeile {
   hochgeladen_von_id?: string | null;
 }
 
+/** Spalte von wissen_chunks, ueber die ein Dokument adressiert wird: so, wie die Liste gruppiert (quelle_id, sonst pfad, sonst id). */
+export type SchluesselSpalte = "quelle_id" | "pfad" | "id";
+
 export interface WissenDokumentZeile {
   schluessel: string;
+  schluesselSpalte: SchluesselSpalte;
   titel: string;
   bereich: string;
   rollen: string[];
@@ -49,7 +56,11 @@ export interface WissenDokumentZeile {
    *  zeigt einen Loeschen-Knopf. Skript-Dokumente nie. Der Server prueft dasselbe noch einmal selbst. */
   loeschbar: boolean;
   quellenart: string | null;
+  /** Der Weg (buecher, publikationen, internet) oder null, wenn noch nicht eingeordnet. */
+  cluster: Cluster | null;
   stufe: number | null;
+  /** Fundstelle im Gesetz (nur Bestand), ein Hinweis auf eine Rechtsquelle. */
+  rechtsstelle: string | null;
   /** Wofuer die Quelle in ihrem Bereich taugt (quellenart.ts). */
   nutzung: Nutzung;
   pruefstatus: Pruefstatus;
@@ -60,6 +71,9 @@ export interface WissenDokumentZeile {
   url: string | null;
 }
 
+/** Noch nicht (vollstaendig) eingeordnet: es fehlt die Quellenart oder der Cluster. */
+export const ohneEinordnung = (d: Pick<WissenDokumentZeile, "quellenart" | "cluster">): boolean => !d.quellenart || !d.cluster;
+
 const RANG: Record<Pruefstatus, number> = { ungeprueft: 0, abgelehnt: 1, freigegeben: 2 };
 
 /** `heute` (JJJJ-MM-TT) ist ein Parameter, damit Tests ohne Uhr auskommen. */
@@ -67,11 +81,13 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
   const gruppen = new Map<string, WissenDokumentZeile>();
   for (const z of zeilen) {
     const schluessel = z.quelle_id ?? z.pfad ?? z.id;
+    const schluesselSpalte: SchluesselSpalte = z.quelle_id ? "quelle_id" : z.pfad ? "pfad" : "id";
     const status: Pruefstatus = istPruefstatus(z.pruefstatus) ? z.pruefstatus : "freigegeben";
     const vorhanden = gruppen.get(schluessel);
     if (!vorhanden) {
       gruppen.set(schluessel, {
         schluessel,
+        schluesselSpalte,
         titel: z.titel ?? z.pfad ?? schluessel,
         bereich: z.bereich ?? "",
         rollen: [...(z.rollen ?? [])],
@@ -82,7 +98,9 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
         herkunft: z.upload_quelle === UPLOAD_QUELLE ? "upload" : "skript",
         loeschbar: istUploadZeile(z),
         quellenart: z.quellenart ?? null,
+        cluster: istCluster(z.cluster) ? z.cluster : null,
         stufe: z.autoritaetsstufe ?? null,
+        rechtsstelle: z.rechtsstelle ?? null,
         nutzung: nutzungFuer(z.bereich ?? "", z.quellenart),
         pruefstatus: status,
         pruefenBis: z.pruefen_bis ?? null,
@@ -94,6 +112,7 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
     vorhanden.chunks += 1;
     vorhanden.loeschbar &&= istUploadZeile(z);
     for (const r of z.rollen ?? []) if (!vorhanden.rollen.includes(r)) vorhanden.rollen.push(r);
+    if (!vorhanden.rechtsstelle && z.rechtsstelle) vorhanden.rechtsstelle = z.rechtsstelle;
     if (z.eingelesen_am && (!vorhanden.datum || z.eingelesen_am > vorhanden.datum)) vorhanden.datum = z.eingelesen_am;
     if (!vorhanden.hochgeladenVon && z.hochgeladen_von) vorhanden.hochgeladenVon = z.hochgeladen_von;
     if (!vorhanden.hochgeladenVonId && z.hochgeladen_von_id) vorhanden.hochgeladenVonId = z.hochgeladen_von_id;

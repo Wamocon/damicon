@@ -5,7 +5,7 @@ import { hybridSucheSupabase, type RpcKlient } from "@/lib/wissen/supabase-suche
 import type { SparseVektor } from "@/lib/wissen/sparse";
 import { BUERO_ROLLEN } from "@/lib/wissen/rollen";
 import { sparseFrage } from "@/lib/wissen/sparse";
-import { belegLage, einordnung, nutzungFuer, type BelegLage, type Nutzung } from "@/lib/wissen/quellenart";
+import { belegLage, einordnung, nutzungFuer, PRIMAER_MAX_STUFE, type BelegLage, type Nutzung } from "@/lib/wissen/quellenart";
 
 // Die Suche, die der Agent aufruft. Sie macht drei Dinge, die nicht dem Modell
 // ueberlassen werden duerfen:
@@ -19,7 +19,6 @@ import { belegLage, einordnung, nutzungFuer, type BelegLage, type Nutzung } from
 // Wie viele Plaetze der Trefferliste mindestens fuer Recht und amtliche Texte (Stufe 1 bis 3)
 // reserviert sind, sofern es solche Treffer gibt.
 const PRIMAER_PLAETZE = 3;
-const PRIMAER_MAX_STUFE = 3;
 // Quellen, die in ihrem Bereich nur als Hinweis taugen (Internet, Forum, KI ...), stehen hinter allen tragenden Belegen und
 // belegen nie einen der reservierten Plaetze. Mehr als zwei kommen nicht in den Kontext.
 const HINWEIS_MAX = 2;

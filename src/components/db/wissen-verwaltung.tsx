@@ -12,9 +12,10 @@ import {
   wissenDokumentVorschau,
 } from "@/lib/actions/wissen";
 import { leer, type AktionsStatus } from "@/lib/actions/status";
-import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
+import { ohneEinordnung, type WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 import { stufeSchluessel } from "@/lib/wissen/belege";
-import { artenImCluster, CLUSTER, clusterVon, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, TEXTGRUNDLAGEN, type Cluster } from "@/lib/wissen/quellenart";
+import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN, typischerClusterVon, type Cluster } from "@/lib/wissen/quellenart";
+import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
 import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
 // Wissensverwaltung: Seite "Wissensbasis" im Bereich Administration (/dashboard/administration/wissensbasis). Admin-only:
@@ -57,6 +58,7 @@ export function WissenVerwaltung() {
     <div className="space-y-3">
       <p className="text-[11px] leading-4 text-muted-foreground">{t("lead")}</p>
       <WissenHochladenFormular beiErfolg={lade} />
+      {dokumente && !ladefehler && dokumente.some(ohneEinordnung) ? <WissenBestandEinordnen dokumente={dokumente} beiFertig={lade} /> : null}
       <div>
         <p className="mb-2 text-[11px] font-semibold text-card-foreground">{t("liste.titel")}</p>
         <AktionsMeldung status={aktionsMeldung} />
@@ -108,8 +110,7 @@ type ListenFilter = "alle" | Cluster | "ohne";
 
 function passtZumFilter(dokument: WissenDokumentZeile, filter: ListenFilter): boolean {
   if (filter === "alle") return true;
-  const cluster = clusterVon(dokument.quellenart);
-  return filter === "ohne" ? cluster === null : cluster === filter;
+  return filter === "ohne" ? ohneEinordnung(dokument) : dokument.cluster === filter;
 }
 
 function ClusterFilter({
@@ -178,7 +179,7 @@ function WissenDokumentKarte({
     ? t(`bereich.${bereichKey}` as never)
     : dokument.bereich || t("liste.keinBereich");
   const artName = istQuellenart(dokument.quellenart) ? t(`quellenart.${dokument.quellenart}` as never) : null;
-  const cluster = clusterVon(dokument.quellenart);
+  const cluster = dokument.cluster;
   const clusterName = cluster ? t(`cluster.${cluster}` as never) : null;
   const stufeName = dokument.stufe !== null ? tStufe(stufeSchluessel(dokument.stufe)) : null;
   const ersterEintrag = dokument.herkunft === "upload";
@@ -195,7 +196,8 @@ function WissenDokumentKarte({
           <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
             <StatusPill tone="info">{bereichName}</StatusPill>
             <StatusPill tone={dokument.herkunft === "upload" ? "success" : "neutral"}>{t(`herkunft.${dokument.herkunft}`)}</StatusPill>
-            {clusterName ? <StatusPill tone="neutral">{clusterName}</StatusPill> : <StatusPill tone="warning">{t("liste.ohneEinordnung")}</StatusPill>}
+            {ohneEinordnung(dokument) ? <StatusPill tone="warning">{t("liste.ohneEinordnung")}</StatusPill> : null}
+            {clusterName ? <StatusPill tone="neutral">{clusterName}</StatusPill> : null}
             {artName ? <StatusPill tone="neutral">{artName}</StatusPill> : null}
             {dokument.nutzung === "hinweis" ? <StatusPill tone="warning">{t("nutzung.hinweis")}</StatusPill> : null}
             {ersterEintrag ? (
@@ -208,7 +210,7 @@ function WissenDokumentKarte({
           <div className="sm:col-span-2">
             <dt className="inline font-semibold">{t("liste.einordnung")}: </dt>
             <dd className="inline">
-              {clusterName && artName ? `${clusterName} / ${artName}` : t("liste.ohneEinordnung")}
+              {artName && clusterName ? `${artName}, ${clusterName}` : artName ? artName : t("liste.ohneEinordnung")}
               {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe} (${stufeName})` : ""}
             </dd>
           </div>
@@ -334,15 +336,16 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
             ...UPLOAD_BEREICHE.map((b) => ({ wert: b, text: tBereich(b) })),
           ]}
         />
-        {/* Zuerst der Cluster (grobe Herkunft), dann nur die Quellenarten dieses Clusters. Wechselt der Cluster, faellt eine
-            Quellenart weg, die nicht dazu gehoert. */}
+        {/* Cluster (der Weg) und Quellenart (die Art des Textes) sind zwei Achsen: Ein Gesetz von einer Regierungsseite ist eine
+            Rechtsnorm aus dem Internet. Nur eine Art, die schon ihrer Natur nach aus dem Netz stammt, schliesst die anderen
+            Cluster aus. Waehlt man zuerst die Art, bekommt der Cluster ihren typischen Wert vorgeschlagen. */}
         <div className="space-y-1">
           <Auswahl
             label={t("cluster")}
             name="cluster"
             required
             value={werte.cluster}
-            onChange={(neu) => aendere({ cluster: neu, quellenart: clusterVon(werte.quellenart) === neu ? werte.quellenart : "" })}
+            onChange={(neu) => aendere({ cluster: neu, quellenart: art && istCluster(neu) && !clusterPasst(art, neu) ? "" : werte.quellenart })}
             options={[{ wert: "", text: t("bitteWaehlen") }, ...CLUSTER.map((c) => ({ wert: c, text: tCluster(c) }))]}
           />
           {cluster ? <span className="block text-[11px] text-muted-foreground">{tClusterBeispiel(cluster)}</span> : null}
@@ -353,15 +356,21 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
             name="quellenart"
             required
             value={werte.quellenart}
-            onChange={(quellenart) => aendere({ quellenart })}
+            onChange={(neu) => {
+              // Ohne Cluster oder mit einem, der zur Art nicht passt, bekommt der Cluster den typischen Wert der Art.
+              const typisch = typischerClusterVon(neu);
+              const passt = istQuellenart(neu) && istCluster(werte.cluster) && clusterPasst(neu, werte.cluster);
+              aendere({ quellenart: neu, cluster: passt ? werte.cluster : (typisch ?? werte.cluster) });
+            }}
             options={[
-              { wert: "", text: cluster ? t("bitteWaehlen") : t("zuerstCluster") },
-              ...(cluster ? artenImCluster(cluster) : []).map((a) => {
+              { wert: "", text: t("bitteWaehlen") },
+              ...QUELLENARTEN.map((a) => {
                 const gesperrt = !!werte.bereich && nutzungFuer(werte.bereich, a) === "nein";
+                const passtNicht = !!cluster && !clusterPasst(a, cluster);
                 return {
                   wert: a,
                   text: `${tArt(a)} (${gesperrt ? t("nichtZulaessig") : tBeispiel(a)})`,
-                  disabled: gesperrt,
+                  disabled: gesperrt || passtNicht,
                 };
               }),
             ]}
@@ -369,7 +378,7 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
         </div>
         <div className="space-y-1 sm:col-span-2">
           <span className="block text-[11px] text-muted-foreground">
-            {t("clusterHinweis")} {t("quellenartHinweis")}
+            {t("clusterHinweis")} {t("clusterZwang")} {t("quellenartHinweis")}
           </span>
           {art ? (
             <span className={`block text-[11px] ${nutzung === "hinweis" ? "font-semibold text-warning" : "text-muted-foreground"}`}>
@@ -506,8 +515,8 @@ function WissenPruefenKnopf({
               <div>
                 <dt className="inline font-semibold">{t("liste.quellenart")}: </dt>
                 <dd className="inline">
-                  {clusterVon(dokument.quellenart) ? `${t(`cluster.${clusterVon(dokument.quellenart)}` as never)} / ` : ""}
                   {artName}
+                  {dokument.cluster ? `, ${t(`cluster.${dokument.cluster}` as never)}` : ""}
                   {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe}` : ""}
                   {dokument.nutzung === "hinweis" ? `, ${t("nutzung.hinweis")}` : ""}
                 </dd>

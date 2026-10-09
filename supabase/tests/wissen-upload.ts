@@ -39,7 +39,7 @@ import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import type { RpcKlient } from "@/lib/wissen/supabase-suche";
 import { sucheWissen } from "@/lib/wissen/suche";
 import { entscheideUeberUpload } from "@/lib/wissen/freigabe";
-import { artenImCluster, belegLage, CLUSTER, CLUSTER_INFO, clusterVon, einordnung, istCluster, nutzungFuer, pruefenBis, QUELLENART_INFO, QUELLENARTEN, standardStufe, STUFEN_NAMEN, TEXTGRUNDLAGEN } from "@/lib/wissen/quellenart";
+import { belegLage, CLUSTER, CLUSTER_INFO, clusterPasst, einordnung, istCluster, nutzungFuer, pruefenBis, QUELLENART_INFO, QUELLENARTEN, standardStufe, STUFEN_NAMEN, TEXTGRUNDLAGEN, typischerClusterVon } from "@/lib/wissen/quellenart";
 import { hinweisFuerLage } from "@/lib/ai/wissen-werkzeug";
 import { belegeAusErgebnis } from "@/lib/wissen/belege";
 import { quellenAnweisung } from "@/lib/domain/antwort-anweisungen";
@@ -705,13 +705,16 @@ async function main() {
         pruefenBis("rechtsnorm", new Date("2026-10-07T10:00:00Z")) === null && pruefenBis("fachliteratur", new Date("2026-10-07T10:00:00Z")) === null);
     pruefe("Link Pflicht: Internetquelle und Forum (Herkunftsnachweis), sonst freiwillig", QUELLENARTEN.filter((a) => QUELLENART_INFO[a].urlPflicht).join() === "internetquelle,forum");
     pruefe("Cluster: genau drei (Buecher, Publikationen, Internet-Quelle), jeder mit Beschriftung und Beispielen", CLUSTER.join() === "buecher,publikationen,internet" && CLUSTER.every((c) => !!CLUSTER_INFO[c].label && !!CLUSTER_INFO[c].beispiele));
-    pruefe("Cluster: jede der dreizehn Quellenarten gehoert zu genau einem Cluster, keine bleibt uebrig, keine doppelt", CLUSTER.flatMap((c) => artenImCluster(c)).sort().join() === [...QUELLENARTEN].sort().join() && QUELLENARTEN.every((a) => CLUSTER.filter((c) => artenImCluster(c).includes(a)).length === 1));
-    pruefe("Cluster: Zuordnung wie vereinbart (Buecher: Fachliteratur und Nachschlagewerk; Internet: Internetquelle, Forum, Recherche, KI; Rest Publikationen)",
-      artenImCluster("buecher").join() === "fachliteratur,nachschlagewerk" && artenImCluster("internet").join() === "internetquelle,forum,internetrecherche,ki_zusammenfassung" &&
-        artenImCluster("publikationen").join() === "rechtsnorm,rechtsprechung,verwaltungsanweisung,behoerdeninfo,standard,praxisbeitrag,intern");
-    pruefe("Cluster: clusterVon liest ihn aus der Art, Bestand ohne Typisierung hat keinen", clusterVon("forum") === "internet" && clusterVon("fachliteratur") === "buecher" && clusterVon("rechtsnorm") === "publikationen" && clusterVon(null) === null && clusterVon(undefined) === null && clusterVon("unbekannt") === null);
+    pruefe("Cluster: jede Art hat einen typischen Cluster (Vorbelegung), und er ist einer der drei", QUELLENARTEN.every((a) => istCluster(QUELLENART_INFO[a].typischerCluster) && typischerClusterVon(a) === QUELLENART_INFO[a].typischerCluster));
+    pruefe("Cluster: typische Zuordnung wie vereinbart (Buecher: Fachliteratur, Nachschlagewerk; Internet: Internetquelle, Forum, Recherche, KI; Rest Publikationen)",
+      QUELLENARTEN.filter((a) => typischerClusterVon(a) === "buecher").join() === "fachliteratur,nachschlagewerk" && QUELLENARTEN.filter((a) => typischerClusterVon(a) === "internet").join() === "internetquelle,forum,internetrecherche,ki_zusammenfassung" &&
+        QUELLENARTEN.filter((a) => typischerClusterVon(a) === "publikationen").join() === "rechtsnorm,rechtsprechung,verwaltungsanweisung,behoerdeninfo,standard,praxisbeitrag,intern");
+    pruefe("Cluster: Art und Cluster sind zwei Achsen: eine Rechtsnorm darf aus dem Internet kommen, aus einem Buch und aus einer Publikation", CLUSTER.every((c) => clusterPasst("rechtsnorm", c)) && CLUSTER.every((c) => clusterPasst("fachliteratur", c)));
+    pruefe("Cluster: nur eine Art, die zwingend aus dem Netz stammt (Internetquelle, Forum, Internetrecherche), schliesst Buecher und Publikationen aus",
+      QUELLENARTEN.filter((a) => QUELLENART_INFO[a].clusterZwang !== null).join() === "internetquelle,forum,internetrecherche" && ["internetquelle", "forum", "internetrecherche"].every((a) => clusterPasst(a as never, "internet") && !clusterPasst(a as never, "buecher") && !clusterPasst(a as never, "publikationen")));
+    pruefe("Cluster: typischerClusterVon kennt nur Arten, Bestand ohne Typisierung hat keinen", typischerClusterVon("forum") === "internet" && typischerClusterVon(null) === null && typischerClusterVon(undefined) === null && typischerClusterVon("unbekannt") === null);
     pruefe("Cluster: istCluster erkennt nur die drei Werte", CLUSTER.every((c) => istCluster(c)) && !istCluster("web") && !istCluster(null) && !istCluster(""));
-    pruefe("Cluster: kein Cluster steht in der Migration oder in einer Spalte, er folgt allein aus der Art (keine zweite Wahrheit)", !/cluster/i.test(lies("supabase/migrations/20261124000000_wissen_typisierung_pgvector.sql")));
+    pruefe("Cluster: die Spalte kommt mit der Migration 20261125000000, ohne CHECK (wie quellenart)", /add column if not exists cluster text/i.test(lies("supabase/migrations/20261125000000_wissen_cluster_pgvector.sql")) && !/check\s*\(/i.test(lies("supabase/migrations/20261125000000_wissen_cluster_pgvector.sql")));
     // Die Tabelle in der Doku darf der Matrix im Code nicht davonlaufen
     {
       const doku = lies("docs/wissensbasis-supabase.md");
@@ -722,9 +725,9 @@ async function main() {
         if (!r) return true;
         const info = QUELLENART_INFO[a];
         const monate = r[8] === "nie" ? null : Number.parseInt(r[8]!, 10);
-        return Number(r[2]) !== info.stufe || !UPLOAD_BEREICHE.every((b, i) => wort[r[3 + i]!] === info.nutzung[b]) || monate !== info.pruefMonate || r[9] !== CLUSTER_INFO[info.cluster].label;
+        return Number(r[2]) !== info.stufe || !UPLOAD_BEREICHE.every((b, i) => wort[r[3 + i]!] === info.nutzung[b]) || monate !== info.pruefMonate || r[9] !== CLUSTER_INFO[info.typischerCluster].label;
       });
-      pruefe("Doku: die Tabelle der Quellenarten (Stufe, Nutzung je Bereich, Wiedervorlage, Cluster) stimmt mit quellenart.ts ueberein", abweichend.length === 0 && zeilenDoku.length === QUELLENARTEN.length, abweichend.join(", "));
+      pruefe("Doku: die Tabelle der Quellenarten (Stufe, Nutzung je Bereich, Wiedervorlage, typischer Cluster) stimmt mit quellenart.ts ueberein", abweichend.length === 0 && zeilenDoku.length === QUELLENARTEN.length, abweichend.join(", "));
     }
 
     const ein = einordnung({ quellenart: "fachliteratur", stufe: 4, nutzung: "ja", textgrundlage: "original", stand: "2026-03-01" });
@@ -750,6 +753,23 @@ async function main() {
     pruefe("Upload: Quellenart, Textgrundlage original und Stufe 4 stehen in der Zeile, der Status ist UNGEPRUEFT ohne Wiedervorlage", z0.quellenart === "fachliteratur" && z0.textgrundlage === "original" && z0.autoritaetsstufe === 4 && z0.pruefstatus === "ungeprueft" && z0.pruefen_bis === null && z0.geprueft_von === null && erg.autoritaetsstufe === 4);
     pruefe("Upload: Pflichtfeld Quellenart fehlt oder ist unbekannt -> eingabe, nichts gelesen oder geschrieben", (await fehlerCode(() => verarbeiteUpload(eingabe({ quellenart: "" }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT }))) === "eingabe" && (await fehlerCode(() => verarbeiteUpload(eingabe({ quellenart: "blog" }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT }))) === "eingabe");
     pruefe("Upload: unbekannte Textgrundlage -> eingabe", (await fehlerCode(() => verarbeiteUpload(eingabe({ textgrundlage: "geraten" }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT }))) === "eingabe");
+
+    // Cluster beim Upload: der Weg, unabhaengig von der Art
+    {
+      const sc = falscherSpeicher();
+      const ec = falscheEinbettung();
+      const dc = { speicher: sc, einbettung: ec, jetzt: JETZT };
+      const ergC = await verarbeiteUpload(eingabe({ quellenart: "rechtsnorm", cluster: "internet", titel: "Gesetz von der Regierungsseite", url: "https://adilet.zan.kz/x", bytes: bytes("Das Gesetz von der Regierungsseite regelt die Rueckstellung Walross im Jahresabschluss."), dateiname: "gesetz.txt" }), dc);
+      const zc = [...sc.zeilen.values()][0]!;
+      pruefe("Cluster: eine Rechtsnorm von einer Regierungsseite hat Quellenart rechtsnorm, Cluster internet und Stufe 1 (zwei Achsen)", zc.quellenart === "rechtsnorm" && zc.cluster === "internet" && zc.autoritaetsstufe === 1 && ergC.cluster === "internet");
+      const sd = falscherSpeicher();
+      await verarbeiteUpload(eingabe({ quellenart: "fachliteratur", titel: "Fachbuch Linde", bytes: bytes("Das Fachbuch Linde erklaert die Rueckstellung Seeadler im Jahresabschluss."), dateiname: "linde.txt" }), { speicher: sd, einbettung: falscheEinbettung(), jetzt: JETZT });
+      pruefe("Cluster: ohne Angabe gilt der typische Cluster der Art (Fachliteratur: Buecher)", [...sd.zeilen.values()][0]!.cluster === "buecher");
+      const codeF = await fehlerCode(() => verarbeiteUpload(eingabe({ quellenart: "forum", cluster: "buecher", bereich: "risiko", url: "https://forum.beispiel.de/t/1" }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT }));
+      pruefe("Cluster: ein Forum in Buecher passt nicht -> clusterPasstNicht, nichts gelesen oder geschrieben", codeF === "clusterPasstNicht");
+      const codeU = await fehlerCode(() => verarbeiteUpload(eingabe({ cluster: "web" }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT }));
+      pruefe("Cluster: ein unbekannter Cluster -> eingabe", codeU === "eingabe");
+    }
 
     // Entscheidung Nikos: Blog und Forum nicht fuer Recht, Steuern, Compliance
     for (const art of ["internetquelle", "forum", "internetrecherche", "ki_zusammenfassung"]) {
@@ -861,7 +881,7 @@ async function main() {
     const zeile = (id: string, titel: string, text: string, bereich: string, quellenart: string | null, stufe: number | null, extra: Partial<ChunkZeile> = {}): ChunkZeile => ({
       id, chunk_id: id, quelle_id: `recht/${id}.md`, norm_id: null, sprache: "de", autoritaetsstufe: stufe, rechtsstelle: null, titel, gueltig_ab: null, gueltig_bis: null, ist_ueberholt: false, ersetzt_durch: null,
       abgerufen_am: "2026-09-01", url: null, konfidenz: null, pfad: `recht/${id}.md`, bereich, teil: 1, teile: 1, kontext: titel, text, rollen: ["admin", "buchhaltung"], eingelesen_am: "2026-09-01", embed_modell: "synthetisch-bge-m3",
-      extra: {}, quellenart: quellenart as string, textgrundlage: "original", pruefstatus: "freigegeben", pruefen_bis: null, geprueft_von: null, geprueft_am: null,
+      extra: {}, quellenart: quellenart as string, cluster: "internet", textgrundlage: "original", pruefstatus: "freigegeben", pruefen_bis: null, geprueft_von: null, geprueft_am: null,
       dense: `[${vektorVon(text).join(",")}]`, sparse: alsSparsevec(sparseDokument(text)), ...extra,
     });
     const frage = "Verjaehrungsfrist Pfirsichkernen Pelikan";
@@ -932,8 +952,18 @@ async function main() {
     const w = m.kiAssistentAnsicht.wissensVerwaltung;
     const q = m.kiAssistentAnsicht.quellen;
     pruefe(`Typtexte ${loc}: drei Cluster mit Beschriftung und Beispielen, Formular- und Listenfelder fuer Cluster, Einordnung und Fehlerdetail`, CLUSTER.every((c) => !!w.cluster?.[c] && !!w.clusterBeispiel?.[c]) &&
-      ["cluster", "clusterHinweis", "zuerstCluster"].every((k) => !!w.formular?.[k]) && ["cluster", "einordnung", "ohneEinordnung", "ohneEinordnungHinweis", "filter", "filterAlle", "keineTreffer", "fehlerDetail"].every((k) => !!w.liste?.[k]));
+      ["cluster", "clusterHinweis", "clusterZwang"].every((k) => !!w.formular?.[k]) && ["cluster", "einordnung", "ohneEinordnung", "ohneEinordnungHinweis", "filter", "filterAlle", "keineTreffer", "fehlerDetail"].every((k) => !!w.liste?.[k]));
     pruefe(`Typtexte ${loc}: alle dreizehn Quellenarten mit Beschriftung und Beispiel (Verwaltung), Beschriftung (Quellenkarte)`, QUELLENARTEN.every((a) => !!w.quellenart?.[a] && !!w.beispiel?.[a] && !!(q.art as Record<string, string>)?.[a]));
+    pruefe(`Typtexte ${loc}: Einordnen-Bereich (Titel, Vorschlaege, Spalten, Schaltflaechen, Fenster) und die Meldungen dazu vorhanden`, (() => {
+      const e = (w as unknown as { einordnen?: Record<string, Record<string, string> | string> }).einordnen ?? {};
+      const g = (k: string) => (e[k] ?? {}) as Record<string, string>;
+      const d = g("dialog");
+      return ["titel", "lead", "zaehler", "alleErledigt", "seite", "gewaehlt", "unvollstaendig", "bitteWaehlen", "waehlen"].every((k) => typeof e[k] === "string" && !!e[k]) &&
+        ["hoch", "mittel", "niedrig"].every((k) => !!g("sicherheit")[k]) && ["rechtsstelle", "amtlicheSeite", "wikipedia", "forum", "blog", "stufe", "keinLink"].every((k) => !!g("grund")[k]) &&
+        ["dokument", "stufe", "bereich", "art", "cluster", "vorschlag"].every((k) => !!g("spalte")[k]) && ["sichere", "seite", "aufheben", "pruefen", "zurueck", "weiter"].every((k) => !!g("schaltflaeche")[k]) &&
+        ["titel", "lead", "dokumente", "gesperrt", "gesperrtKurz", "nurHinweis", "stufe", "verlassenPrimaer", "kommenInPrimaer", "nichtsBesonderes", "liste", "stufeVonNach", "weitere", "hinweisStufe", "hinweisProtokoll", "abbrechen", "speichern"].every((k) => !!d[k]) &&
+        !!m.aktionen.ok.wissenEingeordnet && ["wissenEinordnenLeer", "wissenEinordnen", "wissenClusterPasstNicht"].every((k) => !!m.aktionen.fehler[k]);
+    })());
     pruefe(`Typtexte ${loc}: Textgrundlagen, Status, Hinweis, Pruefdialog, Formularfelder und Listenfelder vorhanden`, TEXTGRUNDLAGEN.every((g) => !!w.textgrundlage?.[g]) && ["ungeprueft", "freigegeben", "abgelehnt", "abgelaufen"].every((k) => !!w.status?.[k]) && !!w.nutzung?.hinweis &&
       ["knopf", "knopfErneut", "titel", "titelErneut", "vorschau", "vorschauLaedt", "vorschauFehler", "hinweis", "hinweisErneut", "freigeben", "ablehnen", "verlaengern", "abbrechen"].every((k) => !!w.pruefung?.[k]) &&
       ["quellenart", "quellenartHinweis", "nichtZulaessig", "nutzungHinweis", "stufeInfo", "textgrundlage", "url", "urlHinweis", "freigabeHinweis"].every((k) => !!w.formular?.[k]) && ["quellenart", "stufe", "link", "pruefenBis", "wartet"].every((k) => !!w.liste?.[k]));
@@ -953,8 +983,15 @@ async function main() {
   {
     const ui = lies("src/components/db/wissen-verwaltung.tsx");
     pruefe("Oberflaeche: alle Eingaben (ausser der Datei) liegen im Zustand und bleiben nach einem Fehler stehen, nach einem Erfolg wird geleert", /useState<Eingaben>\(LEERE_EINGABEN\)/.test(ui) && /value=\{werte\.titel\}/.test(ui) && /value=\{werte\.bereich\}/.test(ui) && /value=\{werte\.quellenart\}/.test(ui) && /checked=\{werte\.rollen\.includes\(rolle\)\}/.test(ui) && /startTransition\(\(\) => setWerte\(LEERE_EINGABEN\)\)/.test(ui));
-    pruefe("Oberflaeche: das Formular fragt zuerst den Cluster und bietet danach nur dessen Quellenarten an; ein Clusterwechsel verwirft eine Art, die nicht dazu gehoert", /name="cluster"/.test(ui) && /artenImCluster\(cluster\)/.test(ui) && /clusterVon\(werte\.quellenart\) === neu \? werte\.quellenart : ""/.test(ui) && /zuerstCluster/.test(ui));
-    pruefe("Oberflaeche: jede Karte zeigt die Einordnung, auch der Bestand ohne Typisierung (als nicht eingeordnet), und die Liste laesst sich nach Cluster filtern mit Zaehlern", /liste\.einordnung/.test(ui) && /liste\.ohneEinordnung/.test(ui) && /function ClusterFilter/.test(ui) && /passtZumFilter/.test(ui) && /aria-pressed/.test(ui));
+    pruefe("Oberflaeche: Cluster und Quellenart sind zwei Auswahlen; die Art bekommt den typischen Cluster vorgeschlagen, nur eine Netz-Art sperrt die anderen Cluster, ein Clusterwechsel verwirft eine nicht passende Art", /name="cluster"/.test(ui) && /typischerClusterVon\(neu\)/.test(ui) && /clusterPasst\(a, cluster\)/.test(ui) && /!clusterPasst\(art, neu\)/.test(ui) && /QUELLENARTEN\.map/.test(ui) && !/artenImCluster/.test(ui));
+    pruefe("Oberflaeche: jede Karte zeigt die Einordnung (Art, Cluster, Stufe), auch der Bestand (als nicht eingeordnet), und die Liste laesst sich nach Cluster filtern mit Zaehlern", /liste\.einordnung/.test(ui) && /liste\.ohneEinordnung/.test(ui) && /function ClusterFilter/.test(ui) && /passtZumFilter/.test(ui) && /aria-pressed/.test(ui) && /dokument\.cluster === filter/.test(ui));
+    pruefe("Oberflaeche: Bestand einordnen ist eingebunden und erscheint nur, wenn es Dokumente ohne Einordnung gibt", /WissenBestandEinordnen/.test(ui) && /dokumente\.some\(ohneEinordnung\)/.test(ui));
+    {
+      const eo = lies("src/components/db/wissen-einordnen.tsx");
+      pruefe("Einordnen: nichts wird von allein gespeichert; erst das Bestaetigungsfenster mit der Wirkung auf die Suche loest die Action aus", /wirkungVon\(offen, zuordnungen\)/.test(eo) && /showModal\(\)/.test(eo) && /name="zuordnungen"/.test(eo) && /useActionState\(async[\s\S]*?wissenBestandEinordnen\(vorher, formData\)/.test(eo) && !/useEffect\([^)]*wissenBestandEinordnen/.test(eo));
+      pruefe("Einordnen: nur Dokumente ohne Quellenart, und nur mit vollstaendiger Wahl (Art und passender Cluster) lassen sich auswaehlen", /filter\(\(d\) => !d\.quellenart\)/.test(eo) && /disabled=\{!ok\}/.test(eo) && /clusterPasst\(w\.art, w\.cluster\)/.test(eo));
+      pruefe("Einordnen: Vorschlag mit Sicherheit und Begruendung je Dokument, \"sichere Vorschlaege\" waehlt nur aus (kein Speichern)", /schlageVor\(/.test(eo) && /sicherheit === "hoch"/.test(eo) && /einordnen\.grund\./.test(eo));
+    }
     pruefe("Action: bei einem Ladefehler nennt die Antwort Schema und Datenbankmeldung (fehlerDetail), damit die Ursache ohne Server-Log sichtbar ist", (() => { const a = lies("src/lib/actions/wissen.ts"); const l = a.slice(a.indexOf("export async function wissenDokumenteLaden"), a.indexOf("const VORSCHAU_ZEICHEN")); return /fehlerDetail/.test(l) && /DATENBANK_SCHEMA/.test(l) && /error\.code/.test(l); })());
     pruefe("Oberflaeche: nicht zulaessige Quellenarten sind im Bereich gesperrt (disabled), der Link ist bei Internetquelle und Forum Pflicht", /disabled: gesperrt/.test(ui) && /urlPflicht/.test(ui) && /nutzungFuer\(werte\.bereich, a\) === "nein"/.test(ui));
     pruefe("Oberflaeche: Pruefen erscheint nur fuer die ANDERE Person (nicht fuer die hochladende), die hochladende sieht den Wartehinweis", /!eigener && \(dokument\.pruefstatus === "ungeprueft" \|\| dokument\.abgelaufen\)/.test(ui) && /liste\.wartet/.test(ui));

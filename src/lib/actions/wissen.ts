@@ -7,6 +7,7 @@ import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { aktualisiere, protokolliere, text } from "@/lib/actions/formular-helfer";
 import { wissenEinbettung } from "@/lib/wissen/embed";
+import { ordneBestandEin, pruefeZuordnungen } from "@/lib/wissen/einordnen";
 import { entscheideUeberUpload, type FreigabeAktion } from "@/lib/wissen/freigabe";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
 import { pruefeUploadUmgebung, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
@@ -44,6 +45,7 @@ const FEHLER_SCHLUESSEL: Record<UploadFehler["code"], string> = {
   zeit: "fehler.wissenZeit",
   speichern: "fehler.wissenSpeichern",
   quellenartGesperrt: "fehler.wissenQuellenartGesperrt",
+  clusterPasstNicht: "fehler.wissenClusterPasstNicht",
   urlFehlt: "fehler.wissenUrlFehlt",
   urlUngueltig: "fehler.wissenUrlUngueltig",
   nichtLoeschbar: "fehler.wissenNichtLoeschbar",
@@ -84,6 +86,7 @@ export async function wissenDokumentHochladen(
         bytes: new Uint8Array(await datei.arrayBuffer()),
         hochgeladenVon: { id: profil.id, name: profil.fullName ?? null },
         quellenart: text(formData, "quellenart"),
+        cluster: text(formData, "cluster"),
         textgrundlage: text(formData, "textgrundlage"),
         url: text(formData, "quelle_url"),
       },
@@ -98,6 +101,7 @@ export async function wissenDokumentHochladen(
       quelle_id: ergebnis.quelleId,
       abschnitte: ergebnis.chunks,
       quellenart: ergebnis.quellenart,
+      cluster: ergebnis.cluster,
       autoritaetsstufe: ergebnis.autoritaetsstufe,
       pruefstatus: "ungeprueft",
     });
@@ -287,5 +291,53 @@ export async function wissenDokumentLoeschen(
     }
     console.error("[damicon] Wissens-Loeschen unerwartet fehlgeschlagen:", error);
     return fehler("fehler.unbekannt");
+  }
+}
+
+// Bestand einordnen (Quellenart, Cluster und Stufe gemeinsam). Die Administration waehlt je Dokument und bestaetigt, nachdem die
+// Oberflaeche die Wirkung auf die Suche gezeigt hat; nichts passiert von allein. Die Berechtigung wird zuerst geprueft, die
+// Eingabe Stueck fuer Stueck (nur bekannte Arten und Cluster, Cluster muss zur Art passen, hoechstens 400 Dokumente), und geaendert
+// werden nur Zeilen ohne Quellenart: eine schon eingeordnete Quelle ueberschreibt dieser Weg nie (einordnen.ts). Das Protokoll
+// haelt je Dokument Art, Cluster und die Stufe vorher und nachher fest.
+export async function wissenBestandEinordnen(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("ki_assistent", "manage");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  let roh: unknown;
+  try {
+    roh = JSON.parse(text(formData, "zuordnungen"));
+  } catch {
+    return fehler("fehler.eingabe");
+  }
+  const { gueltig, ungueltig } = pruefeZuordnungen(roh);
+  if (gueltig.length === 0) return fehler("fehler.wissenEinordnenLeer");
+
+  try {
+    // Wie der Upload: in einer Vorschau gegen das Produktionsschema wird nichts geschrieben.
+    pruefeUploadUmgebung();
+    const ergebnis = await ordneBestandEin(createServiceRoleClient() as unknown as SupabaseClient, gueltig);
+    await protokolliere(profil, "wissen.eingeordnet", "wissen_chunks", null, {
+      dokumente: ergebnis.dokumente,
+      abschnitte: ergebnis.abschnitte,
+      uebersprungen: ergebnis.uebersprungen,
+      ungueltig,
+      zuordnungen: ergebnis.protokoll,
+    });
+    aktualisiere(formData);
+    return ok("ok.wissenEingeordnet", String(ergebnis.dokumente));
+  } catch (error) {
+    if (error instanceof UploadFehler) {
+      console.error("[damicon]", error.message);
+      return fehler(FEHLER_SCHLUESSEL[error.code], error.wert);
+    }
+    console.error("[damicon] Wissens-Einordnung unerwartet fehlgeschlagen:", error);
+    return fehler("fehler.wissenEinordnen");
   }
 }

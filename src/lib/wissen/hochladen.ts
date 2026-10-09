@@ -24,11 +24,15 @@ import { alsSparsevec, idf, sparseDokument, sparseIndex, zaehleWoerter } from "@
 import { DATENBANK_SCHEMA } from "@/lib/supabase/schema";
 import { UPLOAD_QUELLE, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import {
+  clusterPasst,
+  istCluster,
   istQuellenart,
   istTextgrundlage,
   nutzungFuer,
   QUELLENART_INFO,
   standardStufe,
+  typischerClusterVon,
+  type Cluster,
   type Quellenart,
   type Textgrundlage,
 } from "@/lib/wissen/quellenart";
@@ -67,6 +71,7 @@ export type UploadFehlerCode =
   | "zeit"
   | "speichern"
   | "quellenartGesperrt"
+  | "clusterPasstNicht"
   | "urlFehlt"
   | "urlUngueltig"
   | "nichtLoeschbar"
@@ -201,6 +206,8 @@ export interface UploadMetadaten {
   rollen: Role[];
   hochgeladenVon: { id: string; name: string | null };
   quellenart: Quellenart;
+  /** Der Weg, auf dem der Text kam (Buecher, Publikationen, Internet-Quelle), unabhaengig von der Art. */
+  cluster: Cluster;
   textgrundlage: Textgrundlage;
   /** Link zur Quelle (Herkunftsnachweis); fuer Internetquellen und Foren Pflicht. */
   url: string | null;
@@ -279,8 +286,9 @@ export interface ChunkZeile {
   eingelesen_am: string;
   embed_modell: string;
   extra: Record<string, unknown>;
-  // Typisierung und Pruefung (Migration 20261124000000). Ein Upload beginnt IMMER ungeprueft; die Datenbank erzwingt das.
+  // Typisierung und Pruefung (Migrationen 20261124000000 und 20261125000000). Ein Upload beginnt IMMER ungeprueft; die Datenbank erzwingt das.
   quellenart: string;
+  cluster: string;
   textgrundlage: string;
   pruefstatus: string;
   pruefen_bis: string | null;
@@ -333,6 +341,7 @@ export function baueZeile(
         hochgeladen_von_name: m.hochgeladenVon.name,
       },
       quellenart: m.quellenart,
+      cluster: m.cluster,
       textgrundlage: m.textgrundlage,
       pruefstatus: "ungeprueft",
       pruefen_bis: null, // die Wiedervorlage beginnt mit der Freigabe
@@ -398,6 +407,7 @@ export interface UploadErgebnis {
   quelleId: string;
   hash: string;
   quellenart: Quellenart;
+  cluster: Cluster;
   /** Die vergebene Stufe (aus der Quellenart); die Action schreibt sie ins Protokoll. */
   autoritaetsstufe: number;
 }
@@ -412,6 +422,8 @@ export interface UploadEingabe {
   hochgeladenVon: { id: string; name: string | null };
   /** Rohwert aus dem Formular; muss eine Quellenart sein (quellenart.ts). */
   quellenart: string;
+  /** Der Weg (buecher, publikationen, internet). Leer = der typische Cluster der Quellenart; ein anderer Wert muss zur Art passen. */
+  cluster?: string;
   /** Leer = original. */
   textgrundlage?: string;
   /** Link zur Quelle; leer erlaubt, ausser die Quellenart verlangt ihn. */
@@ -459,6 +471,10 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
   if (e.bytes.length > MAX_DATEI_BYTES) throw new UploadFehler("zuGross");
   if (!istQuellenart(e.quellenart)) throw new UploadFehler("eingabe");
   const quellenart: Quellenart = e.quellenart;
+  const clusterRoh = e.cluster?.trim() ?? "";
+  if (clusterRoh && !istCluster(clusterRoh)) throw new UploadFehler("eingabe");
+  const cluster: Cluster = istCluster(clusterRoh) ? clusterRoh : typischerClusterVon(quellenart)!;
+  if (!clusterPasst(quellenart, cluster)) throw new UploadFehler("clusterPasstNicht");
   const textgrundlage = e.textgrundlage?.trim() ? e.textgrundlage.trim() : "original";
   if (!istTextgrundlage(textgrundlage)) throw new UploadFehler("eingabe");
   // Wofuer die Quelle taugt, haengt vom Bereich ab: Blogs und Foren sind fuer Gesetze und Vorschriften ungeeignet.
@@ -489,6 +505,7 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
     rollen: erlaubteRollen(e.rollen),
     hochgeladenVon: e.hochgeladenVon,
     quellenart,
+    cluster,
     textgrundlage,
     url,
     zeitpunkt,
@@ -536,5 +553,5 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
     throw new UploadFehler("speichern", undefined, ursache);
   }
 
-  return { chunks: chunks.length, quelleId, hash, quellenart, autoritaetsstufe: standardStufe(quellenart) };
+  return { chunks: chunks.length, quelleId, hash, quellenart, cluster, autoritaetsstufe: standardStufe(quellenart) };
 }

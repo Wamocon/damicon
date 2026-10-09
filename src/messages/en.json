@@ -947,7 +947,8 @@
       "wissenSchonGeloescht": "This document has already been deleted.",
       "wissenFreigegeben": "Document “{wert}” approved and searchable.",
       "wissenAbgelehnt": "Document “{wert}” rejected. It stays blocked and can be deleted.",
-      "wissenVerlaengert": "Document “{wert}” extended and searchable again."
+      "wissenVerlaengert": "Document “{wert}” extended and searchable again.",
+      "wissenEingeordnet": "{wert} documents classified."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1021,7 +1022,10 @@
       "wissenNichtPruefbar": "This document is not waiting for a review, or someone else has just decided.",
       "wissenSelbstFreigabe": "Four-eyes principle: the person who uploaded a document does not approve it. Please ask a second person.",
       "wissenFreigeben": "The decision could not be saved. Nothing was changed.",
-      "wissenPdfDienst": "The PDF reader is not available on the server. This is not caused by your file, nothing was saved. Please inform technical support."
+      "wissenPdfDienst": "The PDF reader is not available on the server. This is not caused by your file, nothing was saved. Please inform technical support.",
+      "wissenEinordnenLeer": "Nothing to classify: the selection is empty or invalid.",
+      "wissenEinordnen": "The classification could not be saved. Nothing or only part of it changed, please reload the list and check.",
+      "wissenClusterPasstNicht": "Internet source, forum and internet research always come from the web. Please choose the cluster Internet source."
     },
     "einladungen": {
       "erfolg": {
@@ -2359,8 +2363,8 @@
         "url": "Link to the source",
         "urlHinweis": "Required for internet sources and forums, otherwise optional. The link is the proof of origin for the review.",
         "freigabeHinweis": "After the upload the document waits for approval by a second person (four-eyes principle). Only then is it searchable.",
-        "clusterHinweis": "Pick the broad origin first, then the exact source type.",
-        "zuerstCluster": "Choose the cluster first"
+        "clusterHinweis": "The way the text reached us, independent of the source type: a law from a government site stays a legal norm, with the cluster Internet source.",
+        "clusterZwang": "Internet source, forum and internet research always come from the web."
       },
       "loeschen": {
         "knopf": "Delete",
@@ -2438,9 +2442,73 @@
         "internet": "Internet source"
       },
       "clusterBeispiel": {
-        "buecher": "Specialist books, commentaries, textbooks, reference works",
-        "publikationen": "Laws, rulings, authority letters, standards, studies, white papers, internal papers",
-        "internet": "Web pages, forums, research results, AI summaries"
+        "buecher": "Book: specialist book, commentary, textbook, encyclopedia (printed or e-book)",
+        "publikationen": "Official gazette, journal, paper, study, white paper, internal paper",
+        "internet": "Web page (including official ones), forum, blog, research result"
+      },
+      "einordnen": {
+        "titel": "Classify existing documents",
+        "lead": "These documents were loaded before typing and have no source type and no cluster yet. For each one the page suggests a value from the link, the previous level and the legal reference. Nothing is saved on its own: you check, change, select and confirm after seeing the effect on search.",
+        "zaehler": "Not yet classified: {offen} of {gesamt}",
+        "alleErledigt": "All documents are classified.",
+        "filter": {
+          "titel": "Filter by suggestion",
+          "alle": "All"
+        },
+        "sicherheit": {
+          "hoch": "Reliable",
+          "mittel": "Plausible",
+          "niedrig": "Uncertain"
+        },
+        "grund": {
+          "rechtsstelle": "Legal reference present, official site",
+          "amtlicheSeite": "Official site",
+          "wikipedia": "Wikipedia",
+          "forum": "Forum or Q&A site",
+          "blog": "Blog or article platform",
+          "stufe": "from the previous level",
+          "keinLink": "no link"
+        },
+        "spalte": {
+          "dokument": "Document",
+          "stufe": "Level",
+          "bereich": "Area",
+          "art": "Source type",
+          "cluster": "Cluster",
+          "vorschlag": "Suggestion"
+        },
+        "bitteWaehlen": "Please choose",
+        "waehlen": "Select document",
+        "schaltflaeche": {
+          "sichere": "Select reliable suggestions",
+          "seite": "Select all on this page",
+          "aufheben": "Clear selection",
+          "pruefen": "Review classification ({anzahl})",
+          "zurueck": "Back",
+          "weiter": "Next"
+        },
+        "seite": "Page {seite} of {seiten}",
+        "gewaehlt": "{anzahl} selected",
+        "unvollstaendig": "Only documents with a source type and a cluster can be selected.",
+        "dialog": {
+          "titel": "Review and save classification",
+          "lead": "This changes for search:",
+          "dokumente": "Documents: {anzahl}, sections: {abschnitte}",
+          "gesperrt": "No longer findable in their area: {anzahl}",
+          "gesperrtKurz": "no longer findable",
+          "nurHinweis": "Only as a hint: {anzahl}",
+          "stufe": "Level changes: {anzahl}",
+          "verlassenPrimaer": "Lose the reserved slots for legal sources: {anzahl}",
+          "kommenInPrimaer": "Gain access to the reserved slots for legal sources: {anzahl}",
+          "nichtsBesonderes": "Search behaves unchanged for these documents.",
+          "liste": "Affected documents",
+          "stufeVonNach": "Level {alt} to {neu}",
+          "weitere": "and {anzahl} more",
+          "hinweisStufe": "The level follows the source type, as with an upload. The previous level is kept in the log.",
+          "hinweisProtokoll": "Every classification is logged (person, document, type, cluster, level before and after).",
+          "abbrechen": "Cancel",
+          "speichern": "Save classification"
+        }
       }
     },
     "sprachmodus": {
