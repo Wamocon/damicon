@@ -3833,7 +3833,8 @@
       "hinweise": "Einschränkungen",
       "unvollstaendig": "Nicht alle Prüfungsfelder konnten bewertet werden.",
       "export": "Als JSON speichern",
-      "drucken": "Drucken"
+      "drucken": "Drucken",
+      "nurUnsichereQuellen": "Nur ungesicherte Internetquellen als Beleg (keine amtliche Quelle): kein Verstoß, keine Lücke und keine Konformität festgestellt, nur ein Hinweis."
     },
     "siegel": {
       "titel": "Siegel und Nachweis",
@@ -4000,7 +4001,11 @@
       "pruefer": "Externe Prüfung"
     },
     "verifikation": "Der Inhalt dieses Berichts ist mit einer SHA-256-Prüfsumme versiegelt. Wer die begleitende JSON-Datei besitzt, kann das Siegel in Damicon über „Siegel prüfen“ nachrechnen; jede nachträgliche Änderung fällt auf.",
-    "tipp": "Tipp für den Druckdialog: „Kopf- und Fußzeilen“ ausschalten, Papierformat A4. Farben und Marke werden automatisch übernommen."
+    "tipp": "Tipp für den Druckdialog: „Kopf- und Fußzeilen“ ausschalten, Papierformat A4. Farben und Marke werden automatisch übernommen.",
+    "nutzungNotfalls": "Ungesicherte Internetquelle, keine amtliche Quelle. Nur als Notbehelf genutzt, bitte mit einer amtlichen Quelle gegenprüfen.",
+    "nutzungHinweis": "Nur als Hinweis, nicht allein tragend (Fachquelle, keine Primärquelle).",
+    "quellenlage": "Quellenlage",
+    "quellenlageWert": "{amtlich} amtliche oder Rechtsquellen (Stufe 1 bis 3) · {fach} Fachquellen · {unsicher} ungesicherte Internetquellen"
   },
   "complianceBericht": {
     "titel": "Compliance-Bericht",

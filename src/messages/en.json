@@ -3833,7 +3833,8 @@
       "hinweise": "Limitations",
       "unvollstaendig": "Not all audit fields could be assessed.",
       "export": "Save as JSON",
-      "drucken": "Print"
+      "drucken": "Print",
+      "nurUnsichereQuellen": "Only unreliable internet sources as evidence (no official source): no violation, gap or conformity established, only a note."
     },
     "siegel": {
       "titel": "Seal and evidence",
@@ -4000,7 +4001,11 @@
       "pruefer": "External auditor"
     },
     "verifikation": "The content of this report is sealed with a SHA-256 checksum. Anyone with the accompanying JSON file can recompute the seal in Damicon with \"Verify seal\"; any later change is detected.",
-    "tipp": "Tip for the print dialog: turn \"Headers and footers\" off, paper size A4. Colours and branding are applied automatically."
+    "tipp": "Tip for the print dialog: turn \"Headers and footers\" off, paper size A4. Colours and branding are applied automatically.",
+    "nutzungNotfalls": "Unreliable internet source, not an official source. Used only as a last resort, please verify against an official source.",
+    "nutzungHinweis": "Indicative only, not sufficient on its own (specialist source, not a primary source).",
+    "quellenlage": "Source situation",
+    "quellenlageWert": "{amtlich} official or legal sources (levels 1 to 3) · {fach} specialist sources · {unsicher} unreliable internet sources"
   },
   "complianceBericht": {
     "titel": "Compliance report",

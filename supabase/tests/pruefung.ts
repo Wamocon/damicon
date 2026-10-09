@@ -56,6 +56,13 @@ const ohneDaten = pruefeBefund(eingabe(), kontext({ hatDaten: false, nachweise: 
 pruefe("Ohne Betriebsdaten ist nur ein Hinweis moeglich (nichts raten)", ohneDaten.status === "hinweis" && ohneDaten.ohneDaten === true);
 const konformOhne = pruefeBefund(eingabe({ status: "konform", schwere: "keine", belege: [], massnahmen: [] }), kontext());
 pruefe("'Konform' ohne Rechtsbeleg ist keine Aussage: Hinweis", konformOhne.status === "hinweis" && konformOhne.ohneRechtsbeleg === true);
+// Ungesicherte Internetquellen (Nutzung "notfalls") tragen allein keine Feststellung
+const nurUnsicher = pruefeBefund(eingabe({ belege: ["S1", "S2"] }), kontext({ unsichereBelege: new Set(["S1", "S2"]) }));
+pruefe("Nur ungesicherte Internetquellen als Beleg: Hinweis statt Verstoss, mit Vermerk", nurUnsicher.status === "hinweis" && nurUnsicher.nurUnsichereQuellen === true && nurUnsicher.belege.length === 2);
+const gemischt = pruefeBefund(eingabe({ belege: ["S1", "S2"] }), kontext({ unsichereBelege: new Set(["S2"]) }));
+pruefe("Mit einer tragenden Quelle daneben bleibt der Verstoss bestehen", gemischt.status === "verstoss" && gemischt.nurUnsichereQuellen === undefined);
+const unsicherKonform = pruefeBefund(eingabe({ status: "konform", schwere: "keine", belege: ["S2"], massnahmen: [] }), kontext({ unsichereBelege: new Set(["S2"]) }));
+pruefe("'Konform' allein auf eine unsichere Quelle gestuetzt wird zum Hinweis", unsicherKonform.status === "hinweis" && unsicherKonform.nurUnsichereQuellen === true);
 const konformMit = pruefeBefund(eingabe({ status: "konform", schwere: "hoch" }), kontext());
 pruefe("'Konform' mit Beleg: Schwere 'keine' und keine Massnahmen", konformMit.status === "konform" && konformMit.schwere === "keine" && konformMit.massnahmen.length === 0);
 pruefe("Verstoss mit Schwere 'keine' wird auf 'mittel' angehoben", pruefeBefund(eingabe({ schwere: "keine" }), kontext()).schwere === "mittel");
