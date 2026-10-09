@@ -306,7 +306,7 @@ async function rest() {
       schluessel: "upload:abc", schluesselSpalte: "quelle_id", titel: "Buch", bereich: "steuer", rollen: ["admin"], datum: null,
       hochgeladenVon: "A", hochgeladenVonId: "a", chunks: 120, herkunft: "upload", loeschbar: true, quellenart: "fachliteratur", cluster: "buecher",
       stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "ungeprueft", pruefenBis: null, paketeGesamt: 3, paketeDa: 3, unvollstaendig: false,
-      guete: "gut", gueteHinweise: [], abgelaufen: false, url: null, ...teil,
+      guete: "gut", gueteHinweise: [], abgelaufen: false, url: null, textgrundlage: "original", ...teil,
     });
     const codes = (teil: Partial<WissenDokumentZeile>) => schaetzeEin(zeile(teil)).gruende.map((g) => g.code);
     pruefe("Einschätzung: sauberes Buch wird zur Freigabe empfohlen", schaetzeEin(zeile()).empfehlung === "freigeben" && schaetzeEin(zeile()).gruende.length === 0);

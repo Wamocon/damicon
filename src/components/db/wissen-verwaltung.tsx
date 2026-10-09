@@ -19,6 +19,7 @@ import { stufeSchluessel } from "@/lib/wissen/belege";
 import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN, typischerClusterVon, type Cluster } from "@/lib/wissen/quellenart";
 import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
 import { WissenBuecher } from "@/components/db/wissen-buecher";
+import { WissenUmordnenKnopf } from "@/components/db/wissen-umordnen";
 import { linkBrauchbar, schaetzeEin, type Einschaetzung } from "@/lib/wissen/einschaetzung";
 import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
@@ -304,6 +305,7 @@ function WissenDokumentKarte({
         {einschaetzung ? <EinschaetzungGruende einschaetzung={einschaetzung} /> : null}
         {wartetAufAndere ? <p className="mt-2 text-[11px] font-semibold text-warning">{t("liste.wartet")}</p> : null}
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-2.5 empty:hidden">
+          <WissenUmordnenKnopf dokument={dokument} ichId={ichId} beiErgebnis={beiErgebnis} />
           {wartetAufMich ? <WissenPruefenKnopf dokument={dokument} bereichName={bereichName} artName={artName} beiErgebnis={beiErgebnis} /> : null}
           {/* Nur Uploads sind loeschbar. Skript-Dokumente haben keinen Knopf (und der Server lehnt sie ohnehin ab). */}
           {dokument.loeschbar ? <WissenLoeschenKnopf dokument={dokument} bereichName={bereichName} beiErgebnis={beiErgebnis} /> : null}

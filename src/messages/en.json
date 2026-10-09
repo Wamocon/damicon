@@ -950,7 +950,8 @@
       "wissenVerlaengert": "Document “{wert}” extended and searchable again.",
       "wissenEingeordnet": "{wert} documents classified.",
       "wissenSammelFreigegeben": "Approved and searchable: {wert} documents (details in the window).",
-      "wissenSammelAbgelehnt": "Rejected: {wert} documents. They stay blocked and can be deleted."
+      "wissenSammelAbgelehnt": "Rejected: {wert} documents. They stay blocked and can be deleted.",
+      "wissenUmgeordnet": "Classification of “{wert}” changed."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1028,7 +1029,9 @@
       "wissenEinordnenLeer": "Nothing to classify: the selection is empty or invalid.",
       "wissenEinordnen": "The classification could not be saved. Nothing or only part of it changed, please reload the list and check.",
       "wissenClusterPasstNicht": "Internet source, forum and internet research always come from the web. Please choose the cluster Internet source.",
-      "wissenUnvollstaendig": "This book is incomplete: parts are missing because the upload was interrupted. Please delete it and upload again. It cannot be approved until then."
+      "wissenUnvollstaendig": "This book is incomplete: parts are missing because the upload was interrupted. Please delete it and upload again. It cannot be approved until then.",
+      "wissenSelbstUmordnen": "The classification of an approved document is not changed by the person who uploaded it. Please ask a second person.",
+      "wissenKeineAenderung": "Nothing was changed: the chosen values match the current classification."
     },
     "einladungen": {
       "erfolg": {
@@ -2650,6 +2653,16 @@
           "uebersetzungMaschinell": "note of machine translation",
           "uebersetzungAmtlich": "note of official translation"
         }
+      },
+      "umordnen": {
+        "knopf": "Change classification",
+        "titel": "Change classification",
+        "speichern": "Save",
+        "abbrechen": "Cancel",
+        "wirkung": "The level follows the source type: level {stufe}.",
+        "wiedervorlage": "The review date is reset: {monate} months from today.",
+        "urlFehlt": "A link is required for this source type, but the document has no valid link.",
+        "vierAugen": "This document is approved and was uploaded by you. A second person changes area, source type and text basis (four-eyes principle). The cluster can be changed."
       }
     },
     "sprachmodus": {

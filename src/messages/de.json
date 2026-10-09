@@ -950,7 +950,8 @@
       "wissenVerlaengert": "Dokument „{wert}“ verlängert und wieder durchsuchbar.",
       "wissenEingeordnet": "{wert} Dokumente eingeordnet.",
       "wissenSammelFreigegeben": "Freigegeben und durchsuchbar: {wert} Dokumente (Einzelheiten im Fenster).",
-      "wissenSammelAbgelehnt": "Abgelehnt: {wert} Dokumente. Sie bleiben gesperrt und lassen sich löschen."
+      "wissenSammelAbgelehnt": "Abgelehnt: {wert} Dokumente. Sie bleiben gesperrt und lassen sich löschen.",
+      "wissenUmgeordnet": "Einordnung von „{wert}“ geändert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1028,7 +1029,9 @@
       "wissenEinordnenLeer": "Es gibt nichts einzuordnen: Die Auswahl ist leer oder ungültig.",
       "wissenEinordnen": "Die Einordnung konnte nicht gespeichert werden. Es wurde nichts oder nur ein Teil geändert, bitte die Liste neu laden und prüfen.",
       "wissenClusterPasstNicht": "Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz. Bitte als Cluster Internet-Quelle wählen.",
-      "wissenUnvollstaendig": "Dieses Buch ist unvollständig: Es fehlen Teile, weil das Hochladen abgebrochen wurde. Bitte löschen und neu hochladen. Freigeben ist erst dann möglich."
+      "wissenUnvollstaendig": "Dieses Buch ist unvollständig: Es fehlen Teile, weil das Hochladen abgebrochen wurde. Bitte löschen und neu hochladen. Freigeben ist erst dann möglich.",
+      "wissenSelbstUmordnen": "Die Einordnung eines freigegebenen Dokuments ändert nicht die Person, die es hochgeladen hat. Bitte eine zweite Person bitten.",
+      "wissenKeineAenderung": "Es wurde nichts geändert: Die gewählten Angaben entsprechen der bisherigen Einordnung."
     },
     "einladungen": {
       "erfolg": {
@@ -2650,6 +2653,16 @@
           "uebersetzungMaschinell": "Hinweis auf maschinelle Übersetzung",
           "uebersetzungAmtlich": "Hinweis auf amtliche Übersetzung"
         }
+      },
+      "umordnen": {
+        "knopf": "Einordnung ändern",
+        "titel": "Einordnung ändern",
+        "speichern": "Speichern",
+        "abbrechen": "Abbrechen",
+        "wirkung": "Die Stufe folgt der Quellenart: Stufe {stufe}.",
+        "wiedervorlage": "Die Wiedervorlage wird neu gesetzt: {monate} Monate ab heute.",
+        "urlFehlt": "Für diese Quellenart ist ein Link Pflicht, das Dokument hat aber keinen gültigen Link.",
+        "vierAugen": "Dieses Dokument ist freigegeben und stammt von Ihnen. Bereich, Quellenart und Textgrundlage ändert eine zweite Person (Vier-Augen-Prinzip). Der Cluster lässt sich ändern."
       }
     },
     "sprachmodus": {

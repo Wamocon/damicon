@@ -83,7 +83,10 @@ export type UploadFehlerCode =
   | "nichtPruefbar"
   | "selbstFreigabe"
   | "unvollstaendig"
-  | "freigeben";
+  | "freigeben"
+  // Einordnung nachtraeglich aendern (umordnen.ts)
+  | "selbstUmordnen"
+  | "keineAenderung";
 
 export class UploadFehler extends Error {
   constructor(

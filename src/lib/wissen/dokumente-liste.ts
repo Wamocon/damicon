@@ -9,7 +9,7 @@ import { istUploadZeile, UPLOAD_QUELLE } from "@/lib/wissen/upload-quelle";
 
 /** Die Spalten, die die Liste liest (PostgREST-Schreibweise, Aliase fuer extra->>...). Eine Stelle fuer Action und Test. */
 export const LISTE_SPALTEN =
-  "id, quelle_id, pfad, titel, bereich, rollen, eingelesen_am, autoritaetsstufe, quellenart, cluster, pruefstatus, pruefen_bis, url, rechtsstelle, " +
+  "id, quelle_id, pfad, titel, bereich, rollen, eingelesen_am, autoritaetsstufe, quellenart, cluster, textgrundlage, pruefstatus, pruefen_bis, url, rechtsstelle, " +
   "upload_quelle:extra->>quelle, hochgeladen_von:extra->>hochgeladen_von_name, hochgeladen_von_id:extra->>hochgeladen_von, " +
   "paket:extra->>paket, pakete_gesamt:extra->>pakete_gesamt, guete:extra->>guete, guete_hinweise:extra->>guete_hinweise";
 
@@ -30,6 +30,7 @@ export interface WissenListeZeile {
   autoritaetsstufe?: number | null;
   quellenart?: string | null;
   cluster?: string | null;
+  textgrundlage?: string | null;
   /** Fundstelle im Gesetz oder Erlass (Frontmatter des Einlese-Skripts): ein Hinweis auf eine Rechtsquelle. */
   rechtsstelle?: string | null;
   pruefstatus?: string | null;
@@ -68,6 +69,8 @@ export interface WissenDokumentZeile {
   quellenart: string | null;
   /** Der Weg (buecher, publikationen, internet) oder null, wenn noch nicht eingeordnet. */
   cluster: Cluster | null;
+  /** original, amtlich_uebersetzt, fachlich_uebersetzt oder maschinell_uebersetzt; null beim Bestand ohne Angabe. */
+  textgrundlage: string | null;
   stufe: number | null;
   /** Fundstelle im Gesetz (nur Bestand), ein Hinweis auf eine Rechtsquelle. */
   rechtsstelle: string | null;
@@ -133,6 +136,7 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
         loeschbar: istUploadZeile(z),
         quellenart: z.quellenart ?? null,
         cluster: istCluster(z.cluster) ? z.cluster : null,
+        textgrundlage: z.textgrundlage ?? null,
         stufe: z.autoritaetsstufe ?? null,
         rechtsstelle: z.rechtsstelle ?? null,
         nutzung: nutzungFuer(z.bereich ?? "", z.quellenart),

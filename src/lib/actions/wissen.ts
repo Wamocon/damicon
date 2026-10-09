@@ -10,6 +10,8 @@ import { aktualisiere, protokolliere, text } from "@/lib/actions/formular-helfer
 import { wissenEinbettung } from "@/lib/wissen/embed";
 import { type BuchKopf, ladePaket, type PaketEingabe, pruefeBuchKopf, starteBuch } from "@/lib/wissen/buch-upload";
 import { ordneBestandEin, pruefeZuordnungen } from "@/lib/wissen/einordnen";
+import { ordneUm, type SchluesselSpalte } from "@/lib/wissen/umordnen";
+import type { Json } from "@/lib/database.types";
 import { entscheideUeberUpload, type FreigabeAktion } from "@/lib/wissen/freigabe";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
 import { pruefeUploadUmgebung, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
@@ -63,6 +65,8 @@ const FEHLER_SCHLUESSEL: Record<UploadFehler["code"], string> = {
   selbstFreigabe: "fehler.wissenSelbstFreigabe",
   unvollstaendig: "fehler.wissenUnvollstaendig",
   freigeben: "fehler.wissenFreigeben",
+  selbstUmordnen: "fehler.wissenSelbstUmordnen",
+  keineAenderung: "fehler.wissenKeineAenderung",
 };
 
 export async function wissenDokumentHochladen(
@@ -531,5 +535,47 @@ export async function wissenKiAnalyse(eingaben: KiAnalyseEingabe[]): Promise<KiA
   } catch (error) {
     console.error("[damicon] KI-Analyse unerwartet fehlgeschlagen:", error);
     return { stand: "ok", verfuegbar: false, ergebnisse: [] };
+  }
+}
+
+// ---- Einordnung nachtraeglich aendern -----------------------------------------------------------------------------------------------------
+// Cluster, Bereich, Quellenart und Textgrundlage eines Dokuments (hochgeladen oder Bestand). Regeln und Vier-Augen-Prinzip in umordnen.ts. Das
+// Protokoll haelt je Aenderung die Einordnung vorher und nachher fest.
+export async function wissenDokumentUmordnen(_status: AktionsStatus, formData: FormData): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("ki_assistent", "manage");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+  const schluessel = text(formData, "schluessel");
+  const spalte = text(formData, "spalte");
+  if (!schluessel || (spalte !== "quelle_id" && spalte !== "pfad" && spalte !== "id")) return fehler("fehler.eingabe");
+  try {
+    pruefeUploadUmgebung();
+    const erg = await ordneUm(
+      createServiceRoleClient() as unknown as SupabaseClient,
+      { schluessel, schluesselSpalte: spalte as SchluesselSpalte },
+      { bereich: text(formData, "bereich"), quellenart: text(formData, "quellenart"), cluster: text(formData, "cluster"), textgrundlage: text(formData, "textgrundlage") },
+      { id: profil.id },
+    );
+    await protokolliere(profil, "wissen.umgeordnet", "wissen_chunks", null, {
+      titel: erg.titel,
+      schluessel,
+      abschnitte: erg.abschnitte,
+      upload: erg.upload,
+      pruefstatus: erg.pruefstatus,
+      vorher: erg.vorher as unknown as Json,
+      nachher: erg.nachher as unknown as Json,
+    });
+    aktualisiere(formData);
+    return ok("ok.wissenUmgeordnet", erg.titel ?? "");
+  } catch (error) {
+    if (error instanceof UploadFehler) {
+      console.error("[damicon]", error.message);
+      return fehler(FEHLER_SCHLUESSEL[error.code], error.wert);
+    }
+    console.error("[damicon] Umordnen unerwartet fehlgeschlagen:", error);
+    return fehler("fehler.unbekannt");
   }
 }
