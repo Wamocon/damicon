@@ -161,7 +161,7 @@ function ersatz(zeilen: Zeile[]) {
   const etl = lies("scripts/wissen-nach-supabase.ts");
   pruefe("Einlese-Lauf: schreibt weder Quellenart noch Cluster, eine Einordnung ueberlebt ihn", !/quellenart|cluster/.test(etl.slice(etl.indexOf("function zeile"), etl.indexOf("function zeile") + 2500)));
   const liste = lies("src/lib/wissen/dokumente-liste.ts");
-  pruefe("Liste: liest Cluster und Rechtsstelle mit", /cluster, pruefstatus/.test(liste) && /rechtsstelle/.test(liste));
+  pruefe("Liste: liest Cluster und Rechtsstelle mit", /cluster, textgrundlage, pruefstatus/.test(liste) && /rechtsstelle/.test(liste));
 }
 void CLUSTER;
 
