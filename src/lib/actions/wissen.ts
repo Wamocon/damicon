@@ -2,6 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { DATENBANK_SCHEMA } from "@/lib/supabase/schema";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { aktualisiere, protokolliere, text } from "@/lib/actions/formular-helfer";
@@ -119,6 +120,9 @@ export interface WissenDokumenteAntwort {
   abgeschnitten: boolean;
   /** profiles.id der angemeldeten Person: die Oberflaeche bietet "Freigeben" nur an, wer nicht selbst hochgeladen hat. */
   ichId: string | null;
+  /** Nur bei fehler: Schema und Datenbankmeldung, damit die Verwaltung (nur Admin) die Ursache sieht, ohne ins Server-Log
+   *  zu muessen. Typisch: eine Vorschau, die gegen das falsche Schema gebaut wurde (Spalte quellenart fehlt in public). */
+  fehlerDetail?: string;
 }
 
 const SEITE = 1000;
@@ -134,6 +138,7 @@ export async function wissenDokumenteLaden(): Promise<WissenDokumenteAntwort> {
   } catch {
     return { dokumente: [], fehler: true, abgeschnitten: false, ichId: null };
   }
+  let ursache: string | null = null;
   try {
     const db = createServiceRoleClient() as unknown as SupabaseClient;
     const zeilen: WissenListeZeile[] = [];
@@ -144,7 +149,10 @@ export async function wissenDokumenteLaden(): Promise<WissenDokumenteAntwort> {
         .select(LISTE_SPALTEN)
         .order("id")
         .range(seite * SEITE, seite * SEITE + SEITE - 1);
-      if (error) throw new Error(error.message);
+      if (error) {
+        ursache = `${error.code ? `${error.code}: ` : ""}${error.message}`;
+        throw new Error(error.message);
+      }
       zeilen.push(...((data ?? []) as unknown as WissenListeZeile[]));
       if (!data || data.length < SEITE) {
         abgeschnitten = false;
@@ -154,7 +162,8 @@ export async function wissenDokumenteLaden(): Promise<WissenDokumenteAntwort> {
     return { dokumente: gruppiereWissenDokumente(zeilen), fehler: false, abgeschnitten, ichId: profil.id };
   } catch (error) {
     console.error("[damicon] Wissensdokumente laden fehlgeschlagen:", error);
-    return { dokumente: [], fehler: true, abgeschnitten: false, ichId: profil.id };
+    const detail = ursache ?? (error instanceof Error ? error.message : String(error));
+    return { dokumente: [], fehler: true, abgeschnitten: false, ichId: profil.id, fehlerDetail: `Schema ${DATENBANK_SCHEMA}, ${detail}`.slice(0, 400) };
   }
 }
 

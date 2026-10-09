@@ -39,7 +39,7 @@ import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import type { RpcKlient } from "@/lib/wissen/supabase-suche";
 import { sucheWissen } from "@/lib/wissen/suche";
 import { entscheideUeberUpload } from "@/lib/wissen/freigabe";
-import { belegLage, einordnung, nutzungFuer, pruefenBis, QUELLENART_INFO, QUELLENARTEN, standardStufe, STUFEN_NAMEN, TEXTGRUNDLAGEN } from "@/lib/wissen/quellenart";
+import { artenImCluster, belegLage, CLUSTER, CLUSTER_INFO, clusterVon, einordnung, istCluster, nutzungFuer, pruefenBis, QUELLENART_INFO, QUELLENARTEN, standardStufe, STUFEN_NAMEN, TEXTGRUNDLAGEN } from "@/lib/wissen/quellenart";
 import { hinweisFuerLage } from "@/lib/ai/wissen-werkzeug";
 import { belegeAusErgebnis } from "@/lib/wissen/belege";
 import { quellenAnweisung } from "@/lib/domain/antwort-anweisungen";
@@ -704,19 +704,27 @@ async function main() {
       pruefenBis("forum", new Date("2026-10-07T10:00:00Z")) === "2027-10-07" && pruefenBis("internetquelle", new Date("2026-10-07T10:00:00Z")) === "2027-10-07" && pruefenBis("praxisbeitrag", new Date("2026-10-07T10:00:00Z")) === "2028-10-07" &&
         pruefenBis("rechtsnorm", new Date("2026-10-07T10:00:00Z")) === null && pruefenBis("fachliteratur", new Date("2026-10-07T10:00:00Z")) === null);
     pruefe("Link Pflicht: Internetquelle und Forum (Herkunftsnachweis), sonst freiwillig", QUELLENARTEN.filter((a) => QUELLENART_INFO[a].urlPflicht).join() === "internetquelle,forum");
+    pruefe("Cluster: genau drei (Buecher, Publikationen, Internet-Quelle), jeder mit Beschriftung und Beispielen", CLUSTER.join() === "buecher,publikationen,internet" && CLUSTER.every((c) => !!CLUSTER_INFO[c].label && !!CLUSTER_INFO[c].beispiele));
+    pruefe("Cluster: jede der dreizehn Quellenarten gehoert zu genau einem Cluster, keine bleibt uebrig, keine doppelt", CLUSTER.flatMap((c) => artenImCluster(c)).sort().join() === [...QUELLENARTEN].sort().join() && QUELLENARTEN.every((a) => CLUSTER.filter((c) => artenImCluster(c).includes(a)).length === 1));
+    pruefe("Cluster: Zuordnung wie vereinbart (Buecher: Fachliteratur und Nachschlagewerk; Internet: Internetquelle, Forum, Recherche, KI; Rest Publikationen)",
+      artenImCluster("buecher").join() === "fachliteratur,nachschlagewerk" && artenImCluster("internet").join() === "internetquelle,forum,internetrecherche,ki_zusammenfassung" &&
+        artenImCluster("publikationen").join() === "rechtsnorm,rechtsprechung,verwaltungsanweisung,behoerdeninfo,standard,praxisbeitrag,intern");
+    pruefe("Cluster: clusterVon liest ihn aus der Art, Bestand ohne Typisierung hat keinen", clusterVon("forum") === "internet" && clusterVon("fachliteratur") === "buecher" && clusterVon("rechtsnorm") === "publikationen" && clusterVon(null) === null && clusterVon(undefined) === null && clusterVon("unbekannt") === null);
+    pruefe("Cluster: istCluster erkennt nur die drei Werte", CLUSTER.every((c) => istCluster(c)) && !istCluster("web") && !istCluster(null) && !istCluster(""));
+    pruefe("Cluster: kein Cluster steht in der Migration oder in einer Spalte, er folgt allein aus der Art (keine zweite Wahrheit)", !/cluster/i.test(lies("supabase/migrations/20261124000000_wissen_typisierung_pgvector.sql")));
     // Die Tabelle in der Doku darf der Matrix im Code nicht davonlaufen
     {
       const doku = lies("docs/wissensbasis-supabase.md");
-      const zeilenDoku = doku.split(/\r?\n/).filter((l) => /^\| `[a-z_]+` \|/.test(l)).map((l) => l.split("|").slice(1, -1).map((c) => c.trim())).filter((c) => c.length === 9);
+      const zeilenDoku = doku.split(/\r?\n/).filter((l) => /^\| `[a-z_]+` \|/.test(l)).map((l) => l.split("|").slice(1, -1).map((c) => c.trim())).filter((c) => c.length === 10);
       const wort: Record<string, string> = { ja: "ja", Hinweis: "hinweis", gesperrt: "nein" };
       const abweichend = QUELLENARTEN.filter((a) => {
         const r = zeilenDoku.find((c) => c[0] === `\`${a}\``);
         if (!r) return true;
         const info = QUELLENART_INFO[a];
         const monate = r[8] === "nie" ? null : Number.parseInt(r[8]!, 10);
-        return Number(r[2]) !== info.stufe || !UPLOAD_BEREICHE.every((b, i) => wort[r[3 + i]!] === info.nutzung[b]) || monate !== info.pruefMonate;
+        return Number(r[2]) !== info.stufe || !UPLOAD_BEREICHE.every((b, i) => wort[r[3 + i]!] === info.nutzung[b]) || monate !== info.pruefMonate || r[9] !== CLUSTER_INFO[info.cluster].label;
       });
-      pruefe("Doku: die Tabelle der Quellenarten (Stufe, Nutzung je Bereich, Wiedervorlage) stimmt mit quellenart.ts ueberein", abweichend.length === 0 && zeilenDoku.length === QUELLENARTEN.length, abweichend.join(", "));
+      pruefe("Doku: die Tabelle der Quellenarten (Stufe, Nutzung je Bereich, Wiedervorlage, Cluster) stimmt mit quellenart.ts ueberein", abweichend.length === 0 && zeilenDoku.length === QUELLENARTEN.length, abweichend.join(", "));
     }
 
     const ein = einordnung({ quellenart: "fachliteratur", stufe: 4, nutzung: "ja", textgrundlage: "original", stand: "2026-03-01" });
@@ -923,6 +931,8 @@ async function main() {
     };
     const w = m.kiAssistentAnsicht.wissensVerwaltung;
     const q = m.kiAssistentAnsicht.quellen;
+    pruefe(`Typtexte ${loc}: drei Cluster mit Beschriftung und Beispielen, Formular- und Listenfelder fuer Cluster, Einordnung und Fehlerdetail`, CLUSTER.every((c) => !!w.cluster?.[c] && !!w.clusterBeispiel?.[c]) &&
+      ["cluster", "clusterHinweis", "zuerstCluster"].every((k) => !!w.formular?.[k]) && ["cluster", "einordnung", "ohneEinordnung", "ohneEinordnungHinweis", "filter", "filterAlle", "keineTreffer", "fehlerDetail"].every((k) => !!w.liste?.[k]));
     pruefe(`Typtexte ${loc}: alle dreizehn Quellenarten mit Beschriftung und Beispiel (Verwaltung), Beschriftung (Quellenkarte)`, QUELLENARTEN.every((a) => !!w.quellenart?.[a] && !!w.beispiel?.[a] && !!(q.art as Record<string, string>)?.[a]));
     pruefe(`Typtexte ${loc}: Textgrundlagen, Status, Hinweis, Pruefdialog, Formularfelder und Listenfelder vorhanden`, TEXTGRUNDLAGEN.every((g) => !!w.textgrundlage?.[g]) && ["ungeprueft", "freigegeben", "abgelehnt", "abgelaufen"].every((k) => !!w.status?.[k]) && !!w.nutzung?.hinweis &&
       ["knopf", "knopfErneut", "titel", "titelErneut", "vorschau", "vorschauLaedt", "vorschauFehler", "hinweis", "hinweisErneut", "freigeben", "ablehnen", "verlaengern", "abbrechen"].every((k) => !!w.pruefung?.[k]) &&
@@ -943,6 +953,9 @@ async function main() {
   {
     const ui = lies("src/components/db/wissen-verwaltung.tsx");
     pruefe("Oberflaeche: alle Eingaben (ausser der Datei) liegen im Zustand und bleiben nach einem Fehler stehen, nach einem Erfolg wird geleert", /useState<Eingaben>\(LEERE_EINGABEN\)/.test(ui) && /value=\{werte\.titel\}/.test(ui) && /value=\{werte\.bereich\}/.test(ui) && /value=\{werte\.quellenart\}/.test(ui) && /checked=\{werte\.rollen\.includes\(rolle\)\}/.test(ui) && /startTransition\(\(\) => setWerte\(LEERE_EINGABEN\)\)/.test(ui));
+    pruefe("Oberflaeche: das Formular fragt zuerst den Cluster und bietet danach nur dessen Quellenarten an; ein Clusterwechsel verwirft eine Art, die nicht dazu gehoert", /name="cluster"/.test(ui) && /artenImCluster\(cluster\)/.test(ui) && /clusterVon\(werte\.quellenart\) === neu \? werte\.quellenart : ""/.test(ui) && /zuerstCluster/.test(ui));
+    pruefe("Oberflaeche: jede Karte zeigt die Einordnung, auch der Bestand ohne Typisierung (als nicht eingeordnet), und die Liste laesst sich nach Cluster filtern mit Zaehlern", /liste\.einordnung/.test(ui) && /liste\.ohneEinordnung/.test(ui) && /function ClusterFilter/.test(ui) && /passtZumFilter/.test(ui) && /aria-pressed/.test(ui));
+    pruefe("Action: bei einem Ladefehler nennt die Antwort Schema und Datenbankmeldung (fehlerDetail), damit die Ursache ohne Server-Log sichtbar ist", (() => { const a = lies("src/lib/actions/wissen.ts"); const l = a.slice(a.indexOf("export async function wissenDokumenteLaden"), a.indexOf("const VORSCHAU_ZEICHEN")); return /fehlerDetail/.test(l) && /DATENBANK_SCHEMA/.test(l) && /error\.code/.test(l); })());
     pruefe("Oberflaeche: nicht zulaessige Quellenarten sind im Bereich gesperrt (disabled), der Link ist bei Internetquelle und Forum Pflicht", /disabled: gesperrt/.test(ui) && /urlPflicht/.test(ui) && /nutzungFuer\(werte\.bereich, a\) === "nein"/.test(ui));
     pruefe("Oberflaeche: Pruefen erscheint nur fuer die ANDERE Person (nicht fuer die hochladende), die hochladende sieht den Wartehinweis", /!eigener && \(dokument\.pruefstatus === "ungeprueft" \|\| dokument\.abgelaufen\)/.test(ui) && /liste\.wartet/.test(ui));
     pruefe("Oberflaeche: der Pruefdialog zeigt Titel, Bereich, Quellenart, Link, Rollen und den Anfang des Textes und bietet Freigeben, Ablehnen, Verlaengern", /wissenDokumentVorschau\(dokument\.schluessel\)/.test(ui) && /value="freigeben"/.test(ui) && /value="ablehnen"/.test(ui) && /value="verlaengern"/.test(ui));

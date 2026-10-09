@@ -4,7 +4,10 @@ import { bereichSchluessel, UPLOAD_BEREICHE, type UploadBereich } from "@/lib/wi
 // Die einzige Stelle fuer diese Regeln. Upload (hochladen.ts), Freigabe (freigabe.ts), Suche (suche.ts), die
 // Quellenkarte im Chat und die Tests lesen alle von hier. Ohne Abhaengigkeit von Node und Datenbank.
 //
-// Drei Achsen, die nicht vermischt werden:
+// Vier Achsen, die nicht vermischt werden:
+//   cluster          Grobe Herkunft ueber den Quellenarten: Buecher, Publikationen oder Internet-Quelle. Wird NICHT
+//                    gespeichert, sondern aus der Quellenart abgeleitet (eine Wahrheit, keine Migration). Der Admin
+//                    waehlt ihn beim Upload zuerst und bekommt danach nur die Arten dieses Clusters angeboten.
 //   quellenart       Art der Quelle (Gesetz, Fachbuch, Forum ...). Vergibt der Admin beim Upload.
 //   autoritaetsstufe 1 bis 5, aus der Quellenart vorbelegt (bestehende Skala: 1 Primaerrecht ... 5 Presse).
 //   pruefstatus      ungeprueft, freigegeben, abgelehnt. Ein Upload ist erst durchsuchbar, wenn eine ZWEITE Person
@@ -30,6 +33,17 @@ export const QUELLENARTEN = [
 ] as const;
 export type Quellenart = (typeof QUELLENARTEN)[number];
 
+/**
+ * Drei Cluster ueber den dreizehn Quellenarten. Jede Art gehoert zu genau einem Cluster; die Zuordnung steht je Art in
+ * QUELLENART_INFO.cluster und nur dort.
+ *   buecher        Buecher und Nachschlagewerke: Fachliteratur, Kommentare, Lehrbuecher, Lexika.
+ *   publikationen  Veroeffentlichte und herausgegebene Schriften: amtliche Texte, Normen, Studien, Whitepaper sowie
+ *                  interne Ausarbeitungen des Betriebs.
+ *   internet       Texte aus dem Netz und maschinell Erzeugtes: Webseiten, Foren, Rechercheergebnisse, KI-Zusammenfassungen.
+ */
+export const CLUSTER = ["buecher", "publikationen", "internet"] as const;
+export type Cluster = (typeof CLUSTER)[number];
+
 export const TEXTGRUNDLAGEN = ["original", "amtlich_uebersetzt", "fachlich_uebersetzt", "maschinell_uebersetzt"] as const;
 export type Textgrundlage = (typeof TEXTGRUNDLAGEN)[number];
 
@@ -52,6 +66,8 @@ interface QuellenartInfo {
   /** Beschriftung fuer den Assistenten und als Rueckfall (die Oberflaeche nutzt die Sprachdateien). */
   label: string;
   beispiele: string;
+  /** Zu welchem der drei Cluster die Art gehoert (grobe Herkunft). */
+  cluster: Cluster;
   stufe: 1 | 2 | 3 | 4 | 5;
   /** Ohne Link ist die Herkunft nicht nachpruefbar: fuer diese Arten Pflicht. */
   urlPflicht: boolean;
@@ -70,22 +86,22 @@ const reihe = (recht: Nutzung, steuer: Nutzung, compliance: Nutzung, audit: Nutz
 });
 
 export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
-  rechtsnorm: { label: "Rechtsnorm", beispiele: "Gesetz, Verordnung, Kodex", stufe: 1, urlPflicht: false, pruefMonate: null, nutzung: alle("ja") },
-  rechtsprechung: { label: "Rechtsprechung", beispiele: "Urteil, Beschluss", stufe: 2, urlPflicht: false, pruefMonate: null, nutzung: alle("ja") },
-  verwaltungsanweisung: { label: "Verwaltungsanweisung", beispiele: "Erlass, Schreiben einer Behörde", stufe: 2, urlPflicht: false, pruefMonate: null, nutzung: alle("ja") },
-  behoerdeninfo: { label: "Behördeninformation", beispiele: "Merkblatt, amtliche Auskunft", stufe: 3, urlPflicht: false, pruefMonate: null, nutzung: alle("ja") },
+  rechtsnorm: { label: "Rechtsnorm", beispiele: "Gesetz, Verordnung, Kodex", cluster: "publikationen", stufe: 1, urlPflicht: false, pruefMonate: null, nutzung: alle("ja") },
+  rechtsprechung: { label: "Rechtsprechung", beispiele: "Urteil, Beschluss", cluster: "publikationen", stufe: 2, urlPflicht: false, pruefMonate: null, nutzung: alle("ja") },
+  verwaltungsanweisung: { label: "Verwaltungsanweisung", beispiele: "Erlass, Schreiben einer Behörde", cluster: "publikationen", stufe: 2, urlPflicht: false, pruefMonate: null, nutzung: alle("ja") },
+  behoerdeninfo: { label: "Behördeninformation", beispiele: "Merkblatt, amtliche Auskunft", cluster: "publikationen", stufe: 3, urlPflicht: false, pruefMonate: null, nutzung: alle("ja") },
   standard: {
     label: "Norm oder Standard",
-    beispiele: "ISO, COSO, Prüfungsstandard",
+    beispiele: "ISO, COSO, Prüfungsstandard", cluster: "publikationen",
     stufe: 3,
     urlPflicht: false,
     pruefMonate: null,
     nutzung: reihe("hinweis", "hinweis", "ja", "ja", "ja"),
   },
-  fachliteratur: { label: "Fachliteratur", beispiele: "Kommentar, Lehrbuch, Fachaufsatz", stufe: 4, urlPflicht: false, pruefMonate: null, nutzung: alle("ja") },
+  fachliteratur: { label: "Fachliteratur", beispiele: "Kommentar, Lehrbuch, Fachaufsatz", cluster: "buecher", stufe: 4, urlPflicht: false, pruefMonate: null, nutzung: alle("ja") },
   praxisbeitrag: {
     label: "Praxisbeitrag",
-    beispiele: "Whitepaper, Studie, Kanzlei- oder Verbandsinformation",
+    beispiele: "Whitepaper, Studie, Kanzlei- oder Verbandsinformation", cluster: "publikationen",
     stufe: 4,
     urlPflicht: false,
     pruefMonate: 24,
@@ -93,7 +109,7 @@ export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
   },
   intern: {
     label: "Interne Ausarbeitung",
-    beispiele: "Betriebsanweisung, eigene Analyse",
+    beispiele: "Betriebsanweisung, eigene Analyse", cluster: "publikationen",
     stufe: 4,
     urlPflicht: false,
     pruefMonate: 24,
@@ -101,7 +117,7 @@ export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
   },
   nachschlagewerk: {
     label: "Nachschlagewerk",
-    beispiele: "Lexikon, Wikipedia",
+    beispiele: "Lexikon, Enzyklopädie, Wörterbuch", cluster: "buecher",
     stufe: 5,
     urlPflicht: false,
     pruefMonate: 12,
@@ -109,7 +125,7 @@ export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
   },
   internetquelle: {
     label: "Internetquelle",
-    beispiele: "Webseite, Artikel, Blog",
+    beispiele: "Webseite, Artikel, Blog, Wikipedia", cluster: "internet",
     stufe: 5,
     urlPflicht: true,
     pruefMonate: 12,
@@ -117,7 +133,7 @@ export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
   },
   forum: {
     label: "Forum oder Frage-Antwort-Portal",
-    beispiele: "Forum, Q&A, soziale Netze",
+    beispiele: "Forum, Q&A, soziale Netze", cluster: "internet",
     stufe: 5,
     urlPflicht: true,
     pruefMonate: 12,
@@ -125,7 +141,7 @@ export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
   },
   internetrecherche: {
     label: "Ergebnis einer Internetrecherche",
-    beispiele: "Zusammenstellung aus einer Websuche (von Mensch oder KI)",
+    beispiele: "Zusammenstellung aus einer Websuche (von Mensch oder KI)", cluster: "internet",
     stufe: 5,
     urlPflicht: false,
     pruefMonate: 12,
@@ -133,7 +149,7 @@ export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
   },
   ki_zusammenfassung: {
     label: "KI-Zusammenfassung",
-    beispiele: "von einer KI erzeugte Zusammenfassung oder Ausarbeitung",
+    beispiele: "von einer KI erzeugte Zusammenfassung oder Ausarbeitung", cluster: "internet",
     stufe: 5,
     urlPflicht: false,
     pruefMonate: 12,
@@ -148,9 +164,23 @@ const TEXTGRUNDLAGE_LABEL: Record<Textgrundlage, string> = {
   maschinell_uebersetzt: "maschinelle Übersetzung",
 };
 
+/** Beispiele je Cluster fuer den Assistenten und als Rueckfall (die Oberflaeche nutzt die Sprachdateien). */
+export const CLUSTER_INFO: Record<Cluster, { label: string; beispiele: string }> = {
+  buecher: { label: "Bücher", beispiele: "Fachbücher, Kommentare, Lehrbücher, Nachschlagewerke" },
+  publikationen: { label: "Publikationen", beispiele: "Gesetze, Urteile, Behördenschreiben, Normen, Studien, Whitepaper, interne Ausarbeitungen" },
+  internet: { label: "Internet-Quelle", beispiele: "Webseiten, Foren, Rechercheergebnisse, KI-Zusammenfassungen" },
+};
+
 export const istQuellenart = (wert: unknown): wert is Quellenart => typeof wert === "string" && (QUELLENARTEN as readonly string[]).includes(wert);
+export const istCluster = (wert: unknown): wert is Cluster => typeof wert === "string" && (CLUSTER as readonly string[]).includes(wert);
 export const istTextgrundlage = (wert: unknown): wert is Textgrundlage => typeof wert === "string" && (TEXTGRUNDLAGEN as readonly string[]).includes(wert);
 export const istPruefstatus = (wert: unknown): wert is Pruefstatus => typeof wert === "string" && (PRUEFSTATUS as readonly string[]).includes(wert);
+
+/** Cluster einer gespeicherten Quellenart, oder null fuer Bestand ohne Typisierung. */
+export const clusterVon = (art: string | null | undefined): Cluster | null => (istQuellenart(art) ? QUELLENART_INFO[art].cluster : null);
+
+/** Die Quellenarten eines Clusters in der Rangfolge von QUELLENARTEN (gold bis dreckig). */
+export const artenImCluster = (cluster: Cluster): Quellenart[] => QUELLENARTEN.filter((a) => QUELLENART_INFO[a].cluster === cluster);
 
 /** Autoritaetsstufe, mit der ein Upload dieser Art angelegt wird. */
 export const standardStufe = (art: Quellenart): number => QUELLENART_INFO[art].stufe;

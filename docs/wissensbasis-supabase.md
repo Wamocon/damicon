@@ -89,23 +89,25 @@ Der Upload nutzt dieselben Funktionen wie das Skript: `chunkiere`, `wissenEinbet
 
 Nicht jeder Text ist gleich belastbar. Jede hochgeladene Textstelle trägt deshalb eine **Quellenart**, daraus ergibt sich die **Autoritätsstufe** (die bestehende Skala: 1 Primärrecht, 2 untergesetzlich, 3 amtliche Erläuterung, 4 Fachquelle, 5 Presse und ungesicherte Quellen). Beides steht in `src/lib/wissen/quellenart.ts`, der einzigen Stelle für diese Regeln; Upload, Freigabe, Suche, Quellenkarte und Tests lesen von dort. Bestand ohne Quellenart (Skript und ETL) gilt wie bisher.
 
+**Cluster.** Über den dreizehn Quellenarten stehen drei Cluster, die grobe Herkunft: **Bücher** (Fachliteratur, Nachschlagewerke), **Publikationen** (amtliche Texte, Normen, Studien, Whitepaper, interne Ausarbeitungen) und **Internet-Quelle** (Webseiten, Foren, Rechercheergebnisse, KI-Zusammenfassungen). Jede Art gehört zu genau einem Cluster (`QUELLENART_INFO[art].cluster` in `src/lib/wissen/quellenart.ts`). Der Cluster wird **nicht gespeichert**, sondern aus der Quellenart abgeleitet: Er braucht keine Migration und kann der Art nicht widersprechen. Beim Upload wählt die Administration zuerst den Cluster und bekommt dann nur dessen Quellenarten angeboten. Die Liste der Wissensdokumente zeigt je Dokument Cluster, Art und Stufe und lässt sich nach Cluster filtern. Bestand aus der Zeit vor der Typisierung hat keine Quellenart und erscheint als „Nicht eingeordnet“.
+
 Wofür eine Quelle taugt, hängt vom **Bereich** ab (Nutzung): `ja` = normale Quelle, `Hinweis` = wird genutzt, aber nie allein tragend und immer als ungeprüft gekennzeichnet, `gesperrt` = für diesen Bereich nicht zulässig (der Upload wird abgelehnt). Blogs und Foren sind für Gesetze und Vorschriften ungeeignet (Fehlinformationen), für Risikomanagement als Hinweis denkbar, weil sich Methoden laufend ändern.
 
-| Quellenart | Beispiele | Stufe | Recht | Steuern | Compliance | Audit | Risiko | Wiedervorlage |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `rechtsnorm` | Gesetz, Verordnung, Kodex | 1 | ja | ja | ja | ja | ja | nie |
-| `rechtsprechung` | Urteil, Beschluss | 2 | ja | ja | ja | ja | ja | nie |
-| `verwaltungsanweisung` | Erlass, Schreiben einer Behörde | 2 | ja | ja | ja | ja | ja | nie |
-| `behoerdeninfo` | Merkblatt, amtliche Auskunft | 3 | ja | ja | ja | ja | ja | nie |
-| `standard` | ISO, COSO, Prüfungsstandard | 3 | Hinweis | Hinweis | ja | ja | ja | nie |
-| `fachliteratur` | Kommentar, Lehrbuch, Fachaufsatz | 4 | ja | ja | ja | ja | ja | nie |
-| `praxisbeitrag` | Whitepaper, Studie, Kanzlei- oder Verbandsinformation | 4 | Hinweis | Hinweis | Hinweis | ja | ja | 24 Monate |
-| `intern` | Betriebsanweisung, eigene Analyse | 4 | Hinweis | Hinweis | ja | ja | ja | 24 Monate |
-| `nachschlagewerk` | Lexikon, Wikipedia | 5 | Hinweis | Hinweis | Hinweis | Hinweis | Hinweis | 12 Monate |
-| `internetquelle` | Webseite, Artikel, Blog (Link Pflicht) | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate |
-| `forum` | Forum, Q&A, soziale Netze (Link Pflicht) | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate |
-| `internetrecherche` | Zusammenstellung aus einer Websuche, von Mensch oder KI | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate |
-| `ki_zusammenfassung` | von einer KI erzeugte Zusammenfassung | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate |
+| Quellenart | Beispiele | Stufe | Recht | Steuern | Compliance | Audit | Risiko | Wiedervorlage | Cluster |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `rechtsnorm` | Gesetz, Verordnung, Kodex | 1 | ja | ja | ja | ja | ja | nie | Publikationen |
+| `rechtsprechung` | Urteil, Beschluss | 2 | ja | ja | ja | ja | ja | nie | Publikationen |
+| `verwaltungsanweisung` | Erlass, Schreiben einer Behörde | 2 | ja | ja | ja | ja | ja | nie | Publikationen |
+| `behoerdeninfo` | Merkblatt, amtliche Auskunft | 3 | ja | ja | ja | ja | ja | nie | Publikationen |
+| `standard` | ISO, COSO, Prüfungsstandard | 3 | Hinweis | Hinweis | ja | ja | ja | nie | Publikationen |
+| `fachliteratur` | Kommentar, Lehrbuch, Fachaufsatz | 4 | ja | ja | ja | ja | ja | nie | Bücher |
+| `praxisbeitrag` | Whitepaper, Studie, Kanzlei- oder Verbandsinformation | 4 | Hinweis | Hinweis | Hinweis | ja | ja | 24 Monate | Publikationen |
+| `intern` | Betriebsanweisung, eigene Analyse | 4 | Hinweis | Hinweis | ja | ja | ja | 24 Monate | Publikationen |
+| `nachschlagewerk` | Lexikon, Enzyklopädie, Wörterbuch | 5 | Hinweis | Hinweis | Hinweis | Hinweis | Hinweis | 12 Monate | Bücher |
+| `internetquelle` | Webseite, Artikel, Blog, Wikipedia (Link Pflicht) | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate | Internet-Quelle |
+| `forum` | Forum, Q&A, soziale Netze (Link Pflicht) | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate | Internet-Quelle |
+| `internetrecherche` | Zusammenstellung aus einer Websuche, von Mensch oder KI | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate | Internet-Quelle |
+| `ki_zusammenfassung` | von einer KI erzeugte Zusammenfassung | 5 | gesperrt | gesperrt | gesperrt | Hinweis | Hinweis | 12 Monate | Internet-Quelle |
 
 **Wiedervorlage.** Quellen, deren Inhalt veraltet (Internet, Foren, Nachschlagewerke, Praxisbeiträge), laufen nach 12 oder 24 Monaten ab: `pruefen_bis` wird bei der Freigabe gesetzt, danach findet die Suche die Quelle nicht mehr, bis eine zweite Person sie erneut geprüft und verlängert hat. Die Liste kennzeichnet sie als "Prüfung fällig".
 

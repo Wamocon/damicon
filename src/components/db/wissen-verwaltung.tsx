@@ -13,7 +13,8 @@ import {
 } from "@/lib/actions/wissen";
 import { leer, type AktionsStatus } from "@/lib/actions/status";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
-import { istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN } from "@/lib/wissen/quellenart";
+import { stufeSchluessel } from "@/lib/wissen/belege";
+import { artenImCluster, CLUSTER, clusterVon, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, TEXTGRUNDLAGEN, type Cluster } from "@/lib/wissen/quellenart";
 import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
 // Wissensverwaltung im KI-Panel (Einstellungen, unter dem Ratenlimit). Admin-only: Das Panel reicht das Element nur
@@ -29,8 +30,10 @@ export function WissenVerwaltung() {
   const [dokumente, setDokumente] = useState<WissenDokumentZeile[] | null>(null);
   const [ichId, setIchId] = useState<string | null>(null);
   const [ladefehler, setLadefehler] = useState(false);
+  const [fehlerDetail, setFehlerDetail] = useState<string | null>(null);
   const [abgeschnitten, setAbgeschnitten] = useState(false);
   const [aktionsMeldung, setAktionsMeldung] = useState<AktionsStatus>(leer);
+  const [filter, setFilter] = useState<ListenFilter>("alle");
   const [, starte] = useTransition();
 
   const lade = useCallback(() => {
@@ -38,6 +41,7 @@ export function WissenVerwaltung() {
       const antwort = await wissenDokumenteLaden();
       setDokumente(antwort.dokumente);
       setLadefehler(antwort.fehler);
+      setFehlerDetail(antwort.fehlerDetail ?? null);
       setAbgeschnitten(antwort.abgeschnitten);
       setIchId(antwort.ichId);
     });
@@ -46,6 +50,8 @@ export function WissenVerwaltung() {
   useEffect(() => {
     lade();
   }, [lade]);
+
+  const sichtbar = (dokumente ?? []).filter((d) => passtZumFilter(d, filter));
 
   return (
     <div className="space-y-3">
@@ -56,27 +62,96 @@ export function WissenVerwaltung() {
         <AktionsMeldung status={aktionsMeldung} />
         {abgeschnitten ? <p role="status" className="mb-2 text-[11px] font-semibold text-destructive">{t("liste.abgeschnitten")}</p> : null}
         {ladefehler ? (
-          <Card className="text-center text-xs text-destructive">{t("liste.fehler")}</Card>
+          <Card className="space-y-1 text-center text-xs text-destructive">
+            <p>{t("liste.fehler")}</p>
+            {/* Nur Administration sieht diese Seite. Die Angabe nennt Schema und Datenbankmeldung, damit die Ursache ohne Server-Log erkennbar ist. */}
+            {fehlerDetail ? (
+              <p className="break-words font-mono text-[11px] text-muted-foreground">
+                {t("liste.fehlerDetail")}: {fehlerDetail}
+              </p>
+            ) : null}
+          </Card>
         ) : dokumente === null ? (
           <Card className="text-center text-xs text-muted-foreground">{t("liste.laedt")}</Card>
         ) : dokumente.length === 0 ? (
           <Card className="text-center text-xs text-muted-foreground">{t("liste.leer")}</Card>
         ) : (
-          <ul className="space-y-2">
-            {dokumente.map((d) => (
-              <WissenDokumentKarte
-                key={d.schluessel}
-                dokument={d}
-                ichId={ichId}
-                beiErgebnis={(status) => {
-                  setAktionsMeldung(status);
-                  lade();
-                }}
-              />
-            ))}
-          </ul>
+          <>
+            <ClusterFilter dokumente={dokumente} filter={filter} beiAuswahl={setFilter} />
+            {sichtbar.length === 0 ? (
+              <Card className="text-center text-xs text-muted-foreground">{t("liste.keineTreffer")}</Card>
+            ) : (
+              <ul className="space-y-2">
+                {sichtbar.map((d) => (
+                  <WissenDokumentKarte
+                    key={d.schluessel}
+                    dokument={d}
+                    ichId={ichId}
+                    beiErgebnis={(status) => {
+                      setAktionsMeldung(status);
+                      lade();
+                    }}
+                  />
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </div>
+    </div>
+  );
+}
+
+// Filter der Liste: alles, ein Cluster oder der Bestand ohne Einordnung. Die Zaehler stehen an den Knoepfen, damit man
+// sieht, wie viel der Wissensbasis schon eingeordnet ist (Bestand aus der Zeit vor der Typisierung hat keine Quellenart).
+type ListenFilter = "alle" | Cluster | "ohne";
+
+function passtZumFilter(dokument: WissenDokumentZeile, filter: ListenFilter): boolean {
+  if (filter === "alle") return true;
+  const cluster = clusterVon(dokument.quellenart);
+  return filter === "ohne" ? cluster === null : cluster === filter;
+}
+
+function ClusterFilter({
+  dokumente,
+  filter,
+  beiAuswahl,
+}: {
+  dokumente: WissenDokumentZeile[];
+  filter: ListenFilter;
+  beiAuswahl: (filter: ListenFilter) => void;
+}) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  const tCluster = useTranslations("kiAssistentAnsicht.wissensVerwaltung.cluster");
+  const anzahl = (f: ListenFilter) => dokumente.filter((d) => passtZumFilter(d, f)).length;
+  const eintraege: { wert: ListenFilter; text: string }[] = [
+    { wert: "alle", text: t("liste.filterAlle") },
+    ...CLUSTER.map((c) => ({ wert: c as ListenFilter, text: tCluster(c) })),
+    { wert: "ohne", text: t("liste.ohneEinordnung") },
+  ];
+
+  return (
+    <div className="mb-2 space-y-1.5">
+      <div role="group" aria-label={t("liste.filter")} className="flex flex-wrap gap-1.5">
+        {eintraege.map((e) => {
+          const aktiv = filter === e.wert;
+          return (
+            <button
+              key={e.wert}
+              type="button"
+              aria-pressed={aktiv}
+              onClick={() => beiAuswahl(e.wert)}
+              className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold transition ${
+                aktiv ? "border-primary bg-primary text-primary-foreground" : "border-border text-card-foreground hover:border-primary/50"
+              }`}
+            >
+              {e.text}
+              <span className={`tabular-nums ${aktiv ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{anzahl(e.wert)}</span>
+            </button>
+          );
+        })}
+      </div>
+      {anzahl("ohne") > 0 ? <p className="text-[11px] leading-4 text-muted-foreground">{t("liste.ohneEinordnungHinweis")}</p> : null}
     </div>
   );
 }
@@ -92,6 +167,7 @@ function WissenDokumentKarte({
 }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
   const tRolle = useTranslations("roles");
+  const tStufe = useTranslations("kiAssistentAnsicht.quellen.stufe");
   const format = useFormatter();
   const datum = dokument.datum && !Number.isNaN(Date.parse(dokument.datum))
     ? format.dateTime(new Date(dokument.datum), { dateStyle: "medium" })
@@ -102,6 +178,9 @@ function WissenDokumentKarte({
     ? t(`bereich.${bereichKey}` as never)
     : dokument.bereich || t("liste.keinBereich");
   const artName = istQuellenart(dokument.quellenart) ? t(`quellenart.${dokument.quellenart}` as never) : null;
+  const cluster = clusterVon(dokument.quellenart);
+  const clusterName = cluster ? t(`cluster.${cluster}` as never) : null;
+  const stufeName = dokument.stufe !== null ? tStufe(stufeSchluessel(dokument.stufe)) : null;
   const ersterEintrag = dokument.herkunft === "upload";
   const eigener = !!ichId && dokument.hochgeladenVonId === ichId;
   const wartetAufMich = !eigener && (dokument.pruefstatus === "ungeprueft" || dokument.abgelaufen);
@@ -116,6 +195,7 @@ function WissenDokumentKarte({
           <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
             <StatusPill tone="info">{bereichName}</StatusPill>
             <StatusPill tone={dokument.herkunft === "upload" ? "success" : "neutral"}>{t(`herkunft.${dokument.herkunft}`)}</StatusPill>
+            {clusterName ? <StatusPill tone="neutral">{clusterName}</StatusPill> : <StatusPill tone="warning">{t("liste.ohneEinordnung")}</StatusPill>}
             {artName ? <StatusPill tone="neutral">{artName}</StatusPill> : null}
             {dokument.nutzung === "hinweis" ? <StatusPill tone="warning">{t("nutzung.hinweis")}</StatusPill> : null}
             {ersterEintrag ? (
@@ -124,6 +204,14 @@ function WissenDokumentKarte({
           </div>
         </div>
         <dl className="mt-2 grid gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground sm:grid-cols-2">
+          {/* Die Einordnung steht immer da, auch beim Bestand ohne Typisierung: dort als "nicht eingeordnet", mit der Stufe, die er hat. */}
+          <div className="sm:col-span-2">
+            <dt className="inline font-semibold">{t("liste.einordnung")}: </dt>
+            <dd className="inline">
+              {clusterName && artName ? `${clusterName} / ${artName}` : t("liste.ohneEinordnung")}
+              {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe} (${stufeName})` : ""}
+            </dd>
+          </div>
           <div>
             <dt className="inline font-semibold">{t("liste.rollen")}: </dt>
             <dd className="inline">{dokument.rollen.map((r) => tRolle(r as never)).join(", ") || "-"}</dd>
@@ -140,12 +228,6 @@ function WissenDokumentKarte({
             <dt className="inline font-semibold">{t("liste.abschnitte")}: </dt>
             <dd className="inline">{dokument.chunks}</dd>
           </div>
-          {dokument.stufe !== null ? (
-            <div>
-              <dt className="inline font-semibold">{t("liste.stufe")}: </dt>
-              <dd className="inline">{dokument.stufe}</dd>
-            </div>
-          ) : null}
           {dokument.pruefenBis ? (
             <div>
               <dt className="inline font-semibold">{t("liste.pruefenBis")}: </dt>
@@ -177,18 +259,22 @@ function WissenDokumentKarte({
 interface Eingaben {
   titel: string;
   bereich: string;
+  /** Nur zur Auswahl der Quellenart; gespeichert wird allein die Quellenart, der Cluster folgt aus ihr. */
+  cluster: string;
   quellenart: string;
   textgrundlage: string;
   url: string;
   rollen: string[];
 }
-const LEERE_EINGABEN: Eingaben = { titel: "", bereich: "", quellenart: "", textgrundlage: "original", url: "", rollen: [] };
+const LEERE_EINGABEN: Eingaben = { titel: "", bereich: "", cluster: "", quellenart: "", textgrundlage: "original", url: "", rollen: [] };
 
 function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.formular");
   const tBereich = useTranslations("kiAssistentAnsicht.wissensVerwaltung.bereich");
   const tArt = useTranslations("kiAssistentAnsicht.wissensVerwaltung.quellenart");
   const tBeispiel = useTranslations("kiAssistentAnsicht.wissensVerwaltung.beispiel");
+  const tCluster = useTranslations("kiAssistentAnsicht.wissensVerwaltung.cluster");
+  const tClusterBeispiel = useTranslations("kiAssistentAnsicht.wissensVerwaltung.clusterBeispiel");
   const tText = useTranslations("kiAssistentAnsicht.wissensVerwaltung.textgrundlage");
   const tRolle = useTranslations("roles");
   const tAktion = useTranslations("aktionen");
@@ -212,6 +298,7 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
 
   const art = istQuellenart(werte.quellenart) ? werte.quellenart : null;
   const nutzung = art && werte.bereich ? nutzungFuer(werte.bereich, art) : "ja";
+  const cluster = istCluster(werte.cluster) ? werte.cluster : null;
 
   return (
     <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
@@ -247,7 +334,20 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
             ...UPLOAD_BEREICHE.map((b) => ({ wert: b, text: tBereich(b) })),
           ]}
         />
-        <div className="space-y-1 sm:col-span-2">
+        {/* Zuerst der Cluster (grobe Herkunft), dann nur die Quellenarten dieses Clusters. Wechselt der Cluster, faellt eine
+            Quellenart weg, die nicht dazu gehoert. */}
+        <div className="space-y-1">
+          <Auswahl
+            label={t("cluster")}
+            name="cluster"
+            required
+            value={werte.cluster}
+            onChange={(neu) => aendere({ cluster: neu, quellenart: clusterVon(werte.quellenart) === neu ? werte.quellenart : "" })}
+            options={[{ wert: "", text: t("bitteWaehlen") }, ...CLUSTER.map((c) => ({ wert: c, text: tCluster(c) }))]}
+          />
+          {cluster ? <span className="block text-[11px] text-muted-foreground">{tClusterBeispiel(cluster)}</span> : null}
+        </div>
+        <div className="space-y-1">
           <Auswahl
             label={t("quellenart")}
             name="quellenart"
@@ -255,8 +355,8 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
             value={werte.quellenart}
             onChange={(quellenart) => aendere({ quellenart })}
             options={[
-              { wert: "", text: t("bitteWaehlen") },
-              ...QUELLENARTEN.map((a) => {
+              { wert: "", text: cluster ? t("bitteWaehlen") : t("zuerstCluster") },
+              ...(cluster ? artenImCluster(cluster) : []).map((a) => {
                 const gesperrt = !!werte.bereich && nutzungFuer(werte.bereich, a) === "nein";
                 return {
                   wert: a,
@@ -266,7 +366,11 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
               }),
             ]}
           />
-          <span className="block text-[11px] text-muted-foreground">{t("quellenartHinweis")}</span>
+        </div>
+        <div className="space-y-1 sm:col-span-2">
+          <span className="block text-[11px] text-muted-foreground">
+            {t("clusterHinweis")} {t("quellenartHinweis")}
+          </span>
           {art ? (
             <span className={`block text-[11px] ${nutzung === "hinweis" ? "font-semibold text-warning" : "text-muted-foreground"}`}>
               {nutzung === "hinweis" ? t("nutzungHinweis") : t("stufeInfo", { stufe: QUELLENART_INFO[art].stufe })}
@@ -402,6 +506,7 @@ function WissenPruefenKnopf({
               <div>
                 <dt className="inline font-semibold">{t("liste.quellenart")}: </dt>
                 <dd className="inline">
+                  {clusterVon(dokument.quellenart) ? `${t(`cluster.${clusterVon(dokument.quellenart)}` as never)} / ` : ""}
                   {artName}
                   {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe}` : ""}
                   {dokument.nutzung === "hinweis" ? `, ${t("nutzung.hinweis")}` : ""}

@@ -2310,6 +2310,7 @@
         "laedt": "Dokumente werden geladen …",
         "leer": "Noch keine Dokumente in der Wissensbasis.",
         "fehler": "Die Dokumentliste konnte nicht geladen werden.",
+        "fehlerDetail": "Technische Angabe",
         "abgeschnitten": "Die Liste ist unvollständig: Die Wissensbasis hat mehr Textstellen, als diese Ansicht lesen kann. Bitte melden.",
         "rollen": "Rollen",
         "datum": "Eingelesen am",
@@ -2322,7 +2323,14 @@
         "stufe": "Stufe",
         "link": "Quelle",
         "pruefenBis": "Prüfung fällig am",
-        "wartet": "Wartet auf eine zweite Person: Wer hochgeladen hat, gibt nicht frei."
+        "wartet": "Wartet auf eine zweite Person: Wer hochgeladen hat, gibt nicht frei.",
+        "cluster": "Cluster",
+        "einordnung": "Einordnung",
+        "ohneEinordnung": "Nicht eingeordnet",
+        "ohneEinordnungHinweis": "Bestand aus der Zeit vor der Typisierung: Quellenart und Cluster fehlen. Der Assistent behandelt ihn weiter nach seiner Stufe.",
+        "filter": "Nach Cluster filtern",
+        "filterAlle": "Alle",
+        "keineTreffer": "Kein Dokument in dieser Auswahl."
       },
       "formular": {
         "titel": "Dokument hochladen",
@@ -2332,6 +2340,7 @@
         "titelFeld": "Titel",
         "titelPlatzhalter": "zum Beispiel Steuergesetzbuch, Auszug",
         "bereich": "Bereich",
+        "cluster": "Cluster",
         "bitteWaehlen": "Bitte wählen",
         "rollen": "Wer darf das Dokument sehen?",
         "adminImmer": "Administration ist immer eingeschlossen. Andere Rollen nutzen die Wissenssuche nicht.",
@@ -2344,7 +2353,9 @@
         "textgrundlage": "Textgrundlage",
         "url": "Link zur Quelle",
         "urlHinweis": "Pflicht bei Internetquelle und Forum, sonst freiwillig. Der Link ist der Herkunftsnachweis für die Prüfung.",
-        "freigabeHinweis": "Nach dem Hochladen wartet das Dokument auf die Freigabe durch eine zweite Person (Vier-Augen-Prinzip). Erst dann ist es durchsuchbar."
+        "freigabeHinweis": "Nach dem Hochladen wartet das Dokument auf die Freigabe durch eine zweite Person (Vier-Augen-Prinzip). Erst dann ist es durchsuchbar.",
+        "clusterHinweis": "Zuerst die grobe Herkunft wählen, danach die genaue Quellenart.",
+        "zuerstCluster": "Zuerst den Cluster wählen"
       },
       "loeschen": {
         "knopf": "Löschen",
@@ -2380,8 +2391,8 @@
         "fachliteratur": "Kommentar, Lehrbuch, Fachaufsatz",
         "praxisbeitrag": "Whitepaper, Studie, Kanzlei- oder Verbandsinformation",
         "intern": "Betriebsanweisung, eigene Analyse",
-        "nachschlagewerk": "Lexikon, Wikipedia",
-        "internetquelle": "Webseite, Artikel, Blog",
+        "nachschlagewerk": "Lexikon, Enzyklopädie, Wörterbuch",
+        "internetquelle": "Webseite, Artikel, Blog, Wikipedia",
         "forum": "Forum, Q&A, soziale Netze",
         "internetrecherche": "Zusammenstellung aus einer Websuche, von Mensch oder KI",
         "ki_zusammenfassung": "von einer KI erzeugte Zusammenfassung"
@@ -2415,6 +2426,16 @@
         "ablehnen": "Ablehnen",
         "verlaengern": "Verlängern",
         "abbrechen": "Abbrechen"
+      },
+      "cluster": {
+        "buecher": "Bücher",
+        "publikationen": "Publikationen",
+        "internet": "Internet-Quelle"
+      },
+      "clusterBeispiel": {
+        "buecher": "Fachbücher, Kommentare, Lehrbücher, Nachschlagewerke",
+        "publikationen": "Gesetze, Urteile, Behördenschreiben, Normen, Studien, Whitepaper, interne Ausarbeitungen",
+        "internet": "Webseiten, Foren, Rechercheergebnisse, KI-Zusammenfassungen"
       }
     },
     "sprachmodus": {
