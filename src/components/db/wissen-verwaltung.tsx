@@ -95,17 +95,16 @@ export function WissenVerwaltung() {
         ) : (
           <>
             <ClusterFilter dokumente={dokumente} filter={filter} beiAuswahl={setFilter} />
-            {pruefbar.length > 0 ? (
-              <WissenSammelLeiste
-                pruefbar={pruefbar}
-                gewaehlt={gewaehlt}
-                beiAuswahl={setGewaehlt}
-                beiFertig={(status) => {
-                  setAktionsMeldung(status);
-                  lade();
-                }}
-              />
-            ) : null}
+            {/* Immer eingehaengt: Das Ergebnisfenster der Sammelpruefung soll nach dem Neuladen stehen bleiben, auch wenn danach nichts mehr wartet. */}
+            <WissenSammelLeiste
+              pruefbar={pruefbar}
+              gewaehlt={gewaehlt}
+              beiAuswahl={setGewaehlt}
+              beiFertig={(status) => {
+                setAktionsMeldung(status);
+                lade();
+              }}
+            />
             {sichtbar.length === 0 ? (
               <Card className="text-center text-xs text-muted-foreground">{t("liste.keineTreffer")}</Card>
             ) : (
@@ -783,7 +782,9 @@ function WissenSammelLeiste({
   const knopf = "inline-flex h-7 items-center rounded-lg border px-2.5 text-[11px] font-semibold disabled:opacity-50";
 
   return (
-    <div className="mb-2 space-y-1.5 rounded-lg border border-border p-2.5">
+    <div className={pruefbar.length > 0 ? "mb-2 space-y-1.5 rounded-lg border border-border p-2.5" : undefined}>
+      {pruefbar.length > 0 ? (
+        <>
       <p className="text-[11px] font-semibold text-card-foreground">{t("titel", { anzahl: pruefbar.length })}</p>
       <p className="text-[11px] text-muted-foreground">{t("lead")}</p>
       <div className="flex flex-wrap items-center gap-1.5">
@@ -805,6 +806,8 @@ function WissenSammelLeiste({
           {t("freigeben")}
         </button>
       </div>
+        </>
+      ) : null}
       <dialog ref={dialog} aria-labelledby="sammel-titel" className="m-auto w-[min(94vw,36rem)] rounded-xl border border-border bg-card p-0 text-card-foreground backdrop:bg-black/50">
         <div className="space-y-3 p-4">
           <h3 id="sammel-titel" className="text-sm font-black">

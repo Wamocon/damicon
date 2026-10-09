@@ -949,8 +949,8 @@
       "wissenAbgelehnt": "Document “{wert}” rejected. It stays blocked and can be deleted.",
       "wissenVerlaengert": "Document “{wert}” extended and searchable again.",
       "wissenEingeordnet": "{wert} documents classified.",
-      "wissenSammelFreigegeben": "{wert} documents approved and searchable.",
-      "wissenSammelAbgelehnt": "{wert} documents rejected. They stay blocked and can be deleted."
+      "wissenSammelFreigegeben": "Approved and searchable: {wert} documents (details in the window).",
+      "wissenSammelAbgelehnt": "Rejected: {wert} documents. They stay blocked and can be deleted."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",

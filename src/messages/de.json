@@ -949,8 +949,8 @@
       "wissenAbgelehnt": "Dokument „{wert}“ abgelehnt. Es bleibt gesperrt und lässt sich löschen.",
       "wissenVerlaengert": "Dokument „{wert}“ verlängert und wieder durchsuchbar.",
       "wissenEingeordnet": "{wert} Dokumente eingeordnet.",
-      "wissenSammelFreigegeben": "{wert} Dokumente freigegeben und durchsuchbar.",
-      "wissenSammelAbgelehnt": "{wert} Dokumente abgelehnt. Sie bleiben gesperrt und lassen sich löschen."
+      "wissenSammelFreigegeben": "Freigegeben und durchsuchbar: {wert} Dokumente (Einzelheiten im Fenster).",
+      "wissenSammelAbgelehnt": "Abgelehnt: {wert} Dokumente. Sie bleiben gesperrt und lassen sich löschen."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
