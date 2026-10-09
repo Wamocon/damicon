@@ -1,0 +1,9 @@
+# Bekannte Altlasten fuer scripts/pruefe-drift.mjs (Datenbank-Drift-Check).
+#
+# Eine Migrationsversion je Zeile (14 Ziffern), danach "# Grund". Eine Version hier wird weder als
+# "angewendet ohne Datei" noch als "Datei nicht angewendet" gemeldet. Nur eintragen, wenn die
+# Abweichung bekannt, erklaert und nicht mehr zu beheben ist, zum Beispiel eine aeltere Migration,
+# die vor Einfuehrung der Dateien im Dashboard lief. Jede neue Zeile kommt mit Begruendung in den
+# Pull Request. Eine neue, unerklaerte Abweichung gehoert dagegen in eine Migrationsdatei.
+#
+# Stand: leer. Der erste Lauf gegen die gehostete Datenbank zeigt, ob Altlasten vorhanden sind.
