@@ -2492,6 +2492,7 @@
         "waehlen": "Select document",
         "schaltflaeche": {
           "sichere": "Select reliable suggestions",
+          "alle": "Select all suggestions ({anzahl})",
           "seite": "Select all on this page",
           "aufheben": "Clear selection",
           "pruefen": "Review classification ({anzahl})",

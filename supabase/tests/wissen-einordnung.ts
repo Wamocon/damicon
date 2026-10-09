@@ -165,6 +165,17 @@ function ersatz(zeilen: Zeile[]) {
 }
 void CLUSTER;
 
+// ---- Datenmigration der Bestandseinordnung (20261128000000): Art und Stufe stimmen mit den Regeln des Codes ueberein -------
+{
+  const sql = readFileSync("supabase/migrations/20261128000000_wissen_bestand_einordnung_pgvector.sql", "utf8");
+  const tupel = [...sql.matchAll(/^\s*\('((?:[^']|'')*)', '([a-z_]+)', (\d)::smallint\)/gm)].map((m) => ({ id: m[1]!, art: m[2]!, stufe: Number(m[3]) }));
+  pruefe("Bestandsmigration: 320 Dokumente mit eindeutiger Kennung", tupel.length === 320 && new Set(tupel.map((t) => t.id)).size === 320, String(tupel.length));
+  pruefe("Bestandsmigration: nur bekannte Quellenarten", tupel.every((t) => (QUELLENARTEN as readonly string[]).includes(t.art)));
+  pruefe("Bestandsmigration: die Stufe folgt der Quellenart (wie beim Upload)", tupel.every((t) => t.stufe === standardStufe(t.art as (typeof QUELLENARTEN)[number])));
+  pruefe("Bestandsmigration: jede Art passt zum Cluster Internet", tupel.every((t) => clusterPasst(t.art as (typeof QUELLENARTEN)[number], "internet")));
+  pruefe("Bestandsmigration: schreibt nur in Zeilen ohne Quellenart und nie in Uploads", /c\.quellenart is null/.test(sql) && /<> 'upload'/.test(sql) && !/\bdelete\b|\btruncate\b/i.test(sql.replace(/--.*$/gm, "")));
+}
+
 console.log(`\nPruefungen: ${bestanden + fehlgeschlagen}   bestanden: ${bestanden}   fehlgeschlagen: ${fehlgeschlagen}`);
 if (fehlgeschlagen > 0) process.exit(1);
 console.log("Alle Pruefungen bestanden.");

@@ -74,3 +74,23 @@ Grundlage: alle 320 Dokumente (5.655 Abschnitte) im Schema `public_preview`, rei
 | audit | Tax-Compliance-Managementsystem als Referenzmodell (Deutschland) | 1 | Linkfeld ist Freitext ohne Internetadresse: Herkunft nicht prüfbar |
 | audit | Agrarkreditkorporation: aufgedeckte Betrugsschemata bei Kreditnehmern | 1 | Schwache Konfidenz laut Recherche (niedrig, Details nicht extrahierbar); Linkfeld ist keine saubere Adresse (Liste oder Rechnername): bereinigen |
 
+
+## Einordnung durchgeführt (Migration 20261128000000)
+
+Auf Wunsch der Administration (09.10.2026) ist der gesamte Bestand in einem Schritt eingeordnet, ohne Auswahl je Dokument: `supabase/migrations/20261128000000_wissen_bestand_einordnung_pgvector.sql` (Datenänderung, wiederholbar, nur Zeilen ohne Quellenart, nie Uploads). Cluster ist immer Internet-Quelle, die Stufe folgt der Quellenart. Die Regeln stehen im Kopf der Migration, die Einordnung je Dokument steht in der Liste der Migration selbst.
+
+| Quellenart | Dokumente | Stufe |
+| --- | --- | --- |
+| Fachliteratur (Fachaufsätze, Gesetzesauszüge von Spiegelportalen, wissenschaftliche Quellen) | 79 | 4 |
+| Praxisbeitrag (Beratungen, Fachportale, internationale Organisationen, Berichte) | 78 | 4 |
+| Rechtsnorm (Gesetze, Kodizes, Verordnungen) | 44 | 1 |
+| Internetquelle (Presse, Rechner, Blogs, Wikipedia) | 31 | 5, Notbehelf |
+| Behördeninformation | 31 | 3 |
+| Internetrecherche (Arbeitsdokumente, Rohbefunde, KI-Literaturübersichten) | 29 | 5, Notbehelf |
+| Norm oder Standard (ISO, COSO, IIA, IFS, SQF, FSSC, GFSI, ISSAI) | 18 | 3 |
+| Forum (Bewertungsportale, Foren) | 5 | 5, Notbehelf |
+| Verwaltungsanweisung | 5 | 2 |
+
+**Wirkung auf die Suche.** Die Stufe folgt der Quellenart (wie bei jedem Upload): 23 Dokumente rücken in der Stufe nach oben (zum Beispiel Standards von 4 auf 3, amtliche Rechtsquellen von 4 auf 1), 57 rücken nach unten (vor allem Presse und Recherchematerial von 4 auf 5, Gesetzesauszüge von Spiegelportalen bleiben bei 4), 22 bisher ohne Stufe bekommen eine. Danach haben 98 Dokumente die Stufe 1 bis 3 (vorher 69). 65 Dokumente gelten als Notbehelf (nur, wenn es sonst nichts Tragendes gibt, und dann als ungesicherte Internetquelle gekennzeichnet), 64 als Hinweis (nie allein tragend). Für den Korpus-Bereich `fachquellen` gilt die strengste Regel der Art, deshalb wirken dort Praxisbeiträge als Hinweis.
+
+**Nicht entschieden und nicht getan:** Das Entfernen der 21 Kandidaten. Die Arbeitsdokumente der Recherche sind als Internetrecherche eingeordnet, damit sie nie als tragende Quelle erscheinen, bleiben aber in der Datenbank, bis über das Entfernen entschieden ist.

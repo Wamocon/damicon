@@ -175,6 +175,9 @@ export function WissenBestandEinordnen({ dokumente, beiFertig }: { dokumente: Wi
             <button type="button" onClick={() => waehleAus(offen.filter((d) => vorschlaege.get(d.schluessel)?.sicherheit === "hoch"))} className={`${knopfKlasse} border-border`}>
               {t("einordnen.schaltflaeche.sichere")}
             </button>
+            <button type="button" onClick={() => waehleAus(offen)} className={`${knopfKlasse} border-primary/40 text-primary`}>
+              {t("einordnen.schaltflaeche.alle", { anzahl: offen.filter((d) => vollstaendig(wahlVon(d))).length })}
+            </button>
             <button type="button" onClick={() => waehleAus(sichtbar)} className={`${knopfKlasse} border-border`}>
               {t("einordnen.schaltflaeche.seite")}
             </button>

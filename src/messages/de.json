@@ -2492,6 +2492,7 @@
         "waehlen": "Dokument auswählen",
         "schaltflaeche": {
           "sichere": "Sichere Vorschläge auswählen",
+          "alle": "Alle Vorschläge auswählen ({anzahl})",
           "seite": "Alle auf dieser Seite auswählen",
           "aufheben": "Auswahl aufheben",
           "pruefen": "Einordnung prüfen ({anzahl})",
