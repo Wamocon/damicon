@@ -19,7 +19,7 @@ import { stufeSchluessel } from "@/lib/wissen/belege";
 import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN, typischerClusterVon, type Cluster } from "@/lib/wissen/quellenart";
 import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
 import { WissenBuecher } from "@/components/db/wissen-buecher";
-import { schaetzeEin, type Einschaetzung } from "@/lib/wissen/einschaetzung";
+import { linkBrauchbar, schaetzeEin, type Einschaetzung } from "@/lib/wissen/einschaetzung";
 import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
 // Wissensverwaltung: Seite "Wissensbasis" im Bereich Administration (/dashboard/administration/wissensbasis). Admin-only:
@@ -289,9 +289,7 @@ function WissenDokumentKarte({
             <div className="sm:col-span-2">
               <dt className="inline font-semibold">{t("liste.link")}: </dt>
               <dd className="inline break-all">
-                <a href={dokument.url} target="_blank" rel="noreferrer noopener" className="underline">
-                  {dokument.url}
-                </a>
+                <QuellenLink url={dokument.url} />
               </dd>
             </div>
           ) : null}
@@ -596,9 +594,7 @@ function WissenPruefenKnopf({
               <div>
                 <dt className="inline font-semibold">{t("liste.link")}: </dt>
                 <dd className="inline break-all">
-                  <a href={dokument.url} target="_blank" rel="noreferrer noopener" className="underline">
-                    {dokument.url}
-                  </a>
+                  <QuellenLink url={dokument.url} />
                 </dd>
               </div>
             ) : null}
@@ -863,5 +859,31 @@ function WissenSammelLeiste({
         </div>
       </dialog>
     </div>
+  );
+}
+
+// Im Bestand steht im Linkfeld oft Freitext oder eine Liste von Quellen ("kodeksy-kz.com ; https://prg.kz/..."). Nur eine gueltige
+// Internetadresse wird zum Link; sonst steht der Text da, und ein darin enthaltener https-Link wird zusaetzlich angeboten.
+function QuellenLink({ url }: { url: string }) {
+  if (linkBrauchbar(url)) {
+    return (
+      <a href={url} target="_blank" rel="noreferrer noopener" className="underline">
+        {url}
+      </a>
+    );
+  }
+  const erster = url.match(/https?:\/\/[^\s;,]+/)?.[0];
+  return (
+    <>
+      {url}
+      {erster && linkBrauchbar(erster) ? (
+        <>
+          {" "}
+          <a href={erster} target="_blank" rel="noreferrer noopener" className="underline">
+            ↗
+          </a>
+        </>
+      ) : null}
+    </>
   );
 }
