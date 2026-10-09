@@ -14,6 +14,9 @@ import { entscheideUeberUpload, type FreigabeAktion } from "@/lib/wissen/freigab
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
 import { pruefeUploadUmgebung, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
 import { standardStufe } from "@/lib/wissen/quellenart";
+import { ladeAnbieterKette } from "@/lib/ai/anbieter-kette";
+import { kiAntworten } from "@/lib/wissen/analyse-ki-server";
+import type { KiAntwort } from "@/lib/wissen/analyse-ki";
 import { MAX_DATEI_BYTES } from "@/lib/wissen/upload-konstanten";
 import { istUploadQuelleId, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { supabaseSpeicher } from "@/lib/wissen/speicher-supabase";
@@ -491,4 +494,42 @@ export async function wissenDokumenteSammelPruefen(aktion: "freigeben" | "ablehn
   revalidatePath("/", "layout");
   const gut = ergebnisse.filter((e) => e.ok).length;
   return { stand: gut > 0 ? "ok" : "fehler", meldung: aktion === "freigeben" ? "ok.wissenSammelFreigegeben" : "ok.wissenSammelAbgelehnt", wert: String(gut), ergebnisse };
+}
+
+// ---- KI-Analyse beim Hochladen -------------------------------------------------------------------------------------------------------------
+// Die Oberflaeche rechnet die Heuristik (analyse.ts) selbst, sofort nach dem Lesen der Datei. Diese Action fragt zusaetzlich das Modell nach
+// einer Einordnung der Auszuege (Anfang, Mitte, Ende, rund 6.000 Zeichen je Datei). Das Modell sieht nie den ganzen Text und schreibt nie in die
+// Datenbank: Es liefert nur einen Vorschlag mit bekannten Werten, den die Administration vor dem Hochladen sieht und aendern kann.
+export interface KiAnalyseEingabe {
+  id: string;
+  dateiname: string;
+  auszug: string;
+}
+export interface KiAnalyseAntwort extends AktionsStatus {
+  /** Gibt es einen KI-Anbieter? Ohne ihn bleibt die Heuristik, ohne Fehlermeldung. */
+  verfuegbar: boolean;
+  ergebnisse: { id: string; ki: KiAntwort | null }[];
+}
+
+const KI_ANALYSE_MAX = 25;
+
+export async function wissenKiAnalyse(eingaben: KiAnalyseEingabe[]): Promise<KiAnalyseAntwort> {
+  const profil = await buchProfil();
+  if ("stand" in profil) return { ...profil, verfuegbar: false, ergebnisse: [] };
+  if (!Array.isArray(eingaben) || eingaben.length === 0 || eingaben.length > KI_ANALYSE_MAX) return { ...fehler("fehler.eingabe"), verfuegbar: false, ergebnisse: [] };
+  const sauber = eingaben
+    .filter((e) => e && typeof e.id === "string" && typeof e.dateiname === "string" && typeof e.auszug === "string" && e.auszug.trim().length > 0)
+    .map((e) => ({ id: e.id.slice(0, 40), dateiname: e.dateiname.slice(0, 300), text: e.auszug.slice(0, 8000) }));
+  if (sauber.length === 0) return { ...fehler("fehler.eingabe"), verfuegbar: false, ergebnisse: [] };
+  try {
+    pruefeUploadUmgebung();
+    const kette = await ladeAnbieterKette();
+    if (!kette) return { stand: "ok", verfuegbar: false, ergebnisse: [] };
+    const ergebnisse = await kiAntworten(sauber, kette.modell);
+    await protokolliere(profil, "wissen.analysiert", "wissen_chunks", null, { dokumente: sauber.length, mitKiAntwort: ergebnisse.filter((e) => e.ki !== null).length, anbieter: kette.primaer.name });
+    return { stand: "ok", verfuegbar: true, ergebnisse };
+  } catch (error) {
+    console.error("[damicon] KI-Analyse unerwartet fehlgeschlagen:", error);
+    return { stand: "ok", verfuegbar: false, ergebnisse: [] };
+  }
 }

@@ -2526,9 +2526,9 @@
       },
       "buecher": {
         "titel": "Bücher und lange Dokumente hochladen",
-        "lead": "Für Bücher als PDF mit Textebene (zum Beispiel nach OCR), Markdown und Text, beliebig lang und mehrere auf einmal. Der Browser liest die Datei selbst und schickt nur den Text in Paketen. Die Datei verlässt Ihren Rechner nicht. Jedes Buch wartet danach auf die Freigabe durch eine zweite Person.",
+        "lead": "Für Bücher als PDF mit Textebene (zum Beispiel nach OCR), Markdown und Text, beliebig lang und mehrere auf einmal. Sie wählen nur den Cluster. Bereich, Quellenart und Textgrundlage schlägt die Analyse je Buch vor, Sie prüfen und ändern, was nicht stimmt. Der Browser liest die Datei selbst und schickt nur den Text in Paketen, die Datei verlässt Ihren Rechner nicht. Jedes Buch wartet danach auf die Freigabe durch eine zweite Person.",
         "dateien": "Dateien (mehrere möglich)",
-        "dateienHinweis": "PDF, Markdown oder Text. Der Titel entsteht aus dem Dateinamen und lässt sich je Buch ändern. Gleiche Inhalte werden als Dublette erkannt.",
+        "dateienHinweis": "PDF, Markdown oder Text. Der Titel entsteht aus dem Dateinamen und lässt sich je Buch ändern, ebenso Bereich, Quellenart und Textgrundlage. Gleiche Inhalte werden als Dublette erkannt.",
         "titelFeld": "Titel",
         "entfernen": "Entfernen",
         "seite": "Seite {seite} von {seiten}",
@@ -2548,7 +2548,11 @@
           "fertig": "Hochgeladen",
           "fehler": "Fehler",
           "abgebrochen": "Abgebrochen"
-        }
+        },
+        "clusterHinweis": "Der Weg, auf dem die Bücher zum Betrieb kamen. Gilt für alle Dateien dieser Auswahl.",
+        "kiAn": "Mit KI analysieren",
+        "kiHinweis": "Die Regeln der Analyse laufen immer, im Browser. Zusätzlich fragt die KI nach einer Einordnung. Dafür gehen je Datei ein Auszug von rund 6.000 Zeichen (Anfang, Mitte, Ende) und der Dateiname an den eingestellten KI-Anbieter. Ohne Anbieter bleibt es bei den Regeln.",
+        "angabenFehlen": "Bitte Bereich, Quellenart und Textgrundlage prüfen: Die Kombination ist nicht zulässig oder ein Link fehlt."
       },
       "guete": {
         "note": {
@@ -2614,6 +2618,38 @@
         "schliessen": "Schließen",
         "ergebnisTitel": "Ergebnis",
         "erledigt": "erledigt"
+      },
+      "analyse": {
+        "sicherheit": {
+          "hoch": "Sicherer Vorschlag",
+          "mittel": "Vorschlag prüfen",
+          "niedrig": "Unsicher, bitte ansehen"
+        },
+        "kiLaeuft": "KI analysiert …",
+        "vonKi": "Einordnung durch die KI",
+        "nurRegeln": "Nur nach Regeln eingeordnet (kein KI-Anbieter erreichbar)",
+        "vonRegeln": "Einordnung nach Regeln",
+        "grund": {
+          "bereichRecht": "viele Rechtsbegriffe",
+          "bereichSteuer": "viele Steuerbegriffe",
+          "bereichCompliance": "viele Compliance-Begriffe",
+          "bereichAudit": "viele Prüfungs- und Zertifizierungsbegriffe",
+          "bereichRisiko": "viele Risikobegriffe",
+          "bereichUnklar": "Bereich nicht erkennbar",
+          "artRechtsnorm": "viele Artikel wie in einem Gesetz",
+          "artRechtsprechung": "Urteil oder Beschluss",
+          "artStandard": "Norm oder Standard",
+          "artBuch": "Aufbau und Umfang eines Buchs",
+          "artNachschlagewerk": "Lexikon oder Wörterbuch",
+          "artBehoerde": "Auskunft einer Behörde",
+          "artPraxis": "Praxisbeitrag, Studie oder Leitlinie",
+          "artIntern": "interne Anweisung",
+          "artKurz": "kurzer Text",
+          "artUnklar": "Art nicht eindeutig",
+          "uebersetzungHinweis": "Hinweis auf eine Übersetzung",
+          "uebersetzungMaschinell": "Hinweis auf maschinelle Übersetzung",
+          "uebersetzungAmtlich": "Hinweis auf amtliche Übersetzung"
+        }
       }
     },
     "sprachmodus": {

@@ -2526,9 +2526,9 @@
       },
       "buecher": {
         "titel": "Upload books and long documents",
-        "lead": "For books as PDF with a text layer (for example after OCR), Markdown and text, any length and several at once. Your browser reads the file itself and sends only the text in packages. The file never leaves your computer. Each book then waits for approval by a second person.",
+        "lead": "For books as PDF with a text layer (for example after OCR), Markdown and text, any length and several at once. You only choose the cluster. The analysis suggests area, source type and text basis for each book, you check and change what is wrong. Your browser reads the file itself and sends only the text in packages, the file never leaves your computer. Each book then waits for approval by a second person.",
         "dateien": "Files (several possible)",
-        "dateienHinweis": "PDF, Markdown or text. The title is taken from the file name and can be changed per book. Identical content is recognised as a duplicate.",
+        "dateienHinweis": "PDF, Markdown or text. The title is taken from the file name and can be changed per book, as can area, source type and text basis. Identical content is recognised as a duplicate.",
         "titelFeld": "Title",
         "entfernen": "Remove",
         "seite": "Page {seite} of {seiten}",
@@ -2548,7 +2548,11 @@
           "fertig": "Uploaded",
           "fehler": "Error",
           "abgebrochen": "Cancelled"
-        }
+        },
+        "clusterHinweis": "The way the books came to the farm. Applies to all files of this selection.",
+        "kiAn": "Analyse with AI",
+        "kiHinweis": "The analysis rules always run, in the browser. In addition the AI is asked for a classification. For this an excerpt of about 6,000 characters per file (start, middle, end) and the file name go to the configured AI provider. Without a provider only the rules apply.",
+        "angabenFehlen": "Please check area, source type and text basis: the combination is not allowed or a link is missing."
       },
       "guete": {
         "note": {
@@ -2614,6 +2618,38 @@
         "schliessen": "Close",
         "ergebnisTitel": "Result",
         "erledigt": "done"
+      },
+      "analyse": {
+        "sicherheit": {
+          "hoch": "Confident suggestion",
+          "mittel": "Check suggestion",
+          "niedrig": "Uncertain, please look"
+        },
+        "kiLaeuft": "AI is analysing …",
+        "vonKi": "Classified by the AI",
+        "nurRegeln": "Classified by rules only (no AI provider reachable)",
+        "vonRegeln": "Classified by rules",
+        "grund": {
+          "bereichRecht": "many legal terms",
+          "bereichSteuer": "many tax terms",
+          "bereichCompliance": "many compliance terms",
+          "bereichAudit": "many audit and certification terms",
+          "bereichRisiko": "many risk terms",
+          "bereichUnklar": "area not recognisable",
+          "artRechtsnorm": "many articles as in a law",
+          "artRechtsprechung": "judgment or ruling",
+          "artStandard": "norm or standard",
+          "artBuch": "structure and size of a book",
+          "artNachschlagewerk": "encyclopedia or dictionary",
+          "artBehoerde": "information from an authority",
+          "artPraxis": "practice paper, study or guideline",
+          "artIntern": "internal instruction",
+          "artKurz": "short text",
+          "artUnklar": "type not clear",
+          "uebersetzungHinweis": "note of a translation",
+          "uebersetzungMaschinell": "note of machine translation",
+          "uebersetzungAmtlich": "note of official translation"
+        }
       }
     },
     "sprachmodus": {
