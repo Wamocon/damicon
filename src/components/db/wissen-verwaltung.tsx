@@ -16,10 +16,12 @@ import {
 import { leer, type AktionsStatus } from "@/lib/actions/status";
 import { ohneEinordnung, type WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 import { stufeSchluessel } from "@/lib/wissen/belege";
-import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN, typischerClusterVon, type Cluster } from "@/lib/wissen/quellenart";
+import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN, typischerClusterVon } from "@/lib/wissen/quellenart";
 import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
 import { WissenBuecher } from "@/components/db/wissen-buecher";
 import { WissenUmordnenKnopf } from "@/components/db/wissen-umordnen";
+import { WissenListenFilter } from "@/components/db/wissen-liste-filter";
+import { filtere, KEIN_FILTER, type ListenFilter } from "@/lib/wissen/listen-filter";
 import { linkBrauchbar, schaetzeEin, type Einschaetzung } from "@/lib/wissen/einschaetzung";
 import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
@@ -39,7 +41,7 @@ export function WissenVerwaltung() {
   const [fehlerDetail, setFehlerDetail] = useState<string | null>(null);
   const [abgeschnitten, setAbgeschnitten] = useState(false);
   const [aktionsMeldung, setAktionsMeldung] = useState<AktionsStatus>(leer);
-  const [filter, setFilter] = useState<ListenFilter>("alle");
+  const [filter, setFilter] = useState<ListenFilter>(KEIN_FILTER);
   const [gewaehlt, setGewaehlt] = useState<ReadonlySet<string>>(new Set());
   const [, starte] = useTransition();
 
@@ -60,8 +62,10 @@ export function WissenVerwaltung() {
     lade();
   }, [lade]);
 
-  const sichtbar = (dokumente ?? []).filter((d) => passtZumFilter(d, filter));
+  const sichtbar = filtere(dokumente ?? [], filter);
   const pruefbar = (dokumente ?? []).filter((d) => kannIchPruefen(d, ichId));
+  // Ausgewaehlt und freigegeben oder abgelehnt wird nur, was die Liste gerade zeigt: Was der Filter ausblendet, bleibt unberuehrt.
+  const sichtbarePruefbar = sichtbar.filter((d) => kannIchPruefen(d, ichId));
   const schalte = (schluessel: string) =>
     setGewaehlt((alt) => {
       const neu = new Set(alt);
@@ -95,10 +99,11 @@ export function WissenVerwaltung() {
           <Card className="text-center text-xs text-muted-foreground">{t("liste.leer")}</Card>
         ) : (
           <>
-            <ClusterFilter dokumente={dokumente} filter={filter} beiAuswahl={setFilter} />
+            <WissenListenFilter dokumente={dokumente} filter={filter} beiAenderung={setFilter} anzahlSichtbar={sichtbar.length} />
             {/* Immer eingehaengt: Das Ergebnisfenster der Sammelpruefung soll nach dem Neuladen stehen bleiben, auch wenn danach nichts mehr wartet. */}
             <WissenSammelLeiste
               pruefbar={pruefbar}
+              sichtbarePruefbar={sichtbarePruefbar}
               gewaehlt={gewaehlt}
               beiAuswahl={setGewaehlt}
               beiFertig={(status) => {
@@ -128,59 +133,6 @@ export function WissenVerwaltung() {
           </>
         )}
       </div>
-    </div>
-  );
-}
-
-// Filter der Liste: alles, ein Cluster oder der Bestand ohne Einordnung. Die Zaehler stehen an den Knoepfen, damit man
-// sieht, wie viel der Wissensbasis schon eingeordnet ist (Bestand aus der Zeit vor der Typisierung hat keine Quellenart).
-type ListenFilter = "alle" | Cluster | "ohne";
-
-function passtZumFilter(dokument: WissenDokumentZeile, filter: ListenFilter): boolean {
-  if (filter === "alle") return true;
-  return filter === "ohne" ? ohneEinordnung(dokument) : dokument.cluster === filter;
-}
-
-function ClusterFilter({
-  dokumente,
-  filter,
-  beiAuswahl,
-}: {
-  dokumente: WissenDokumentZeile[];
-  filter: ListenFilter;
-  beiAuswahl: (filter: ListenFilter) => void;
-}) {
-  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
-  const tCluster = useTranslations("kiAssistentAnsicht.wissensVerwaltung.cluster");
-  const anzahl = (f: ListenFilter) => dokumente.filter((d) => passtZumFilter(d, f)).length;
-  const eintraege: { wert: ListenFilter; text: string }[] = [
-    { wert: "alle", text: t("liste.filterAlle") },
-    ...CLUSTER.map((c) => ({ wert: c as ListenFilter, text: tCluster(c) })),
-    { wert: "ohne", text: t("liste.ohneEinordnung") },
-  ];
-
-  return (
-    <div className="mb-2 space-y-1.5">
-      <div role="group" aria-label={t("liste.filter")} className="flex flex-wrap gap-1.5">
-        {eintraege.map((e) => {
-          const aktiv = filter === e.wert;
-          return (
-            <button
-              key={e.wert}
-              type="button"
-              aria-pressed={aktiv}
-              onClick={() => beiAuswahl(e.wert)}
-              className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold transition ${
-                aktiv ? "border-primary bg-primary text-primary-foreground" : "border-border text-card-foreground hover:border-primary/50"
-              }`}
-            >
-              {e.text}
-              <span className={`tabular-nums ${aktiv ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{anzahl(e.wert)}</span>
-            </button>
-          );
-        })}
-      </div>
-      {anzahl("ohne") > 0 ? <p className="text-[11px] leading-4 text-muted-foreground">{t("liste.ohneEinordnungHinweis")}</p> : null}
     </div>
   );
 }
@@ -748,11 +700,14 @@ function EinschaetzungGruende({ einschaetzung, mitUeberschrift = false }: { eins
 // Dokument stehen danach im Fenster (zum Beispiel, wenn ein Dokument inzwischen anders entschieden wurde).
 function WissenSammelLeiste({
   pruefbar,
+  sichtbarePruefbar,
   gewaehlt,
   beiAuswahl,
   beiFertig,
 }: {
   pruefbar: WissenDokumentZeile[];
+  /** Davon die, die der Filter gerade zeigt: Nur auf sie wirken "Alle auswaehlen", "Nur Empfohlene" und die Entscheidung. */
+  sichtbarePruefbar: WissenDokumentZeile[];
   gewaehlt: ReadonlySet<string>;
   beiAuswahl: (neu: ReadonlySet<string>) => void;
   beiFertig: (status: AktionsStatus) => void;
@@ -764,8 +719,8 @@ function WissenSammelLeiste({
   const [laeuft, starte] = useTransition();
   const [ergebnis, setErgebnis] = useState<SammelErgebnis | null>(null);
   const [liste, setListe] = useState<WissenDokumentZeile[]>([]);
-  const empfohlen = pruefbar.filter((d) => schaetzeEin(d).empfehlung === "freigeben");
-  const auswahl = pruefbar.filter((d) => gewaehlt.has(d.schluessel));
+  const empfohlen = sichtbarePruefbar.filter((d) => schaetzeEin(d).empfehlung === "freigeben");
+  const auswahl = sichtbarePruefbar.filter((d) => gewaehlt.has(d.schluessel));
 
   const oeffne = (neu: "freigeben" | "ablehnen") => {
     setAktion(neu);
@@ -790,7 +745,7 @@ function WissenSammelLeiste({
       <p className="text-[11px] font-semibold text-card-foreground">{t("titel", { anzahl: pruefbar.length })}</p>
       <p className="text-[11px] text-muted-foreground">{t("lead")}</p>
       <div className="flex flex-wrap items-center gap-1.5">
-        <button type="button" className={`${knopf} border-border`} onClick={() => beiAuswahl(new Set(pruefbar.map((d) => d.schluessel)))}>
+        <button type="button" className={`${knopf} border-border`} onClick={() => beiAuswahl(new Set(sichtbarePruefbar.map((d) => d.schluessel)))}>
           {t("alle")}
         </button>
         <button type="button" disabled={empfohlen.length === 0} className={`${knopf} border-border`} onClick={() => beiAuswahl(new Set(empfohlen.map((d) => d.schluessel)))}>

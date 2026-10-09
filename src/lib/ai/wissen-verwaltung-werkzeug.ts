@@ -6,6 +6,8 @@ import { hasPermission, type Role } from "@/lib/rbac";
 import { analysiereDokument } from "@/lib/wissen/analyse";
 import { gruppiereWissenDokumente, ohneEinordnung, type WissenDokumentZeile, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
 import { schaetzeEin } from "@/lib/wissen/einschaetzung";
+import { filtere, HERKUENFTE, KEIN_FILTER, STATUS_FILTER, VERLAESSLICHKEITEN, verlaesslichkeitVon, type ListenFilter } from "@/lib/wissen/listen-filter";
+import { CLUSTER, QUELLENARTEN } from "@/lib/wissen/quellenart";
 import { bereichSchluessel } from "@/lib/wissen/upload-konstanten";
 
 // Werkzeuge fuer die VERWALTUNG der Wissensbasis (Hochladen, Einordnen, Analysieren), nur fuer die Administration (ki_assistent:manage). Sie lesen
@@ -105,23 +107,33 @@ export function baueWissenVerwaltungWerkzeuge(rolle: Role | null | undefined) {
   const wissensbasisAbrufen = tool({
     description:
       "Überblick über die Wissensbasis für die Verwaltung: Zahl der Dokumente und Abschnitte, Verteilung nach Cluster, Quellenart und Bereich, wie viele Dokumente noch ohne Einordnung sind, auf Prüfung warten, unvollständig oder abgelaufen sind, und die Liste der Dokumente (mit Kennung, Einordnung, Nutzung und bei wartenden Dokumenten Empfehlung und Gründe). " +
-      "Filtere mit suche (Teil des Titels), nurWartend oder nurOhneEinordnung. Nutze es bei Fragen wie 'Was ist in der Wissensbasis?', 'Was wartet auf Prüfung?', 'Welche Dokumente sind nicht eingeordnet?'.",
+      "Filtere wie die Liste der Verwaltung: suche (Teil des Titels), bereich, quellenart, verlaesslichkeit (amtlich = Gesetz, Urteil, Erlass, Behörde; sicher = tragende Quelle, schließt amtliche ein; hinweis = nur als Hinweis; unsicher = ungesicherte Internetquelle, nur Notbehelf; ohne = nicht eingeordnet), status (wartet, freigegeben, abgelehnt, unvollstaendig, abgelaufen), cluster und herkunft. 'Bereich' ist das Sachgebiet der Wissensbasis, keine Zone der Anwendung. Nutze es bei Fragen wie 'Was ist in der Wissensbasis?', 'Was wartet auf Prüfung?', 'Welche Quellen sind unsicher?', 'Was haben wir amtlich zu Steuern?'.",
     inputSchema: z.object({
       suche: z.string().max(120).optional().describe("Teil des Titels"),
-      nurWartend: z.boolean().optional().describe("Nur Dokumente, die auf Freigabe warten"),
-      nurOhneEinordnung: z.boolean().optional().describe("Nur Dokumente ohne Quellenart oder Cluster"),
+      nurWartend: z.boolean().optional().describe("Kurzform für status wartet"),
+      nurOhneEinordnung: z.boolean().optional().describe("Kurzform für verlaesslichkeit ohne"),
+      bereich: z.string().max(40).optional().describe("recht, steuer, compliance, audit, risiko oder ein Bestandsbereich (amtlich, fachquellen, kernwissen)"),
+      quellenart: z.enum(QUELLENARTEN).optional(),
+      verlaesslichkeit: z.enum(VERLAESSLICHKEITEN).optional(),
+      status: z.enum(STATUS_FILTER).optional(),
+      cluster: z.enum(CLUSTER).optional(),
+      herkunft: z.enum(HERKUENFTE).optional().describe("upload (hochgeladen) oder skript (Bestand)"),
       limit: z.number().int().min(1).max(40).optional().describe("Höchstens so viele Dokumente in der Liste (Standard 15)"),
     }),
-    execute: async ({ suche, nurWartend, nurOhneEinordnung, limit }) => {
+    execute: async ({ suche, nurWartend, nurOhneEinordnung, bereich, quellenart, verlaesslichkeit, status, cluster, herkunft, limit }) => {
       try {
         const alle = await ladeDokumente();
-        let sicht = alle;
-        if (suche) {
-          const worte = suche.toLowerCase().split(/\s+/).filter(Boolean);
-          sicht = sicht.filter((d) => worte.every((w) => (d.titel ?? "").toLowerCase().includes(w)));
-        }
-        if (nurWartend) sicht = sicht.filter((d) => d.herkunft === "upload" && d.pruefstatus === "ungeprueft");
-        if (nurOhneEinordnung) sicht = sicht.filter(ohneEinordnung);
+        const filter: ListenFilter = {
+          ...KEIN_FILTER,
+          suche: suche ?? "",
+          bereich: bereich ? bereichSchluessel(bereich.trim().toLowerCase() === "recht" ? "legal" : bereich.trim().toLowerCase()) : null,
+          art: quellenart ?? null,
+          verlaesslichkeit: verlaesslichkeit ?? (nurOhneEinordnung ? "ohne" : null),
+          status: status ?? (nurWartend ? "wartet" : null),
+          cluster: cluster ?? null,
+          herkunft: herkunft ?? null,
+        };
+        const sicht = filtere(alle, filter);
         const grenze = limit ?? 15;
         return {
           gesamt: { dokumente: alle.length, abschnitte: alle.reduce((n, d) => n + d.chunks, 0) },
@@ -134,7 +146,9 @@ export function baueWissenVerwaltungWerkzeuge(rolle: Role | null | undefined) {
           abgelaufen: alle.filter((d) => d.abgelaufen).length,
           alsNotbehelf: alle.filter((d) => d.nutzung === "notfalls").length,
           alsHinweis: alle.filter((d) => d.nutzung === "hinweis").length,
+          filter: { ...filter, suche: filter.suche || undefined },
           treffer: sicht.length,
+          trefferNachVerlaesslichkeit: Object.fromEntries(VERLAESSLICHKEITEN.map((v) => [v, sicht.filter((d) => verlaesslichkeitVon(d, v)).length])),
           dokumente: sicht.slice(0, grenze).map(kurz),
           gekuerzt: sicht.length > grenze,
         };

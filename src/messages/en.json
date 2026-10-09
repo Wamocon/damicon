@@ -2713,6 +2713,34 @@
         "wiedervorlage": "The review date is reset: {monate} months from today.",
         "urlFehlt": "A link is required for this source type, but the document has no valid link.",
         "vierAugen": "This document is approved and was uploaded by you. A second person changes area, source type and text basis (four-eyes principle). The cluster can be changed."
+      },
+      "filter": {
+        "suche": "Search in title",
+        "suchePlatzhalter": "for example tax code",
+        "bereich": "Area",
+        "art": "Source type",
+        "verlaesslichkeit": "Reliability",
+        "status": "Status",
+        "herkunft": "Origin",
+        "rolle": "Visible to",
+        "alle": "All",
+        "verlaesslichkeitOption": {
+          "amtlich": "Official (law, ruling, decree, authority)",
+          "sicher": "Reliable (primary source)",
+          "hinweis": "Indicative only",
+          "unsicher": "Unreliable (internet source, last resort only)",
+          "ohne": "Not classified"
+        },
+        "statusOption": {
+          "wartet": "Waiting for approval",
+          "freigegeben": "Approved",
+          "abgelehnt": "Rejected",
+          "unvollstaendig": "Incompletely uploaded",
+          "abgelaufen": "Review due"
+        },
+        "ergebnis": "{anzahl} of {gesamt} documents",
+        "zuruecksetzen": "Reset filters ({anzahl})",
+        "hinweisVerlaesslichkeit": "Reliable includes official sources. The assistant uses unreliable sources only when nothing solid exists, and labels them."
       }
     },
     "sprachmodus": {

@@ -2713,6 +2713,34 @@
         "wiedervorlage": "Die Wiedervorlage wird neu gesetzt: {monate} Monate ab heute.",
         "urlFehlt": "Für diese Quellenart ist ein Link Pflicht, das Dokument hat aber keinen gültigen Link.",
         "vierAugen": "Dieses Dokument ist freigegeben und stammt von Ihnen. Bereich, Quellenart und Textgrundlage ändert eine zweite Person (Vier-Augen-Prinzip). Der Cluster lässt sich ändern."
+      },
+      "filter": {
+        "suche": "Suche im Titel",
+        "suchePlatzhalter": "zum Beispiel Steuerkodex",
+        "bereich": "Bereich",
+        "art": "Quellenart",
+        "verlaesslichkeit": "Verlässlichkeit",
+        "status": "Status",
+        "herkunft": "Herkunft",
+        "rolle": "Sichtbar für",
+        "alle": "Alle",
+        "verlaesslichkeitOption": {
+          "amtlich": "Amtlich (Gesetz, Urteil, Erlass, Behörde)",
+          "sicher": "Sicher (tragende Quelle)",
+          "hinweis": "Nur als Hinweis",
+          "unsicher": "Unsicher (Internetquelle, nur Notbehelf)",
+          "ohne": "Nicht eingeordnet"
+        },
+        "statusOption": {
+          "wartet": "Wartet auf Freigabe",
+          "freigegeben": "Freigegeben",
+          "abgelehnt": "Abgelehnt",
+          "unvollstaendig": "Unvollständig hochgeladen",
+          "abgelaufen": "Prüfung fällig"
+        },
+        "ergebnis": "{anzahl} von {gesamt} Dokumenten",
+        "zuruecksetzen": "Filter zurücksetzen ({anzahl})",
+        "hinweisVerlaesslichkeit": "Sicher schließt amtliche Quellen ein. Unsichere Quellen nutzt der Assistent nur, wenn es nichts Tragendes gibt, und kennzeichnet sie."
       }
     },
     "sprachmodus": {

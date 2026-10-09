@@ -18,6 +18,7 @@ import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { tokens } from "@/lib/wissen/sparse";
 import { schaetzeEin } from "@/lib/wissen/einschaetzung";
 import { gruppiereWissenDokumente } from "@/lib/wissen/dokumente-liste";
+import { aktiveFilter, filtere, KEIN_FILTER, zaehleMit, type ListenFilter } from "@/lib/wissen/listen-filter";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 
 let gesamt = 0;
@@ -298,6 +299,36 @@ async function rest() {
     pruefe("Liste: ein fehlendes Paket macht das Buch unvollständig", fehlt[0]!.unvollstaendig === true && fehlt[0]!.paketeDa === 2);
     const einzeln = gruppiereWissenDokumente([{ ...basis, paket: null, pakete_gesamt: null }, { ...basis, id: "j", paket: null, pakete_gesamt: null }]);
     pruefe("Liste: Zeilen ohne Anzahl zählen einzeln", einzeln[0]!.chunks === 2);
+  }
+
+  // ---- Filter der Liste -------------------------------------------------------------------------------------
+  {
+    const z = (teil: Partial<WissenDokumentZeile>): WissenDokumentZeile =>
+      ({ schluessel: "k", schluesselSpalte: "quelle_id", titel: "Dokument", bereich: "legal", rollen: ["admin", "buchhaltung"], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 5, herkunft: "skript", loeschbar: false, quellenart: "fachliteratur", cluster: "buecher", textgrundlage: "original", stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], abgelaufen: false, url: null, ...teil }) as WissenDokumentZeile;
+    const gesetz = z({ schluessel: "g", titel: "Steuerkodex 2026", bereich: "steuer", quellenart: "rechtsnorm", cluster: "internet", stufe: 1 });
+    const behoerde = z({ schluessel: "b", titel: "KGD Merkblatt", bereich: "amtlich", quellenart: "behoerdeninfo", cluster: "internet", stufe: 3 });
+    const buch = z({ schluessel: "u", titel: "Umsatzsteuer Handbuch", bereich: "steuer", herkunft: "upload", pruefstatus: "ungeprueft" });
+    const forum = z({ schluessel: "f", titel: "Erfahrungsbericht Forum", bereich: "legal", quellenart: "forum", cluster: "internet", stufe: 5, nutzung: "notfalls", rollen: ["admin"] });
+    const praxis = z({ schluessel: "p", titel: "Whitepaper Datenschutz", bereich: "compliance", quellenart: "praxisbeitrag", nutzung: "hinweis" });
+    const offen = z({ schluessel: "o", titel: "Alter Bestand", quellenart: null, cluster: null, stufe: 1, nutzung: "ja" });
+    const halb = z({ schluessel: "h", titel: "Halbes Buch", herkunft: "upload", pruefstatus: "ungeprueft", unvollstaendig: true, paketeGesamt: 3, paketeDa: 1 });
+    const alt = z({ schluessel: "a", titel: "Abgelaufene Quelle", pruefenBis: "2020-01-01", abgelaufen: true, quellenart: "internetquelle", nutzung: "notfalls", cluster: "internet" });
+    const alle = [gesetz, behoerde, buch, forum, praxis, offen, halb, alt];
+    const ids = (f: Partial<ListenFilter>) => filtere(alle, { ...KEIN_FILTER, ...f }).map((d) => d.schluessel).sort().join("");
+
+    pruefe("Filter: ohne Filter bleibt alles", filtere(alle, KEIN_FILTER).length === alle.length && aktiveFilter(KEIN_FILTER) === 0);
+    pruefe("Filter amtlich: Rechtsnorm und Behörde, dazu Bestand ohne Quellenart mit Stufe 1 bis 3", ids({ verlaesslichkeit: "amtlich" }) === "bgo");
+    pruefe("Filter sicher: alles mit Nutzung ja (schließt amtliche Quellen ein)", ids({ verlaesslichkeit: "sicher" }) === "bghou");
+    pruefe("Filter Hinweis und unsicher", ids({ verlaesslichkeit: "hinweis" }) === "p" && ids({ verlaesslichkeit: "unsicher" }) === "af");
+    pruefe("Filter nicht eingeordnet", ids({ verlaesslichkeit: "ohne" }) === "o");
+    pruefe("Filter Bereich: gespeichertes legal heißt recht, Bestandsbereiche bleiben", ids({ bereich: "recht" }) === "afho" && ids({ bereich: "amtlich" }) === "b" && ids({ bereich: "steuer" }) === "gu");
+    pruefe("Filter Status: wartet (ohne unvollständige), unvollständig, abgelaufen, freigegeben", ids({ status: "wartet" }) === "u" && ids({ status: "unvollstaendig" }) === "h" && ids({ status: "abgelaufen" }) === "a" && !ids({ status: "freigegeben" }).includes("a") && !ids({ status: "freigegeben" }).includes("u"));
+    pruefe("Filter Herkunft, Rolle und Quellenart", ids({ herkunft: "upload" }) === "hu" && ids({ rolle: "buchhaltung" }) === "abghopu" && ids({ art: "forum" }) === "f");
+    pruefe("Filter Cluster und nicht eingeordnet", ids({ cluster: "internet" }) === "abfg" && ids({ cluster: "ohne" }) === "o");
+    pruefe("Suche: ohne Groß- und Kleinschreibung, alle Wörter müssen vorkommen", ids({ suche: "steuerkodex" }) === "g" && ids({ suche: "UMSATZ handbuch" }) === "u" && ids({ suche: "steuerkodex handbuch" }) === "");
+    pruefe("Filter zusammen: Bereich Steuern und amtlich", ids({ bereich: "steuer", verlaesslichkeit: "amtlich" }) === "g");
+    pruefe("Filter: Zahl der gesetzten Filter", aktiveFilter({ ...KEIN_FILTER, bereich: "steuer", suche: "x" }) === 2);
+    pruefe("Zähler: so viele Treffer hätte ein Filter bei sonst gleichen Einstellungen", zaehleMit(alle, { ...KEIN_FILTER, bereich: "steuer" }, "verlaesslichkeit", "amtlich") === 1 && zaehleMit(alle, KEIN_FILTER, "cluster", "ohne") === 1);
   }
 
   // ---- Einschaetzung --------------------------------------------------------------------------------

@@ -213,6 +213,14 @@ async function main() {
     const unbekannt = (await (werkzeuge.wissenDokumentAnalysieren.execute as unknown as Ausfuehren)({ dokumente: ["gibt es nicht xyz"] }, optionen)) as { fehler?: string };
     pruefe("Assistent: ein unbekanntes Dokument wird gemeldet, nicht erfunden", unbekannt.fehler === "nicht-gefunden");
 
+    // Filter des Assistenten: dieselben Begriffe wie die Liste der Verwaltung
+    type Gefiltert = { treffer: number; dokumente: { schluessel: string }[]; trefferNachVerlaesslichkeit: Record<string, number> };
+    const amtlichSteuer = (await (werkzeuge.wissensbasisAbrufen.execute as unknown as Ausfuehren)({ suche: "Umordnen", verlaesslichkeit: "amtlich" }, optionen)) as Gefiltert;
+    pruefe("Assistent: Filter amtlich findet das als Rechtsnorm eingeordnete Bestandsdokument, nicht das Buch", amtlichSteuer.treffer === 1 && amtlichSteuer.dokumente[0]?.schluessel === BESTAND);
+    const nachBereich = (await (werkzeuge.wissensbasisAbrufen.execute as unknown as Ausfuehren)({ suche: "Umordnen", bereich: "recht" }, optionen)) as Gefiltert;
+    pruefe("Assistent: Filter nach Bereich (recht heißt gespeichert legal) und nach Status", nachBereich.treffer === 1 && nachBereich.dokumente[0]?.schluessel === quelleId && ((await (werkzeuge.wissensbasisAbrufen.execute as unknown as Ausfuehren)({ suche: "Umordnen", status: "abgelehnt" }, optionen)) as Gefiltert).treffer === 0);
+    pruefe("Assistent: die Antwort nennt die Zahl der Treffer je Verlässlichkeit", typeof nachBereich.trefferNachVerlaesslichkeit.sicher === "number");
+
     // ---- Liste ------------------------------------------------------------------------------------------------------------------------------------
     const { data: liste, error: listeFehler } = await dienst.rpc("wissen_liste");
     if (listeFehler) throw new Error(listeFehler.message);

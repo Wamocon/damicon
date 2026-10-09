@@ -79,6 +79,18 @@ Der Upload nutzt dieselben Funktionen wie das Skript: `chunkiere`, `wissenEinbet
 
 **Liste.** Zeigt Titel, Bereich, Rollen, Datum (`eingelesen_am`), Hochgeladen von und Anzahl der Abschnitte. Per Skript eingelesene Dokumente erscheinen mit, gruppiert nach `quelle_id`. Die Liste fasst die Textstellen in der Datenbank zusammen (Funktion `wissen_liste()`, Migration `20261127000000`): Zeilen mit gleichen Listenspalten werden zu einer Zeile mit Anzahl, und die Antwort ist ein einzelner jsonb-Wert, für den die Grenze von PostgREST (1000 Zeilen je Antwort) nicht gilt. Ein Buch ergibt eine Zeile je Paket, der Bestand etwa eine je Dokument. Fehlt die Funktion noch (Code vor Migration), liest die Liste wie früher seitenweise, höchstens 50.000 Textstellen, und weist bei Überschreitung rot darauf hin.
 
+**Filter.** Über der Liste stehen die Cluster als Schaltflächen und darunter Suche im Titel und Auswahlfelder für **Bereich**, **Verlässlichkeit**, **Quellenart**, **Status**, **Herkunft** und **Sichtbar für** (Rolle); die Filter gelten zusammen. Die Zahl hinter jedem Eintrag zeigt, wie viele Dokumente der Filter bei sonst gleichen Einstellungen trifft, "n von N Dokumenten" und "Filter zurücksetzen" stehen darunter. Die Begriffe sind in `src/lib/wissen/listen-filter.ts` festgelegt, die der Assistent (`wissensbasisAbrufen`) mitbenutzt:
+
+| Verlässlichkeit | Gilt für |
+| --- | --- |
+| amtlich | Quellenart Rechtsnorm, Rechtsprechung, Verwaltungsanweisung oder Behördeninformation; Bestand ohne Quellenart: bisherige Stufe 1 bis 3 |
+| sicher | Nutzung "ja" in ihrem Bereich (tragende Quelle), schließt die amtlichen ein |
+| hinweis | Nutzung "Hinweis": wird genutzt, aber nie allein tragend |
+| unsicher | Nutzung "Notbehelf": ungesicherte Internetquelle, nur wenn nichts Tragendes da ist |
+| ohne | noch nicht eingeordnet |
+
+Der Status unterscheidet "wartet auf Freigabe", "freigegeben", "abgelehnt", "unvollständig hochgeladen" und "Prüfung fällig". Mit "Bereich" ist das Sachgebiet der Wissensbasis gemeint (Recht, Steuern, Compliance, Audit, Risiko und die Bereiche des Bestands), nicht eine Zone der Anwendung (Feld, Hof, Büro, Markt). Die Sammelprüfung wirkt nur auf die Dokumente, die der Filter gerade zeigt.
+
 **Löschen.** In der Liste hat jedes **hochgeladene** Dokument einen Löschen-Knopf mit Bestätigungsfenster (Titel, Bereich, Zahl der Abschnitte, Warnung, dass es nicht rückgängig zu machen ist). Löschbar ist nur, was der Upload angelegt hat: alle Zeilen der Quelle haben `extra.quelle = "upload"` **und** eine `quelle_id` der Form `upload:<32 Hex>`. Vom Skript oder ETL geladene Dokumente haben keinen Knopf und werden auch vom Server abgelehnt (Server Action `wissenDokumentLoeschen`: zuerst `requirePermission("ki_assistent","manage")`, dann Vorschau-Schutz, Form der `quelle_id`, Prüfung der Zeilen, und die `DELETE`-Anweisung filtert beide Bedingungen noch einmal selbst). Der Vorschau-Schutz (`WISSEN_UPLOAD_PREVIEW_OK`) gilt auch hier. Code: `src/lib/wissen/loeschen.ts`.
 
 - **Wortgewichte.** Nach dem Löschen werden df und IDF der Wörter des Dokuments zurückgerechnet (sparsevec-Indizes der gelöschten Zeilen, wie beim Upload nur rückwärts); Wörter, die dann in keiner Textstelle mehr vorkommen, verschwinden aus `wissen_begriffe`. Nach **einem** Upload und dem Löschen desselben Dokuments ist `wissen_begriffe` wieder genau wie vorher (Round-Trip-Test). Bei mehreren Uploads dazwischen ist df immer exakt zurück; das IDF der berührten Wörter passt zum aktuellen N, die der übrigen Wörter ändert erst der nächste ETL-Lauf.
