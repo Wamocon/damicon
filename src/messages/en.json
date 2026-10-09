@@ -2463,11 +2463,13 @@
         "grund": {
           "rechtsstelle": "Legal reference present, official site",
           "amtlicheSeite": "Official site",
+          "standardGremium": "Standards body",
           "wikipedia": "Wikipedia",
           "forum": "Forum or Q&A site",
           "blog": "Blog or article platform",
           "stufe": "from the previous level",
-          "keinLink": "no link"
+          "keinLink": "no link",
+          "mehrereQuellen": "several sources in the link field, please check"
         },
         "spalte": {
           "dokument": "Document",

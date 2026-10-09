@@ -14,7 +14,7 @@ import { type Cluster, type Quellenart } from "@/lib/wissen/quellenart";
 // Ein Gesetz von einer Regierungsseite ist eine Rechtsnorm (Art) aus dem Internet (Cluster).
 
 export type Sicherheit = "hoch" | "mittel" | "niedrig";
-export type VorschlagGrund = "rechtsstelle" | "amtlicheSeite" | "wikipedia" | "forum" | "blog" | "stufe" | "keinLink";
+export type VorschlagGrund = "rechtsstelle" | "amtlicheSeite" | "standardGremium" | "wikipedia" | "forum" | "blog" | "stufe" | "keinLink" | "mehrereQuellen";
 
 export interface VorschlagEingabe {
   url: string | null;
@@ -49,6 +49,9 @@ const AMTLICH: readonly RegExp[] = [
   /(^|\.)admin\.ch$/,
   /(^|\.)europa\.eu$/,
   /(^|\.)zan\.kz$/, // adilet.zan.kz, das amtliche Rechtsportal Kasachstans
+  /(^|\.)(primeminister|akorda|parlam)\.kz$/, // Regierung, Praesident, Parlament Kasachstans
+  /(^|\.)qaztrade\.org\.kz$/,
+  /(^|\.)wipo\.int$/,
   /(^|\.)egov\.kz$/,
   /(^|\.)aifc\.kz$/, // Astana International Financial Centre und seine Aufsicht
   /(^|\.)gesetze-im-internet\.de$/,
@@ -61,19 +64,30 @@ const AMTLICH: readonly RegExp[] = [
   /(^|\.)worldbank\.org$/,
   /(^|\.)imf\.org$/,
 ];
-const WIKIPEDIA = /(^|\.)wikipedia\.org$/;
+/** Normungs- und Standardgremien: ihre Texte sind Normen oder Standards, keine Gesetze. */
+const STANDARD_GREMIUM = /(^|\.)(iso|coso|theiia|ifrs|ifac|ieee)\.org$/;
+const WIKIPEDIA =/(^|\.)wikipedia\.org$/;
 const FORUM = /(^|\.)(reddit\.com|stackexchange\.com|stackoverflow\.com|quora\.com)$|(^|\.)forum\./;
 const BLOG = /(^|\.)(medium\.com|substack\.com|habr\.com|vc\.ru|dzen\.ru|blogspot\.com|wordpress\.com)$|(^|\.)blog\.|blog/;
 
+/** Rechnername aus dem Link-Feld. Das Feld des Bestands ist nicht immer ein sauberer Link: Es steht auch ein nackter Rechnername
+ *  darin ("audit.kz/o-palate") oder eine Liste ("a.kz ; b.kz"). Gelesen wird die erste Angabe; Freitext ohne Rechnernamen
+ *  ("Kazakhstan Law Review", "DOI 10.1234/x") ergibt null. */
 export function hostVon(url: string | null | undefined): string | null {
   if (!url) return null;
+  const erste = url.trim().split(/[\s;,]+/)[0] ?? "";
+  const kandidat = /^[a-z][a-z0-9+.-]*:\/\//i.test(erste) ? erste : /^[\w-]+(\.[\w-]+)+(\/|$)/.test(erste) ? `https://${erste}` : null;
+  if (!kandidat) return null;
   try {
-    const h = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+    const h = new URL(kandidat).hostname.toLowerCase().replace(/^www\./, "");
     return h || null;
   } catch {
     return null;
   }
 }
+
+/** Nennt das Link-Feld mehr als eine Quelle? Dann ist unklar, welche der Text wirklich ist. */
+export const mehrereQuellen = (url: string | null | undefined): boolean => (url ?? "").split(/\s*;\s*/).filter(Boolean).length > 1;
 
 export const istAmtlicheSeite = (host: string): boolean => AMTLICH.some((m) => m.test(host));
 
@@ -86,6 +100,9 @@ export function schlageVor(e: VorschlagEingabe): Vorschlag {
   // Ohne Link ist nur die bisherige Stufe da, und der Weg bleibt offen: die Administration waehlt den Cluster.
   if (!host) return { quellenart: ausStufe, cluster: null, sicherheit: "niedrig", grund: "keinLink", host: null };
 
+  // Mehrere Quellen im Link-Feld: der erste Rechner ist nur geraten. Die Administration entscheidet.
+  if (mehrereQuellen(e.url)) return { quellenart: ausStufe, cluster: "internet", sicherheit: "niedrig", grund: "mehrereQuellen", host };
+
   if (istAmtlicheSeite(host)) {
     const rechtsquelle = !!e.rechtsstelle?.trim() && (!stufeOk(e.stufe) || e.stufe <= 2);
     const art: Quellenart = rechtsquelle || e.stufe === 1 ? "rechtsnorm" : e.stufe === 2 ? "verwaltungsanweisung" : "behoerdeninfo";
@@ -93,6 +110,7 @@ export function schlageVor(e: VorschlagEingabe): Vorschlag {
     const sicherheit: Sicherheit = rechtsquelle || (stufeOk(e.stufe) && e.stufe <= 3) ? "hoch" : "mittel";
     return { quellenart: art, cluster: "internet", sicherheit, grund: rechtsquelle ? "rechtsstelle" : "amtlicheSeite", host };
   }
+  if (STANDARD_GREMIUM.test(host)) return { quellenart: "standard", cluster: "internet", sicherheit: "mittel", grund: "standardGremium", host };
   if (WIKIPEDIA.test(host)) return { quellenart: "internetquelle", cluster: "internet", sicherheit: "mittel", grund: "wikipedia", host };
   if (FORUM.test(host)) return { quellenart: "forum", cluster: "internet", sicherheit: "hoch", grund: "forum", host };
   if (BLOG.test(host)) return { quellenart: "internetquelle", cluster: "internet", sicherheit: "mittel", grund: "blog", host };

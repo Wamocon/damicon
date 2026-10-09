@@ -2463,11 +2463,13 @@
         "grund": {
           "rechtsstelle": "Rechtsstelle vorhanden, amtliche Seite",
           "amtlicheSeite": "Amtliche Seite",
+          "standardGremium": "Normungs- oder Standardgremium",
           "wikipedia": "Wikipedia",
           "forum": "Forum oder Frage-Antwort-Seite",
           "blog": "Blog oder Artikelplattform",
           "stufe": "nach der bisherigen Stufe",
-          "keinLink": "kein Link vorhanden"
+          "keinLink": "kein Link vorhanden",
+          "mehrereQuellen": "mehrere Quellen im Link-Feld, bitte prüfen"
         },
         "spalte": {
           "dokument": "Dokument",

@@ -959,7 +959,7 @@ async function main() {
       const g = (k: string) => (e[k] ?? {}) as Record<string, string>;
       const d = g("dialog");
       return ["titel", "lead", "zaehler", "alleErledigt", "seite", "gewaehlt", "unvollstaendig", "bitteWaehlen", "waehlen"].every((k) => typeof e[k] === "string" && !!e[k]) &&
-        ["hoch", "mittel", "niedrig"].every((k) => !!g("sicherheit")[k]) && ["rechtsstelle", "amtlicheSeite", "wikipedia", "forum", "blog", "stufe", "keinLink"].every((k) => !!g("grund")[k]) &&
+        ["hoch", "mittel", "niedrig"].every((k) => !!g("sicherheit")[k]) && ["rechtsstelle", "amtlicheSeite", "standardGremium", "wikipedia", "forum", "blog", "stufe", "keinLink", "mehrereQuellen"].every((k) => !!g("grund")[k]) &&
         ["dokument", "stufe", "bereich", "art", "cluster", "vorschlag"].every((k) => !!g("spalte")[k]) && ["sichere", "seite", "aufheben", "pruefen", "zurueck", "weiter"].every((k) => !!g("schaltflaeche")[k]) &&
         ["titel", "lead", "dokumente", "gesperrt", "gesperrtKurz", "nurHinweis", "stufe", "verlassenPrimaer", "kommenInPrimaer", "nichtsBesonderes", "liste", "stufeVonNach", "weitere", "hinweisStufe", "hinweisProtokoll", "abbrechen", "speichern"].every((k) => !!d[k]) &&
         !!m.aktionen.ok.wissenEingeordnet && ["wissenEinordnenLeer", "wissenEinordnen", "wissenClusterPasstNicht"].every((k) => !!m.aktionen.fehler[k]);
