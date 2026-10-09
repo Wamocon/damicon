@@ -126,6 +126,8 @@ const werkzeugIcon: Record<string, ComponentType<{ className?: string }>> = {
   oeffneBereich: Compass,
   oeffnePruefBereich: Compass,
   wissenSuchen: BookOpenCheck,
+  wissensbasisAbrufen: Database,
+  wissenDokumentAnalysieren: Eye,
   datenmodellErkunden: Database,
   datenLesen: Table2,
   seiteLesen: Eye,

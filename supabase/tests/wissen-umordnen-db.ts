@@ -15,6 +15,7 @@ import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
 import { tokens } from "@/lib/wissen/sparse";
 import { supabaseSpeicher } from "@/lib/wissen/speicher-supabase";
 import { ordneUm } from "@/lib/wissen/umordnen";
+import { baueWissenVerwaltungWerkzeuge } from "@/lib/ai/wissen-verwaltung-werkzeug";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -194,6 +195,18 @@ async function main() {
     pruefe("Bestand: ein anderer Korpusbereich als der vorhandene wird abgelehnt", (await code(() => ordneUm(dienst, bz, { bereich: "kernwissen" }, { id: ADMIN }, jetzt))) === "eingabe");
     await ordneUm(dienst, bz, { bereich: "steuer", quellenart: "rechtsnorm" }, { id: ADMIN }, jetzt);
     pruefe("Bestand: Wechsel in einen der fünf Bereiche und Aufwertung durch dieselbe Person sind erlaubt", alleGleich(await zeilen("quelle_id", BESTAND), (z) => z.bereich === "steuer" && z.quellenart === "rechtsnorm" && z.autoritaetsstufe === 1));
+
+    // ---- Werkzeuge des Assistenten gegen echte Zeilen ----------------------------------------------------------------------------------------
+    type Ausfuehren = (eingabe: unknown, optionen: unknown) => Promise<Record<string, unknown>>;
+    const werkzeuge = baueWissenVerwaltungWerkzeuge("admin")!;
+    const optionen = { toolCallId: "t", messages: [] };
+    const uebersicht = (await (werkzeuge.wissensbasisAbrufen.execute as unknown as Ausfuehren)({ suche: "Umordnen" }, optionen)) as { treffer: number; dokumente: { schluessel: string; quellenart: string | null; cluster: string | null; stufe: number | null }[]; gesamt: { dokumente: number }; nachQuellenart: Record<string, number> };
+    pruefe("Assistent: wissensbasisAbrufen findet beide Testdokumente mit Einordnung", uebersicht.treffer === 2 && uebersicht.dokumente.some((x) => x.schluessel === quelleId && x.quellenart === "fachliteratur") && uebersicht.dokumente.some((x) => x.schluessel === BESTAND && x.quellenart === "rechtsnorm" && x.stufe === 1));
+    pruefe("Assistent: wissensbasisAbrufen liefert Zahlen für die ganze Wissensbasis", uebersicht.gesamt.dokumente >= 2 && (uebersicht.nachQuellenart.fachliteratur ?? 0) >= 1);
+    const analyse = (await (werkzeuge.wissenDokumentAnalysieren.execute as unknown as Ausfuehren)({ dokument: quelleId }, optionen)) as { aktuell: { quellenart: string | null }; regelVorschlag: { quellenart: string; bereich: string }; auszuege: { ort: string; text: string }[]; abweichungen: string[] };
+    pruefe("Assistent: wissenDokumentAnalysieren liefert Einordnung, Vorschlag und Auszüge", analyse.aktuell.quellenart === "fachliteratur" && typeof analyse.regelVorschlag.bereich === "string" && analyse.auszuege.length >= 1 && analyse.auszuege[0]!.text.length > 0);
+    const unbekannt = (await (werkzeuge.wissenDokumentAnalysieren.execute as unknown as Ausfuehren)({ dokument: "gibt es nicht xyz" }, optionen)) as { fehler?: string };
+    pruefe("Assistent: ein unbekanntes Dokument wird gemeldet, nicht erfunden", unbekannt.fehler === "nicht-gefunden");
 
     // ---- Liste ------------------------------------------------------------------------------------------------------------------------------------
     const { data: liste, error: listeFehler } = await dienst.rpc("wissen_liste");

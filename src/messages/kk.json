@@ -826,7 +826,9 @@
       "klicke": "Басылды: {absicht}",
       "fuelleFeld": "Толтырылды: {absicht}",
       "scrolleZu": "Айналдырылды",
-      "zeigeAuf": "Көрсетілді: {absicht}"
+      "zeigeAuf": "Көрсетілді: {absicht}",
+      "wissensbasisAbrufen": "Білім қоры тексерілді",
+      "wissenDokumentAnalysieren": "Құжат талданды"
     },
     "agentDenkt": "Агент деректерді теріп жатыр …",
     "agentPrueft": "Агент тексеріп жатыр: {werkzeug} …",
@@ -983,7 +985,9 @@
       "klicke": "Басып жатырмын: {absicht} …",
       "fuelleFeld": "Толтырып жатырмын: {absicht} …",
       "scrolleZu": "Айналдырып жатырмын …",
-      "zeigeAuf": "Көрсетіп жатырмын: {absicht} …"
+      "zeigeAuf": "Көрсетіп жатырмын: {absicht} …",
+      "wissensbasisAbrufen": "Білім қорын оқып жатырмын …",
+      "wissenDokumentAnalysieren": "Құжатты талдап жатырмын …"
     },
     "ziel": {
       "mwstStatusAbrufen": "ҚҚС бойынша тіркеу",
@@ -1004,7 +1008,10 @@
       "kuehlmessungErfassen": "Теру тапсырмалары",
       "reklamationAnlegen": "Рекламациялар",
       "lohnPeriodeBerechnen": "Жалақы есебі",
-      "mitarbeiterEinschalten": "Чат"
+      "mitarbeiterEinschalten": "Чат",
+      "wissensbasisAbrufen": "Білім қорын басқару",
+      "wissenDokumentAnalysieren": "Білім қорын басқару",
+      "wissenEinordnungAendern": "Білім қорын басқару"
     },
     "bereichAllgemein": "бөлім",
     "zielExtra": {
@@ -1058,7 +1065,8 @@
         "kuehlmessungErfassen": "Салқындату өлшемін жазу",
         "reklamationAnlegen": "Рекламация беру",
         "lohnPeriodeBerechnen": "Жалақыны есептеу",
-        "mitarbeiterEinschalten": "Қызметкерге тапсыру"
+        "mitarbeiterEinschalten": "Қызметкерге тапсыру",
+        "wissenEinordnungAendern": "Жіктеуді өзгерту"
       },
       "felder": {
         "reihenblockCode": "Қатар блогы",
@@ -1075,7 +1083,12 @@
         "chargeCode": "Партия",
         "kundenName": "Клиент",
         "periodeStart": "Бастап",
-        "periodeEnde": "Дейін"
+        "periodeEnde": "Дейін",
+        "dokument": "Құжат",
+        "bereich": "Сала",
+        "quellenart": "Дереккөз түрі",
+        "cluster": "Кластер",
+        "textgrundlage": "Мәтін негізі"
       },
       "werte": {
         "angenommen": "қабылданды",
@@ -1085,7 +1098,32 @@
         "verspaetung": "Кешігу",
         "verpackung": "Қаптама",
         "temperatur": "Температура",
-        "sonstiges": "Басқа"
+        "sonstiges": "Басқа",
+        "recht": "Құқық",
+        "steuer": "Салықтар",
+        "compliance": "Комплаенс",
+        "audit": "Аудит",
+        "risiko": "Тәуекелдер",
+        "rechtsnorm": "Құқықтық норма",
+        "rechtsprechung": "Сот практикасы",
+        "verwaltungsanweisung": "Әкімшілік акті",
+        "behoerdeninfo": "Мемлекеттік орган ақпараты",
+        "standard": "Норма немесе стандарт",
+        "fachliteratur": "Кәсіби әдебиет",
+        "praxisbeitrag": "Практикалық материал",
+        "intern": "Ішкі құжат",
+        "nachschlagewerk": "Анықтамалық",
+        "internetquelle": "Интернет дереккөзі",
+        "forum": "Форум немесе сұрақ-жауап порталы",
+        "internetrecherche": "Интернет іздеуінің нәтижесі",
+        "ki_zusammenfassung": "ЖИ қорытындысы",
+        "buecher": "Кітаптар",
+        "publikationen": "Жарияланымдар",
+        "internet": "Интернет-дереккөз",
+        "original": "Түпнұсқа",
+        "amtlich_uebersetzt": "Ресми аударма",
+        "fachlich_uebersetzt": "Кәсіби аударма",
+        "maschinell_uebersetzt": "Машиналық аударма"
       },
       "bestaetigen": "Растау",
       "ablehnen": "Қабылдамау",

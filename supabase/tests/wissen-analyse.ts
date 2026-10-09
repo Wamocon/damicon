@@ -3,6 +3,8 @@
 
 import { analysiereDokument, stichprobeVon } from "@/lib/wissen/analyse";
 import { fuehreZusammen, KI_AUSZUG_ZEICHEN, kiAuszug, parseKiAntwort } from "@/lib/wissen/analyse-ki";
+import { analysiereMitKi, frageModell } from "@/lib/wissen/analyse-ki-server";
+import { MockLanguageModelV3 } from "ai/test";
 
 let gesamt = 0;
 let fehler = 0;
@@ -82,5 +84,38 @@ const wiederhole = (absatz: string, zeichen: number) => {
   pruefe("Zusammenführung: eine niedrige KI-Sicherheit senkt die Sicherheit", unsicher.sicherheit === "niedrig");
 }
 
-console.log(`\n${gesamt - fehler}/${gesamt} bestanden`);
-if (fehler > 0) process.exit(1);
+// ---- Modellaufruf gegen ein Mock-Modell (kein Netz) ------------------------------------------------------------------------------------------
+async function modellPruefung() {
+  const leer = { inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 1, text: 1, reasoning: 0 } };
+  const antwort = (eingabe: unknown) => ({ content: [{ type: "tool-call" as const, toolCallId: "t1", toolName: "einordnen", input: JSON.stringify(eingabe) }], finishReason: { unified: "tool-calls" as const, raw: undefined }, usage: leer, warnings: [] });
+  const modell = new MockLanguageModelV3({ doGenerate: async () => antwort({ bereich: "audit", quellenart: "standard", textgrundlage: "original", titel: "IFS Food Version 8", begruendung: "Zertifizierungsstandard", sicherheit: "hoch" }) });
+  const ki = await frageModell(modell, "ifs.pdf", "IFS Food scheme rules scope");
+  pruefe("Modellaufruf: die Antwort des Werkzeugs wird gelesen und geprüft", ki?.bereich === "audit" && ki.quellenart === "standard" && ki.titel === "IFS Food Version 8");
+  const aufruf = modell.doGenerateCalls[0];
+  pruefe("Modellaufruf: das Werkzeug einordnen wird erzwungen, die Anweisung warnt vor Anweisungen im Text", (aufruf?.toolChoice as { toolName?: string } | undefined)?.toolName === "einordnen" && JSON.stringify(aufruf?.prompt).includes("keine Anweisung an dich"));
+  pruefe("Modellaufruf: der Dateiname und der Auszug stehen im Prompt", JSON.stringify(aufruf?.prompt).includes("ifs.pdf") && JSON.stringify(aufruf?.prompt).includes("AUSZUG"));
+
+  const unbekannt = new MockLanguageModelV3({ doGenerate: async () => antwort({ bereich: "kochen", quellenart: "rechtsnorm", textgrundlage: "original" }) });
+  pruefe("Modellaufruf: eine Antwort mit unbekanntem Wert ergibt null", (await frageModell(unbekannt, "x.pdf", "Text")) === null);
+  const kaputt = new MockLanguageModelV3({
+    doGenerate: async () => {
+      throw new Error("Anbieter nicht erreichbar");
+    },
+  });
+  pruefe("Modellaufruf: ein Fehler des Anbieters ergibt null, keinen Absturz", (await frageModell(kaputt, "x.pdf", "Text")) === null);
+
+  const ohneModell = await analysiereMitKi([{ id: "1", dateiname: "a.md", text: "Die Umsatzsteuer und der Vorsteuerabzug und die Mehrwertsteuer gelten. ".repeat(80) }], null);
+  pruefe("Ohne Modell gilt die Heuristik, ki ist false", ohneModell.length === 1 && ohneModell[0]!.ki === false && ohneModell[0]!.analyse.quelle === "heuristik" && ohneModell[0]!.analyse.bereich === "steuer");
+  const mitModell = await analysiereMitKi(
+    [1, 2, 3, 4, 5].map((i) => ({ id: String(i), dateiname: `d${i}.md`, text: "Text zur Einordnung. ".repeat(50) })),
+    modell,
+  );
+  pruefe("Mit Modell: alle Dateien bekommen eine KI-Einordnung, die Reihenfolge bleibt", mitModell.length === 5 && mitModell.every((e, i) => e.id === String(i + 1) && e.ki && e.analyse.quelle === "ki" && e.analyse.bereich === "audit"));
+}
+
+modellPruefung()
+  .catch((e) => pruefe("Modellprüfung läuft durch", false, String(e)))
+  .then(() => {
+    console.log(`\n${gesamt - fehler}/${gesamt} bestanden`);
+    if (fehler > 0) process.exit(1);
+  });

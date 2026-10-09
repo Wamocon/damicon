@@ -826,7 +826,9 @@
       "klicke": "Нажато: {absicht}",
       "fuelleFeld": "Заполнено: {absicht}",
       "scrolleZu": "Прокручено",
-      "zeigeAuf": "Показано: {absicht}"
+      "zeigeAuf": "Показано: {absicht}",
+      "wissensbasisAbrufen": "База знаний проверена",
+      "wissenDokumentAnalysieren": "Документ проанализирован"
     },
     "agentDenkt": "Агент собирает факты …",
     "agentPrueft": "Агент проверяет: {werkzeug} …",
@@ -983,7 +985,9 @@
       "klicke": "Нажимаю: {absicht} …",
       "fuelleFeld": "Заполняю: {absicht} …",
       "scrolleZu": "Прокручиваю …",
-      "zeigeAuf": "Показываю: {absicht} …"
+      "zeigeAuf": "Показываю: {absicht} …",
+      "wissensbasisAbrufen": "Читаю базу знаний …",
+      "wissenDokumentAnalysieren": "Анализирую документ …"
     },
     "ziel": {
       "mwstStatusAbrufen": "Регистрация по НДС",
@@ -1004,7 +1008,10 @@
       "kuehlmessungErfassen": "Задачи на сбор",
       "reklamationAnlegen": "Рекламации",
       "lohnPeriodeBerechnen": "Расчёт зарплаты",
-      "mitarbeiterEinschalten": "Чат"
+      "mitarbeiterEinschalten": "Чат",
+      "wissensbasisAbrufen": "Управление базой знаний",
+      "wissenDokumentAnalysieren": "Управление базой знаний",
+      "wissenEinordnungAendern": "Управление базой знаний"
     },
     "bereichAllgemein": "раздел",
     "zielExtra": {
@@ -1058,7 +1065,8 @@
         "kuehlmessungErfassen": "Записать замер охлаждения",
         "reklamationAnlegen": "Подать рекламацию",
         "lohnPeriodeBerechnen": "Рассчитать зарплату",
-        "mitarbeiterEinschalten": "Передать сотруднику"
+        "mitarbeiterEinschalten": "Передать сотруднику",
+        "wissenEinordnungAendern": "Изменить классификацию"
       },
       "felder": {
         "reihenblockCode": "Рядный блок",
@@ -1075,7 +1083,12 @@
         "chargeCode": "Партия",
         "kundenName": "Клиент",
         "periodeStart": "С",
-        "periodeEnde": "По"
+        "periodeEnde": "По",
+        "dokument": "Документ",
+        "bereich": "Область",
+        "quellenart": "Тип источника",
+        "cluster": "Кластер",
+        "textgrundlage": "Основа текста"
       },
       "werte": {
         "angenommen": "принята",
@@ -1085,7 +1098,32 @@
         "verspaetung": "Задержка",
         "verpackung": "Упаковка",
         "temperatur": "Температура",
-        "sonstiges": "Прочее"
+        "sonstiges": "Прочее",
+        "recht": "Право",
+        "steuer": "Налоги",
+        "compliance": "Комплаенс",
+        "audit": "Аудит",
+        "risiko": "Риски",
+        "rechtsnorm": "Правовая норма",
+        "rechtsprechung": "Судебная практика",
+        "verwaltungsanweisung": "Ведомственный акт",
+        "behoerdeninfo": "Информация органа власти",
+        "standard": "Норма или стандарт",
+        "fachliteratur": "Профессиональная литература",
+        "praxisbeitrag": "Практический материал",
+        "intern": "Внутренний документ",
+        "nachschlagewerk": "Справочник",
+        "internetquelle": "Интернет-источник",
+        "forum": "Форум или портал вопросов и ответов",
+        "internetrecherche": "Результат интернет-поиска",
+        "ki_zusammenfassung": "Сводка ИИ",
+        "buecher": "Книги",
+        "publikationen": "Публикации",
+        "internet": "Интернет-источник",
+        "original": "Оригинал",
+        "amtlich_uebersetzt": "Официальный перевод",
+        "fachlich_uebersetzt": "Профессиональный перевод",
+        "maschinell_uebersetzt": "Машинный перевод"
       },
       "bestaetigen": "Подтвердить",
       "ablehnen": "Отклонить",

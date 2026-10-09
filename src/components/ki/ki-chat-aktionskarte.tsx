@@ -18,6 +18,7 @@ import {
   ListChecks,
   Loader2,
   MessageSquareWarning,
+  Tags,
   Thermometer,
   X,
 } from "lucide-react";
@@ -33,6 +34,7 @@ const aktionsIcon: Record<AktionsName, ComponentType<{ className?: string }>> = 
   reklamationAnlegen: MessageSquareWarning,
   lohnPeriodeBerechnen: Calculator,
   mitarbeiterEinschalten: LifeBuoy,
+  wissenEinordnungAendern: Tags,
 };
 
 export function KiChatAktionskarte({

@@ -1999,7 +1999,9 @@
       "klicke": "Geklickt: {absicht}",
       "fuelleFeld": "Ausgefüllt: {absicht}",
       "scrolleZu": "Gescrollt",
-      "zeigeAuf": "Gezeigt: {absicht}"
+      "zeigeAuf": "Gezeigt: {absicht}",
+      "wissensbasisAbrufen": "Wissensbasis geprüft",
+      "wissenDokumentAnalysieren": "Dokument analysiert"
     },
     "agentDenkt": "Agent pflückt die Fakten …",
     "agentPrueft": "Agent prüft: {werkzeug} …",
@@ -2156,7 +2158,9 @@
       "klicke": "Klicke: {absicht} …",
       "fuelleFeld": "Fülle aus: {absicht} …",
       "scrolleZu": "Scrolle …",
-      "zeigeAuf": "Zeige: {absicht} …"
+      "zeigeAuf": "Zeige: {absicht} …",
+      "wissensbasisAbrufen": "Lese die Wissensbasis …",
+      "wissenDokumentAnalysieren": "Analysiere das Dokument …"
     },
     "ziel": {
       "mwstStatusAbrufen": "MwSt-Registrierung",
@@ -2177,7 +2181,10 @@
       "kuehlmessungErfassen": "Pflückaufgaben",
       "reklamationAnlegen": "Reklamationen",
       "lohnPeriodeBerechnen": "Lohnabrechnung",
-      "mitarbeiterEinschalten": "Chat"
+      "mitarbeiterEinschalten": "Chat",
+      "wissensbasisAbrufen": "Wissensverwaltung",
+      "wissenDokumentAnalysieren": "Wissensverwaltung",
+      "wissenEinordnungAendern": "Wissensverwaltung"
     },
     "bereichAllgemein": "den Bereich",
     "zielExtra": {
@@ -2231,7 +2238,8 @@
         "kuehlmessungErfassen": "Kühlmessung erfassen",
         "reklamationAnlegen": "Reklamation melden",
         "lohnPeriodeBerechnen": "Lohn berechnen",
-        "mitarbeiterEinschalten": "An Mitarbeiter übergeben"
+        "mitarbeiterEinschalten": "An Mitarbeiter übergeben",
+        "wissenEinordnungAendern": "Einordnung ändern"
       },
       "felder": {
         "reihenblockCode": "Reihenblock",
@@ -2248,7 +2256,12 @@
         "chargeCode": "Charge",
         "kundenName": "Kunde",
         "periodeStart": "Von",
-        "periodeEnde": "Bis"
+        "periodeEnde": "Bis",
+        "dokument": "Dokument",
+        "bereich": "Bereich",
+        "quellenart": "Quellenart",
+        "cluster": "Cluster",
+        "textgrundlage": "Textgrundlage"
       },
       "werte": {
         "angenommen": "angenommen",
@@ -2258,7 +2271,32 @@
         "verspaetung": "Verspätung",
         "verpackung": "Verpackung",
         "temperatur": "Temperatur",
-        "sonstiges": "Sonstiges"
+        "sonstiges": "Sonstiges",
+        "recht": "Recht",
+        "steuer": "Steuern",
+        "compliance": "Compliance",
+        "audit": "Audit",
+        "risiko": "Risiko",
+        "rechtsnorm": "Rechtsnorm",
+        "rechtsprechung": "Rechtsprechung",
+        "verwaltungsanweisung": "Verwaltungsanweisung",
+        "behoerdeninfo": "Behördeninformation",
+        "standard": "Norm oder Standard",
+        "fachliteratur": "Fachliteratur",
+        "praxisbeitrag": "Praxisbeitrag",
+        "intern": "Interne Ausarbeitung",
+        "nachschlagewerk": "Nachschlagewerk",
+        "internetquelle": "Internetquelle",
+        "forum": "Forum oder Frage-Antwort-Portal",
+        "internetrecherche": "Ergebnis einer Internetrecherche",
+        "ki_zusammenfassung": "KI-Zusammenfassung",
+        "buecher": "Bücher",
+        "publikationen": "Publikationen",
+        "internet": "Internet-Quelle",
+        "original": "Originaltext",
+        "amtlich_uebersetzt": "Amtliche Übersetzung",
+        "fachlich_uebersetzt": "Fachliche Übersetzung",
+        "maschinell_uebersetzt": "Maschinelle Übersetzung"
       },
       "bestaetigen": "Bestätigen",
       "ablehnen": "Ablehnen",

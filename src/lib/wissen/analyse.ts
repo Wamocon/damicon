@@ -107,10 +107,10 @@ function spracheVon(text: string): Analyse["sprache"] {
 }
 
 /** Vorschlag fuer Bereich, Quellenart und Textgrundlage. `dateiname` hilft bei kurzen oder unklaren Texten (zum Beispiel "ISO_31000_2018.pdf"). */
-export function analysiereDokument(text: string, dateiname = ""): Analyse {
+export function analysiereDokument(text: string, dateiname = "", laengeGesamt?: number): Analyse {
   const probe = stichprobeVon(text);
   const kopf = `${dateiname.replace(/[_.-]+/g, " ")}\n${probe.slice(0, 3000)}`;
-  const laenge = text.length;
+  const laenge = laengeGesamt ?? text.length;
   const gruende: AnalyseGrund[] = [];
 
   // Bereich: die Stichprobe zaehlt einfach, der Anfang (Titel, Inhaltsverzeichnis) und der Dateiname doppelt

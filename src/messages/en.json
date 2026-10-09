@@ -1999,7 +1999,9 @@
       "klicke": "Clicked: {absicht}",
       "fuelleFeld": "Filled in: {absicht}",
       "scrolleZu": "Scrolled",
-      "zeigeAuf": "Pointed at: {absicht}"
+      "zeigeAuf": "Pointed at: {absicht}",
+      "wissensbasisAbrufen": "Knowledge base checked",
+      "wissenDokumentAnalysieren": "Document analysed"
     },
     "agentDenkt": "Agent is picking the facts …",
     "agentPrueft": "Agent is checking: {werkzeug} …",
@@ -2156,7 +2158,9 @@
       "klicke": "Clicking: {absicht} …",
       "fuelleFeld": "Filling in: {absicht} …",
       "scrolleZu": "Scrolling …",
-      "zeigeAuf": "Pointing at: {absicht} …"
+      "zeigeAuf": "Pointing at: {absicht} …",
+      "wissensbasisAbrufen": "Reading the knowledge base …",
+      "wissenDokumentAnalysieren": "Analysing the document …"
     },
     "ziel": {
       "mwstStatusAbrufen": "VAT registration",
@@ -2177,7 +2181,10 @@
       "kuehlmessungErfassen": "Picking tasks",
       "reklamationAnlegen": "Complaints",
       "lohnPeriodeBerechnen": "Payroll",
-      "mitarbeiterEinschalten": "Chat"
+      "mitarbeiterEinschalten": "Chat",
+      "wissensbasisAbrufen": "Knowledge management",
+      "wissenDokumentAnalysieren": "Knowledge management",
+      "wissenEinordnungAendern": "Knowledge management"
     },
     "bereichAllgemein": "the area",
     "zielExtra": {
@@ -2231,7 +2238,8 @@
         "kuehlmessungErfassen": "Record cooling measurement",
         "reklamationAnlegen": "File complaint",
         "lohnPeriodeBerechnen": "Calculate payroll",
-        "mitarbeiterEinschalten": "Hand over to a staff member"
+        "mitarbeiterEinschalten": "Hand over to a staff member",
+        "wissenEinordnungAendern": "Change classification"
       },
       "felder": {
         "reihenblockCode": "Row block",
@@ -2248,7 +2256,12 @@
         "chargeCode": "Batch",
         "kundenName": "Customer",
         "periodeStart": "From",
-        "periodeEnde": "To"
+        "periodeEnde": "To",
+        "dokument": "Document",
+        "bereich": "Area",
+        "quellenart": "Source type",
+        "cluster": "Cluster",
+        "textgrundlage": "Text basis"
       },
       "werte": {
         "angenommen": "accepted",
@@ -2258,7 +2271,32 @@
         "verspaetung": "Delay",
         "verpackung": "Packaging",
         "temperatur": "Temperature",
-        "sonstiges": "Other"
+        "sonstiges": "Other",
+        "recht": "Law",
+        "steuer": "Tax",
+        "compliance": "Compliance",
+        "audit": "Audit",
+        "risiko": "Risk",
+        "rechtsnorm": "Legal norm",
+        "rechtsprechung": "Case law",
+        "verwaltungsanweisung": "Administrative directive",
+        "behoerdeninfo": "Official information",
+        "standard": "Standard or framework",
+        "fachliteratur": "Specialist literature",
+        "praxisbeitrag": "Practice paper",
+        "intern": "Internal document",
+        "nachschlagewerk": "Reference work",
+        "internetquelle": "Internet source",
+        "forum": "Forum or Q&A portal",
+        "internetrecherche": "Result of an internet search",
+        "ki_zusammenfassung": "AI summary",
+        "buecher": "Books",
+        "publikationen": "Publications",
+        "internet": "Internet source",
+        "original": "Original text",
+        "amtlich_uebersetzt": "Official translation",
+        "fachlich_uebersetzt": "Professional translation",
+        "maschinell_uebersetzt": "Machine translation"
       },
       "bestaetigen": "Confirm",
       "ablehnen": "Decline",
