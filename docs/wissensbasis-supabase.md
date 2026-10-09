@@ -77,7 +77,7 @@ Der Upload nutzt dieselben Funktionen wie das Skript: `chunkiere`, `wissenEinbet
 
 **Alles oder nichts.** Ein Upload ist erst ungeprüft (Vier-Augen-Prinzip unten) und hat sonst keinen Zwischenzustand. Schlägt das Einbetten fehl oder ist das Zeitbudget aufgebraucht, wird nichts geschrieben. Schlägt das Schreiben fehl, werden die Zeilen des Dokuments wieder entfernt. Ein defektes PDF ergibt eine Fehlermeldung, kein hängendes Dokument. Beendet die Plattform die Funktion hart, während die Zeilen geschrieben werden (zum Beispiel bei einem Neustart), kann ein Teil der Abschnitte stehen bleiben. Das Dokument erscheint dann in der Liste, lässt sich löschen, und der nächste ETL-Lauf gleicht die Wortgewichte aus.
 
-**Liste.** Zeigt Titel, Bereich, Rollen, Datum (`eingelesen_am`), Hochgeladen von und Anzahl der Abschnitte. Per Skript eingelesene Dokumente erscheinen mit, gruppiert nach `quelle_id`. Die Liste liest höchstens 50.000 Textstellen (der Korpus hat rund 5.700); wird das Limit erreicht, weist ein roter Hinweis darauf hin, dass die Liste unvollständig ist.
+**Liste.** Zeigt Titel, Bereich, Rollen, Datum (`eingelesen_am`), Hochgeladen von und Anzahl der Abschnitte. Per Skript eingelesene Dokumente erscheinen mit, gruppiert nach `quelle_id`. Die Liste fasst die Textstellen in der Datenbank zusammen (Funktion `wissen_liste()`, Migration `20261127000000`): Zeilen mit gleichen Listenspalten werden zu einer Zeile mit Anzahl, und die Antwort ist ein einzelner jsonb-Wert, für den die Grenze von PostgREST (1000 Zeilen je Antwort) nicht gilt. Ein Buch ergibt eine Zeile je Paket, der Bestand etwa eine je Dokument. Fehlt die Funktion noch (Code vor Migration), liest die Liste wie früher seitenweise, höchstens 50.000 Textstellen, und weist bei Überschreitung rot darauf hin.
 
 **Löschen.** In der Liste hat jedes **hochgeladene** Dokument einen Löschen-Knopf mit Bestätigungsfenster (Titel, Bereich, Zahl der Abschnitte, Warnung, dass es nicht rückgängig zu machen ist). Löschbar ist nur, was der Upload angelegt hat: alle Zeilen der Quelle haben `extra.quelle = "upload"` **und** eine `quelle_id` der Form `upload:<32 Hex>`. Vom Skript oder ETL geladene Dokumente haben keinen Knopf und werden auch vom Server abgelehnt (Server Action `wissenDokumentLoeschen`: zuerst `requirePermission("ki_assistent","manage")`, dann Vorschau-Schutz, Form der `quelle_id`, Prüfung der Zeilen, und die `DELETE`-Anweisung filtert beide Bedingungen noch einmal selbst). Der Vorschau-Schutz (`WISSEN_UPLOAD_PREVIEW_OK`) gilt auch hier. Code: `src/lib/wissen/loeschen.ts`.
 
@@ -85,6 +85,19 @@ Der Upload nutzt dieselben Funktionen wie das Skript: `chunkiere`, `wissenEinbet
 - **Ausfall.** Die Zeilen werden in **einer** `DELETE`-Anweisung entfernt: ganz oder gar nicht. Schlägt sie fehl, bleibt alles wie es war. Schlägt danach nur die Rückrechnung der Wortgewichte fehl, ist das Dokument gelöscht und die Gewichte sind etwas zu hoch (unschädlich, der nächste ETL-Lauf gleicht sie aus); die Meldung sagt das ausdrücklich. Ein halbes Dokument bleibt nie zurück.
 - **Mehrfach.** Doppelklick oder ein zweites Löschen findet nichts mehr und meldet "bereits gelöscht", ohne die Gewichte noch einmal zu verringern: sie werden nur aus den Zeilen berechnet, die dieser Aufruf wirklich gelöscht hat (`DELETE … RETURNING`).
 - **Protokoll.** Wie beim Upload schreibt `protokolliere()` einen Eintrag in `audit_events` (`wissen.geloescht`: Person, Titel, Bereich, `quelle_id`, Zahl der Abschnitte, Zeitpunkt).
+
+## Bücher und lange Dokumente (Buch-Upload)
+
+Der normale Upload nimmt höchstens 8 MB und 400 Abschnitte. Ein Buch (zum Beispiel ein PDF nach OCR) sprengt beides, und Vercel nimmt je Anfrage nur wenige Megabyte an. Deshalb gibt es auf der Seite Wissensbasis den Bereich "Bücher und lange Dokumente hochladen" (`src/components/db/wissen-buecher.tsx`):
+
+1. **Der Browser liest die Datei selbst.** PDF.js (`pdfjs-dist`, `src/lib/wissen/buch-pdf.ts`) holt den Text Seite für Seite heraus, Markdown und Text werden direkt gelesen. Die Originaldatei verlässt den Rechner nie. Ein PDF braucht eine Textebene; ein reiner Bildscan ergibt keinen Text und wird als schlecht erkannt.
+2. **Bereinigen und teilen** (`buch-text.ts`): Silbentrennung am Zeilenende wird zusammengesetzt, Zeilenumbrüche im Absatz werden Leerzeichen, kurze Zeilen ohne Satzzeichen (Überschriften) bleiben getrennt. Der Text wird an Absatzgrenzen in Pakete von etwa 80.000 Zeichen geteilt. Der Hash des ganzen vereinheitlichten Textes (SHA-256, im Browser mit `crypto.subtle`) ergibt die Kennung `upload:<hash>` und erkennt Dubletten.
+3. **Textqualität** (`textguete.ts`): reine Zählungen (Buchstabenanteil, einzelne Buchstaben, Wortlänge, Wörter ohne Vokal, wiederholte Kopfzeilen, zu wenig Text). Note gut, prüfen oder schlecht mit Hinweisen. Die Oberfläche zeigt sie vor dem Hochladen, ein Text mit der Note "schlecht" wird nicht hochgeladen. Der Server rechnet die Güte je Paket selbst noch einmal und legt sie an jeder Zeile ab (`extra.guete`, `extra.guete_hinweise`); dem Browser wird nie geglaubt.
+4. **Pakete schicken** (`buch-upload.ts`, Server Actions `wissenBuchStarten`, `wissenBuchPaket`, `wissenBuchAbschliessen`, `wissenBuchAbbrechen`): Der Kopf (Titel, Bereich, Art, Cluster, Hash, Zahl der Pakete) wird bei jedem Paket erneut geprüft. Jedes Paket wird wie ein kleiner Upload zerlegt, eingebettet, geschrieben und in den Wortgewichten nachgeführt; die Zeilen tragen `extra.paket` und `extra.pakete_gesamt`. Jede Anfrage bleibt weit unter 60 Sekunden.
+5. **Unvollständig.** Es gibt keine Statusspalte. Fehlt ein Paket (Verbindung abgebrochen), gilt das Buch als unvollständig: Die Liste zeigt es so, und `freigabe.ts` lehnt die Freigabe ab (Fehler "unvollstaendig"). Ablehnen und Löschen gehen. Bricht die Person ab oder scheitert ein Paket, entfernt `wissenBuchAbbrechen` alles, was vom Buch geschrieben wurde, samt Wortgewichten.
+6. **Große Bücher.** Ein Buch hat leicht mehr als 1000 Abschnitte, PostgREST antwortet aber mit höchstens 1000 Zeilen. Deshalb zählt der Adapter (`speicher-supabase.ts`) mit `count`, prüft die Pakete seitenweise, löscht in Stapeln zu 100 Kennungen (mehr passt nicht in die Adresse: "URI too long") und liest die Vorschau als Stichproben (Anfang, zweites Stück, Mitte, Ende).
+
+Wie jedes Dokument bleibt auch ein Buch **ungeprüft**, bis eine zweite Person es freigibt. Getestet wird das gegen echtes Postgres mit einem Buch von 1500 Abschnitten (`supabase/tests/wissen-buch-db.ts`) und ohne Datenbank in `wissen-buch.ts`.
 
 ## Typisierung der Quellen
 
@@ -131,6 +144,27 @@ Zwei Schichten, die sich nicht aufeinander verlassen: die Anwendung (`src/lib/wi
 
 **Voraussetzung:** Es braucht mindestens zwei Personen mit dem Recht `ki_assistent:manage` (laut `rbac.ts` allein die Rolle admin). Mit nur einem Admin lässt sich nichts freigeben; das ist gewollt.
 
+## Einschätzung und Sammelprüfung
+
+**Einschätzung** (`src/lib/wissen/einschaetzung.ts`). Jedes wartende Dokument trägt eine Empfehlung, die die Seite aus dem berechnet, was sie ohnehin kennt: **freigeben** (kein Befund), **erst ansehen** oder **ablehnen**, mit Gründen. Ablehnen empfiehlt sie bei einem unvollständigen Buch und bei schlecht lesbarem Text. Erst ansehen bei auffälliger Textqualität, fehlender Einordnung oder Stufe, einer Internetquelle ohne oder mit unbrauchbarem Link und sehr wenigen Abschnitten. Als Information (ohne Wirkung auf die Empfehlung) steht, wenn die Quelle nur als Notbehelf oder nur als Hinweis genutzt wird. Die Einschätzung prüft das Mechanische. Ob ein Buch inhaltlich taugt, entscheidet die Person, die die Vorschau liest.
+
+**Sammelprüfung.** Über der Liste steht "n Dokumente warten auf Ihre Prüfung": alle oder nur die Empfohlenen auswählen, dann freigeben oder ablehnen (Server Action `wissenDokumenteSammelPruefen`, höchstens 50 je Aufruf). Das Bestätigungsfenster nennt jedes Dokument mit seiner Empfehlung und warnt, wenn Dokumente mit Befund dabei sind. Jedes Dokument geht einzeln durch dieselbe Prüfung wie die Einzelprüfung (`entscheideUeberUpload`: Vier-Augen-Prinzip, unvollständige Bücher, Skript-Quellen) und wird einzeln protokolliert (`sammel: true`). Ein Fehler bei einem Dokument stoppt die anderen nicht, das Ergebnis nennt je Dokument, was geschah. Eigene Uploads gibt auch die Sammelprüfung nicht frei.
+
+## Abgleich der Wissensbasis nach Production
+
+Die Vorschau (Vercel Preview) arbeitet auf dem Schema `public_preview`, die Produktion auf `public`. Beide liegen in derselben Datenbank, haben aber getrennte Daten. Wer in der Vorschau Bücher hochlädt und freigeben lässt, hat sie zunächst nur dort. Der Workflow `Wissensbasis-Abgleich` (`.github/workflows/wissen-abgleich.yml`, Skript `scripts/wissen-abgleich.mjs`) bringt **nur die Wissensbasis** (`wissen_chunks`, `wissen_begriffe`) nach `public`: keine Nutzer, keine Rollen, keine Betriebsdaten.
+
+- **Auslöser:** Push auf main (also nach jedem Merge) und von Hand (Trockenlauf ist Standard). Enthält der Push Migrationen, wartet der Workflow, bis `Datenbank-Migration` sie angewendet hat.
+- **Additiv, nie zerstörend.** Kopiert werden Zeilen, die in `public_preview` **freigegeben** sind und in `public` weder mit der `id` noch mit der `quelle_id` vorkommen. Ungeprüfte und abgelehnte Dokumente bleiben in der Vorschau, es wird nichts gelöscht oder überschrieben.
+- **Der Wächter bleibt aktiv.** Hochgeladene Zeilen kommen ungeprüft an und werden danach freigegeben; so prüft `wissen_pruefung_wache` auch hier, dass die freigebende Person eine andere ist, und `geprueft_von` und `geprueft_am` bleiben erhalten. Kein `session_replication_role`.
+- **Einordnung nachziehen.** Hat `public` bei einer Zeile noch keine Quellenart oder keinen Cluster und `public_preview` schon, wird sie übernommen (Quellenart, Cluster, Stufe). Eine vorhandene Einordnung wird nie überschrieben.
+- **Wortgewichte.** Die Dokumenthäufigkeit der neuen Zeilen wird addiert, die IDF danach mit der neuen Zahl der Textstellen neu gerechnet.
+- **Übersprungen und gemeldet** wird eine `quelle_id`, die in `public` schon vorkommt (zum Beispiel ein angefangenes Buch), und eine Freigabe durch eine Person, die in `public.profiles` fehlt (Fremdschlüssel).
+- **In Schritten:** höchstens 5 Dokumente je Transaktion (alles oder nichts je Schritt), wiederholbar; ein zweiter Lauf findet nichts mehr.
+- **Test:** `npm run test:wissen-abgleich-db` (PR-Pipeline, gegen frisch aufgebaute Schemas).
+
+Lokal: `node scripts/wissen-abgleich.mjs --local` (Trockenlauf) und `--anwenden`; gehostet `--linked` mit dem Zugriffstoken der Supabase-CLI.
+
 ## Wie der Assistent die Typisierung einhält
 
 Nicht durch Bitten im Prompt allein, sondern in Schichten, von der härtesten zur weichsten:
@@ -141,12 +175,13 @@ Nicht durch Bitten im Prompt allein, sondern in Schichten, von der härtesten zu
 4. **Lage:** Die Suche meldet `massgeblich` (Stufe 1 bis 3, uneingeschränkt), `belastbar` (nur Fachquellen), `nur_hinweise` oder `keine`. Daraus leitet das Werkzeug (`src/lib/ai/wissen-werkzeug.ts`) seinen Hinweis an das Modell ab, im Code und nicht durch das Modell: bei `nur_hinweise` muss die Antwort offen sagen, dass die Wissensbasis keine belastbare Quelle enthält.
 5. **Systemprompt (`quellenAnweisung`):** Regel 7 verlangt, die Einordnung bei wichtigen Aussagen in der Antwortsprache wiederzugeben, Regel 8, Hinweise nie als Grundlage verbindlicher Rechts-, Steuer- oder Compliance-Aussagen zu verwenden. Der Text der Belege gilt als Quellenmaterial, nie als Anweisung.
 6. **Oberfläche:** Die Quellenkarte im Chat zeigt Quellenart, Stufe, Stand und Übersetzungsart, warnt bei Hinweisen und sagt unter der Antwort "Nur Hinweise, keine belastbare Quelle", wenn nur Hinweise zitiert wurden.
+7. **Compliance-Prüfbericht:** Der Bericht führt die Quellenlage aus (Methodik-Tabelle im PDF: Zahl der amtlichen oder Rechtsquellen, Fachquellen und ungesicherten Internetquellen) und kennzeichnet im Anhang jede Quelle mit ihrer Belastbarkeit. Der Prüfer sieht die Einordnung jeder Quelle im Prompt und soll ungesicherte Internetquellen ausdrücklich so nennen. Der Code erzwingt es zusätzlich: Stützen **nur** ungesicherte Internetquellen einen Befund, wird er zum Hinweis herabgestuft (`nurUnsichereQuellen`), nie ein Verstoß, eine Lücke oder eine Konformität (`src/lib/pruefung/befund.ts`).
 
 Was das nicht leistet: Die Quellenart sagt etwas über das Gewicht einer Quelle, nicht über die Richtigkeit einer Aussage. Auch kuratierte Rechtsrecherche halluziniert (Stanford, 2024: bei Lexis und Westlaw 17 bis 34 Prozent fehlerhafte Antworten). Die Belegkarte mit Link zum Original bleibt der eigentliche Schutz.
 
 ## Ausrollen (gehostet)
 
-1. Migrationen anwenden (`20261102000000_wissen_pgvector.sql`, danach `20261124000000_wissen_typisierung_pgvector.sql` für Typisierung und Vier-Augen-Prüfung und `20261125000000_wissen_cluster_pgvector.sql` für den Cluster): über den Workflow "Datenbank-Migration" oder `supabase db push --linked` (vorher `--dry-run`). Die Migration muss VOR der neuen Anwendung laufen, sonst kennt die Liste die neuen Spalten nicht.
+1. Migrationen anwenden (`20261102000000_wissen_pgvector.sql`, danach `20261124000000_wissen_typisierung_pgvector.sql` für Typisierung und Vier-Augen-Prüfung `20261125000000_wissen_cluster_pgvector.sql` für den Cluster, `20261126000000_wissen_bestand_cluster_internet_pgvector.sql` als **Datenänderung** (setzt bei den 320 Bestandsdokumenten den Cluster `internet`, nur wo Cluster und Quellenart leer sind und die Zeile nicht aus dem Upload stammt) und `20261127000000_wissen_liste_pgvector.sql` für die zusammengefasste Liste): über den Workflow "Datenbank-Migration" oder `supabase db push --linked` (vorher `--dry-run`). Die Migration muss VOR der neuen Anwendung laufen, sonst kennt die Liste die neuen Spalten nicht.
 2. ETL mit `--ja` gegen das gehostete Projekt.
 3. Vercel-Variablen setzen (Tabelle oben) und neu deployen.
 4. Prüfen: als Admin fragen "Ab welchem Umsatz muss sich ein Betrieb in Kasachstan für die Mehrwertsteuer registrieren?" Es muss "Wissensbasis durchsucht" erscheinen, dazu Zitatmarken und Quellenkarten (НК РК ст. 99 und 101).
@@ -176,6 +211,9 @@ Die Fusionskonstante ist bewusst klein (k = 2). Mit dem Lehrbuchwert 60 fiel ein
 | `npm run test:pdf-ablaufverfolgung` | PDF auf Vercel: Ladereihenfolge, Ablaufverfolgung von Worker und canvas, echtes PDF (ohne Build); nach dem Build `npm run pruefe:pdf-ablaufverfolgung` | `npm test` / `npm run verify` |
 | `npm run test:wissen-upload` | Admin-Upload: Rechte, Chunks, Dublette, Wortgewichte, Rollenfilter, Zeitbudget, Vorschau-Schutz je Schema, Quellenart und Matrix, Freigabe, Verhalten der Suche und des Werkzeugs, Suche mit Beleg (ohne Datenbank) | `npm test` |
 | `npm run test:wissen-einordnung` | Bestand einordnen: Vorschlag aus Link, Stufe und Rechtsstelle, Wirkung auf die Suche vor dem Speichern, Prüfung der Eingabe, Schreiben nur in leere Zeilen, Protokoll (ohne Datenbank, mit Ersatz der Abfragekette) | `npm test` |
+| `npm run test:wissen-buch` | Buch-Upload: Textqualität, Bereinigen und Teilen, Hash wie auf dem Server, Kopf prüfen, Pakete, Unvollständig-Schutz, Abbruch, Einschätzung, Liste mit Anzahlen (ohne Datenbank) | `npm test` |
+| `npm run test:wissen-buch-db` | Buch mit 1500 Abschnitten gegen echtes Postgres: Zählen über 1000 Zeilen, Unvollständig, Freigabe, Liste (`wissen_liste`), Löschen in Stapeln, Wortgewichte zurück | PR-Pipeline (Teil von `test:wissen-db`) |
+| `npm run test:wissen-abgleich-db` | Abgleich public_preview nach public mit Testszenario, Wächter, Einordnung, Wortgewichte, Wiederholbarkeit | PR-Pipeline, nach dem Aufbau von `public_preview` |
 | `npm run wissen:eval` | Trefferqualität (recall@k, MRR) und Rollensperren | von Hand, vor dem Einschalten |
 
 PGlite kann pgvector nicht. Die schnellen Tests überspringen deshalb Migrationen, die auf `_pgvector.sql` enden; die Migration selbst wird von `supabase start` in der CI und von `test:wissen-db` geprüft.

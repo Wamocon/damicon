@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SCHREIB_BATCH, type FreigabeInfo, type WissenSpeicher } from "@/lib/wissen/hochladen";
-import { istUploadZeile, UPLOAD_QUELLE, UPLOAD_QUELLE_MUSTER } from "@/lib/wissen/upload-quelle";
+import { UPLOAD_QUELLE, UPLOAD_QUELLE_MUSTER } from "@/lib/wissen/upload-quelle";
 
 // Der Speicher des Wissens-Uploads auf dem service_role-Client. Die Logik steht in hochladen.ts und loeschen.ts und
 // kennt nur die Schnittstelle WissenSpeicher; hier steht allein, wie sie mit PostgREST gesprochen wird. Getrennt von
