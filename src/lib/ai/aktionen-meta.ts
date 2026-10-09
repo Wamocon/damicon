@@ -18,6 +18,8 @@ export const AKTIONS_RECHTE = {
   reklamationAnlegen: { resource: "reklamationen", verb: "create" },
   lohnPeriodeBerechnen: { resource: "lohn", verb: "create" },
   mitarbeiterEinschalten: { resource: "ki_assistent", verb: "create" },
+  // Zusaetzlich verlangt baueAktionen ki_assistent:manage (nur Administration); der CEO hat update, aber kein manage.
+  wissenEinordnungAendern: { resource: "ki_assistent", verb: "update" },
 } as const satisfies Record<string, AktionsRecht>;
 
 export type AktionsName = keyof typeof AKTIONS_RECHTE;

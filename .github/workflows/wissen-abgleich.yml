@@ -1,0 +1,97 @@
+# =============================================================================
+# Wissensbasis-Abgleich: public_preview nach public (NUR die Wissensbasis)
+# =============================================================================
+# Zweck   : Wer in der Vorschau (Vercel Preview, Schema public_preview) Buecher hochlaedt und von einer zweiten Person freigeben
+#           laesst, soll sie nach dem Merge auch in der Produktion (Schema public) haben. Dieser Workflow uebernimmt dafuer
+#           ausschliesslich die Tabellen wissen_chunks und wissen_begriffe. Keine Nutzer, Rollen, Betriebsdaten.
+#
+# Trigger : - Push auf main (also nach jedem Merge einer Pull Request): wendet an
+#           - von Hand: Actions -> "Wissensbasis-Abgleich" -> Run workflow.
+#             Von Hand ist "anwenden" standardmaessig AUS: es zeigt nur, was uebernommen WUERDE (Trockenlauf).
+#
+# Regeln  : scripts/wissen-abgleich.mjs (Kopf der Datei). Kurz: additiv, nie zerstoerend. Nur in public_preview FREIGEGEBENE
+#           Dokumente werden kopiert (das Vier-Augen-Prinzip gilt also schon, bevor etwas in die Produktion kommt), der
+#           Waechter der Datenbank (wissen_pruefung_wache) prueft die Freigabe beim Kopieren noch einmal. Ungepruefte und
+#           abgelehnte Dokumente bleiben in der Vorschau. Die Einordnung (Quellenart, Cluster, Stufe) wird nur ergaenzt,
+#           wo public sie noch nicht hat. Wiederholbar: ein zweiter Lauf findet nichts mehr.
+#
+# Reihenfolge: Der Abgleich laeuft erst, wenn public den Migrationsstand des Merges hat. Enthaelt ein Push Migrationen, wartet der
+#           Workflow, bis "Datenbank-Migration" sie angewendet hat (bis zu 20 Minuten), sonst gaebe es Spalten, die in public
+#           noch fehlen.
+#
+# Schutz  : Umgebung "Production" wie bei der Datenbank-Migration; nur ein Lauf gleichzeitig; ein laufender wird nie abgebrochen.
+#           Zugang: SUPABASE_ACCESS_TOKEN (wie in datenbank-migration.yml), kein Datenbankpasswort im Repository.
+# =============================================================================
+
+name: Wissensbasis-Abgleich
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      anwenden:
+        description: "Wirklich uebernehmen (aus = nur anzeigen, was uebernommen wuerde)"
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: wissen-abgleich
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_PROJECT_REF: hlcpxgnnyqmpqzpvgnxu
+  ANWENDEN: ${{ github.event_name == 'push' || inputs.anwenden == true }}
+
+jobs:
+  abgleichen:
+    name: Wissensbasis ${{ (github.event_name == 'push' || inputs.anwenden == true) && 'abgleichen' || 'pruefen' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: Production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zugangsdaten vorhanden?
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::error::Secret SUPABASE_ACCESS_TOKEN fehlt (siehe datenbank-migration.yml)."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Mit dem Projekt verbinden
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Warten, bis public den Migrationsstand hat
+        run: |
+          for versuch in $(seq 1 40); do
+            supabase db push --linked --dry-run > stand.txt 2>&1 || true
+            if grep -q "up to date" stand.txt; then echo "public ist auf dem aktuellen Migrationsstand."; exit 0; fi
+            echo "Noch offene Migrationen (Versuch $versuch von 40), warte 30 Sekunden ..."
+            sleep 30
+          done
+          echo "::error::Die Migrationen sind nach 20 Minuten noch nicht angewendet. Abgleich abgebrochen, bitte 'Datenbank-Migration' pruefen."
+          cat stand.txt
+          exit 1
+
+      - name: Wissensbasis abgleichen
+        run: |
+          if [ "$ANWENDEN" = "true" ]; then
+            node scripts/wissen-abgleich.mjs --linked --anwenden
+          else
+            node scripts/wissen-abgleich.mjs --linked
+          fi

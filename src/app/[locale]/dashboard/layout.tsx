@@ -11,8 +11,6 @@ import { GlockenProvider } from "@/components/dashboard/glocke";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { UntereLeiste } from "@/components/dashboard/untere-leiste";
-import { KiAnbieterVerwaltung, KiRatenlimitVerwaltung } from "@/components/db/ki-assistent-formulare";
-import { WissenVerwaltung } from "@/components/db/wissen-verwaltung";
 import { KiFuehrungsAnzeige } from "@/components/ki/ki-fuehrung";
 import { KiPane } from "@/components/ki/ki-pane";
 import { erlaubteBereiche } from "@/lib/pruefung/rollen";
@@ -26,7 +24,7 @@ import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
-import { ladeKiAnbieterListe, ladeKiChatVerlauf, ladeKiRatenlimitEinstellungen } from "@/lib/data/ki-assistent";
+import { ladeKiChatVerlauf } from "@/lib/data/ki-assistent";
 import { agentSeitenansichtAn } from "@/lib/domain/schalter";
 
 // Das Diktat laeuft als Server Action auf DIESER Seiten-Route, nicht ueber
@@ -64,20 +62,13 @@ export default async function DashboardLayout({
   // Chatverlauf noch Anbieter) und nur fuer Rollen, die den Chat nutzen
   // duerfen. Der Anbieter entscheidet, WAS im Panel steckt: 'anthropic' =
   // Streaming-Agent mit Werkzeugen und Modi, alles andere = der bisherige
-  // Server-Action-Chat. Die Anbieterverwaltung (Admin) wandert als fertig
-  // gerendertes Element ins Panel, statt eine eigene Seite zu brauchen.
+  // Server-Action-Chat. Die Verwaltung (Anbieter, Ratenlimit, Wissensdokumente)
+  // steht nicht im Panel, sondern im Bereich Administration der Seitenleiste.
   const darfKiNutzen = !demoModus && hasPermission(profil?.role, "ki_assistent", "create");
   const istKiAdmin = !demoModus && hasPermission(profil?.role, "ki_assistent", "manage");
-  const [aktiverAnbieter, kiVerlauf, anbieterListe, ratenlimitEinstellungen] = darfKiNutzen
-    ? await Promise.all([
-        ladeAktivenStandardAnbieter(),
-        ladeKiChatVerlauf(),
-        istKiAdmin ? ladeKiAnbieterListe() : Promise.resolve(null),
-        // Ratenlimit-Verwaltung (Vibecode-Cleanup Phase 2, Fund 1): dieselbe
-        // Admin-Gate wie die Anbieterverwaltung, eigene Tabelle/Ladefunktion.
-        istKiAdmin ? ladeKiRatenlimitEinstellungen() : Promise.resolve(null),
-      ])
-    : [null, null, null, null];
+  const [aktiverAnbieter, kiVerlauf] = darfKiNutzen
+    ? await Promise.all([ladeAktivenStandardAnbieter(), ladeKiChatVerlauf()])
+    : [null, null];
 
   return (
     <PersonaProvider
@@ -133,17 +124,7 @@ export default async function DashboardLayout({
               verlauf={kiVerlauf.nachrichten}
               agentFaehig={aktiverAnbieter?.typ === "anthropic"}
               pruefungBereiche={aktiverAnbieter?.typ === "anthropic" ? erlaubteBereiche(profil?.role) : []}
-              einstellungen={
-                anbieterListe ? <KiAnbieterVerwaltung anbieter={anbieterListe.anbieter} /> : null
-              }
-              ratenlimitVerwaltung={
-                ratenlimitEinstellungen ? (
-                  <KiRatenlimitVerwaltung einstellungen={ratenlimitEinstellungen.einstellungen} />
-                ) : null
-              }
-              // Wissensverwaltung: dieselbe Admin-Gate. Ohne eigene Ladefunktion im Layout - die Komponente laedt
-              // ihre Liste selbst beim Oeffnen, weil sie alle Textstellen der Wissensbasis zaehlt.
-              wissenVerwaltung={istKiAdmin ? <WissenVerwaltung /> : null}
+              einstellungenZeigen={istKiAdmin}
             />
           ) : null}
         </div>

@@ -105,7 +105,7 @@ export const de: HandbuchTexte = {
     teile: [
       {
         titel: "Seitenleiste",
-        text: "Am linken Rand, ab Tabletbreite. Oben die Übersicht, darunter die vier Bereiche als aufklappbare Gruppen mit ihren Modulen. Ein Bereich, in dem die Rolle kein einziges Modul sehen darf, erscheint gar nicht. Die Leiste lässt sich auf eine schmale Symbolspalte einklappen; der Umschalter dafür sitzt in der Kopfzeile. Unten stehen das Handbuch, die angemeldete Person, der Zugang zur Sicherheitsseite und das Abmelden.",
+        text: "Am linken Rand, ab Tabletbreite. Oben die Übersicht, darunter die vier Bereiche als aufklappbare Gruppen mit ihren Modulen. Ein Bereich, in dem die Rolle kein einziges Modul sehen darf, erscheint gar nicht. Nur die Administration sieht darunter als letzte Gruppe „Administration“ mit den Seiten KI-Anbieter, Ratenlimit und Wissensbasis. Die Leiste lässt sich auf eine schmale Symbolspalte einklappen; der Umschalter dafür sitzt in der Kopfzeile. Unten stehen das Handbuch, die angemeldete Person, der Zugang zur Sicherheitsseite und das Abmelden.",
       },
       {
         titel: "Kopfzeile",
@@ -241,17 +241,31 @@ export const de: HandbuchTexte = {
       },
       {
         id: "wissensdokument",
-        titel: "Dokument in die Wissensbasis hochladen und löschen (Administration)",
+        titel: "Dokument in die Wissensbasis hochladen, freigeben und löschen (Administration)",
         einleitung:
-          "Die Wissensbasis enthält die Texte zu Recht, Steuern, Compliance, Audit und Risiko, aus denen der Assistent seine Belege holt. Nur die Administration darf hier Dokumente hinzufügen oder entfernen.",
+          "Die Wissensbasis enthält die Texte zu Recht, Steuern, Compliance, Audit und Risiko, aus denen der Assistent seine Belege holt. Nur die Administration darf hier Dokumente hinzufügen, und jedes neue Dokument muss eine zweite Person freigeben (Vier-Augen-Prinzip).",
         schritte: [
-          "Als Administration anmelden, das KI-Panel öffnen und „Einstellungen“ wählen. Unter dem Ratenlimit steht der Abschnitt „Wissensdokumente“.",
+          "Als Administration anmelden und in der Seitenleiste unter „Administration“ die Seite „Wissensbasis“ öffnen. Die Gruppe „Administration“ steht als letzte unter den Zonen und ist nur für die Administration sichtbar. Die Seite zeigt oben das Formular und darunter die Liste „Vorhandene Dokumente“. Die Liste nennt je Dokument Cluster, Quellenart und Stufe und lässt sich nach Cluster filtern. Bestand aus der Zeit vor der Typisierung steht als „Nicht eingeordnet“.",
           "Unter „Dokument hochladen“ eine Datei wählen (PDF, Markdown oder Text, höchstens 8 MB). Ein PDF muss Text enthalten, ein reiner Scan wird abgelehnt.",
-          "Titel eintragen, den Bereich wählen (Recht, Steuern, Compliance, Audit oder Risiko) und ankreuzen, welche Büro-Rollen das Dokument sehen dürfen. Die Administration ist immer dabei.",
-          "„Dokument hochladen“ drücken. Der Text wird zerlegt und eingebettet, bei langen Dokumenten dauert das bis zu einer Minute. Danach ist das Dokument sofort durchsuchbar und steht in der Liste, mit Bereich, Rollen, Datum, Hochgeladen von und Zahl der Abschnitte.",
-          "Dieselbe Datei lässt sich nicht zweimal hochladen. Das Portal erkennt den Inhalt und nennt den Titel des vorhandenen Dokuments. Die Originaldatei wird nicht aufbewahrt, nur der Text.",
+          "Titel eintragen, den Bereich wählen (Recht, Steuern, Compliance, Audit oder Risiko), dann die Quellenart und den Cluster. Die Quellenart richtet sich nach der Herkunft des Textes: Gesetz, Urteil, Fachliteratur, Praxisbeitrag, Internetquelle, Forum und weitere. Der Cluster ist der Weg, auf dem der Text zu uns kam: Bücher, Publikationen oder Internet-Quelle. Beides ist unabhängig: Ein Gesetz von einer Regierungsseite ist eine Rechtsnorm aus dem Internet. Nur Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz. Wählen Sie zuerst die Quellenart, schlägt das Formular den typischen Cluster vor. Die Stufe der Quelle legt das Portal aus der Quellenart fest.",
+          "Nicht jede Quellenart ist gleich belastbar. Blogs, Foren, Erfahrungsberichte, Bewertungsportale, Wikipedia und Internetrecherchen gelten als ungesicherte Internetquellen: Der Assistent nutzt sie nur, wenn es zu einer Frage sonst keine tragende Quelle gibt, und sagt dann gleich zu Beginn, dass es dazu keine offizielle staatliche Quelle gibt. Der Link zur Quelle ist Pflicht. Fachliteratur und amtliche Quellen haben Vorrang.",
+          "Festlegen, welche Büro-Rollen das Dokument sehen dürfen (die Administration ist immer dabei), und „Dokument hochladen“ drücken. Der Text wird zerlegt und eingebettet, bei langen Dokumenten dauert das bis zu einer Minute.",
+          "Das Dokument steht jetzt als „Wartet auf Freigabe“ in der Liste und ist noch für niemanden durchsuchbar. Wer hochgeladen hat, kann es nicht selbst freigeben.",
+          "Eine zweite Person mit Administrationsrecht öffnet die Liste, wählt „Prüfen“ und liest den Anfang des Textes, Quellenart, Stufe und Link. „Freigeben“ macht das Dokument für die gewählten Rollen durchsuchbar, „Ablehnen“ sperrt es.",
+          "Internetquellen, Foren, Nachschlagewerke und ähnliche Quellen laufen nach 12 Monaten ab (Praxisbeiträge und interne Ausarbeitungen nach 24). Die Liste meldet dann „Prüfung fällig“, die Suche findet die Quelle nicht mehr, bis eine zweite Person erneut prüft und verlängert.",
+          "Dieselbe Datei lässt sich nicht zweimal hochladen. Die Originaldatei wird nicht aufbewahrt, nur der Text.",
           "Zum Löschen bei einem hochgeladenen Dokument „Löschen“ wählen und im Fenster Titel, Bereich und Zahl der Abschnitte prüfen. Das Löschen lässt sich nicht rückgängig machen. Dokumente, die per Skript eingelesen wurden, haben keinen Löschen-Knopf.",
-          "Hochgeladene Dokumente erscheinen in der allgemeinen Trefferliste, nicht unter den bevorzugten amtlichen Rechtsquellen.",
+          "Der Assistent nennt zu jeder Quelle die Quellenart, die Stufe und den Stand. Hinweise aus Internet, Forum oder KI-Texten kennzeichnet er als ungeprüft und stützt nie eine verbindliche Aussage allein darauf. Gibt es nur Hinweise, sagt er, dass die Wissensbasis keine belastbare Quelle enthält.",
+          "Bestand, der vor der Typisierung eingelesen wurde, steht als „Nicht eingeordnet“ in der Liste. Über der Liste öffnet der Bereich „Bestand einordnen“: Zu jedem Dokument macht die Seite einen Vorschlag aus Link, bisheriger Stufe und Rechtsstelle, mit Begründung und Sicherheit. Art und Cluster lassen sich je Dokument ändern. Dokumente mit vollständiger Wahl ankreuzen und „Einordnung prüfen“ wählen. Das Fenster zeigt, welche Dokumente danach in ihrem Bereich nicht mehr gefunden werden, nur noch als Hinweis gelten oder ihre Stufe ändern. Erst „Einordnung speichern“ ändert etwas, und jede Einordnung wird protokolliert. Schon eingeordnete Quellen fasst dieser Weg nie an.",
+          "Bücher und lange Dokumente (zum Beispiel PDF nach einer Texterkennung, OCR) lädt der Bereich „Bücher und lange Dokumente hochladen“. Dort nur den Cluster wählen (Bücher, Publikationen oder Internet-Quelle) und die Rollen, dann mehrere Dateien auf einmal auswählen. Eine Dateigröße oder Seitenzahl ist nicht begrenzt: Der Browser liest die Datei selbst und schickt nur den Text in Paketen, die Datei verlässt den Rechner nicht. Ein PDF braucht eine Textebene, ein reiner Bildscan ergibt keinen Text.",
+          "Vor dem Hochladen zeigt die Seite je Datei die Zahl der Zeichen und eine Einschätzung der Textqualität (gut lesbar, prüfen, schlecht) mit den Gründen, etwa zerhackte Wörter oder viele Sonderzeichen. Ein Text mit der Note „schlecht“ wird nicht hochgeladen, die Datei sollte neu mit OCR erzeugt werden. Der Titel entsteht aus dem Dateinamen und lässt sich ändern. „Bücher hochladen“ startet die Reihe, ein Fortschrittsbalken zeigt das Paket, und „Abbrechen“ entfernt das angefangene Buch wieder.",
+          "Bricht die Verbindung ab, steht das Buch als „Unvollständig“ in der Liste. Es lässt sich nicht freigeben, nur löschen und neu hochladen. Ein Buch bleibt wie jedes Dokument ungeprüft, bis eine zweite Person es freigibt.",
+          "Bei der Prüfung hilft die Seite mit einer Einschätzung: Jedes wartende Dokument trägt die Empfehlung „freigeben“, „erst ansehen“ oder „ablehnen“, mit den Gründen (unvollständig, schlecht lesbar, ohne Einordnung, Internetquelle ohne Link, sehr kurz, nur Notbehelf). Die Einschätzung prüft nur Mechanisches und ersetzt nicht das Lesen der Vorschau, die Anfang, Mitte und Ende des Textes zeigt.",
+          "Viele Dokumente lassen sich in einem Schritt entscheiden: Über der Liste erscheint „Dokumente warten auf Ihre Prüfung“. Dort alle oder nur die Empfohlenen auswählen oder einzelne Häkchen setzen, dann „Auswahl freigeben“ oder „Auswahl ablehnen“ wählen. Das Fenster nennt jedes Dokument mit seiner Empfehlung, und nach dem Bestätigen steht je Dokument, was geschah. Jedes Dokument wird einzeln geprüft und protokolliert, die eigenen Uploads gibt auch die Sammelprüfung nicht frei.",
+          "Freigegebene Dokumente stehen zunächst in der Vorschau-Umgebung. Nach dem Zusammenführen der Änderung (Merge) gleicht ein Workflow die freigegebenen Dokumente der Wissensbasis in die Produktion ab, und nur diese: keine Nutzer, keine Betriebsdaten. Ungeprüfte und abgelehnte Dokumente bleiben in der Vorschau.",
+          "Bereich, Quellenart und Textgrundlage bestimmen Sie nicht selbst: Die Analyse schlägt sie für jedes Buch vor, aus dem Inhalt (Aufbau, Fachbegriffe, Hinweise auf Übersetzung) und auf Wunsch zusätzlich mit der KI. Je Buch erscheinen drei Auswahlfelder mit dem Vorschlag, einer Angabe der Sicherheit („Sicherer Vorschlag“, „Vorschlag prüfen“, „Unsicher, bitte ansehen“) und der Begründung. Jede Angabe lässt sich ändern, auch der Titel. Was Sie selbst geändert haben, überschreibt die KI nicht mehr. Die KI-Analyse sendet je Datei einen Auszug von rund 6.000 Zeichen und den Dateinamen an den eingestellten KI-Anbieter; mit dem Haken „Mit KI analysieren“ lässt sie sich abschalten, dann gelten nur die Regeln.",
+          "Die Einordnung lässt sich später jederzeit ändern: In der Liste bei jedem Dokument „Einordnung ändern“ wählen, dann Cluster, Bereich, Quellenart und Textgrundlage ändern. Das Fenster zeigt, welche Stufe aus der Quellenart folgt und wie die Quelle im Bereich genutzt wird. Die Änderung wird protokolliert. Bei einem freigegebenen Upload ändert nicht die hochladende Person Bereich, Quellenart und Textgrundlage, sondern eine zweite (Vier-Augen-Prinzip, auch in der Datenbank erzwungen); der Cluster bleibt frei änderbar.",
+          "Der KI-Assistent hilft bei der Verwaltung der Wissensbasis (nur Administration): Er gibt Überblick über Bestand und Verteilung, nennt, was auf Prüfung wartet oder nicht eingeordnet ist, analysiert ein Dokument und begründet, ob die Einordnung stimmt. Eine Änderung der Einordnung schlägt er als Karte vor, die Sie bestätigen. Dateien hochladen und Dokumente freigeben kann er nicht, das bleibt bei Ihnen und der zweiten Person.",
         ],
       },
     ],
@@ -599,6 +613,14 @@ export const de: HandbuchTexte = {
       {
         begriff: "Wissensbasis",
         text: "Bestand an Texten zu Recht, Steuern, Compliance, Audit und Risiko, aus dem der Assistent seine Belege holt. Die Texte kommen per Skript oder als Upload der Administration hinein. Jede Textstelle trägt Bereich, Rollen und Herkunft.",
+      },
+      {
+        begriff: "Vier-Augen-Prinzip",
+        text: "Ein hochgeladenes Wissensdokument ist erst durchsuchbar, wenn eine zweite Person es freigegeben hat. Wer hochgeladen hat, gibt nicht frei. Die Datenbank erzwingt das, nicht nur die Oberfläche.",
+      },
+      {
+        begriff: "Quellenart",
+        text: "Art der Quelle eines Wissensdokuments (Gesetz, Urteil, Fachliteratur, Internetquelle, Forum und weitere). Sie bestimmt die Stufe, wofür die Quelle in welchem Bereich taugt und wann sie neu zu prüfen ist.",
       },
       {
         begriff: "WAMOCON",

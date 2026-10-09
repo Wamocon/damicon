@@ -101,7 +101,7 @@ export const en: HandbuchTexte = {
     teile: [
       {
         titel: "Sidebar",
-        text: "On the left edge, from tablet width upwards. The overview at the top, below it the four areas as collapsible groups with their modules. An area in which the role may not see a single module does not appear at all. The sidebar can be collapsed to a narrow icon column; the toggle for that sits in the header. At the bottom are the handbook, the person signed in, the security page and sign-out.",
+        text: "On the left edge, from tablet width upwards. The overview at the top, below it the four areas as collapsible groups with their modules. An area in which the role may not see a single module does not appear at all. Only administration sees a last group below them, “Administration”, with the pages AI providers, Rate limit and Knowledge base. The sidebar can be collapsed to a narrow icon column; the toggle for that sits in the header. At the bottom are the handbook, the person signed in, the security page and sign-out.",
       },
       {
         titel: "Header",
@@ -237,17 +237,31 @@ export const en: HandbuchTexte = {
       },
       {
         id: "wissensdokument",
-        titel: "Upload and delete a document in the knowledge base (administration)",
+        titel: "Upload, approve and delete a document in the knowledge base (administration)",
         einleitung:
-          "The knowledge base holds the law, tax, compliance, audit and risk texts from which the assistant takes its references. Only administration can add or remove documents here.",
+          "The knowledge base holds the law, tax, compliance, audit and risk texts from which the assistant takes its references. Only administration can add documents here, and every new document must be approved by a second person (four-eyes principle).",
         schritte: [
-          "Sign in as administration, open the AI panel and choose “Settings”. The section “Knowledge documents” sits below the rate limit.",
+          "Sign in as administration and open the page “Knowledge base” under “Administration” in the sidebar. The “Administration” group is the last one below the zones and is visible to administration only. The page shows the form on top and the list “Existing documents” below it. The list shows cluster, source type and level for each document and can be filtered by cluster. Material from before typing appears as “Not classified”.",
           "Under “Upload document” choose a file (PDF, Markdown or text, at most 8 MB). A PDF must contain text, a pure scan is rejected.",
-          "Enter a title, choose the area (Law, Tax, Compliance, Audit or Risk) and tick which office roles may see the document. Administration is always included.",
-          "Press “Upload document”. The text is split and embedded, which takes up to a minute for long documents. Afterwards the document is searchable at once and appears in the list with area, roles, date, who loaded it and number of sections.",
-          "The same file cannot be uploaded twice. The portal recognises the content and names the existing document. The original file is not kept, only the text.",
+          "Enter a title, choose the area (Law, Tax, Compliance, Audit or Risk), then the source type and the cluster. The source type follows where the text comes from: statute, case law, specialist literature, practice paper, internet source, forum and more. The cluster is the way the text reached us: Books, Publications or Internet source. The two are independent: a law from a government site is a legal norm from the internet. Only internet source, forum and internet research always come from the web. If you choose the source type first, the form suggests the typical cluster. The portal sets the level of the source from the source type.",
+          "Not every source type is equally reliable. Blogs, forums, experience reports, review portals, Wikipedia and internet searches count as unreliable internet sources: the assistant uses them only when there is no solid source for a question, and then says right at the start that there is no official government source. The link to the source is required. Specialist literature and official sources take priority.",
+          "Choose which office roles may see the document (administration is always included) and press “Upload document”. The text is split and embedded, which takes up to a minute for long documents.",
+          "The document now appears in the list as “Awaiting approval” and is not searchable for anyone yet. The person who uploaded it cannot approve it themselves.",
+          "A second person with administration rights opens the list, chooses “Review” and reads the start of the text, source type, level and link. “Approve” makes the document searchable for the chosen roles, “Reject” blocks it.",
+          "Internet sources, forums, reference works and similar sources expire after 12 months (practice papers and internal documents after 24). The list then shows “Review due” and search no longer finds the source until a second person checks it again and extends it.",
+          "The same file cannot be uploaded twice. The original file is not kept, only the text.",
           "To delete, choose “Delete” on an uploaded document and check title, area and number of sections in the window. Deleting cannot be undone. Documents loaded by script have no delete button.",
-          "Uploaded documents appear in the general result list, not among the preferred official legal sources.",
+          "For every source the assistant names the source type, the level and the date. It labels hints from the internet, forums or AI texts as unchecked and never bases a binding statement on them alone. If there are only hints, it says that the knowledge base holds no reliable source.",
+          "Material loaded before typing appears as “Not classified” in the list. Above the list the section “Classify existing documents” opens: for each document the page suggests a value from the link, the previous level and the legal reference, with a reason and a confidence. Type and cluster can be changed per document. Tick the documents with a complete choice and choose “Review classification”. The window shows which documents will no longer be found in their area, only count as a hint, or change their level. Only “Save classification” changes anything, and every classification is logged. Sources that are already classified are never touched by this route.",
+          "Books and long documents (for example PDF after text recognition, OCR) go in through the section “Upload books and long documents”. Choose only the cluster (books, publications or internet source) and the roles there, then select several files at once. There is no limit on file size or page count: the browser reads the file itself and sends only the text in packages, the file never leaves the computer. A PDF needs a text layer, a pure image scan yields no text.",
+          "Before uploading, the page shows for each file the number of characters and an assessment of the text quality (readable, check, poor) with the reasons, such as chopped words or many special characters. A text rated “poor” is not uploaded, the file should be created again with OCR. The title is taken from the file name and can be changed. “Upload books” starts the series, a progress bar shows the package, and “Cancel” removes the book that was started.",
+          "If the connection breaks off, the book appears as “Incomplete” in the list. It cannot be approved, only deleted and uploaded again. Like every document, a book stays unchecked until a second person approves it.",
+          "The page helps with the review through an assessment: every waiting document carries the recommendation “approve”, “review first” or “reject”, with the reasons (incomplete, poorly readable, not classified, internet source without link, very short, last resort only). The assessment only checks mechanical things and does not replace reading the preview, which shows the start, middle and end of the text.",
+          "Many documents can be decided in one step: above the list “documents are waiting for your review” appears. Select all or only the recommended ones or tick individual documents, then choose “Approve selection” or “Reject selection”. The window names every document with its recommendation, and after confirming it shows what happened to each document. Every document is checked and logged individually, and the bulk review does not approve your own uploads either.",
+          "Approved documents first exist in the preview environment. After the change is merged, a workflow copies the approved documents of the knowledge base into production, and only those: no users, no operating data. Unchecked and rejected documents stay in the preview.",
+          "You do not set area, source type and text basis yourself: the analysis suggests them for each book, from the content (structure, technical terms, notes on translation) and, if you want, additionally with the AI. For each book three selection fields appear with the suggestion, a statement of confidence (“Confident suggestion”, “Check suggestion”, “Uncertain, please look”) and the reason. Every value can be changed, including the title. What you changed yourself is no longer overwritten by the AI. The AI analysis sends an excerpt of about 6,000 characters per file and the file name to the configured AI provider; the tick “Analyse with AI” turns it off, then only the rules apply.",
+          "The classification can be changed at any time later: in the list choose “Change classification” for a document, then change cluster, area, source type and text basis. The window shows which level follows from the source type and how the source is used in the area. The change is logged. For an approved upload, area, source type and text basis are not changed by the person who uploaded it but by a second person (four-eyes principle, also enforced in the database); the cluster can always be changed.",
+          "The AI assistant helps with managing the knowledge base (administration only): it gives an overview of holdings and distribution, names what is waiting for review or is not classified, analyses a document and explains whether the classification is right. It proposes a change of classification as a card that you confirm. It cannot upload files or approve documents, that stays with you and the second person.",
         ],
       },
     ],
@@ -570,6 +584,14 @@ export const en: HandbuchTexte = {
       {
         begriff: "Knowledge base",
         text: "The stock of texts on law, tax, compliance, audit and risk from which the assistant takes its references. Texts arrive by script or as an upload by administration. Every passage carries its area, roles and origin.",
+      },
+      {
+        begriff: "Four-eyes principle",
+        text: "An uploaded knowledge document is searchable only after a second person has approved it. The uploader does not approve. The database enforces this, not just the interface.",
+      },
+      {
+        begriff: "Source type",
+        text: "The kind of source of a knowledge document (statute, case law, specialist literature, internet source, forum and more). It determines the level, what the source is good for in which area, and when it must be reviewed again.",
       },
       {
         begriff: "Day companion",

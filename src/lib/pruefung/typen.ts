@@ -40,6 +40,8 @@ export interface Befund {
   massnahmen: Massnahme[];
   /** Verstoss oder Luecke ohne gueltigen Rechtsbeleg wurde zum Hinweis herabgestuft. */
   ohneRechtsbeleg?: boolean;
+  /** Alle Quellen dieses Befunds sind ungesicherte Internetquellen (Notbehelf): Verstoss, Luecke oder konform wurde zum Hinweis herabgestuft. */
+  nurUnsichereQuellen?: boolean;
   /** Fuer dieses Pruefungsfeld liegen dieser Rolle keine Betriebsdaten vor. */
   ohneDaten?: boolean;
 }

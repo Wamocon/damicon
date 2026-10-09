@@ -5,12 +5,16 @@ import { usePathname } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useAktiveZone } from "@/components/dashboard/sidebar-zustand";
 import {
-  moduleByPath,
-  moduleHref,
-  sichtbareModule,
-  zones,
-  type ZoneKey,
-} from "@/lib/modules";
+  adminSeiteBySlug,
+  adminSeiteHref,
+  ADMINISTRATION,
+  ADMINISTRATION_HREF,
+  ADMINISTRATION_ICON,
+  darfAdministrieren,
+  sichtbareAdminSeiten,
+  type BereichKey,
+} from "@/lib/administration";
+import { moduleByPath, moduleHref, sichtbareModule, zones } from "@/lib/modules";
 
 // Die Navigationsziele des Menue-Blatts als Listen: oben Uebersicht und die
 // vier Bereiche (useNavZiele), darunter die Module eines Bereichs
@@ -28,8 +32,8 @@ import {
 // wird sie zu fertigen Zielen samt Namen, Symbol und Rechtepruefung verarbeitet.
 
 export interface NavZiel {
-  /** "overview" oder der Bereichsschluessel. */
-  key: "overview" | ZoneKey;
+  /** "overview" oder der Bereichsschluessel (eine Zone oder die Administration). */
+  key: "overview" | BereichKey;
   href: string;
   /** Name aus der Symbolablage (components/icon.tsx). */
   icon: string;
@@ -81,6 +85,18 @@ export function useNavZiele(): NavZiel[] {
     });
   }
 
+  // Die Administration steht nach den Zonen, nur fuer die Rolle, die sie verwalten darf.
+  if (darfAdministrieren(role)) {
+    ziele.push({
+      key: ADMINISTRATION,
+      href: ADMINISTRATION_HREF,
+      icon: ADMINISTRATION_ICON,
+      name: zoneT(`${ADMINISTRATION}.name`),
+      aktuelleSeite: pathname === ADMINISTRATION_HREF,
+      imZiel: aktiveZone === ADMINISTRATION,
+    });
+  }
+
   return ziele;
 }
 
@@ -107,12 +123,27 @@ export interface ModulZiel {
  * Namen aus zones statt aus modules, und ein Feld "ist der Bereich selbst"
  * haette jede Zeile mitzuschleppen, nur damit eine einzige es setzt.
  */
-export function useModulZiele(zone: ZoneKey | null): ModulZiel[] {
+export function useModulZiele(zone: BereichKey | null): ModulZiel[] {
   const { role } = usePersona();
   const moduleT = useTranslations("modules");
+  const adminT = useTranslations("administration");
   const pathname = usePathname();
 
   if (!zone) return [];
+
+  // Die Seiten der Administration sind keine Module, stehen im Menue aber genauso.
+  if (zone === ADMINISTRATION) {
+    return sichtbareAdminSeiten(role).map((seite) => {
+      const href = adminSeiteHref(seite);
+      return {
+        key: seite.key,
+        href,
+        icon: seite.icon,
+        name: adminT(`seiten.${seite.key}.navTitle`),
+        aktuelleSeite: pathname === href,
+      };
+    });
+  }
 
   return sichtbareModule(role, zone).map((module) => {
     const href = moduleHref(module);
@@ -153,6 +184,7 @@ export function useSeitenPfad(): PfadStation[] {
   const nav = useTranslations("nav");
   const zoneT = useTranslations("zones");
   const moduleT = useTranslations("modules");
+  const adminT = useTranslations("administration");
 
   // Ohne Sprachpraefix, das nimmt usePathname aus @/i18n/navigation schon weg:
   // ["dashboard"], ["dashboard", <zone>] oder ["dashboard", <zone>, <modul>].
@@ -165,6 +197,13 @@ export function useSeitenPfad(): PfadStation[] {
     alsHaus: true,
   };
   if (segmente.length === 1) return [haus];
+
+  // Administration: Uebersicht des Bereichs oder eine ihrer Seiten, gleich gebaut wie Zone und Modul.
+  if (segmente[1] === ADMINISTRATION) {
+    const seite = segmente[2] ? adminSeiteBySlug(segmente[2]) : undefined;
+    const bereich: PfadStation = { href: seite ? ADMINISTRATION_HREF : undefined, text: zoneT(`${ADMINISTRATION}.name`) };
+    return seite ? [haus, bereich, { text: adminT(`seiten.${seite.key}.navTitle`) }] : [haus, bereich];
+  }
 
   const zone = zones.find((z) => z.key === segmente[1]);
   if (!zone) return [haus];

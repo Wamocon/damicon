@@ -60,6 +60,7 @@ import type { AusweichEreignis } from "@/lib/ai/ausfall-modell";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { profilFuerTagesLage } from "@/lib/domain/tages-lage";
 import { naechsteBelegNummer } from "@/lib/wissen/belege";
+import { WISSEN_VERWALTUNG_ANWEISUNG } from "@/lib/ai/wissen-verwaltung-anweisung";
 import { PRUEF_BEREICH_ANKER } from "@/components/pruefung/symbole";
 import { waehleSchritt } from "@/lib/ai/schritt-steuerung";
 import { ABLEHNUNG_ANWEISUNG, zweckentfremdung } from "@/lib/ai/bereich-schutz";
@@ -506,6 +507,8 @@ export async function POST(req: Request) {
     TAGESBEGLEITER,
     // Nur wenn die Wissenssuche fuer diese Rolle angeboten wird: sonst gaebe es nichts zu belegen.
     "wissenSuchen" in werkzeuge ? quellenAnweisung(antwortSprache) : OHNE_QUELLEN_ANWEISUNG,
+    // Nur fuer die Administration: Hilfe beim Hochladen, Einordnen und Analysieren der Wissensbasis.
+    "wissensbasisAbrufen" in werkzeuge ? WISSEN_VERWALTUNG_ANWEISUNG : "",
   ]
     .filter(Boolean)
     .join("\n\n");

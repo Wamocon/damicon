@@ -124,6 +124,11 @@ jobs:
       - name: Strukturabgleich public und public_preview
         run: node scripts/preview-abgleich.mjs --local
 
+      # Der Abgleich der Wissensbasis (scripts/wissen-abgleich.mjs) schreibt nach dem Merge in die Produktion. Hier laeuft er gegen
+      # die frisch aufgebauten Schemas mit einem Szenario aus Testzeilen: freigegebene Uploads kommen mit, alles andere nicht.
+      - name: Wissensbasis-Abgleich public_preview nach public
+        run: npm run test:wissen-abgleich-db
+
       # Braucht kein laufendes Supabase: PGlite bringt Postgres als WASM mit
       # und wendet alle Migrationen selbst an. Deckt die Einladungen, den
       # Zukauf-Parser, den Ausweis-Scan und den KI-Assistenten ab - bis zu

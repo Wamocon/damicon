@@ -32,8 +32,12 @@ import { kuehlmessungKern } from "@/lib/actions/nachweiskette";
 import { reklamationAnlegen } from "@/lib/actions/reklamationen";
 import { lohnPeriodeBerechnen } from "@/lib/actions/lohn";
 import { kiEskalationAnfordern } from "@/lib/actions/ki-assistent";
+import { wissenDokumentUmordnen } from "@/lib/actions/wissen";
+import { findeDokument, ladeDokumente } from "@/lib/ai/wissen-verwaltung-werkzeug";
+import { CLUSTER, QUELLENARTEN, TEXTGRUNDLAGEN } from "@/lib/wissen/quellenart";
+import { UPLOAD_BEREICHE } from "@/lib/wissen/upload-konstanten";
 import { reklamationGruende } from "@/lib/domain/reklamationen";
-import { zielFuerModul, ZIEL_MWST } from "@/lib/ai/ziele";
+import { zielFuerModul, ZIEL_MWST, ZIEL_WISSENSBASIS } from "@/lib/ai/ziele";
 
 const datum = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format JJJJ-MM-TT");
 // Datum mit Uhrzeit in Betriebszeit Almaty, wie das Formularfeld datetime-local.
@@ -227,6 +231,33 @@ const einschalten = tool({
   execute: async () => ergebnis(await kiEskalationAnfordern(leer, formular({})), null),
 });
 
+const wissenEinordnungAendern = tool({
+  description:
+    "Ändert die Einordnung EINES Dokuments der Wissensbasis: Bereich, Quellenart, Cluster und/oder Textgrundlage (gib nur an, was sich ändern soll). Das Dokument gibst du mit seiner Kennung (schluessel aus wissensbasisAbrufen) an. Nur Administration. Die Stufe folgt der Quellenart. Bei einem freigegebenen Upload darf die Person, die hochgeladen hat, Bereich, Quellenart und Textgrundlage nicht ändern (Vier-Augen-Prinzip); dann sagst du das und bittest eine zweite Person. Prüfe vorher mit wissenDokumentAnalysieren und begründe die Änderung.",
+  inputSchema: z.object({
+    dokument: z.string().min(2).max(300).describe("Kennung (schluessel) des Dokuments"),
+    bereich: z.enum(UPLOAD_BEREICHE).optional(),
+    quellenart: z.enum(QUELLENARTEN).optional(),
+    cluster: z.enum(CLUSTER).optional(),
+    textgrundlage: z.enum(TEXTGRUNDLAGEN).optional(),
+  }),
+  needsApproval: true,
+  execute: async ({ dokument, bereich, quellenart, cluster, textgrundlage }) => {
+    let liste;
+    try {
+      liste = await ladeDokumente();
+    } catch {
+      return { ...nichtGefunden("Dokument", dokument), text: "Die Dokumentliste ist gerade nicht lesbar." };
+    }
+    const { treffer, kandidaten } = findeDokument(liste, dokument);
+    if (!treffer) {
+      return { ...nichtGefunden("Dokument", dokument), text: kandidaten.length > 1 ? `Das Dokument '${dokument}' ist nicht eindeutig. Nimm die Kennung aus wissensbasisAbrufen.` : `Dokument '${dokument}' wurde nicht gefunden.` };
+    }
+    const status = await wissenDokumentUmordnen(leer, formular({ schluessel: treffer.schluessel, spalte: treffer.schluesselSpalte, bereich, quellenart, cluster, textgrundlage }));
+    return ergebnis(status, ZIEL_WISSENSBASIS);
+  },
+});
+
 return {
   mwstSchwellePruefen: mwstPruefen,
   aufgabeAnlegen: aufgabeAnlegenWerkzeug,
@@ -235,6 +266,7 @@ return {
   reklamationAnlegen: reklamation,
   lohnPeriodeBerechnen: lohnBerechnen,
   mitarbeiterEinschalten: einschalten,
+  wissenEinordnungAendern,
 } as const;
 }
 
@@ -252,5 +284,7 @@ export function baueAktionen(rolle: Role | null | undefined) {
     ...(darf("reklamationAnlegen") ? { reklamationAnlegen: ALLE_AKTIONEN.reklamationAnlegen } : {}),
     ...(darf("lohnPeriodeBerechnen") ? { lohnPeriodeBerechnen: ALLE_AKTIONEN.lohnPeriodeBerechnen } : {}),
     ...(darf("mitarbeiterEinschalten") ? { mitarbeiterEinschalten: ALLE_AKTIONEN.mitarbeiterEinschalten } : {}),
+    // Die Verwaltung der Wissensbasis ist der Administration vorbehalten (ki_assistent:manage), nicht nur jeder Rolle mit update.
+    ...(darf("wissenEinordnungAendern") && hasPermission(rolle, "ki_assistent", "manage") ? { wissenEinordnungAendern: ALLE_AKTIONEN.wissenEinordnungAendern } : {}),
   };
 }

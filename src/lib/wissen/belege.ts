@@ -47,6 +47,10 @@ export function belegeAusErgebnis(ausgabe: unknown): Beleg[] {
       bereich: zeichenkette(b.bereich) ?? "",
       text: zeichenkette(b.text) ?? "",
       punktzahl: typeof b.punktzahl === "number" ? b.punktzahl : 0,
+      quellenart: zeichenkette(b.quellenart),
+      textgrundlage: zeichenkette(b.textgrundlage),
+      nutzung: b.nutzung === "hinweis" ? "hinweis" : b.nutzung === "notfalls" ? "notfalls" : "ja",
+      einordnung: zeichenkette(b.einordnung) ?? "",
     });
   }
   return belege;

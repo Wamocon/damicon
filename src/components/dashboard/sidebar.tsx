@@ -22,13 +22,14 @@ import {
 } from "@/components/dashboard/sidebar-zustand";
 import { useNavZiele } from "@/components/dashboard/nav-ziele";
 import {
-  moduleHref,
-  sichtbareModule,
-  zones,
-  type ModuleDef,
-  type ZoneDef,
-  type ZoneKey,
-} from "@/lib/modules";
+  adminSeiteHref,
+  ADMINISTRATION,
+  ADMINISTRATION_HREF,
+  ADMINISTRATION_ICON,
+  sichtbareAdminSeiten,
+  type BereichKey,
+} from "@/lib/administration";
+import { moduleHref, sichtbareModule, zones } from "@/lib/modules";
 import { cn } from "@/lib/utils";
 
 // Die einzige Farbe im Menue ist die der offenen Seite. Sie stand an vier
@@ -105,32 +106,52 @@ function SidebarRail() {
   );
 }
 
-// Ein Modul im aufgeklappten Bereich.
+// Ein Eintrag im aufgeklappten Bereich: ein Modul einer Zone oder eine Seite der Administration. Beide Formen kommen
+// fertig mit Namen, Zielpfad und Symbol an, die Leiste kennt den Unterschied nicht.
+interface NavEintrag {
+  key: string;
+  href: string;
+  /** Name aus der Symbolablage (components/icon.tsx). */
+  icon: string;
+  /** Kurzname fuer die Spalte. */
+  titel: string;
+  /** Voller Seitentitel fuer den Hover-Text. */
+  vollerTitel: string;
+  /** Sichtbarer Menuepunkt ohne eigene Ansicht: bekommt den Hinweispunkt. */
+  inEntwicklung: boolean;
+}
+
+// Eine Gruppe der Leiste: eine der vier Zonen oder die Administration.
+interface NavGruppe {
+  key: BereichKey;
+  name: string;
+  icon: string;
+  href: string;
+  eintraege: NavEintrag[];
+}
+
+// Ein Eintrag im aufgeklappten Bereich.
 function ModulEintrag({
-  module,
+  eintrag,
   onNavigate,
 }: {
-  module: ModuleDef;
+  eintrag: NavEintrag;
   onNavigate?: () => void;
 }) {
-  const moduleT = useTranslations("modules");
   const metaT = useTranslations("moduleMeta");
   const isActive = useIsActive();
-  const href = moduleHref(module);
-  const aktiv = isActive(href);
+  const aktiv = isActive(eintrag.href);
   // Im Menue der Kurzname, im Hover-Text der volle Seitentitel: ausgeschrieben
   // passt er in keiner der vier Sprachen in die Spalte (Kasachisch braucht
   // 326 px, verfuegbar sind 201 px).
-  const titel = moduleT(`${module.key}.navTitle`);
-  const vollerTitel = moduleT(`${module.key}.title`);
 
   return (
     <li>
       <Link
-        href={href}
+        href={eintrag.href}
         onClick={onNavigate}
         aria-current={aktiv ? "page" : undefined}
-        title={vollerTitel}
+        title={eintrag.vollerTitel}
         className={cn(
           "flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-medium transition-colors",
           aktiv ? AKTIVE_SEITE : RUHENDE_SEITE,
@@ -141,10 +162,10 @@ function ModulEintrag({
             Bereich darueber. Nur die Breite wird uebernommen - mit h-6 waere
             die Zeile so hoch wie der Bereichskopf und die Abstufung dahin. */}
         <span className="flex h-4 w-6 shrink-0 items-center justify-center">
-          <Icon name={module.icon} className="h-4 w-4" />
+          <Icon name={eintrag.icon} className="h-4 w-4" />
         </span>
-        <span className="min-w-0 flex-1 truncate">{titel}</span>
-        {module.reifegrad === "in-entwicklung" ? (
+        <span className="min-w-0 flex-1 truncate">{eintrag.titel}</span>
+        {eintrag.inEntwicklung ? (
           <span
             className="h-1.5 w-1.5 shrink-0 rounded-full bg-warning"
             title={metaT("nichtVerfuegbar")}
@@ -245,7 +266,7 @@ function ModulListe({
 }: {
   id: string;
   offen: boolean;
-  items: ModuleDef[];
+  items: NavEintrag[];
   onNavigate?: () => void;
 }) {
   return (
@@ -261,10 +282,10 @@ function ModulListe({
           erreichbar, aber unsichtbar. */}
       <div className="overflow-hidden" inert={!offen}>
         <ul className="space-y-0.5 pb-0.5">
-          {items.map((module) => (
+          {items.map((eintrag) => (
             <ModulEintrag
-              key={module.key}
-              module={module}
+              key={eintrag.key}
+              eintrag={eintrag}
               onNavigate={onNavigate}
             />
           ))}
@@ -282,19 +303,16 @@ function ModulListe({
 // die einzige Farbe im Menue bleibt damit die der aktiven Seite. Die Farben
 // der Bereiche stehen weiterhin in modules.ts und tragen die Startseite.
 function ZonenGruppe({
-  zone,
-  items,
+  gruppe,
   offen,
   umschalten,
   onNavigate,
 }: {
-  zone: ZoneDef;
-  items: ModuleDef[];
+  gruppe: NavGruppe;
   offen: boolean;
-  umschalten: (zone: ZoneKey) => void;
+  umschalten: (zone: BereichKey) => void;
   onNavigate?: () => void;
 }) {
-  const zoneT = useTranslations("zones");
   // Fuer die Bereichsseite zaehlt der genaue Pfad, nicht der Praefix aus
   // useIsActive - sonst gaelte sie auch auf jeder Modulseite als offen. Die
   // Module markieren sich als offene Seite ohnehin selbst.
@@ -302,8 +320,7 @@ function ZonenGruppe({
   const aktiveZone = useAktiveZone();
   const panelId = useId();
 
-  const name = zoneT(`${zone.key}.name`);
-  const zonenHref = `/dashboard/${zone.key}`;
+  const { name, href: zonenHref, eintraege: items } = gruppe;
   const aufBereichsseite = pathname === zonenHref;
   // Damit ein zugeklappter Bereich zeigt, dass die offene Seite in ihm liegt -
   // sonst wirkt die Navigation ohne aktiven Eintrag.
@@ -314,7 +331,7 @@ function ZonenGruppe({
   // Modul fuer die Rolle unsichtbar ist oder sich die Praefix-Regel aendert.
   // Auf der Bereichsseite traegt der Kopf schon die Farbe der aktiven Seite,
   // dort steht stattdessen weiterhin die Zahl der Module.
-  const enthaeltAktives = aktiveZone === zone.key && !aufBereichsseite;
+  const enthaeltAktives = aktiveZone === gruppe.key && !aufBereichsseite;
   // Auf der Bereichsseite traegt der Kopf die Farbe der aktiven Seite. Symbol
   // und Name setzen ihre Farbe selbst, deshalb hier nicht RUHENDE_SEITE.
   const symbolFarbe = aufBereichsseite
@@ -346,7 +363,7 @@ function ZonenGruppe({
               symbolFarbe,
             )}
           >
-            <Icon name={zone.icon} className="h-4 w-4" />
+            <Icon name={gruppe.icon} className="h-4 w-4" />
           </span>
           <span
             className={cn(
@@ -370,7 +387,7 @@ function ZonenGruppe({
           offen={offen}
           panelId={panelId}
           name={name}
-          onUmschalten={() => umschalten(zone.key)}
+          onUmschalten={() => umschalten(gruppe.key)}
         />
       </div>
 
@@ -387,8 +404,51 @@ function ZonenGruppe({
 function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const { role } = usePersona();
   const nav = useTranslations("nav");
+  const moduleT = useTranslations("modules");
+  const zoneT = useTranslations("zones");
+  const adminT = useTranslations("administration");
   const isActive = useIsActive();
   const { offene, umschalten } = useZonenGruppen();
+
+  // Die Gruppen der Leiste: die vier Zonen, danach als letzte die Administration. Ein Bereich ohne sichtbaren Eintrag
+  // erscheint gar nicht - damit taucht auch der Link auf seine Bereichsseite nie fuer eine Rolle auf, die dort nichts
+  // zu sehen hat.
+  const gruppen: NavGruppe[] = [];
+  for (const zone of zones) {
+    const items = sichtbareModule(role, zone.key);
+    if (items.length === 0) continue;
+    gruppen.push({
+      key: zone.key,
+      name: zoneT(`${zone.key}.name`),
+      icon: zone.icon,
+      href: `/dashboard/${zone.key}`,
+      eintraege: items.map((module) => ({
+        key: module.key,
+        href: moduleHref(module),
+        icon: module.icon,
+        titel: moduleT(`${module.key}.navTitle`),
+        vollerTitel: moduleT(`${module.key}.title`),
+        inEntwicklung: module.reifegrad === "in-entwicklung",
+      })),
+    });
+  }
+  const adminSeiten = sichtbareAdminSeiten(role);
+  if (adminSeiten.length > 0) {
+    gruppen.push({
+      key: ADMINISTRATION,
+      name: zoneT(`${ADMINISTRATION}.name`),
+      icon: ADMINISTRATION_ICON,
+      href: ADMINISTRATION_HREF,
+      eintraege: adminSeiten.map((seite) => ({
+        key: seite.key,
+        href: adminSeiteHref(seite),
+        icon: seite.icon,
+        titel: adminT(`seiten.${seite.key}.navTitle`),
+        vollerTitel: adminT(`seiten.${seite.key}.title`),
+        inEntwicklung: false,
+      })),
+    });
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -440,24 +500,15 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
               </Link>
             </li>
 
-            {zones.map((zone) => {
-              const items = sichtbareModule(role, zone.key);
-              // Ein Bereich ohne sichtbares Modul erscheint gar nicht - damit
-              // taucht auch der Link auf seine Bereichsseite nie fuer eine
-              // Rolle auf, die dort nichts zu sehen hat.
-              if (items.length === 0) return null;
-
-              return (
-                <ZonenGruppe
-                  key={zone.key}
-                  zone={zone}
-                  items={items}
-                  offen={offene.includes(zone.key)}
-                  umschalten={umschalten}
-                  onNavigate={onNavigate}
-                />
-              );
-            })}
+            {gruppen.map((gruppe) => (
+              <ZonenGruppe
+                key={gruppe.key}
+                gruppe={gruppe}
+                offen={offene.includes(gruppe.key)}
+                umschalten={umschalten}
+                onNavigate={onNavigate}
+              />
+            ))}
           </ul>
         </nav>
 

@@ -257,6 +257,11 @@
       "name": "Markt",
       "tagline": "Vertrieb, KI, Öffentlichkeit",
       "description": "Sorten- und Kontingentkatalog, B2B-Portal mit Vorbestellung, KI-Chat auf gesicherter Datenbasis, Aggregator-Plattform für Nachbarbetriebe und mehrsprachige Schulungen."
+    },
+    "administration": {
+      "name": "Administration",
+      "tagline": "KI-Assistent und Wissensbasis",
+      "description": "KI-Anbieter, Ratenlimit und Wissensdokumente verwalten. Nur für die Administration sichtbar."
     }
   },
   "footer": {
@@ -937,9 +942,16 @@
       "transkription": "Diktat übernommen.",
       "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
       "dokumentGeaendert": "Dokument „{wert}“ aktualisiert.",
-      "wissenHochgeladen": "Dokument „{wert}“ hochgeladen und durchsuchbar.",
+      "wissenHochgeladen": "Dokument „{wert}“ hochgeladen. Es wartet auf die Freigabe durch eine zweite Person.",
       "wissenGeloescht": "Dokument „{wert}“ gelöscht.",
-      "wissenSchonGeloescht": "Dieses Dokument ist bereits gelöscht."
+      "wissenSchonGeloescht": "Dieses Dokument ist bereits gelöscht.",
+      "wissenFreigegeben": "Dokument „{wert}“ freigegeben und durchsuchbar.",
+      "wissenAbgelehnt": "Dokument „{wert}“ abgelehnt. Es bleibt gesperrt und lässt sich löschen.",
+      "wissenVerlaengert": "Dokument „{wert}“ verlängert und wieder durchsuchbar.",
+      "wissenEingeordnet": "{wert} Dokumente eingeordnet.",
+      "wissenSammelFreigegeben": "Freigegeben und durchsuchbar: {wert} Dokumente (Einzelheiten im Fenster).",
+      "wissenSammelAbgelehnt": "Abgelehnt: {wert} Dokumente. Sie bleiben gesperrt und lassen sich löschen.",
+      "wissenUmgeordnet": "Einordnung von „{wert}“ geändert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1005,7 +1017,21 @@
       "wissenNichtLoeschbar": "Dieses Dokument kann hier nicht gelöscht werden. Nur über die Verwaltung hochgeladene Dokumente sind löschbar, Dokumente aus dem Einlese-Skript nie.",
       "wissenLoeschen": "Das Dokument konnte nicht gelöscht werden. Es wurde nichts verändert.",
       "wissenGewichte": "Das Dokument wurde gelöscht, aber die Wortgewichte der Suche konnten nicht aktualisiert werden. Das ist unschädlich und wird beim nächsten ETL-Lauf ausgeglichen.",
-      "wissenPdfDienst": "Der PDF-Leser steht auf dem Server nicht zur Verfügung. Das liegt nicht an der Datei, es wurde nichts gespeichert. Bitte die technische Betreuung informieren."
+      "wissenQuellenartGesperrt": "Diese Quellenart ist für den gewählten Bereich nicht zulässig. Gesetze und Vorschriften brauchen eine amtliche oder fachliche Quelle, keine Internetquelle.",
+      "wissenUrlFehlt": "Für diese Quellenart ist der Link zur Quelle Pflicht (Herkunftsnachweis).",
+      "wissenUrlUngueltig": "Der Link zur Quelle ist keine gültige http- oder https-Adresse.",
+      "wissenNichtGefunden": "Dieses Dokument gibt es nicht (mehr).",
+      "wissenNichtFreigebbar": "Dieses Dokument lässt sich hier nicht prüfen. Nur über die Verwaltung hochgeladene Dokumente werden freigegeben.",
+      "wissenNichtPruefbar": "Dieses Dokument wartet nicht auf eine Prüfung, oder jemand anderes hat gerade entschieden.",
+      "wissenSelbstFreigabe": "Vier-Augen-Prinzip: Wer ein Dokument hochgeladen hat, gibt es nicht frei. Bitte eine zweite Person bitten.",
+      "wissenFreigeben": "Die Entscheidung konnte nicht gespeichert werden. Es wurde nichts verändert.",
+      "wissenPdfDienst": "Der PDF-Leser steht auf dem Server nicht zur Verfügung. Das liegt nicht an der Datei, es wurde nichts gespeichert. Bitte die technische Betreuung informieren.",
+      "wissenEinordnenLeer": "Es gibt nichts einzuordnen: Die Auswahl ist leer oder ungültig.",
+      "wissenEinordnen": "Die Einordnung konnte nicht gespeichert werden. Es wurde nichts oder nur ein Teil geändert, bitte die Liste neu laden und prüfen.",
+      "wissenClusterPasstNicht": "Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz. Bitte als Cluster Internet-Quelle wählen.",
+      "wissenUnvollstaendig": "Dieses Buch ist unvollständig: Es fehlen Teile, weil das Hochladen abgebrochen wurde. Bitte löschen und neu hochladen. Freigeben ist erst dann möglich.",
+      "wissenSelbstUmordnen": "Die Einordnung eines freigegebenen Dokuments ändert nicht die Person, die es hochgeladen hat. Bitte eine zweite Person bitten.",
+      "wissenKeineAenderung": "Es wurde nichts geändert: Die gewählten Angaben entsprechen der bisherigen Einordnung."
     },
     "einladungen": {
       "erfolg": {
@@ -1973,7 +1999,9 @@
       "klicke": "Geklickt: {absicht}",
       "fuelleFeld": "Ausgefüllt: {absicht}",
       "scrolleZu": "Gescrollt",
-      "zeigeAuf": "Gezeigt: {absicht}"
+      "zeigeAuf": "Gezeigt: {absicht}",
+      "wissensbasisAbrufen": "Wissensbasis geprüft",
+      "wissenDokumentAnalysieren": "Dokument analysiert"
     },
     "agentDenkt": "Agent pflückt die Fakten …",
     "agentPrueft": "Agent prüft: {werkzeug} …",
@@ -2025,7 +2053,31 @@
       "intern": "Interne Recherche",
       "unbelegt": "Zu dieser Marke gibt es keinen Beleg.",
       "gestuetzt": "Auf Gesetzestext gestützt",
-      "nurFach": "Nur Fachquellen: Primärquelle prüfen"
+      "nurFach": "Nur Fachquellen: Primärquelle prüfen",
+      "art": {
+        "rechtsnorm": "Rechtsnorm",
+        "rechtsprechung": "Rechtsprechung",
+        "verwaltungsanweisung": "Verwaltungsanweisung",
+        "behoerdeninfo": "Behördeninformation",
+        "standard": "Norm oder Standard",
+        "fachliteratur": "Fachliteratur",
+        "praxisbeitrag": "Praxisbeitrag",
+        "intern": "Interne Ausarbeitung",
+        "nachschlagewerk": "Nachschlagewerk",
+        "internetquelle": "Internetquelle",
+        "forum": "Forum oder Frage-Antwort-Portal",
+        "internetrecherche": "Ergebnis einer Internetrecherche",
+        "ki_zusammenfassung": "KI-Zusammenfassung"
+      },
+      "textgrundlage": {
+        "amtlich_uebersetzt": "Amtliche Übersetzung",
+        "fachlich_uebersetzt": "Fachliche Übersetzung",
+        "maschinell_uebersetzt": "Maschinelle Übersetzung"
+      },
+      "nurHinweis": "Nur ein Hinweis aus einer ungeprüften Quelle, nicht maßgeblich.",
+      "notfalls": "Ungesicherte Internetquelle, keine offizielle staatliche Quelle. Nur als Notbehelf genannt, bitte nachprüfen.",
+      "nurHinweise": "Nur Hinweise, keine belastbare Quelle",
+      "nurUnsichere": "Nur Internetquellen, keine offizielle staatliche Quelle: unsicher"
     },
     "anbieterVerwaltung": {
       "titel": "KI-Anbieter verwalten",
@@ -2106,7 +2158,9 @@
       "klicke": "Klicke: {absicht} …",
       "fuelleFeld": "Fülle aus: {absicht} …",
       "scrolleZu": "Scrolle …",
-      "zeigeAuf": "Zeige: {absicht} …"
+      "zeigeAuf": "Zeige: {absicht} …",
+      "wissensbasisAbrufen": "Lese die Wissensbasis …",
+      "wissenDokumentAnalysieren": "Analysiere das Dokument …"
     },
     "ziel": {
       "mwstStatusAbrufen": "MwSt-Registrierung",
@@ -2127,7 +2181,10 @@
       "kuehlmessungErfassen": "Pflückaufgaben",
       "reklamationAnlegen": "Reklamationen",
       "lohnPeriodeBerechnen": "Lohnabrechnung",
-      "mitarbeiterEinschalten": "Chat"
+      "mitarbeiterEinschalten": "Chat",
+      "wissensbasisAbrufen": "Wissensverwaltung",
+      "wissenDokumentAnalysieren": "Wissensverwaltung",
+      "wissenEinordnungAendern": "Wissensverwaltung"
     },
     "bereichAllgemein": "den Bereich",
     "zielExtra": {
@@ -2181,7 +2238,8 @@
         "kuehlmessungErfassen": "Kühlmessung erfassen",
         "reklamationAnlegen": "Reklamation melden",
         "lohnPeriodeBerechnen": "Lohn berechnen",
-        "mitarbeiterEinschalten": "An Mitarbeiter übergeben"
+        "mitarbeiterEinschalten": "An Mitarbeiter übergeben",
+        "wissenEinordnungAendern": "Einordnung ändern"
       },
       "felder": {
         "reihenblockCode": "Reihenblock",
@@ -2198,7 +2256,12 @@
         "chargeCode": "Charge",
         "kundenName": "Kunde",
         "periodeStart": "Von",
-        "periodeEnde": "Bis"
+        "periodeEnde": "Bis",
+        "dokument": "Dokument",
+        "bereich": "Bereich",
+        "quellenart": "Quellenart",
+        "cluster": "Cluster",
+        "textgrundlage": "Textgrundlage"
       },
       "werte": {
         "angenommen": "angenommen",
@@ -2208,7 +2271,32 @@
         "verspaetung": "Verspätung",
         "verpackung": "Verpackung",
         "temperatur": "Temperatur",
-        "sonstiges": "Sonstiges"
+        "sonstiges": "Sonstiges",
+        "recht": "Recht",
+        "steuer": "Steuern",
+        "compliance": "Compliance",
+        "audit": "Audit",
+        "risiko": "Risiko",
+        "rechtsnorm": "Rechtsnorm",
+        "rechtsprechung": "Rechtsprechung",
+        "verwaltungsanweisung": "Verwaltungsanweisung",
+        "behoerdeninfo": "Behördeninformation",
+        "standard": "Norm oder Standard",
+        "fachliteratur": "Fachliteratur",
+        "praxisbeitrag": "Praxisbeitrag",
+        "intern": "Interne Ausarbeitung",
+        "nachschlagewerk": "Nachschlagewerk",
+        "internetquelle": "Internetquelle",
+        "forum": "Forum oder Frage-Antwort-Portal",
+        "internetrecherche": "Ergebnis einer Internetrecherche",
+        "ki_zusammenfassung": "KI-Zusammenfassung",
+        "buecher": "Bücher",
+        "publikationen": "Publikationen",
+        "internet": "Internet-Quelle",
+        "original": "Originaltext",
+        "amtlich_uebersetzt": "Amtliche Übersetzung",
+        "fachlich_uebersetzt": "Fachliche Übersetzung",
+        "maschinell_uebersetzt": "Maschinelle Übersetzung"
       },
       "bestaetigen": "Bestätigen",
       "ablehnen": "Ablehnen",
@@ -2277,6 +2365,7 @@
         "laedt": "Dokumente werden geladen …",
         "leer": "Noch keine Dokumente in der Wissensbasis.",
         "fehler": "Die Dokumentliste konnte nicht geladen werden.",
+        "fehlerDetail": "Technische Angabe",
         "abgeschnitten": "Die Liste ist unvollständig: Die Wissensbasis hat mehr Textstellen, als diese Ansicht lesen kann. Bitte melden.",
         "rollen": "Rollen",
         "datum": "Eingelesen am",
@@ -2284,20 +2373,47 @@
         "vonSkript": "Einlese-Skript",
         "abschnitte": "Abschnitte",
         "keinDatum": "ohne Datum",
-        "keinBereich": "ohne Bereich"
+        "keinBereich": "ohne Bereich",
+        "quellenart": "Quellenart",
+        "stufe": "Stufe",
+        "link": "Quelle",
+        "pruefenBis": "Prüfung fällig am",
+        "wartet": "Wartet auf eine zweite Person: Wer hochgeladen hat, gibt nicht frei.",
+        "cluster": "Cluster",
+        "einordnung": "Einordnung",
+        "ohneEinordnung": "Nicht eingeordnet",
+        "ohneEinordnungHinweis": "Bestand aus der Zeit vor der Typisierung: Quellenart und Cluster fehlen. Der Assistent behandelt ihn weiter nach seiner Stufe.",
+        "filter": "Nach Cluster filtern",
+        "filterAlle": "Alle",
+        "keineTreffer": "Kein Dokument in dieser Auswahl.",
+        "unvollstaendig": "Unvollständig",
+        "unvollstaendigHinweis": "Das Buch ist nicht vollständig hochgeladen ({da} von {gesamt} Paketen). Es lässt sich nicht freigeben. Bitte löschen und neu hochladen."
       },
       "formular": {
         "titel": "Dokument hochladen",
-        "lead": "PDF, Markdown oder Text bis 8 MB. Der Inhalt wird zerlegt, eingebettet und sofort durchsuchbar. Dieselbe Datei lässt sich nicht zweimal hochladen.",
+        "lead": "PDF, Markdown oder Text bis 8 MB. Der Inhalt wird zerlegt und eingebettet. Dieselbe Datei lässt sich nicht zweimal hochladen.",
         "datei": "Datei",
         "dateiHinweis": "Erlaubt: .pdf, .md, .txt. Ein PDF ohne Textebene (reiner Scan) wird abgelehnt.",
         "titelFeld": "Titel",
         "titelPlatzhalter": "zum Beispiel Steuergesetzbuch, Auszug",
         "bereich": "Bereich",
+        "cluster": "Cluster",
         "bitteWaehlen": "Bitte wählen",
         "rollen": "Wer darf das Dokument sehen?",
         "adminImmer": "Administration ist immer eingeschlossen. Andere Rollen nutzen die Wissenssuche nicht.",
-        "knopf": "Dokument hochladen"
+        "knopf": "Dokument hochladen",
+        "quellenart": "Quellenart",
+        "quellenartHinweis": "Nach der Herkunft des Textes, nicht nach dem Weg: Ein Gesetzestext von einer amtlichen Webseite ist eine Rechtsnorm, kein Internetbeitrag.",
+        "nichtZulaessig": "für diesen Bereich nicht zulässig",
+        "nutzungHinweis": "In diesem Bereich nur als Hinweis: Der Assistent nennt die Quelle als ungeprüft und stützt nie eine verbindliche Aussage allein darauf.",
+        "nutzungNotfalls": "Ungesicherte Internetquelle: Der Assistent nennt sie nur, wenn er sonst nichts Tragendes findet, und kennzeichnet sie ausdrücklich als Internetquelle ohne amtlichen Charakter.",
+        "stufeInfo": "Wird mit Stufe {stufe} angelegt.",
+        "textgrundlage": "Textgrundlage",
+        "url": "Link zur Quelle",
+        "urlHinweis": "Pflicht bei Internetquelle und Forum, sonst freiwillig. Der Link ist der Herkunftsnachweis für die Prüfung.",
+        "freigabeHinweis": "Nach dem Hochladen wartet das Dokument auf die Freigabe durch eine zweite Person (Vier-Augen-Prinzip). Erst dann ist es durchsuchbar.",
+        "clusterHinweis": "Der Weg, auf dem der Text zu uns kam, unabhängig von der Quellenart: Ein Gesetz von einer Regierungsseite bleibt eine Rechtsnorm, hat aber den Cluster Internet-Quelle.",
+        "clusterZwang": "Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz."
       },
       "loeschen": {
         "knopf": "Löschen",
@@ -2308,6 +2424,283 @@
         "warnung": "Achtung: Das Dokument und alle seine Abschnitte werden endgültig aus der Wissensbasis entfernt. Das kann nicht rückgängig gemacht werden. Der Assistent findet es danach nicht mehr.",
         "abbrechen": "Abbrechen",
         "bestaetigen": "Endgültig löschen"
+      },
+      "quellenart": {
+        "rechtsnorm": "Rechtsnorm",
+        "rechtsprechung": "Rechtsprechung",
+        "verwaltungsanweisung": "Verwaltungsanweisung",
+        "behoerdeninfo": "Behördeninformation",
+        "standard": "Norm oder Standard",
+        "fachliteratur": "Fachliteratur",
+        "praxisbeitrag": "Praxisbeitrag",
+        "intern": "Interne Ausarbeitung",
+        "nachschlagewerk": "Nachschlagewerk",
+        "internetquelle": "Internetquelle",
+        "forum": "Forum oder Frage-Antwort-Portal",
+        "internetrecherche": "Ergebnis einer Internetrecherche",
+        "ki_zusammenfassung": "KI-Zusammenfassung"
+      },
+      "beispiel": {
+        "rechtsnorm": "Gesetz, Verordnung, Kodex",
+        "rechtsprechung": "Urteil, Beschluss",
+        "verwaltungsanweisung": "Erlass, Schreiben einer Behörde",
+        "behoerdeninfo": "Merkblatt, amtliche Auskunft",
+        "standard": "ISO, COSO, Prüfungsstandard",
+        "fachliteratur": "Kommentar, Lehrbuch, Fachaufsatz",
+        "praxisbeitrag": "Whitepaper, Studie, Kanzlei- oder Verbandsinformation",
+        "intern": "Betriebsanweisung, eigene Analyse",
+        "nachschlagewerk": "Lexikon, Enzyklopädie, Wörterbuch",
+        "internetquelle": "Webseite, Artikel, Blog, Wikipedia",
+        "forum": "Forum, Q&A, soziale Netze",
+        "internetrecherche": "Zusammenstellung aus einer Websuche, von Mensch oder KI",
+        "ki_zusammenfassung": "von einer KI erzeugte Zusammenfassung"
+      },
+      "textgrundlage": {
+        "original": "Originaltext",
+        "amtlich_uebersetzt": "Amtliche Übersetzung",
+        "fachlich_uebersetzt": "Fachliche Übersetzung",
+        "maschinell_uebersetzt": "Maschinelle Übersetzung"
+      },
+      "status": {
+        "ungeprueft": "Wartet auf Freigabe",
+        "freigegeben": "Freigegeben",
+        "abgelehnt": "Abgelehnt",
+        "abgelaufen": "Prüfung fällig"
+      },
+      "nutzung": {
+        "hinweis": "Nur Hinweis",
+        "notfalls": "Nur Notbehelf"
+      },
+      "pruefung": {
+        "knopf": "Prüfen",
+        "knopfErneut": "Erneut prüfen",
+        "titel": "Dokument prüfen und freigeben?",
+        "titelErneut": "Wiedervorlage: Dokument weiter nutzen?",
+        "vorschau": "Anfang des Textes",
+        "vorschauLaedt": "Wird geladen …",
+        "vorschauFehler": "Die Vorschau konnte nicht geladen werden.",
+        "hinweis": "Vier-Augen-Prinzip: Mit der Freigabe wird das Dokument für die gewählten Rollen durchsuchbar. Prüfen Sie Herkunft, Quellenart und Inhalt. Wer hochgeladen hat, darf nicht freigeben.",
+        "hinweisErneut": "Die Wiedervorlage ist erreicht: Das Dokument wird nicht mehr gefunden, bis eine zweite Person es erneut geprüft und verlängert hat. Methoden und Verfahren ändern sich, prüfen Sie, ob der Inhalt noch gilt.",
+        "freigeben": "Freigeben",
+        "ablehnen": "Ablehnen",
+        "verlaengern": "Verlängern",
+        "abbrechen": "Abbrechen"
+      },
+      "cluster": {
+        "buecher": "Bücher",
+        "publikationen": "Publikationen",
+        "internet": "Internet-Quelle"
+      },
+      "clusterBeispiel": {
+        "buecher": "Buch: Fachbuch, Kommentar, Lehrbuch, Lexikon (gedruckt oder E-Book)",
+        "publikationen": "Amtsblatt, Zeitschrift, Fachaufsatz, Studie, Whitepaper, interne Ausarbeitung",
+        "internet": "Webseite (auch amtliche), Forum, Blog, Rechercheergebnis"
+      },
+      "einordnen": {
+        "titel": "Bestand einordnen",
+        "lead": "Diese Dokumente wurden vor der Typisierung eingelesen und haben noch keine Quellenart und keinen Cluster. Die Seite macht zu jedem einen Vorschlag aus Link, bisheriger Stufe und Rechtsstelle. Nichts wird von allein gespeichert: Sie prüfen, ändern, wählen aus und bestätigen, nachdem Sie die Wirkung auf die Suche gesehen haben.",
+        "zaehler": "Noch nicht eingeordnet: {offen} von {gesamt}",
+        "alleErledigt": "Alle Dokumente sind eingeordnet.",
+        "filter": {
+          "titel": "Nach Vorschlag filtern",
+          "alle": "Alle"
+        },
+        "sicherheit": {
+          "hoch": "Sicher",
+          "mittel": "Plausibel",
+          "niedrig": "Unsicher"
+        },
+        "grund": {
+          "rechtsstelle": "Rechtsstelle vorhanden, amtliche Seite",
+          "amtlicheSeite": "Amtliche Seite",
+          "standardGremium": "Normungs- oder Standardgremium",
+          "wikipedia": "Wikipedia",
+          "forum": "Forum oder Frage-Antwort-Seite",
+          "blog": "Blog oder Artikelplattform",
+          "stufe": "nach der bisherigen Stufe",
+          "keinLink": "kein Link vorhanden",
+          "mehrereQuellen": "mehrere Quellen im Link-Feld, bitte prüfen"
+        },
+        "spalte": {
+          "dokument": "Dokument",
+          "stufe": "Stufe",
+          "bereich": "Bereich",
+          "art": "Quellenart",
+          "cluster": "Cluster",
+          "vorschlag": "Vorschlag"
+        },
+        "bitteWaehlen": "Bitte wählen",
+        "waehlen": "Dokument auswählen",
+        "schaltflaeche": {
+          "sichere": "Sichere Vorschläge auswählen",
+          "alle": "Alle Vorschläge auswählen ({anzahl})",
+          "seite": "Alle auf dieser Seite auswählen",
+          "aufheben": "Auswahl aufheben",
+          "pruefen": "Einordnung prüfen ({anzahl})",
+          "zurueck": "Zurück",
+          "weiter": "Weiter"
+        },
+        "seite": "Seite {seite} von {seiten}",
+        "gewaehlt": "{anzahl} ausgewählt",
+        "unvollstaendig": "Nur Dokumente mit Quellenart und Cluster lassen sich auswählen.",
+        "dialog": {
+          "titel": "Einordnung prüfen und speichern",
+          "lead": "Das ändert sich für die Suche:",
+          "dokumente": "Dokumente: {anzahl}, Abschnitte: {abschnitte}",
+          "gesperrt": "Nicht mehr auffindbar in ihrem Bereich: {anzahl}",
+          "gesperrtKurz": "nicht mehr auffindbar",
+          "nurHinweis": "Nur noch als Hinweis: {anzahl}",
+          "notfalls": "Nur noch als Notbehelf (ungesicherte Internetquelle): {anzahl}",
+          "stufe": "Stufe ändert sich: {anzahl}",
+          "verlassenPrimaer": "Verlassen die reservierten Plätze für Rechtsquellen: {anzahl}",
+          "kommenInPrimaer": "Bekommen Zugang zu den reservierten Plätzen für Rechtsquellen: {anzahl}",
+          "nichtsBesonderes": "Für diese Dokumente verhält sich die Suche unverändert.",
+          "liste": "Betroffene Dokumente",
+          "stufeVonNach": "Stufe {alt} auf {neu}",
+          "weitere": "und {anzahl} weitere",
+          "hinweisStufe": "Die Stufe folgt der Quellenart, wie bei einem Upload. Die bisherige Stufe steht im Protokoll.",
+          "hinweisProtokoll": "Jede Einordnung wird protokolliert (Person, Dokument, Art, Cluster, Stufe vorher und nachher).",
+          "abbrechen": "Abbrechen",
+          "speichern": "Einordnung speichern",
+          "notfallsKurz": "nur Notbehelf"
+        }
+      },
+      "buecher": {
+        "titel": "Bücher und lange Dokumente hochladen",
+        "lead": "Für Bücher als PDF mit Textebene (zum Beispiel nach OCR), Markdown und Text, beliebig lang und mehrere auf einmal. Sie wählen nur den Cluster. Bereich, Quellenart und Textgrundlage schlägt die Analyse je Buch vor, Sie prüfen und ändern, was nicht stimmt. Der Browser liest die Datei selbst und schickt nur den Text in Paketen, die Datei verlässt Ihren Rechner nicht. Jedes Buch wartet danach auf die Freigabe durch eine zweite Person.",
+        "dateien": "Dateien (mehrere möglich)",
+        "dateienHinweis": "PDF, Markdown oder Text. Der Titel entsteht aus dem Dateinamen und lässt sich je Buch ändern, ebenso Bereich, Quellenart und Textgrundlage. Gleiche Inhalte werden als Dublette erkannt.",
+        "titelFeld": "Titel",
+        "entfernen": "Entfernen",
+        "seite": "Seite {seite} von {seiten}",
+        "paket": "Paket {nr} von {gesamt}",
+        "paketFehler": "Paket {nr} von {gesamt} ist fehlgeschlagen, das Buch wurde wieder entfernt.",
+        "zeichen": "{anzahl} Zeichen",
+        "fortschritt": "Fortschritt des Hochladens",
+        "schlechtGesperrt": "Der Text ist zu schlecht lesbar und wird nicht hochgeladen. Bitte die Datei erneut mit OCR erzeugen.",
+        "fehlerLesen": "Die Datei konnte nicht gelesen werden. Ist es eine gültige PDF mit Textebene?",
+        "start": "{anzahl, plural, one {# Buch hochladen} other {# Bücher hochladen}}",
+        "stopp": "Abbrechen",
+        "schritt": {
+          "wartet": "Wartet",
+          "liest": "Liest",
+          "bereit": "Bereit",
+          "laedt": "Lädt hoch",
+          "fertig": "Hochgeladen",
+          "fehler": "Fehler",
+          "abgebrochen": "Abgebrochen"
+        },
+        "clusterHinweis": "Der Weg, auf dem die Bücher zum Betrieb kamen. Gilt für alle Dateien dieser Auswahl.",
+        "kiAn": "Mit KI analysieren",
+        "kiHinweis": "Die Regeln der Analyse laufen immer, im Browser. Zusätzlich fragt die KI nach einer Einordnung. Dafür gehen je Datei ein Auszug von rund 6.000 Zeichen (Anfang, Mitte, Ende) und der Dateiname an den eingestellten KI-Anbieter. Ohne Anbieter bleibt es bei den Regeln.",
+        "angabenFehlen": "Bitte Bereich, Quellenart und Textgrundlage prüfen: Die Kombination ist nicht zulässig oder ein Link fehlt."
+      },
+      "guete": {
+        "note": {
+          "gut": "Text gut lesbar",
+          "pruefen": "Text prüfen",
+          "schlecht": "Text schlecht"
+        },
+        "hinweis": {
+          "kaumText": "Kaum Text gefunden, vermutlich ein Scan ohne Textebene.",
+          "vieleSonderzeichen": "Viele Sonderzeichen, typisch für eine schlechte OCR.",
+          "zerhackteWoerter": "Zerhackte Wörter (einzelne Buchstaben).",
+          "ohneLeerzeichen": "Wörter ohne Leerzeichen zusammengeklebt.",
+          "vieleZiffern": "Sehr viele Ziffern, vermutlich Tabellen.",
+          "ohneVokale": "Viele lange Wörter ohne Vokal, Hinweis auf Erkennungsfehler.",
+          "wiederholteZeilen": "Kopf- und Fußzeilen wiederholen sich auf jeder Seite."
+        }
+      },
+      "einschaetzung": {
+        "titel": "Einschätzung",
+        "keineBefunde": "Keine Auffälligkeiten bei Einordnung, Lesbarkeit und Herkunft. Den Inhalt prüfen Sie in der Vorschau.",
+        "empfehlung": {
+          "freigeben": "Empfehlung: freigeben",
+          "pruefen": "Empfehlung: erst ansehen",
+          "ablehnen": "Empfehlung: ablehnen"
+        },
+        "grund": {
+          "unvollstaendig": "Das Dokument ist unvollständig hochgeladen.",
+          "guteSchlecht": "Der Text ist schlecht lesbar (OCR-Fehler). Die Suche würde ihn kaum finden.",
+          "guetePruefen": "Die Textqualität ist auffällig, bitte in der Vorschau ansehen.",
+          "ohneEinordnung": "Quellenart oder Cluster fehlen.",
+          "ohneStufe": "Es ist keine Autoritätsstufe gesetzt.",
+          "ohneLink": "Quelle aus dem Internet ohne Link, die Herkunft ist nicht nachprüfbar.",
+          "linkUngueltig": "Der Link ist keine gültige Internetadresse.",
+          "sehrKurz": "Sehr wenige Abschnitte, vielleicht nur ein Inhaltsverzeichnis oder ein Lesefehler.",
+          "notbehelf": "Unsichere Internetquelle: Sie wird nur als Notbehelf genutzt und dem Nutzer als solche gekennzeichnet.",
+          "hinweis": "Wird nur mit Vermerk genutzt (nicht als tragende Quelle)."
+        }
+      },
+      "sammel": {
+        "waehlen": "{titel} für die Sammelprüfung auswählen",
+        "titel": "{anzahl, plural, one {# Dokument wartet auf Ihre Prüfung} other {# Dokumente warten auf Ihre Prüfung}}",
+        "lead": "Wählen Sie mehrere aus und entscheiden Sie in einem Schritt. Jedes Dokument wird einzeln geprüft und protokolliert.",
+        "alle": "Alle auswählen",
+        "nurEmpfohlene": "Nur Empfohlene ({anzahl})",
+        "keine": "Auswahl aufheben",
+        "gewaehlt": "{anzahl} ausgewählt",
+        "freigeben": "Auswahl freigeben",
+        "ablehnen": "Auswahl ablehnen",
+        "freigebenTitel": "{anzahl} Dokumente freigeben?",
+        "ablehnenTitel": "{anzahl} Dokumente ablehnen?",
+        "empfehlung": {
+          "freigeben": "freigeben",
+          "pruefen": "erst ansehen",
+          "ablehnen": "ablehnen"
+        },
+        "mitBefund": "Darunter sind Dokumente mit Befund. Bitte sehen Sie sich diese vorher einzeln an.",
+        "hinweisFreigeben": "Freigegebene Dokumente werden sofort durchsuchbar. Das Vier-Augen-Prinzip gilt: Eigene Uploads gibt die Datenbank nicht frei.",
+        "hinweisAblehnen": "Abgelehnte Dokumente bleiben gesperrt und lassen sich löschen.",
+        "freigebenBestaetigen": "Jetzt freigeben",
+        "ablehnenBestaetigen": "Jetzt ablehnen",
+        "laeuft": "Läuft …",
+        "abbrechen": "Abbrechen",
+        "schliessen": "Schließen",
+        "ergebnisTitel": "Ergebnis",
+        "erledigt": "erledigt"
+      },
+      "analyse": {
+        "sicherheit": {
+          "hoch": "Sicherer Vorschlag",
+          "mittel": "Vorschlag prüfen",
+          "niedrig": "Unsicher, bitte ansehen"
+        },
+        "kiLaeuft": "KI analysiert …",
+        "vonKi": "Einordnung durch die KI",
+        "nurRegeln": "Nur nach Regeln eingeordnet (kein KI-Anbieter erreichbar)",
+        "vonRegeln": "Einordnung nach Regeln",
+        "grund": {
+          "bereichRecht": "viele Rechtsbegriffe",
+          "bereichSteuer": "viele Steuerbegriffe",
+          "bereichCompliance": "viele Compliance-Begriffe",
+          "bereichAudit": "viele Prüfungs- und Zertifizierungsbegriffe",
+          "bereichRisiko": "viele Risikobegriffe",
+          "bereichUnklar": "Bereich nicht erkennbar",
+          "artRechtsnorm": "viele Artikel wie in einem Gesetz",
+          "artRechtsprechung": "Urteil oder Beschluss",
+          "artStandard": "Norm oder Standard",
+          "artBuch": "Aufbau und Umfang eines Buchs",
+          "artNachschlagewerk": "Lexikon oder Wörterbuch",
+          "artBehoerde": "Auskunft einer Behörde",
+          "artPraxis": "Praxisbeitrag, Studie oder Leitlinie",
+          "artIntern": "interne Anweisung",
+          "artKurz": "kurzer Text",
+          "artUnklar": "Art nicht eindeutig",
+          "uebersetzungHinweis": "Hinweis auf eine Übersetzung",
+          "uebersetzungMaschinell": "Hinweis auf maschinelle Übersetzung",
+          "uebersetzungAmtlich": "Hinweis auf amtliche Übersetzung"
+        }
+      },
+      "umordnen": {
+        "knopf": "Einordnung ändern",
+        "titel": "Einordnung ändern",
+        "speichern": "Speichern",
+        "abbrechen": "Abbrechen",
+        "wirkung": "Die Stufe folgt der Quellenart: Stufe {stufe}.",
+        "wiedervorlage": "Die Wiedervorlage wird neu gesetzt: {monate} Monate ab heute.",
+        "urlFehlt": "Für diese Quellenart ist ein Link Pflicht, das Dokument hat aber keinen gültigen Link.",
+        "vierAugen": "Dieses Dokument ist freigegeben und stammt von Ihnen. Bereich, Quellenart und Textgrundlage ändert eine zweite Person (Vier-Augen-Prinzip). Der Cluster lässt sich ändern."
       }
     },
     "sprachmodus": {
@@ -3528,7 +3921,8 @@
       "hinweise": "Einschränkungen",
       "unvollstaendig": "Nicht alle Prüfungsfelder konnten bewertet werden.",
       "export": "Als JSON speichern",
-      "drucken": "Drucken"
+      "drucken": "Drucken",
+      "nurUnsichereQuellen": "Nur ungesicherte Internetquellen als Beleg (keine amtliche Quelle): kein Verstoß, keine Lücke und keine Konformität festgestellt, nur ein Hinweis."
     },
     "siegel": {
       "titel": "Siegel und Nachweis",
@@ -3695,7 +4089,11 @@
       "pruefer": "Externe Prüfung"
     },
     "verifikation": "Der Inhalt dieses Berichts ist mit einer SHA-256-Prüfsumme versiegelt. Wer die begleitende JSON-Datei besitzt, kann das Siegel in Damicon über „Siegel prüfen“ nachrechnen; jede nachträgliche Änderung fällt auf.",
-    "tipp": "Tipp für den Druckdialog: „Kopf- und Fußzeilen“ ausschalten, Papierformat A4. Farben und Marke werden automatisch übernommen."
+    "tipp": "Tipp für den Druckdialog: „Kopf- und Fußzeilen“ ausschalten, Papierformat A4. Farben und Marke werden automatisch übernommen.",
+    "nutzungNotfalls": "Ungesicherte Internetquelle, keine amtliche Quelle. Nur als Notbehelf genutzt, bitte mit einer amtlichen Quelle gegenprüfen.",
+    "nutzungHinweis": "Nur als Hinweis, nicht allein tragend (Fachquelle, keine Primärquelle).",
+    "quellenlage": "Quellenlage",
+    "quellenlageWert": "{amtlich} amtliche oder Rechtsquellen (Stufe 1 bis 3) · {fach} Fachquellen · {unsicher} ungesicherte Internetquellen"
   },
   "complianceBericht": {
     "titel": "Compliance-Bericht",
@@ -3761,6 +4159,29 @@
       "naechster": "Nächster Eintrag",
       "nichtGefunden": "Dieser Eintrag ist nicht vorhanden oder für Ihre Rolle nicht sichtbar.",
       "ladefehler": "Dieser Eintrag lässt sich gerade nicht laden. Bitte versuchen Sie es gleich noch einmal."
+    }
+  },
+  "administration": {
+    "title": "Administration",
+    "description": "Verwaltung des KI-Assistenten und der Wissensbasis. Nur für die Administration sichtbar.",
+    "oeffnen": "Öffnen",
+    "keineUmgebung": "Im Demo-Modus gibt es nichts zu verwalten: Anbieter, Ratenlimit und Wissensbasis brauchen die Datenbank.",
+    "seiten": {
+      "ki-anbieter": {
+        "navTitle": "KI-Anbieter",
+        "title": "KI-Anbieter und Zugangsschlüssel",
+        "description": "Anbieter des KI-Assistenten anlegen, einen als Standard festlegen und entfernen. Der Schlüssel wird verschlüsselt gespeichert und nie wieder angezeigt."
+      },
+      "ratenlimit": {
+        "navTitle": "Ratenlimit",
+        "title": "Ratenlimit des Assistenten",
+        "description": "Begrenzt, wie oft eine Rolle pro Minute eine kostenpflichtige KI-Anfrage auslösen darf. Ohne Eintrag gilt kein Limit."
+      },
+      "wissensbasis": {
+        "navTitle": "Wissensbasis",
+        "title": "Wissensdokumente und Quellen",
+        "description": "Dokumente in die Wissensbasis laden, nach Cluster, Quellenart und Stufe einordnen und von einer zweiten Person freigeben lassen. Der Assistent durchsucht sie bei Recht-, Steuer-, Compliance-, Audit- und Risikofragen."
+      }
     }
   }
 }

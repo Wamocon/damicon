@@ -42,6 +42,7 @@ import { baueAktionen } from "@/lib/ai/aktionen";
 import { baueDatenWerkzeuge } from "@/lib/ai/daten-werkzeuge";
 import { baueUiWerkzeuge } from "@/lib/ai/ui-werkzeuge";
 import { baueWissenWerkzeug } from "@/lib/ai/wissen-werkzeug";
+import { baueWissenVerwaltungWerkzeuge } from "@/lib/ai/wissen-verwaltung-werkzeug";
 import { baueTagesLageWerkzeug } from "@/lib/ai/tages-lage";
 import { darfRisikoRadar, type TagesLageProfil } from "@/lib/domain/tages-lage";
 import {
@@ -370,6 +371,7 @@ export function baueWerkzeuge(
   const oeffneBereich = baueNavigationsWerkzeug(rolle);
   const risikoRadarAbrufen = baueRadar(rolle);
   const wissenSuchen = baueWissenWerkzeug(rolle, optionen.belegStart);
+  const wissenVerwaltung = baueWissenVerwaltungWerkzeuge(rolle);
   // Tageslage: nur lesen, deshalb auch im Weg ohne Aktionen (nurLesen). Die
   // Fristen kommen aus derselben Funktion wie das Risiko-Radar.
   const tagesLageAbrufen =
@@ -398,6 +400,8 @@ export function baueWerkzeuge(
     ...(oeffneBereich ? { oeffneBereich } : {}),
     // Wissensbasis (Recht, Steuer, Compliance, Audit): nur mit Rollenrecht und vorhandenem Index.
     ...(wissenSuchen ? { wissenSuchen } : {}),
+    // Verwaltung der Wissensbasis (Hochladen, Einordnen, Analysieren): nur Administration, nur lesend; Aenderungen laufen ueber die Aktion mit Bestaetigung.
+    ...(wissenVerwaltung ? { wissensbasisAbrufen: wissenVerwaltung.wissensbasisAbrufen, wissenDokumentAnalysieren: wissenVerwaltung.wissenDokumentAnalysieren } : {}),
     ...baueDatenWerkzeuge(rolle, optionen.vorschau ?? false),
     ...(optionen.nurLesen ? {} : baueAktionen(rolle)),
     ...(optionen.agentModus ? { ohneAnsicht } : {}),

@@ -23,6 +23,19 @@ import {
 import { alsSparsevec, idf, sparseDokument, sparseIndex, zaehleWoerter } from "@/lib/wissen/sparse";
 import { DATENBANK_SCHEMA } from "@/lib/supabase/schema";
 import { UPLOAD_QUELLE, uploadQuelleId } from "@/lib/wissen/upload-quelle";
+import {
+  clusterPasst,
+  istCluster,
+  istQuellenart,
+  istTextgrundlage,
+  nutzungFuer,
+  QUELLENART_INFO,
+  standardStufe,
+  typischerClusterVon,
+  type Cluster,
+  type Quellenart,
+  type Textgrundlage,
+} from "@/lib/wissen/quellenart";
 
 // Admin-Upload in die BESTEHENDE Wissensbasis (public.wissen_chunks). Kein zweiter
 // Index, keine zweite Suche, keine zweite Einbettung: Zerlegen (chunkiere), Einbetten
@@ -57,9 +70,23 @@ export type UploadFehlerCode =
   | "einbettung"
   | "zeit"
   | "speichern"
+  | "quellenartGesperrt"
+  | "clusterPasstNicht"
+  | "urlFehlt"
+  | "urlUngueltig"
   | "nichtLoeschbar"
   | "loeschen"
-  | "gewichte";
+  | "gewichte"
+  // Freigabe (freigabe.ts)
+  | "nichtGefunden"
+  | "nichtFreigebbar"
+  | "nichtPruefbar"
+  | "selbstFreigabe"
+  | "unvollstaendig"
+  | "freigeben"
+  // Einordnung nachtraeglich aendern (umordnen.ts)
+  | "selbstUmordnen"
+  | "keineAenderung";
 
 export class UploadFehler extends Error {
   constructor(
@@ -147,9 +174,24 @@ export async function extrahiereText(bytes: Uint8Array, typ: UploadDateityp): Pr
   }
 }
 
+/** Der Link zur Quelle: leer ergibt null, sonst muss es eine http(s)-Adresse sein (hoechstens 500 Zeichen). */
+export function normalisiereUrl(roh: string | undefined): string | null {
+  const t = (roh ?? "").trim();
+  if (!t) return null;
+  if (t.length > 500) throw new UploadFehler("urlUngueltig");
+  let u: URL;
+  try {
+    u = new URL(t);
+  } catch {
+    throw new UploadFehler("urlUngueltig");
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") throw new UploadFehler("urlUngueltig");
+  return u.toString();
+}
+
 /** Fuer den Vergleich: Zeilenenden und Leerraum vereinheitlicht, damit dieselbe Datei mit anderem
  *  Zeilenende (Windows/Unix) nicht als neues Dokument zaehlt. */
-function normalisiere(text: string): string {
+export function normalisiere(text: string): string {
   return text.replace(/\r\n?/g, "\n").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
 }
 
@@ -167,8 +209,19 @@ export interface UploadMetadaten {
   hash: string;
   rollen: Role[];
   hochgeladenVon: { id: string; name: string | null };
+  quellenart: Quellenart;
+  /** Der Weg, auf dem der Text kam (Buecher, Publikationen, Internet-Quelle), unabhaengig von der Art. */
+  cluster: Cluster;
+  textgrundlage: Textgrundlage;
+  /** Link zur Quelle (Herkunftsnachweis); fuer Internetquellen und Foren Pflicht. */
+  url: string | null;
   /** ISO-Zeitpunkt; ein Parameter, damit Tests ohne Uhr auskommen. */
   zeitpunkt: string;
+  /** Nur beim Buch-Upload (buch-upload.ts): ein langes Dokument kommt in Paketen. Jede Zeile merkt sich ihre Paketnummer und die
+   *  Zahl aller Pakete, damit ein abgebrochenes Dokument als unvollstaendig erkennbar ist und nicht freigegeben wird. */
+  paket?: { nr: number; gesamt: number };
+  /** Einschaetzung der Textqualitaet (textguete.ts), vom Server aus dem Text berechnet und je Zeile abgelegt. */
+  guete?: { note: string; hinweise: readonly string[] };
 }
 
 /** Ein Dokument im Sinne des Chunkers. Markdown darf sein Frontmatter mitbringen (wie im Korpus),
@@ -204,6 +257,10 @@ export function baueDokument(text: string, m: UploadMetadaten): WissensDokument 
   dok.pfad = pfad;
   dok.bereich = bereich; // parseDokument leitet den Bereich sonst aus dem Pfad ab
   dok.meta.titel = m.titel;
+  // Die Stufe bestimmt die Quellenart (src/lib/wissen/quellenart.ts), nicht ein Frontmatter: Der Rang ist eine Entscheidung des
+  // Formulars, die die zweite Person bei der Freigabe sieht. Eine Stufe im Frontmatter wird verworfen.
+  dok.meta.autoritaetsstufe = standardStufe(m.quellenart);
+  dok.meta.url = m.url ?? dok.meta.url;
   dok.meta.quelle_id = quelleId;
   dok.meta.chunk_id = quelleId; // daraus entstehen die stabilen Chunk-IDs: gleicher Inhalt = gleiche IDs
   dok.meta.sprache ??= erkenneSprache(dok.text) ?? "de";
@@ -238,6 +295,14 @@ export interface ChunkZeile {
   eingelesen_am: string;
   embed_modell: string;
   extra: Record<string, unknown>;
+  // Typisierung und Pruefung (Migrationen 20261124000000 und 20261125000000). Ein Upload beginnt IMMER ungeprueft; die Datenbank erzwingt das.
+  quellenart: string;
+  cluster: string;
+  textgrundlage: string;
+  pruefstatus: string;
+  pruefen_bis: string | null;
+  geprueft_von: string | null;
+  geprueft_am: string | null;
   dense: string;
   sparse: string;
 }
@@ -283,7 +348,16 @@ export function baueZeile(
         dateityp: m.typ,
         hochgeladen_von: m.hochgeladenVon.id,
         hochgeladen_von_name: m.hochgeladenVon.name,
+        ...(m.paket ? { paket: m.paket.nr, pakete_gesamt: m.paket.gesamt } : {}),
+        ...(m.guete ? { guete: m.guete.note, guete_hinweise: m.guete.hinweise.join(",") } : {}),
       },
+      quellenart: m.quellenart,
+      cluster: m.cluster,
+      textgrundlage: m.textgrundlage,
+      pruefstatus: "ungeprueft",
+      pruefen_bis: null, // die Wiedervorlage beginnt mit der Freigabe
+      geprueft_von: null,
+      geprueft_am: null,
       dense: `[${dense.join(",")}]`,
       sparse: alsSparsevec(sparse),
     },
@@ -312,15 +386,43 @@ export interface WissenSpeicher {
   loescheUpload(quelleId: string): Promise<string[]>;
   /** Entfernt Woerter aus wissen_begriffe (df auf 0 gefallen). */
   loescheBegriffe(indizes: number[]): Promise<void>;
+
+  // ---- fuer die Freigabe (src/lib/wissen/freigabe.ts) ----
+  ladeFreigabeInfo(quelleId: string): Promise<FreigabeInfo>;
+  /** Entscheidet ueber ein UNGEPRUEFTES Upload-Dokument (freigegeben oder abgelehnt). Die Anweisung filtert selbst auf
+   *  Upload-Marker und pruefstatus = ungeprueft. Liefert die Zahl der Zeilen, die dieser Aufruf wirklich geaendert hat. */
+  entscheide(quelleId: string, a: { status: "freigegeben" | "abgelehnt"; pruefer: string; zeitpunkt: string; pruefenBis: string | null }): Promise<number>;
+  /** Verschiebt die Wiedervorlage eines freigegebenen Upload-Dokuments. Liefert die Zahl geaenderter Zeilen. */
+  verlaengere(quelleId: string, a: { pruefer: string; zeitpunkt: string; pruefenBis: string }): Promise<number>;
+  /** Der Anfang des Textes fuer die Pruefung (hoechstens `maxZeichen`), auch fuer ungepruefte Dokumente. */
+  ladeVorschau(quelleId: string, maxZeichen: number): Promise<string>;
+}
+
+/** Was die Pruefung ueber ein Dokument wissen muss. */
+export interface FreigabeInfo {
+  anzahl: number;
+  /** Zeilen, die NICHT zugleich extra.quelle = "upload" und eine quelle_id "upload:..." haben. */
+  fremd: number;
+  titel: string | null;
+  bereich: string | null;
+  quellenart: string | null;
+  /** Der Status, wenn alle Zeilen denselben haben, sonst "gemischt". null bei anzahl 0. */
+  pruefstatus: "ungeprueft" | "freigegeben" | "abgelehnt" | "gemischt" | null;
+  /** profiles.id der Person, die hochgeladen hat (extra.hochgeladen_von). */
+  hochgeladenVon: string | null;
+  pruefenBis: string | null;
+  /** Buch-Upload: Es fehlen Pakete (die Verbindung brach ab). Ein solches Dokument laesst sich nicht freigeben. */
+  unvollstaendig: boolean;
 }
 
 export interface UploadErgebnis {
   chunks: number;
   quelleId: string;
   hash: string;
-  /** Stufe, die ein Markdown-Frontmatter mitbrachte (sonst null). Stufe 1 bis 3 belegt die bevorzugten Plaetze fuer
-   *  Recht und amtliche Texte; die Action schreibt sie deshalb ins Protokoll. */
-  autoritaetsstufe: number | null;
+  quellenart: Quellenart;
+  cluster: Cluster;
+  /** Die vergebene Stufe (aus der Quellenart); die Action schreibt sie ins Protokoll. */
+  autoritaetsstufe: number;
 }
 
 export interface UploadEingabe {
@@ -331,6 +433,14 @@ export interface UploadEingabe {
   dateiname: string;
   bytes: Uint8Array;
   hochgeladenVon: { id: string; name: string | null };
+  /** Rohwert aus dem Formular; muss eine Quellenart sein (quellenart.ts). */
+  quellenart: string;
+  /** Der Weg (buecher, publikationen, internet). Leer = der typische Cluster der Quellenart; ein anderer Wert muss zur Art passen. */
+  cluster?: string;
+  /** Leer = original. */
+  textgrundlage?: string;
+  /** Link zur Quelle; leer erlaubt, ausser die Quellenart verlangt ihn. */
+  url?: string;
 }
 
 export interface UploadAbhaengigkeiten {
@@ -356,6 +466,60 @@ export function pruefeUploadUmgebung(env: Record<string, string | undefined> = p
   throw new UploadFehler("vorschau");
 }
 
+/** Einbetten, schreiben und Wortgewichte nachfuehren fuer einen Satz Abschnitte desselben Dokuments. Gemeinsamer Teil von
+ *  verarbeiteUpload (ein Dokument, alles oder nichts) und dem Buch-Upload (ein Paket eines langen Dokuments). Wirft ausschliesslich UploadFehler.
+ *  aufraeumen: bei einem Fehler nach dem Schreiben die Zeilen der Quelle wieder entfernen (ein ganzes Dokument); beim Paket nicht. */
+export async function einbettenUndSchreiben(
+  chunks: WissensChunk[],
+  meta: UploadMetadaten,
+  d: UploadAbhaengigkeiten,
+  opt: { beginn: number; budget: number; quelleId: string; aufraeumen: boolean },
+): Promise<void> {
+  const uhr = d.jetztMs ?? Date.now;
+  const m = meta;
+  // Einbetten (noch nichts geschrieben: ein Fehler hier hinterlaesst nichts). Der Index ist 1024-dimensional.
+  if (d.einbettung.dimension !== 1024) throw new UploadFehler("einbettung", undefined, new Error("Index erwartet 1024 Dimensionen"));
+  const vektoren: number[][] = [];
+  try {
+    for (let i = 0; i < chunks.length; i += EINBETTUNG_BATCH) {
+      // Vor jedem Aufruf: Reicht die Zeit nicht, hoert der Upload hier auf, solange noch nichts geschrieben ist.
+      if (uhr() - opt.beginn > opt.budget) throw new UploadFehler("zeit", String(Math.round(opt.budget / 1000)));
+      const teil = chunks.slice(i, i + EINBETTUNG_BATCH);
+      const dicht = await d.einbettung.einbetten(teil.map(einbettungsText));
+      if (dicht.length !== teil.length || dicht.some((v) => v.length !== d.einbettung.dimension)) {
+        throw new Error(`Einbettung lieferte nicht ${teil.length} Vektoren mit ${d.einbettung.dimension} Dimensionen`);
+      }
+      vektoren.push(...dicht);
+    }
+  } catch (ursache) {
+    if (ursache instanceof UploadFehler) throw ursache;
+    throw new UploadFehler("einbettung", undefined, ursache);
+  }
+
+  const gebaut = chunks.map((c, i) => baueZeile(c, vektoren[i]!, m, d.einbettung.modell));
+
+  // Schreiben + Wortgewichte.
+  try {
+    await d.speicher.schreibeChunks(gebaut.map((g) => g.zeile));
+
+    const zaehler = zaehleWoerter(gebaut.map((g) => g.sparseIndizes));
+    const bisher = await d.speicher.leseDokumenthaeufigkeit([...zaehler.keys()]);
+    const n = await d.speicher.zaehleChunks();
+    await d.speicher.schreibeBegriffe(
+      [...zaehler].map(([hashIdx, neu]) => {
+        const df = Math.min((bisher.get(hashIdx) ?? 0) + neu, n);
+        return { hash: hashIdx, df, idf: idf(n, df) };
+      }),
+    );
+  } catch (ursache) {
+    // Beim Buch-Upload bleiben die Pakete davor stehen (aufraeumen: false): Die Person bricht ueber wissenBuchAbbrechen ab, das das ganze
+    // Dokument samt Wortgewichten sauber entfernt. Ein Aufraeumen ohne Rueckrechnung der Gewichte waere hier falsch.
+    if (opt.aufraeumen) await d.speicher.loescheQuelle(opt.quelleId).catch((u) => console.error("[damicon] Wissens-Upload: Aufraeumen fehlgeschlagen:", u));
+    throw new UploadFehler("speichern", undefined, ursache);
+  }
+
+}
+
 /** Der ganze Weg: pruefen, Text lesen, Dublette erkennen, zerlegen, einbetten, schreiben, Wortgewichte nachfuehren.
  *  Wirft ausschliesslich UploadFehler. Die Rolle der hochladenden Person prueft der Aufrufer (Server Action). */
 export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeiten): Promise<UploadErgebnis> {
@@ -372,6 +536,18 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
   if (!typ) throw new UploadFehler("dateityp");
   if (e.bytes.length === 0) throw new UploadFehler("eingabe");
   if (e.bytes.length > MAX_DATEI_BYTES) throw new UploadFehler("zuGross");
+  if (!istQuellenart(e.quellenart)) throw new UploadFehler("eingabe");
+  const quellenart: Quellenart = e.quellenart;
+  const clusterRoh = e.cluster?.trim() ?? "";
+  if (clusterRoh && !istCluster(clusterRoh)) throw new UploadFehler("eingabe");
+  const cluster: Cluster = istCluster(clusterRoh) ? clusterRoh : typischerClusterVon(quellenart)!;
+  if (!clusterPasst(quellenart, cluster)) throw new UploadFehler("clusterPasstNicht");
+  const textgrundlage = e.textgrundlage?.trim() ? e.textgrundlage.trim() : "original";
+  if (!istTextgrundlage(textgrundlage)) throw new UploadFehler("eingabe");
+  // Wofuer die Quelle taugt, haengt vom Bereich ab: Blogs und Foren sind fuer Gesetze und Vorschriften ungeeignet.
+  if (nutzungFuer(e.bereich, quellenart) === "nein") throw new UploadFehler("quellenartGesperrt");
+  const url = normalisiereUrl(e.url);
+  if (QUELLENART_INFO[quellenart].urlPflicht && !url) throw new UploadFehler("urlFehlt");
 
   // 2. Text
   const text = await extrahiereText(e.bytes, typ);
@@ -395,50 +571,18 @@ export async function verarbeiteUpload(e: UploadEingabe, d: UploadAbhaengigkeite
     hash,
     rollen: erlaubteRollen(e.rollen),
     hochgeladenVon: e.hochgeladenVon,
+    quellenart,
+    cluster,
+    textgrundlage,
+    url,
     zeitpunkt,
   };
   const chunks = chunkiere(baueDokument(text, meta));
   if (chunks.length === 0) throw new UploadFehler("leer");
   if (chunks.length > MAX_CHUNKS) throw new UploadFehler("zuLang", String(MAX_CHUNKS));
 
-  // 5. Einbetten (noch nichts geschrieben: ein Fehler hier hinterlaesst nichts). Der Index ist 1024-dimensional.
-  if (d.einbettung.dimension !== 1024) throw new UploadFehler("einbettung", undefined, new Error("Index erwartet 1024 Dimensionen"));
-  const vektoren: number[][] = [];
-  try {
-    for (let i = 0; i < chunks.length; i += EINBETTUNG_BATCH) {
-      // Vor jedem Aufruf: Reicht die Zeit nicht, hoert der Upload hier auf, solange noch nichts geschrieben ist.
-      if (uhr() - beginn > budget) throw new UploadFehler("zeit", String(Math.round(budget / 1000)));
-      const teil = chunks.slice(i, i + EINBETTUNG_BATCH);
-      const dicht = await d.einbettung.einbetten(teil.map(einbettungsText));
-      if (dicht.length !== teil.length || dicht.some((v) => v.length !== d.einbettung.dimension)) {
-        throw new Error(`Einbettung lieferte nicht ${teil.length} Vektoren mit ${d.einbettung.dimension} Dimensionen`);
-      }
-      vektoren.push(...dicht);
-    }
-  } catch (ursache) {
-    if (ursache instanceof UploadFehler) throw ursache;
-    throw new UploadFehler("einbettung", undefined, ursache);
-  }
+  // 5. und 6. Einbetten, schreiben, Wortgewichte nachfuehren; bei jedem Fehler das Dokument wieder entfernen.
+  await einbettenUndSchreiben(chunks, meta, d, { beginn, budget, quelleId, aufraeumen: true });
 
-  const gebaut = chunks.map((c, i) => baueZeile(c, vektoren[i]!, meta, d.einbettung.modell));
-
-  // 6. Schreiben + Wortgewichte; bei jedem Fehler das Dokument wieder entfernen.
-  try {
-    await d.speicher.schreibeChunks(gebaut.map((g) => g.zeile));
-
-    const zaehler = zaehleWoerter(gebaut.map((g) => g.sparseIndizes));
-    const bisher = await d.speicher.leseDokumenthaeufigkeit([...zaehler.keys()]);
-    const n = await d.speicher.zaehleChunks();
-    await d.speicher.schreibeBegriffe(
-      [...zaehler].map(([hashIdx, neu]) => {
-        const df = Math.min((bisher.get(hashIdx) ?? 0) + neu, n);
-        return { hash: hashIdx, df, idf: idf(n, df) };
-      }),
-    );
-  } catch (ursache) {
-    await d.speicher.loescheQuelle(quelleId).catch((u) => console.error("[damicon] Wissens-Upload: Aufraeumen fehlgeschlagen:", u));
-    throw new UploadFehler("speichern", undefined, ursache);
-  }
-
-  return { chunks: chunks.length, quelleId, hash, autoritaetsstufe: chunks[0]?.meta.autoritaetsstufe ?? null };
+  return { chunks: chunks.length, quelleId, hash, quellenart, cluster, autoritaetsstufe: standardStufe(quellenart) };
 }

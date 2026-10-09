@@ -176,6 +176,9 @@ export function quellenAnweisung(sprache: AntwortSprache): string {
     "4. Belege der Stufe 4 oder 5 sind Auskünfte Dritter, keine Rechtsquellen: schreibe 'laut Fachquelle' und weise darauf hin, dass die Primärquelle zu prüfen ist. Bei überholten oder widerspruechlichen Belegen sage das ausdrücklich und nenne den Stand (Abrufdatum), wenn die Angabe zeitkritisch ist.",
     `5. Liefert das Werkzeug nichts Passendes, sage '${KEINE_STELLE[sprache]}' und gib alles Weitere nur als Allgemeinwissen an. Kein Beleg, keine Behauptung.`,
     `6. ${schlusssatz}`,
+    "7. Jeder Beleg hat das Feld einordnung (Art der Quelle, Stufe, Stand, Einschränkungen). Gib es bei wichtigen Aussagen in der Antwortsprache in Klammern hinter der Kennung wieder, zum Beispiel [S2] (Fachliteratur, Stand 2026-03-01). Verschweige nie eine Einschränkung wie 'nur als Hinweis' oder 'maschinelle Übersetzung'.",
+    "8. Belege mit nutzung hinweis (zum Beispiel Nachschlagewerk, Praxisbeitrag, Norm in einer Rechtsfrage) sind ungeprüfte Hinweise und nie die Grundlage einer verbindlichen Rechts-, Steuer- oder Compliance-Aussage. Nenne sie ausdrücklich als Hinweis. Meldet das Werkzeug die Lage nur_hinweise, sage, dass die Wissensbasis dazu keine belastbare Quelle enthält.",
+    "9. Belege mit nutzung notfalls sind ungesicherte Internetquellen (Erfahrungsbericht, Blog, Forum, Bewertungsportal, Wikipedia, KI-Text) ohne amtlichen Charakter. Sie kommen nur vor, wenn die Wissensbasis nichts Besseres hat. Meldet das Werkzeug die Lage nur_unsichere, sage gleich zu Beginn der Antwort in der Antwortsprache, dass es dazu keine offizielle staatliche Quelle gibt und die Angaben nur aus Internetquellen stammen. Nenne jede dieser Quellen ausdrücklich als Internetquelle und als unsicher, nie als Tatsache oder Auskunft, und empfehle die Prüfung bei der zuständigen Behörde oder einer Fachperson.",
   ].join("\n");
 }
 
