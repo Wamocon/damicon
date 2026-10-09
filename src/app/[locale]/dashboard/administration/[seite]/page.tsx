@@ -55,7 +55,7 @@ export default async function AdministrationUnterseite({
 
   return (
     <AdministrationSeite seite={seite}>
-      <Card ton="box" className="max-w-5xl p-5 sm:p-6">
+      <Card ton="box" className="p-5 sm:p-6">
         {await inhalt(seite.key)}
       </Card>
     </AdministrationSeite>

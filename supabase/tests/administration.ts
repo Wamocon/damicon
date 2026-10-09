@@ -75,6 +75,7 @@ pruefe("Routen: Uebersicht und Unterseite sind da, ausserhalb von [zone] (feste 
   pruefe("Routen: beide Seiten pruefen das Recht auf dem Server und antworten sonst mit 404", /darfAdministrieren\(profil\?\.role\)/.test(u) && /notFound\(\)/.test(u) && /darfAdministrieren\(profil\?\.role\)/.test(s) && /notFound\(\)/.test(s));
   pruefe("Routen: die Unterseite prueft das Recht, BEVOR sie die Daten der Verwaltung laedt", s.indexOf("darfAdministrieren(profil?.role)") > 0 && s.indexOf("darfAdministrieren(profil?.role)") < s.indexOf("await inhalt(seite.key)"));
   pruefe("Routen: eine unbekannte Seite ist ein 404, jede der drei Seiten hat ihren Inhalt", /adminSeiteBySlug\(slug\)/.test(s) && /if \(!seite\) notFound\(\)/.test(s) && adminSeiten.every((x) => new RegExp(`case "${x.key}"`).test(s)));
+  pruefe("Routen: der Inhalt nutzt die ganze Breite des Hauptbereichs wie die Zonenseiten (keine max-w-Begrenzung an Kopf, Inhalt und Uebersicht)", !/max-w-/.test(s) && !/max-w-/.test(u) && !/max-w-/.test(lies("src/components/dashboard/administration-seite.tsx")));
   pruefe("Routen: die Seiten zeigen im Demo-Modus (ohne Datenbank) einen Hinweis statt der Formulare", /keineUmgebung/.test(s) && /isSupabaseConfigured\(\)/.test(s));
   pruefe("Routen: Verwaltungsformulare sind dieselben Komponenten wie vorher im Panel (kein zweiter Satz Formulare)", /KiAnbieterVerwaltung/.test(s) && /KiRatenlimitVerwaltung/.test(s) && /WissenVerwaltung/.test(s));
 }
