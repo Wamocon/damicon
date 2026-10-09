@@ -1,4 +1,4 @@
-// Liste der Wissensdokumente fuer die Verwaltung im KI-Panel: Textstellen (wissen_chunks) werden zu
+// Liste der Wissensdokumente fuer die Verwaltung (Administration, Seite Wissensbasis): Textstellen (wissen_chunks) werden zu
 // Dokumenten zusammengefasst. Hochgeladene und per Skript eingelesene Dokumente erscheinen gemeinsam;
 // die Skript-Dokumente gruppieren nach quelle_id (wie sie das Einlese-Skript vergibt), notfalls nach Pfad.
 // Reine Funktion, ohne Datenbank, damit sie testbar bleibt.

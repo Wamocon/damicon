@@ -17,8 +17,8 @@ import { stufeSchluessel } from "@/lib/wissen/belege";
 import { artenImCluster, CLUSTER, clusterVon, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, TEXTGRUNDLAGEN, type Cluster } from "@/lib/wissen/quellenart";
 import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
-// Wissensverwaltung im KI-Panel (Einstellungen, unter dem Ratenlimit). Admin-only: Das Panel reicht das Element nur
-// an Rollen mit ki_assistent:manage weiter, und alle Server Actions pruefen die Berechtigung noch einmal selbst.
+// Wissensverwaltung: Seite "Wissensbasis" im Bereich Administration (/dashboard/administration/wissensbasis). Admin-only:
+// Die Seite antwortet ohne ki_assistent:manage mit 404, und alle Server Actions pruefen die Berechtigung noch einmal selbst.
 // Die Liste wird erst beim Oeffnen der Ansicht geladen (nicht im Layout): Sie liest alle Textstellen der Wissensbasis.
 //
 // Vier-Augen-Prinzip: Ein Upload wartet auf die Freigabe durch eine ZWEITE Person. Wer hochgeladen hat, sieht den Hinweis

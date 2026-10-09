@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { usePathname } from "@/i18n/navigation";
-import { zones, type ZoneKey } from "@/lib/modules";
+import { ADMINISTRATION, type BereichKey } from "@/lib/administration";
+import { zones } from "@/lib/modules";
 
 // Zustand der Seitenleiste: ihre Breite und die offenen Bereichsgruppen.
 //
@@ -79,14 +80,14 @@ export function schmalSetzen(wert: boolean) {
 // Gruppe passt auch die groesste (Buero, neun Eintraege) ohne Scrollen; wer
 // eine zweite aufklappt, bekommt den Balken - dann aber, weil er es so wollte.
 const ZONEN_SPEICHER = "damicon-sidebar-bereiche";
-const KEINE_ZONEN: readonly ZoneKey[] = [];
+const KEINE_ZONEN: readonly BereichKey[] = [];
 const zonenListener = new Set<() => void>();
-let zonenCache: readonly ZoneKey[] | null = null;
+let zonenCache: readonly BereichKey[] | null = null;
 // Bereich, fuer den das automatische Aufklappen schon gelaufen ist. Bewusst
 // auf Modulebene und nicht als useRef: sonst klappt die Schublade beim
 // Oeffnen den Bereich erneut auf, den man an der festen Spalte eben
 // zugeklappt hat.
-let zuletztGeoeffnet: ZoneKey | null = null;
+let zuletztGeoeffnet: BereichKey | null = null;
 
 function zonenAbonnieren(callback: () => void) {
   zonenListener.add(callback);
@@ -98,15 +99,16 @@ function zonenAbonnieren(callback: () => void) {
 // useSyncExternalStore verlangt eine stabile Referenz. Bei jedem Aufruf neu zu
 // parsen ergaebe jedes Mal ein neues Array und schickt React in eine
 // Endlosschleife - deshalb der Cache, der nur beim Schreiben erneuert wird.
-function offeneZonen(): readonly ZoneKey[] {
+function offeneZonen(): readonly BereichKey[] {
   if (zonenCache) return zonenCache;
-  let gelesen: readonly ZoneKey[] = KEINE_ZONEN;
+  let gelesen: readonly BereichKey[] = KEINE_ZONEN;
   try {
     const roh = localStorage.getItem(ZONEN_SPEICHER);
     const werte: unknown = roh ? JSON.parse(roh) : null;
     if (Array.isArray(werte)) {
-      gelesen = werte.filter((wert): wert is ZoneKey =>
-        zones.some((zone) => zone.key === wert),
+      gelesen = werte.filter(
+        (wert): wert is BereichKey =>
+          wert === ADMINISTRATION || zones.some((zone) => zone.key === wert),
       );
     }
   } catch {
@@ -116,7 +118,7 @@ function offeneZonen(): readonly ZoneKey[] {
   return gelesen;
 }
 
-function zonenSetzen(naechste: readonly ZoneKey[]) {
+function zonenSetzen(naechste: readonly BereichKey[]) {
   zonenCache = naechste;
   try {
     localStorage.setItem(ZONEN_SPEICHER, JSON.stringify(naechste));
@@ -126,10 +128,11 @@ function zonenSetzen(naechste: readonly ZoneKey[]) {
   zonenListener.forEach((eintrag) => eintrag());
 }
 
-/** Bereich der gerade geoeffneten Seite, aus /dashboard/<zone>/<modul>. */
-export function useAktiveZone(): ZoneKey | null {
+/** Bereich der gerade geoeffneten Seite, aus /dashboard/<zone>/<modul> oder /dashboard/administration/<seite>. */
+export function useAktiveZone(): BereichKey | null {
   const pathname = usePathname();
   const segment = pathname.split("/")[2];
+  if (segment === ADMINISTRATION) return ADMINISTRATION;
   return zones.find((zone) => zone.key === segment)?.key ?? null;
 }
 
@@ -156,7 +159,7 @@ export function useZonenGruppen() {
     }
   }, [aktiveZone]);
 
-  const umschalten = useCallback((zone: ZoneKey) => {
+  const umschalten = useCallback((zone: BereichKey) => {
     const aktuell = offeneZonen();
     zonenSetzen(
       aktuell.includes(zone)

@@ -257,6 +257,11 @@
       "name": "Market",
       "tagline": "Sales, AI, public",
       "description": "Variety and quota catalogue, B2B portal with pre-order, AI chat on a secured data basis, aggregator platform for neighbouring farms and multilingual training."
+    },
+    "administration": {
+      "name": "Administration",
+      "tagline": "AI assistant and knowledge base",
+      "description": "Manage AI providers, rate limit and knowledge documents. Visible to administration only."
     }
   },
   "footer": {
@@ -3889,6 +3894,29 @@
       "naechster": "Next entry",
       "nichtGefunden": "This entry does not exist or is not visible for your role.",
       "ladefehler": "This entry cannot be loaded right now. Please try again in a moment."
+    }
+  },
+  "administration": {
+    "title": "Administration",
+    "description": "Management of the AI assistant and the knowledge base. Visible to administration only.",
+    "oeffnen": "Open",
+    "keineUmgebung": "There is nothing to manage in demo mode: providers, rate limit and knowledge base need the database.",
+    "seiten": {
+      "ki-anbieter": {
+        "navTitle": "AI providers",
+        "title": "AI providers and access keys",
+        "description": "Add providers for the AI assistant, mark one as the default and remove them. The key is stored encrypted and is never shown again."
+      },
+      "ratenlimit": {
+        "navTitle": "Rate limit",
+        "title": "Rate limit of the assistant",
+        "description": "Limits how often a role may trigger a paid AI request per minute. Without an entry there is no limit."
+      },
+      "wissensbasis": {
+        "navTitle": "Knowledge base",
+        "title": "Knowledge documents and sources",
+        "description": "Load documents into the knowledge base, classify them by cluster, source type and level, and have a second person approve them. The assistant searches them for legal, tax, compliance, audit and risk questions."
+      }
     }
   }
 }

@@ -257,6 +257,11 @@
       "name": "Markt",
       "tagline": "Vertrieb, KI, Öffentlichkeit",
       "description": "Sorten- und Kontingentkatalog, B2B-Portal mit Vorbestellung, KI-Chat auf gesicherter Datenbasis, Aggregator-Plattform für Nachbarbetriebe und mehrsprachige Schulungen."
+    },
+    "administration": {
+      "name": "Administration",
+      "tagline": "KI-Assistent und Wissensbasis",
+      "description": "KI-Anbieter, Ratenlimit und Wissensdokumente verwalten. Nur für die Administration sichtbar."
     }
   },
   "footer": {
@@ -3889,6 +3894,29 @@
       "naechster": "Nächster Eintrag",
       "nichtGefunden": "Dieser Eintrag ist nicht vorhanden oder für Ihre Rolle nicht sichtbar.",
       "ladefehler": "Dieser Eintrag lässt sich gerade nicht laden. Bitte versuchen Sie es gleich noch einmal."
+    }
+  },
+  "administration": {
+    "title": "Administration",
+    "description": "Verwaltung des KI-Assistenten und der Wissensbasis. Nur für die Administration sichtbar.",
+    "oeffnen": "Öffnen",
+    "keineUmgebung": "Im Demo-Modus gibt es nichts zu verwalten: Anbieter, Ratenlimit und Wissensbasis brauchen die Datenbank.",
+    "seiten": {
+      "ki-anbieter": {
+        "navTitle": "KI-Anbieter",
+        "title": "KI-Anbieter und Zugangsschlüssel",
+        "description": "Anbieter des KI-Assistenten anlegen, einen als Standard festlegen und entfernen. Der Schlüssel wird verschlüsselt gespeichert und nie wieder angezeigt."
+      },
+      "ratenlimit": {
+        "navTitle": "Ratenlimit",
+        "title": "Ratenlimit des Assistenten",
+        "description": "Begrenzt, wie oft eine Rolle pro Minute eine kostenpflichtige KI-Anfrage auslösen darf. Ohne Eintrag gilt kein Limit."
+      },
+      "wissensbasis": {
+        "navTitle": "Wissensbasis",
+        "title": "Wissensdokumente und Quellen",
+        "description": "Dokumente in die Wissensbasis laden, nach Cluster, Quellenart und Stufe einordnen und von einer zweiten Person freigeben lassen. Der Assistent durchsucht sie bei Recht-, Steuer-, Compliance-, Audit- und Risikofragen."
+      }
     }
   }
 }

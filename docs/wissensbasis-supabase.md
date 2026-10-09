@@ -51,7 +51,7 @@ Optionen: `--trocken` (nur zählen), `--bereinigen` (Zeilen löschen, die es in 
 
 ## Dokumente hochladen (Admin)
 
-Im KI-Panel, Ansicht "Einstellungen", unter dem Ratenlimit: Abschnitt "Wissensdokumente". Nur mit dem Recht `ki_assistent:manage` (laut `rbac.ts` allein admin), geprüft in der Server Action und noch einmal in der Datenbank (Schreiben in `wissen_chunks` darf nur `service_role`).
+In der Seitenleiste unter "Administration", Seite "Wissensbasis" (`/dashboard/administration/wissensbasis`). Früher stand die Verwaltung in den Einstellungen des KI-Panels, das für so viel Verwaltung zu schmal war. Nur mit dem Recht `ki_assistent:manage` (laut `rbac.ts` allein admin), geprüft in der Server Action und noch einmal in der Datenbank (Schreiben in `wissen_chunks` darf nur `service_role`).
 
 | | |
 | --- | --- |

@@ -677,7 +677,7 @@ mark.treffer-aktiv {
       <div class="karten-raster">
         <div class="karte-klein">
           <div class="karte-klein-titel">Sidebar</div>
-          <p>On the left edge, from tablet width upwards. The overview at the top, below it the four areas as collapsible groups with their modules. An area in which the role may not see a single module does not appear at all. The sidebar can be collapsed to a narrow icon column; the toggle for that sits in the header. At the bottom are the handbook, the person signed in, the security page and sign-out.</p>
+          <p>On the left edge, from tablet width upwards. The overview at the top, below it the four areas as collapsible groups with their modules. An area in which the role may not see a single module does not appear at all. Only administration sees a last group below them, “Administration”, with the pages AI providers, Rate limit and Knowledge base. The sidebar can be collapsed to a narrow icon column; the toggle for that sits in the header. At the bottom are the handbook, the person signed in, the security page and sign-out.</p>
         </div>
         <div class="karte-klein">
           <div class="karte-klein-titel">Header</div>
@@ -1104,9 +1104,9 @@ mark.treffer-aktiv {
       <h3 id="anleitung-wissensdokument">4.6 Upload, approve and delete a document in the knowledge base (administration)</h3>
       <p>The knowledge base holds the law, tax, compliance, audit and risk texts from which the assistant takes its references. Only administration can add documents here, and every new document must be approved by a second person (four-eyes principle).</p>
       <ol>
-          <li>Sign in as administration, open the AI panel and choose “Settings”. The section “Knowledge documents” sits below the rate limit.</li>
+          <li>Sign in as administration and open the page “Knowledge base” under “Administration” in the sidebar. The “Administration” group is the last one below the zones and is visible to administration only. The page shows the form on top and the list “Existing documents” below it. The list shows cluster, source type and level for each document and can be filtered by cluster. Material from before typing appears as “Not classified”.</li>
           <li>Under “Upload document” choose a file (PDF, Markdown or text, at most 8 MB). A PDF must contain text, a pure scan is rejected.</li>
-          <li>Enter a title, choose the area (Law, Tax, Compliance, Audit or Risk) and the source type: statute, case law, specialist literature, practice paper, internet source, forum and more. It follows where the text comes from. The portal sets the level of the source from the source type.</li>
+          <li>Enter a title, choose the area (Law, Tax, Compliance, Audit or Risk), then the cluster (Books, Publications or Internet source) and the source type. The cluster is the broad origin: books are specialist literature and reference works, publications are official texts, standards, studies and internal papers, internet sources are web pages, forums, research results and AI summaries. After the cluster the form offers only its source types (statute, case law, specialist literature, practice paper, internet source, forum and more). The type follows where the text comes from. The portal sets the level of the source from the source type.</li>
           <li>Not every source type fits every area: blogs, forums and internet searches are blocked for law, tax and compliance. For audit and risk they are allowed but count only as a hint, and the link to the source is required.</li>
           <li>Choose which office roles may see the document (administration is always included) and press “Upload document”. The text is split and embedded, which takes up to a minute for long documents.</li>
           <li>The document now appears in the list as “Awaiting approval” and is not searchable for anyone yet. The person who uploaded it cannot approve it themselves.</li>

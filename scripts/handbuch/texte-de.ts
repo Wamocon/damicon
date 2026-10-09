@@ -105,7 +105,7 @@ export const de: HandbuchTexte = {
     teile: [
       {
         titel: "Seitenleiste",
-        text: "Am linken Rand, ab Tabletbreite. Oben die Übersicht, darunter die vier Bereiche als aufklappbare Gruppen mit ihren Modulen. Ein Bereich, in dem die Rolle kein einziges Modul sehen darf, erscheint gar nicht. Die Leiste lässt sich auf eine schmale Symbolspalte einklappen; der Umschalter dafür sitzt in der Kopfzeile. Unten stehen das Handbuch, die angemeldete Person, der Zugang zur Sicherheitsseite und das Abmelden.",
+        text: "Am linken Rand, ab Tabletbreite. Oben die Übersicht, darunter die vier Bereiche als aufklappbare Gruppen mit ihren Modulen. Ein Bereich, in dem die Rolle kein einziges Modul sehen darf, erscheint gar nicht. Nur die Administration sieht darunter als letzte Gruppe „Administration“ mit den Seiten KI-Anbieter, Ratenlimit und Wissensbasis. Die Leiste lässt sich auf eine schmale Symbolspalte einklappen; der Umschalter dafür sitzt in der Kopfzeile. Unten stehen das Handbuch, die angemeldete Person, der Zugang zur Sicherheitsseite und das Abmelden.",
       },
       {
         titel: "Kopfzeile",
@@ -245,9 +245,9 @@ export const de: HandbuchTexte = {
         einleitung:
           "Die Wissensbasis enthält die Texte zu Recht, Steuern, Compliance, Audit und Risiko, aus denen der Assistent seine Belege holt. Nur die Administration darf hier Dokumente hinzufügen, und jedes neue Dokument muss eine zweite Person freigeben (Vier-Augen-Prinzip).",
         schritte: [
-          "Als Administration anmelden, das KI-Panel öffnen und „Einstellungen“ wählen. Unter dem Ratenlimit steht der Abschnitt „Wissensdokumente“.",
+          "Als Administration anmelden und in der Seitenleiste unter „Administration“ die Seite „Wissensbasis“ öffnen. Die Gruppe „Administration“ steht als letzte unter den Zonen und ist nur für die Administration sichtbar. Die Seite zeigt oben das Formular und darunter die Liste „Vorhandene Dokumente“. Die Liste nennt je Dokument Cluster, Quellenart und Stufe und lässt sich nach Cluster filtern. Bestand aus der Zeit vor der Typisierung steht als „Nicht eingeordnet“.",
           "Unter „Dokument hochladen“ eine Datei wählen (PDF, Markdown oder Text, höchstens 8 MB). Ein PDF muss Text enthalten, ein reiner Scan wird abgelehnt.",
-          "Titel eintragen, den Bereich wählen (Recht, Steuern, Compliance, Audit oder Risiko) und die Quellenart: Gesetz, Urteil, Fachliteratur, Praxisbeitrag, Internetquelle, Forum und weitere. Sie richtet sich nach der Herkunft des Textes. Die Stufe der Quelle legt das Portal aus der Quellenart fest.",
+          "Titel eintragen, den Bereich wählen (Recht, Steuern, Compliance, Audit oder Risiko), danach den Cluster (Bücher, Publikationen oder Internet-Quelle) und die Quellenart. Der Cluster ist die grobe Herkunft: Bücher sind Fachliteratur und Nachschlagewerke, Publikationen amtliche Texte, Normen, Studien und interne Ausarbeitungen, Internet-Quellen Webseiten, Foren, Rechercheergebnisse und KI-Zusammenfassungen. Nach dem Cluster bietet das Formular nur dessen Quellenarten an (Gesetz, Urteil, Fachliteratur, Praxisbeitrag, Internetquelle, Forum und weitere). Die Art richtet sich nach der Herkunft des Textes. Die Stufe der Quelle legt das Portal aus der Quellenart fest.",
           "Nicht jede Quellenart passt zu jedem Bereich: Blogs, Foren und Internetrecherchen sind für Recht, Steuern und Compliance gesperrt. Für Audit und Risiko sind sie zulässig, gelten aber nur als Hinweis, und der Link zur Quelle ist Pflicht.",
           "Festlegen, welche Büro-Rollen das Dokument sehen dürfen (die Administration ist immer dabei), und „Dokument hochladen“ drücken. Der Text wird zerlegt und eingebettet, bei langen Dokumenten dauert das bis zu einer Minute.",
           "Das Dokument steht jetzt als „Wartet auf Freigabe“ in der Liste und ist noch für niemanden durchsuchbar. Wer hochgeladen hat, kann es nicht selbst freigeben.",
