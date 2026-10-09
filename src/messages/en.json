@@ -948,7 +948,9 @@
       "wissenFreigegeben": "Document “{wert}” approved and searchable.",
       "wissenAbgelehnt": "Document “{wert}” rejected. It stays blocked and can be deleted.",
       "wissenVerlaengert": "Document “{wert}” extended and searchable again.",
-      "wissenEingeordnet": "{wert} documents classified."
+      "wissenEingeordnet": "{wert} documents classified.",
+      "wissenSammelFreigegeben": "{wert} documents approved and searchable.",
+      "wissenSammelAbgelehnt": "{wert} documents rejected. They stay blocked and can be deleted."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -2342,7 +2344,9 @@
         "ohneEinordnungHinweis": "Existing material from before typing: source type and cluster are missing. The assistant still treats it by its level.",
         "filter": "Filter by cluster",
         "filterAlle": "All",
-        "keineTreffer": "No document in this selection."
+        "keineTreffer": "No document in this selection.",
+        "unvollstaendig": "Incomplete",
+        "unvollstaendigHinweis": "The book was not fully uploaded ({da} of {gesamt} packages). It cannot be approved. Please delete it and upload it again."
       },
       "formular": {
         "titel": "Upload document",
@@ -2560,6 +2564,55 @@
           "ohneVokale": "Many long words without vowels, indicating recognition errors.",
           "wiederholteZeilen": "Headers and footers repeat on every page."
         }
+      },
+      "einschaetzung": {
+        "titel": "Assessment",
+        "keineBefunde": "No findings in classification, readability or origin. You check the content in the preview.",
+        "empfehlung": {
+          "freigeben": "Recommendation: approve",
+          "pruefen": "Recommendation: review first",
+          "ablehnen": "Recommendation: reject"
+        },
+        "grund": {
+          "unvollstaendig": "The document was uploaded incompletely.",
+          "guteSchlecht": "The text is poorly readable (OCR errors). Search would hardly find it.",
+          "guetePruefen": "The text quality is conspicuous, please look at the preview.",
+          "ohneEinordnung": "Source type or cluster is missing.",
+          "ohneStufe": "No authority level is set.",
+          "ohneLink": "Internet source without a link, the origin cannot be verified.",
+          "linkUngueltig": "The link is not a valid web address.",
+          "sehrKurz": "Very few sections, perhaps only a table of contents or a read error.",
+          "notbehelf": "Unreliable internet source: used only as a last resort and labelled as such to the user.",
+          "hinweis": "Used only with a note (not as a primary source)."
+        }
+      },
+      "sammel": {
+        "waehlen": "Select {titel} for bulk review",
+        "titel": "{anzahl, plural, one {# document is waiting for your review} other {# documents are waiting for your review}}",
+        "lead": "Select several and decide in one step. Each document is checked and logged individually.",
+        "alle": "Select all",
+        "nurEmpfohlene": "Recommended only ({anzahl})",
+        "keine": "Clear selection",
+        "gewaehlt": "{anzahl} selected",
+        "freigeben": "Approve selection",
+        "ablehnen": "Reject selection",
+        "freigebenTitel": "Approve {anzahl} documents?",
+        "ablehnenTitel": "Reject {anzahl} documents?",
+        "empfehlung": {
+          "freigeben": "approve",
+          "pruefen": "review first",
+          "ablehnen": "reject"
+        },
+        "mitBefund": "Some documents have findings. Please look at them individually first.",
+        "hinweisFreigeben": "Approved documents become searchable immediately. The four-eyes principle applies: the database does not release your own uploads.",
+        "hinweisAblehnen": "Rejected documents stay blocked and can be deleted.",
+        "freigebenBestaetigen": "Approve now",
+        "ablehnenBestaetigen": "Reject now",
+        "laeuft": "Working …",
+        "abbrechen": "Cancel",
+        "schliessen": "Close",
+        "ergebnisTitel": "Result",
+        "erledigt": "done"
       }
     },
     "sprachmodus": {

@@ -948,7 +948,9 @@
       "wissenFreigegeben": "Dokument „{wert}“ freigegeben und durchsuchbar.",
       "wissenAbgelehnt": "Dokument „{wert}“ abgelehnt. Es bleibt gesperrt und lässt sich löschen.",
       "wissenVerlaengert": "Dokument „{wert}“ verlängert und wieder durchsuchbar.",
-      "wissenEingeordnet": "{wert} Dokumente eingeordnet."
+      "wissenEingeordnet": "{wert} Dokumente eingeordnet.",
+      "wissenSammelFreigegeben": "{wert} Dokumente freigegeben und durchsuchbar.",
+      "wissenSammelAbgelehnt": "{wert} Dokumente abgelehnt. Sie bleiben gesperrt und lassen sich löschen."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -2342,7 +2344,9 @@
         "ohneEinordnungHinweis": "Bestand aus der Zeit vor der Typisierung: Quellenart und Cluster fehlen. Der Assistent behandelt ihn weiter nach seiner Stufe.",
         "filter": "Nach Cluster filtern",
         "filterAlle": "Alle",
-        "keineTreffer": "Kein Dokument in dieser Auswahl."
+        "keineTreffer": "Kein Dokument in dieser Auswahl.",
+        "unvollstaendig": "Unvollständig",
+        "unvollstaendigHinweis": "Das Buch ist nicht vollständig hochgeladen ({da} von {gesamt} Paketen). Es lässt sich nicht freigeben. Bitte löschen und neu hochladen."
       },
       "formular": {
         "titel": "Dokument hochladen",
@@ -2560,6 +2564,55 @@
           "ohneVokale": "Viele lange Wörter ohne Vokal, Hinweis auf Erkennungsfehler.",
           "wiederholteZeilen": "Kopf- und Fußzeilen wiederholen sich auf jeder Seite."
         }
+      },
+      "einschaetzung": {
+        "titel": "Einschätzung",
+        "keineBefunde": "Keine Auffälligkeiten bei Einordnung, Lesbarkeit und Herkunft. Den Inhalt prüfen Sie in der Vorschau.",
+        "empfehlung": {
+          "freigeben": "Empfehlung: freigeben",
+          "pruefen": "Empfehlung: erst ansehen",
+          "ablehnen": "Empfehlung: ablehnen"
+        },
+        "grund": {
+          "unvollstaendig": "Das Dokument ist unvollständig hochgeladen.",
+          "guteSchlecht": "Der Text ist schlecht lesbar (OCR-Fehler). Die Suche würde ihn kaum finden.",
+          "guetePruefen": "Die Textqualität ist auffällig, bitte in der Vorschau ansehen.",
+          "ohneEinordnung": "Quellenart oder Cluster fehlen.",
+          "ohneStufe": "Es ist keine Autoritätsstufe gesetzt.",
+          "ohneLink": "Quelle aus dem Internet ohne Link, die Herkunft ist nicht nachprüfbar.",
+          "linkUngueltig": "Der Link ist keine gültige Internetadresse.",
+          "sehrKurz": "Sehr wenige Abschnitte, vielleicht nur ein Inhaltsverzeichnis oder ein Lesefehler.",
+          "notbehelf": "Unsichere Internetquelle: Sie wird nur als Notbehelf genutzt und dem Nutzer als solche gekennzeichnet.",
+          "hinweis": "Wird nur mit Vermerk genutzt (nicht als tragende Quelle)."
+        }
+      },
+      "sammel": {
+        "waehlen": "{titel} für die Sammelprüfung auswählen",
+        "titel": "{anzahl, plural, one {# Dokument wartet auf Ihre Prüfung} other {# Dokumente warten auf Ihre Prüfung}}",
+        "lead": "Wählen Sie mehrere aus und entscheiden Sie in einem Schritt. Jedes Dokument wird einzeln geprüft und protokolliert.",
+        "alle": "Alle auswählen",
+        "nurEmpfohlene": "Nur Empfohlene ({anzahl})",
+        "keine": "Auswahl aufheben",
+        "gewaehlt": "{anzahl} ausgewählt",
+        "freigeben": "Auswahl freigeben",
+        "ablehnen": "Auswahl ablehnen",
+        "freigebenTitel": "{anzahl} Dokumente freigeben?",
+        "ablehnenTitel": "{anzahl} Dokumente ablehnen?",
+        "empfehlung": {
+          "freigeben": "freigeben",
+          "pruefen": "erst ansehen",
+          "ablehnen": "ablehnen"
+        },
+        "mitBefund": "Darunter sind Dokumente mit Befund. Bitte sehen Sie sich diese vorher einzeln an.",
+        "hinweisFreigeben": "Freigegebene Dokumente werden sofort durchsuchbar. Das Vier-Augen-Prinzip gilt: Eigene Uploads gibt die Datenbank nicht frei.",
+        "hinweisAblehnen": "Abgelehnte Dokumente bleiben gesperrt und lassen sich löschen.",
+        "freigebenBestaetigen": "Jetzt freigeben",
+        "ablehnenBestaetigen": "Jetzt ablehnen",
+        "laeuft": "Läuft …",
+        "abbrechen": "Abbrechen",
+        "schliessen": "Schließen",
+        "ergebnisTitel": "Ergebnis",
+        "erledigt": "erledigt"
       }
     },
     "sprachmodus": {

@@ -1,6 +1,7 @@
 "use server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { revalidatePath } from "next/cache";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { DATENBANK_SCHEMA } from "@/lib/supabase/schema";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
@@ -432,4 +433,55 @@ export async function wissenBuchAbbrechen(hash: string): Promise<AktionsStatus> 
   } catch (error) {
     return buchFehler(error, "abbrechen");
   }
+}
+
+// ---- Sammelpruefung -----------------------------------------------------------------------------------------------------
+// Viele Dokumente auf einmal freigeben oder ablehnen (nach einem Buch-Upload). Jedes Dokument geht einzeln durch dieselbe Pruefung wie
+// die Einzelpruefung (entscheideUeberUpload: Vier-Augen-Prinzip, unvollstaendige Buecher, Skript-Quellen) und wird einzeln protokolliert.
+// Ein Fehler bei einem Dokument stoppt die anderen nicht; die Antwort nennt je Dokument, was geschah.
+export interface SammelErgebnis extends AktionsStatus {
+  ergebnisse: Array<{ quelleId: string; titel: string | null; ok: boolean; meldung: string | null; wert: string | null }>;
+}
+
+const SAMMEL_MAX = 50;
+
+export async function wissenDokumenteSammelPruefen(aktion: "freigeben" | "ablehnen", quelleIds: string[]): Promise<SammelErgebnis> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("ki_assistent", "manage");
+  } catch (error) {
+    return { ...zugriffsFehler(error), ergebnisse: [] };
+  }
+  if ((aktion !== "freigeben" && aktion !== "ablehnen") || !Array.isArray(quelleIds)) return { ...fehler("fehler.eingabe"), ergebnisse: [] };
+  const ids = [...new Set(quelleIds.filter((i): i is string => typeof i === "string"))];
+  if (ids.length === 0 || ids.length > SAMMEL_MAX) return { ...fehler("fehler.eingabe"), ergebnisse: [] };
+
+  const speicher = supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient);
+  const ergebnisse: SammelErgebnis["ergebnisse"] = [];
+  for (const quelleId of ids) {
+    try {
+      const erg = await entscheideUeberUpload(aktion, quelleId, { speicher, pruefer: { id: profil.id } });
+      await protokolliere(profil, PRUEF_PROTOKOLL[aktion], "wissen_chunks", null, {
+        titel: erg.titel,
+        bereich: erg.bereich,
+        quelle_id: quelleId,
+        abschnitte: erg.abschnitte,
+        quellenart: erg.quellenart,
+        pruefen_bis: erg.pruefenBis,
+        sammel: true,
+      });
+      ergebnisse.push({ quelleId, titel: erg.titel, ok: true, meldung: null, wert: null });
+    } catch (error) {
+      if (error instanceof UploadFehler) {
+        console.error("[damicon]", error.message);
+        ergebnisse.push({ quelleId, titel: null, ok: false, meldung: FEHLER_SCHLUESSEL[error.code], wert: error.wert ?? null });
+      } else {
+        console.error("[damicon] Sammelpruefung unerwartet fehlgeschlagen:", error);
+        ergebnisse.push({ quelleId, titel: null, ok: false, meldung: "fehler.unbekannt", wert: null });
+      }
+    }
+  }
+  revalidatePath("/", "layout");
+  const gut = ergebnisse.filter((e) => e.ok).length;
+  return { stand: gut > 0 ? "ok" : "fehler", meldung: aktion === "freigeben" ? "ok.wissenSammelFreigegeben" : "ok.wissenSammelAbgelehnt", wert: String(gut), ergebnisse };
 }

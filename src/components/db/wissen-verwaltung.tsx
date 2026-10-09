@@ -10,6 +10,8 @@ import {
   wissenDokumentLoeschen,
   wissenDokumentPruefen,
   wissenDokumentVorschau,
+  wissenDokumenteSammelPruefen,
+  type SammelErgebnis,
 } from "@/lib/actions/wissen";
 import { leer, type AktionsStatus } from "@/lib/actions/status";
 import { ohneEinordnung, type WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
@@ -17,6 +19,7 @@ import { stufeSchluessel } from "@/lib/wissen/belege";
 import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN, typischerClusterVon, type Cluster } from "@/lib/wissen/quellenart";
 import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
 import { WissenBuecher } from "@/components/db/wissen-buecher";
+import { schaetzeEin, type Einschaetzung } from "@/lib/wissen/einschaetzung";
 import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
 // Wissensverwaltung: Seite "Wissensbasis" im Bereich Administration (/dashboard/administration/wissensbasis). Admin-only:
@@ -36,6 +39,7 @@ export function WissenVerwaltung() {
   const [abgeschnitten, setAbgeschnitten] = useState(false);
   const [aktionsMeldung, setAktionsMeldung] = useState<AktionsStatus>(leer);
   const [filter, setFilter] = useState<ListenFilter>("alle");
+  const [gewaehlt, setGewaehlt] = useState<ReadonlySet<string>>(new Set());
   const [, starte] = useTransition();
 
   const lade = useCallback(() => {
@@ -46,6 +50,8 @@ export function WissenVerwaltung() {
       setFehlerDetail(antwort.fehlerDetail ?? null);
       setAbgeschnitten(antwort.abgeschnitten);
       setIchId(antwort.ichId);
+      // Was nicht mehr wartet, bleibt nicht ausgewaehlt.
+      setGewaehlt(new Set());
     });
   }, []);
 
@@ -54,6 +60,13 @@ export function WissenVerwaltung() {
   }, [lade]);
 
   const sichtbar = (dokumente ?? []).filter((d) => passtZumFilter(d, filter));
+  const pruefbar = (dokumente ?? []).filter((d) => kannIchPruefen(d, ichId));
+  const schalte = (schluessel: string) =>
+    setGewaehlt((alt) => {
+      const neu = new Set(alt);
+      if (!neu.delete(schluessel)) neu.add(schluessel);
+      return neu;
+    });
 
   return (
     <div className="space-y-3">
@@ -82,6 +95,17 @@ export function WissenVerwaltung() {
         ) : (
           <>
             <ClusterFilter dokumente={dokumente} filter={filter} beiAuswahl={setFilter} />
+            {pruefbar.length > 0 ? (
+              <WissenSammelLeiste
+                pruefbar={pruefbar}
+                gewaehlt={gewaehlt}
+                beiAuswahl={setGewaehlt}
+                beiFertig={(status) => {
+                  setAktionsMeldung(status);
+                  lade();
+                }}
+              />
+            ) : null}
             {sichtbar.length === 0 ? (
               <Card className="text-center text-xs text-muted-foreground">{t("liste.keineTreffer")}</Card>
             ) : (
@@ -91,6 +115,8 @@ export function WissenVerwaltung() {
                     key={d.schluessel}
                     dokument={d}
                     ichId={ichId}
+                    gewaehlt={gewaehlt.has(d.schluessel)}
+                    beiWahl={() => schalte(d.schluessel)}
                     beiErgebnis={(status) => {
                       setAktionsMeldung(status);
                       lade();
@@ -159,13 +185,22 @@ function ClusterFilter({
   );
 }
 
+/** Eine zweite Person darf pruefen: das Dokument wartet, stammt nicht von mir und ist vollstaendig. Der Server prueft dasselbe noch einmal. */
+function kannIchPruefen(d: WissenDokumentZeile, ichId: string | null): boolean {
+  return d.herkunft === "upload" && !!ichId && d.hochgeladenVonId !== ichId && !d.unvollstaendig && d.pruefstatus === "ungeprueft";
+}
+
 function WissenDokumentKarte({
   dokument,
   ichId,
+  gewaehlt,
+  beiWahl,
   beiErgebnis,
 }: {
   dokument: WissenDokumentZeile;
   ichId: string | null;
+  gewaehlt: boolean;
+  beiWahl: () => void;
   beiErgebnis: (status: AktionsStatus) => void;
 }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
@@ -186,7 +221,10 @@ function WissenDokumentKarte({
   const stufeName = dokument.stufe !== null ? tStufe(stufeSchluessel(dokument.stufe)) : null;
   const ersterEintrag = dokument.herkunft === "upload";
   const eigener = !!ichId && dokument.hochgeladenVonId === ichId;
-  const wartetAufMich = !eigener && (dokument.pruefstatus === "ungeprueft" || dokument.abgelaufen);
+  const wartetAufMich = !eigener && !dokument.unvollstaendig && (dokument.pruefstatus === "ungeprueft" || dokument.abgelaufen);
+  const waehlbar = kannIchPruefen(dokument, ichId);
+  const tGuete = useTranslations("kiAssistentAnsicht.wissensVerwaltung.guete");
+  const einschaetzung = ersterEintrag && dokument.pruefstatus === "ungeprueft" ? schaetzeEin(dokument) : null;
   const wartetAufAndere = eigener && (dokument.pruefstatus === "ungeprueft" || dokument.abgelaufen);
   const status = dokument.pruefstatus === "ungeprueft" ? "ungeprueft" : dokument.pruefstatus === "abgelehnt" ? "abgelehnt" : dokument.abgelaufen ? "abgelaufen" : "freigegeben";
 
@@ -194,7 +232,10 @@ function WissenDokumentKarte({
     <li>
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <p className="min-w-0 break-words text-sm font-black text-card-foreground">{dokument.titel}</p>
+          <p className="flex min-w-0 items-start gap-2 break-words text-sm font-black text-card-foreground">
+            {waehlbar ? <input type="checkbox" checked={gewaehlt} onChange={beiWahl} aria-label={t("sammel.waehlen", { titel: dokument.titel })} className="mt-1 shrink-0" /> : null}
+            <span className="min-w-0">{dokument.titel}</span>
+          </p>
           <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
             <StatusPill tone="info">{bereichName}</StatusPill>
             <StatusPill tone={dokument.herkunft === "upload" ? "success" : "neutral"}>{t(`herkunft.${dokument.herkunft}`)}</StatusPill>
@@ -203,6 +244,11 @@ function WissenDokumentKarte({
             {artName ? <StatusPill tone="neutral">{artName}</StatusPill> : null}
             {dokument.nutzung === "hinweis" ? <StatusPill tone="warning">{t("nutzung.hinweis")}</StatusPill> : null}
             {dokument.nutzung === "notfalls" ? <StatusPill tone="danger">{t("nutzung.notfalls")}</StatusPill> : null}
+            {dokument.unvollstaendig ? <StatusPill tone="danger">{t("liste.unvollstaendig")}</StatusPill> : null}
+            {dokument.guete ? (
+              <StatusPill tone={dokument.guete === "gut" ? "success" : dokument.guete === "pruefen" ? "warning" : "danger"}>{tGuete(`note.${dokument.guete}` as never)}</StatusPill>
+            ) : null}
+            {einschaetzung ? <StatusPill tone={EMPFEHLUNG_TON[einschaetzung.empfehlung]}>{t(`einschaetzung.empfehlung.${einschaetzung.empfehlung}` as never)}</StatusPill> : null}
             {ersterEintrag ? (
               <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
             ) : null}
@@ -250,6 +296,15 @@ function WissenDokumentKarte({
             </div>
           ) : null}
         </dl>
+        {dokument.unvollstaendig ? (
+          <p role="alert" className="mt-2 text-[11px] font-semibold text-destructive">
+            {t("liste.unvollstaendigHinweis", { da: dokument.paketeDa, gesamt: dokument.paketeGesamt ?? 0 })}
+          </p>
+        ) : null}
+        {dokument.gueteHinweise.length > 0 ? (
+          <p className="mt-2 text-[11px] text-muted-foreground">{dokument.gueteHinweise.map((h) => tGuete(`hinweis.${h}` as never)).join(" ")}</p>
+        ) : null}
+        {einschaetzung ? <EinschaetzungGruende einschaetzung={einschaetzung} /> : null}
         {wartetAufAndere ? <p className="mt-2 text-[11px] font-semibold text-warning">{t("liste.wartet")}</p> : null}
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-2.5 empty:hidden">
           {wartetAufMich ? <WissenPruefenKnopf dokument={dokument} bereichName={bereichName} artName={artName} beiErgebnis={beiErgebnis} /> : null}
@@ -548,6 +603,7 @@ function WissenPruefenKnopf({
               </div>
             ) : null}
           </dl>
+          {!erneut ? <EinschaetzungGruende einschaetzung={schaetzeEin(dokument)} mitUeberschrift /> : null}
           <div>
             <p className="mb-1 text-[11px] font-semibold">{t("pruefung.vorschau")}</p>
             <div className="max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/40 p-2 text-[11px] leading-4">
@@ -661,5 +717,151 @@ function WissenLoeschenKnopf({
         </form>
       </dialog>
     </>
+  );
+}
+
+const EMPFEHLUNG_TON = { freigeben: "success", pruefen: "warning", ablehnen: "danger" } as const;
+
+// Einschaetzung (einschaetzung.ts): die Empfehlung steht als Pille an der Karte, die Gruende darunter. Sie ist eine Entscheidungshilfe,
+// kein Ersatz fuer das Lesen der Vorschau.
+function EinschaetzungGruende({ einschaetzung, mitUeberschrift = false }: { einschaetzung: Einschaetzung; mitUeberschrift?: boolean }) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.einschaetzung");
+  if (einschaetzung.gruende.length === 0 && !mitUeberschrift) return null;
+  return (
+    <div className="mt-2 space-y-0.5 text-[11px]">
+      {mitUeberschrift ? (
+        <p className="font-semibold">
+          {t("titel")}: {t(`empfehlung.${einschaetzung.empfehlung}` as never)}
+        </p>
+      ) : null}
+      {einschaetzung.gruende.length === 0 ? <p className="text-muted-foreground">{t("keineBefunde")}</p> : null}
+      <ul className="space-y-0.5">
+        {einschaetzung.gruende.map((g) => (
+          <li key={g.code} className={g.gewicht === "block" ? "font-semibold text-destructive" : g.gewicht === "pruefen" ? "text-warning" : "text-muted-foreground"}>
+            {t(`grund.${g.code}` as never)}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// Sammelpruefung: mehrere wartende Dokumente auf einmal freigeben oder ablehnen. Das Fenster nennt jedes Dokument mit seiner Empfehlung;
+// freigegeben werden kann alles, was ich pruefen darf, die Auswahl "nur Empfohlene" nimmt allein die ohne Befund. Die Ergebnisse je
+// Dokument stehen danach im Fenster (zum Beispiel, wenn ein Dokument inzwischen anders entschieden wurde).
+function WissenSammelLeiste({
+  pruefbar,
+  gewaehlt,
+  beiAuswahl,
+  beiFertig,
+}: {
+  pruefbar: WissenDokumentZeile[];
+  gewaehlt: ReadonlySet<string>;
+  beiAuswahl: (neu: ReadonlySet<string>) => void;
+  beiFertig: (status: AktionsStatus) => void;
+}) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.sammel");
+  const tAktion = useTranslations("aktionen");
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [aktion, setAktion] = useState<"freigeben" | "ablehnen">("freigeben");
+  const [laeuft, starte] = useTransition();
+  const [ergebnis, setErgebnis] = useState<SammelErgebnis | null>(null);
+  const [liste, setListe] = useState<WissenDokumentZeile[]>([]);
+  const empfohlen = pruefbar.filter((d) => schaetzeEin(d).empfehlung === "freigeben");
+  const auswahl = pruefbar.filter((d) => gewaehlt.has(d.schluessel));
+
+  const oeffne = (neu: "freigeben" | "ablehnen") => {
+    setAktion(neu);
+    setErgebnis(null);
+    setListe(auswahl);
+    dialog.current?.showModal();
+  };
+  const bestaetige = () =>
+    starte(async () => {
+      const antwort = await wissenDokumenteSammelPruefen(aktion, liste.map((d) => d.schluessel));
+      setErgebnis(antwort);
+      beiFertig({ stand: antwort.stand, meldung: antwort.meldung, wert: antwort.wert });
+    });
+  const meldungFuer = (m: string | null, wert: string | null) =>
+    m ? (tAktion as (k: string, v?: Record<string, string>) => string)(m, { wert: wert ?? "" }) : "";
+  const knopf = "inline-flex h-7 items-center rounded-lg border px-2.5 text-[11px] font-semibold disabled:opacity-50";
+
+  return (
+    <div className="mb-2 space-y-1.5 rounded-lg border border-border p-2.5">
+      <p className="text-[11px] font-semibold text-card-foreground">{t("titel", { anzahl: pruefbar.length })}</p>
+      <p className="text-[11px] text-muted-foreground">{t("lead")}</p>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button type="button" className={`${knopf} border-border`} onClick={() => beiAuswahl(new Set(pruefbar.map((d) => d.schluessel)))}>
+          {t("alle")}
+        </button>
+        <button type="button" disabled={empfohlen.length === 0} className={`${knopf} border-border`} onClick={() => beiAuswahl(new Set(empfohlen.map((d) => d.schluessel)))}>
+          {t("nurEmpfohlene", { anzahl: empfohlen.length })}
+        </button>
+        <button type="button" disabled={gewaehlt.size === 0} className={`${knopf} border-border`} onClick={() => beiAuswahl(new Set())}>
+          {t("keine")}
+        </button>
+        <span className="text-[11px] tabular-nums text-muted-foreground">{t("gewaehlt", { anzahl: auswahl.length })}</span>
+        <span className="flex-1" />
+        <button type="button" disabled={auswahl.length === 0} className={`${knopf} border-destructive/40 text-destructive`} onClick={() => oeffne("ablehnen")}>
+          {t("ablehnen")}
+        </button>
+        <button type="button" disabled={auswahl.length === 0} className={`${knopf} border-primary bg-primary text-primary-foreground`} onClick={() => oeffne("freigeben")}>
+          {t("freigeben")}
+        </button>
+      </div>
+      <dialog ref={dialog} aria-labelledby="sammel-titel" className="m-auto w-[min(94vw,36rem)] rounded-xl border border-border bg-card p-0 text-card-foreground backdrop:bg-black/50">
+        <div className="space-y-3 p-4">
+          <h3 id="sammel-titel" className="text-sm font-black">
+            {ergebnis ? t("ergebnisTitel") : aktion === "freigeben" ? t("freigebenTitel", { anzahl: liste.length }) : t("ablehnenTitel", { anzahl: liste.length })}
+          </h3>
+          {ergebnis ? (
+            <ul className="max-h-64 space-y-1 overflow-y-auto text-xs">
+              {ergebnis.ergebnisse.map((e) => (
+                <li key={e.quelleId} className={e.ok ? "text-card-foreground" : "font-semibold text-destructive"}>
+                  {liste.find((d) => d.schluessel === e.quelleId)?.titel ?? e.titel ?? e.quelleId}: {e.ok ? t("erledigt") : meldungFuer(e.meldung, e.wert)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <>
+              <ul className="max-h-64 space-y-1 overflow-y-auto text-xs">
+                {liste.map((d) => {
+                  const e = schaetzeEin(d);
+                  return (
+                    <li key={d.schluessel} className="flex items-start justify-between gap-2">
+                      <span className="min-w-0 break-words">{d.titel}</span>
+                      <StatusPill tone={EMPFEHLUNG_TON[e.empfehlung]}>{t(`empfehlung.${e.empfehlung}` as never)}</StatusPill>
+                    </li>
+                  );
+                })}
+              </ul>
+              {aktion === "freigeben" && liste.some((d) => schaetzeEin(d).empfehlung !== "freigeben") ? (
+                <p role="alert" className="rounded-lg border border-warning/30 bg-warning/[0.08] p-2 text-xs font-semibold text-warning">
+                  {t("mitBefund")}
+                </p>
+              ) : null}
+              <p role="note" className="text-[11px] font-semibold text-muted-foreground">
+                {aktion === "freigeben" ? t("hinweisFreigeben") : t("hinweisAblehnen")}
+              </p>
+            </>
+          )}
+          <div className="flex flex-wrap justify-end gap-2">
+            <button type="button" onClick={() => dialog.current?.close()} className={`${knopf} h-8 border-border px-3 text-xs`}>
+              {ergebnis ? t("schliessen") : t("abbrechen")}
+            </button>
+            {!ergebnis ? (
+              <button
+                type="button"
+                disabled={laeuft}
+                onClick={bestaetige}
+                className={`${knopf} h-8 px-3 text-xs ${aktion === "freigeben" ? "border-primary bg-primary text-primary-foreground" : "border-destructive/40 text-destructive"}`}
+              >
+                {laeuft ? t("laeuft") : aktion === "freigeben" ? t("freigebenBestaetigen") : t("ablehnenBestaetigen")}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </dialog>
+    </div>
   );
 }

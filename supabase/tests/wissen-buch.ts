@@ -16,6 +16,8 @@ import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
 import { bewerteText, schlechtesteNote } from "@/lib/wissen/textguete";
 import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { tokens } from "@/lib/wissen/sparse";
+import { schaetzeEin } from "@/lib/wissen/einschaetzung";
+import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 
 let gesamt = 0;
 let fehler = 0;
@@ -280,6 +282,26 @@ async function rest() {
     const sp = speicherNeu();
     const code = await fehlerCode(() => ladePaket({ ...kopf, nr: 1, text: pakete[0]! }, ich, { ...abh(sp), umgebung: { VERCEL_ENV: "preview" }, schema: "public" }));
     pruefe("Umgebung: eine Vorschau mit dem Schema public schreibt nichts", code === "vorschau" && sp.zeilen.size === 0);
+  }
+
+  // ---- Einschaetzung --------------------------------------------------------------------------------
+  {
+    const zeile = (teil: Partial<WissenDokumentZeile> = {}): WissenDokumentZeile => ({
+      schluessel: "upload:abc", schluesselSpalte: "quelle_id", titel: "Buch", bereich: "steuer", rollen: ["admin"], datum: null,
+      hochgeladenVon: "A", hochgeladenVonId: "a", chunks: 120, herkunft: "upload", loeschbar: true, quellenart: "fachliteratur", cluster: "buecher",
+      stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "ungeprueft", pruefenBis: null, paketeGesamt: 3, paketeDa: 3, unvollstaendig: false,
+      guete: "gut", gueteHinweise: [], abgelaufen: false, url: null, ...teil,
+    });
+    const codes = (teil: Partial<WissenDokumentZeile>) => schaetzeEin(zeile(teil)).gruende.map((g) => g.code);
+    pruefe("Einschätzung: sauberes Buch wird zur Freigabe empfohlen", schaetzeEin(zeile()).empfehlung === "freigeben" && schaetzeEin(zeile()).gruende.length === 0);
+    pruefe("Einschätzung: unvollständig führt zur Ablehnung", schaetzeEin(zeile({ unvollstaendig: true })).empfehlung === "ablehnen");
+    pruefe("Einschätzung: schlechte OCR führt zur Ablehnung", schaetzeEin(zeile({ guete: "schlecht" })).empfehlung === "ablehnen");
+    pruefe("Einschätzung: auffällige Güte heißt erst ansehen", schaetzeEin(zeile({ guete: "pruefen" })).empfehlung === "pruefen");
+    pruefe("Einschätzung: ohne Einordnung erst ansehen", codes({ quellenart: null, cluster: null }).includes("ohneEinordnung"));
+    pruefe("Einschätzung: Internetquelle ohne Link und mit ungültigem Link", codes({ cluster: "internet", url: null }).includes("ohneLink") && codes({ cluster: "internet", url: "kein link" }).includes("linkUngueltig") && !codes({ cluster: "internet", url: "https://adilet.zan.kz/rus/docs/K1700000120" }).includes("ohneLink"));
+    pruefe("Einschätzung: Notbehelf ist nur eine Information und ändert die Empfehlung nicht", schaetzeEin(zeile({ nutzung: "notfalls", cluster: "internet", url: "https://habr.com/x/1" })).empfehlung === "freigeben" && codes({ nutzung: "notfalls" }).includes("notbehelf"));
+    pruefe("Einschätzung: sehr kurzes Dokument erst ansehen", codes({ chunks: 1 }).includes("sehrKurz"));
+    pruefe("Einschätzung: schwerster Befund zuerst", schaetzeEin(zeile({ unvollstaendig: true, guete: "pruefen" })).gruende[0]?.code === "unvollstaendig");
   }
 
   console.log(`\n${gesamt - fehler}/${gesamt} bestanden`);
