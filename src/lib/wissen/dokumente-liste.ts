@@ -4,12 +4,14 @@
 // Reine Funktion, ohne Datenbank, damit sie testbar bleibt.
 
 import { istCluster, istPruefstatus, nutzungFuer, type Cluster, type Nutzung, type Pruefstatus } from "@/lib/wissen/quellenart";
+import { istGueteHinweis, schlechtesteNote, type GueteHinweis, type GueteNote } from "@/lib/wissen/textguete";
 import { istUploadZeile, UPLOAD_QUELLE } from "@/lib/wissen/upload-quelle";
 
 /** Die Spalten, die die Liste liest (PostgREST-Schreibweise, Aliase fuer extra->>...). Eine Stelle fuer Action und Test. */
 export const LISTE_SPALTEN =
   "id, quelle_id, pfad, titel, bereich, rollen, eingelesen_am, autoritaetsstufe, quellenart, cluster, pruefstatus, pruefen_bis, url, rechtsstelle, " +
-  "upload_quelle:extra->>quelle, hochgeladen_von:extra->>hochgeladen_von_name, hochgeladen_von_id:extra->>hochgeladen_von";
+  "upload_quelle:extra->>quelle, hochgeladen_von:extra->>hochgeladen_von_name, hochgeladen_von_id:extra->>hochgeladen_von, " +
+  "paket:extra->>paket, pakete_gesamt:extra->>pakete_gesamt, guete:extra->>guete, guete_hinweise:extra->>guete_hinweise";
 
 /** Nur die leichten Spalten: Text und Vektoren werden fuer die Liste nie gelesen. */
 export interface WissenListeZeile {
@@ -35,6 +37,12 @@ export interface WissenListeZeile {
   url?: string | null;
   /** extra->>hochgeladen_von: profiles.id der hochladenden Person. */
   hochgeladen_von_id?: string | null;
+  /** Buch-Upload: Nummer des Pakets dieser Zeile und Zahl aller Pakete (als Text, wie extra->> sie liefert). */
+  paket?: string | null;
+  pakete_gesamt?: string | null;
+  /** Einschaetzung der Textqualitaet (gut, pruefen, schlecht) und ihre Hinweise, durch Komma getrennt. */
+  guete?: string | null;
+  guete_hinweise?: string | null;
 }
 
 /** Spalte von wissen_chunks, ueber die ein Dokument adressiert wird: so, wie die Liste gruppiert (quelle_id, sonst pfad, sonst id). */
@@ -66,6 +74,14 @@ export interface WissenDokumentZeile {
   pruefstatus: Pruefstatus;
   /** Wiedervorlage (JJJJ-MM-TT) oder null. */
   pruefenBis: string | null;
+  /** Buch-Upload: Zahl aller Pakete (null bei einem normalen Upload und beim Bestand) und wie viele davon da sind. */
+  paketeGesamt: number | null;
+  paketeDa: number;
+  /** Es fehlen Pakete: ein abgebrochenes Buch. Laesst sich nicht freigeben, nur loeschen oder ablehnen. */
+  unvollstaendig: boolean;
+  /** Schlechteste Note der Textqualitaet ueber alle Zeilen (nur Uploads), und die Hinweise dazu. */
+  guete: GueteNote | null;
+  gueteHinweise: GueteHinweis[];
   /** Freigegeben, aber die Wiedervorlage ist erreicht: wird nicht mehr gefunden, bis eine zweite Person verlaengert. */
   abgelaufen: boolean;
   url: string | null;
@@ -79,10 +95,25 @@ const RANG: Record<Pruefstatus, number> = { ungeprueft: 0, abgelehnt: 1, freigeg
 /** `heute` (JJJJ-MM-TT) ist ein Parameter, damit Tests ohne Uhr auskommen. */
 export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], heute = new Date().toISOString().slice(0, 10)): WissenDokumentZeile[] {
   const gruppen = new Map<string, WissenDokumentZeile>();
+  const pakete = new Map<string, Set<number>>();
+  const gueteNoten = new Map<string, (string | null | undefined)[]>();
+  const gueteHinweise = new Map<string, Set<GueteHinweis>>();
   for (const z of zeilen) {
     const schluessel = z.quelle_id ?? z.pfad ?? z.id;
     const schluesselSpalte: SchluesselSpalte = z.quelle_id ? "quelle_id" : z.pfad ? "pfad" : "id";
     const status: Pruefstatus = istPruefstatus(z.pruefstatus) ? z.pruefstatus : "freigegeben";
+    // Pakete und Qualitaet zaehlen fuer jede Zeile, auch fuer die erste
+    if (z.paket !== null && z.paket !== undefined && z.paket !== "") {
+      const menge = pakete.get(schluessel) ?? new Set<number>();
+      menge.add(Number(z.paket));
+      pakete.set(schluessel, menge);
+    }
+    if (z.guete) gueteNoten.set(schluessel, [...(gueteNoten.get(schluessel) ?? []), z.guete]);
+    if (z.guete_hinweise) {
+      const menge = gueteHinweise.get(schluessel) ?? new Set<GueteHinweis>();
+      for (const h of z.guete_hinweise.split(",")) if (istGueteHinweis(h)) menge.add(h);
+      gueteHinweise.set(schluessel, menge);
+    }
     const vorhanden = gruppen.get(schluessel);
     if (!vorhanden) {
       gruppen.set(schluessel, {
@@ -104,6 +135,11 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
         nutzung: nutzungFuer(z.bereich ?? "", z.quellenart),
         pruefstatus: status,
         pruefenBis: z.pruefen_bis ?? null,
+        paketeGesamt: z.pakete_gesamt ? Number(z.pakete_gesamt) : null,
+        paketeDa: 0,
+        unvollstaendig: false,
+        guete: null,
+        gueteHinweise: [],
         abgelaufen: false,
         url: z.url ?? null,
       });
@@ -113,6 +149,7 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
     vorhanden.loeschbar &&= istUploadZeile(z);
     for (const r of z.rollen ?? []) if (!vorhanden.rollen.includes(r)) vorhanden.rollen.push(r);
     if (!vorhanden.rechtsstelle && z.rechtsstelle) vorhanden.rechtsstelle = z.rechtsstelle;
+    if (z.pakete_gesamt) vorhanden.paketeGesamt = Math.max(vorhanden.paketeGesamt ?? 0, Number(z.pakete_gesamt));
     if (z.eingelesen_am && (!vorhanden.datum || z.eingelesen_am > vorhanden.datum)) vorhanden.datum = z.eingelesen_am;
     if (!vorhanden.hochgeladenVon && z.hochgeladen_von) vorhanden.hochgeladenVon = z.hochgeladen_von;
     if (!vorhanden.hochgeladenVonId && z.hochgeladen_von_id) vorhanden.hochgeladenVonId = z.hochgeladen_von_id;
@@ -121,6 +158,12 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
     if (z.pruefen_bis && (!vorhanden.pruefenBis || z.pruefen_bis < vorhanden.pruefenBis)) vorhanden.pruefenBis = z.pruefen_bis;
   }
   const liste = [...gruppen.values()];
+  for (const d of liste) {
+    d.paketeDa = pakete.get(d.schluessel)?.size ?? 0;
+    d.unvollstaendig = d.paketeGesamt !== null && d.paketeDa < d.paketeGesamt;
+    d.guete = schlechtesteNote(gueteNoten.get(d.schluessel) ?? []);
+    d.gueteHinweise = [...(gueteHinweise.get(d.schluessel) ?? [])];
+  }
   for (const d of liste) d.abgelaufen = d.pruefstatus === "freigegeben" && d.pruefenBis !== null && d.pruefenBis < heute;
   // Was auf eine Entscheidung wartet, steht oben. Danach neueste zuerst; ohne Datum ans Ende, dort nach Bereich und Titel.
   return liste.sort((a, b) => {

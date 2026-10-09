@@ -1025,7 +1025,8 @@
       "wissenPdfDienst": "Der PDF-Leser steht auf dem Server nicht zur Verfügung. Das liegt nicht an der Datei, es wurde nichts gespeichert. Bitte die technische Betreuung informieren.",
       "wissenEinordnenLeer": "Es gibt nichts einzuordnen: Die Auswahl ist leer oder ungültig.",
       "wissenEinordnen": "Die Einordnung konnte nicht gespeichert werden. Es wurde nichts oder nur ein Teil geändert, bitte die Liste neu laden und prüfen.",
-      "wissenClusterPasstNicht": "Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz. Bitte als Cluster Internet-Quelle wählen."
+      "wissenClusterPasstNicht": "Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz. Bitte als Cluster Internet-Quelle wählen.",
+      "wissenUnvollstaendig": "Dieses Buch ist unvollständig: Es fehlen Teile, weil das Hochladen abgebrochen wurde. Bitte löschen und neu hochladen. Freigeben ist erst dann möglich."
     },
     "einladungen": {
       "erfolg": {
@@ -2516,6 +2517,48 @@
           "abbrechen": "Abbrechen",
           "speichern": "Einordnung speichern",
           "notfallsKurz": "nur Notbehelf"
+        }
+      },
+      "buecher": {
+        "titel": "Bücher und lange Dokumente hochladen",
+        "lead": "Für Bücher als PDF mit Textebene (zum Beispiel nach OCR), Markdown und Text, beliebig lang und mehrere auf einmal. Der Browser liest die Datei selbst und schickt nur den Text in Paketen. Die Datei verlässt Ihren Rechner nicht. Jedes Buch wartet danach auf die Freigabe durch eine zweite Person.",
+        "dateien": "Dateien (mehrere möglich)",
+        "dateienHinweis": "PDF, Markdown oder Text. Der Titel entsteht aus dem Dateinamen und lässt sich je Buch ändern. Gleiche Inhalte werden als Dublette erkannt.",
+        "titelFeld": "Titel",
+        "entfernen": "Entfernen",
+        "seite": "Seite {seite} von {seiten}",
+        "paket": "Paket {nr} von {gesamt}",
+        "paketFehler": "Paket {nr} von {gesamt} ist fehlgeschlagen, das Buch wurde wieder entfernt.",
+        "zeichen": "{anzahl} Zeichen",
+        "fortschritt": "Fortschritt des Hochladens",
+        "schlechtGesperrt": "Der Text ist zu schlecht lesbar und wird nicht hochgeladen. Bitte die Datei erneut mit OCR erzeugen.",
+        "fehlerLesen": "Die Datei konnte nicht gelesen werden. Ist es eine gültige PDF mit Textebene?",
+        "start": "{anzahl, plural, one {# Buch hochladen} other {# Bücher hochladen}}",
+        "stopp": "Abbrechen",
+        "schritt": {
+          "wartet": "Wartet",
+          "liest": "Liest",
+          "bereit": "Bereit",
+          "laedt": "Lädt hoch",
+          "fertig": "Hochgeladen",
+          "fehler": "Fehler",
+          "abgebrochen": "Abgebrochen"
+        }
+      },
+      "guete": {
+        "note": {
+          "gut": "Text gut lesbar",
+          "pruefen": "Text prüfen",
+          "schlecht": "Text schlecht"
+        },
+        "hinweis": {
+          "kaumText": "Kaum Text gefunden, vermutlich ein Scan ohne Textebene.",
+          "vieleSonderzeichen": "Viele Sonderzeichen, typisch für eine schlechte OCR.",
+          "zerhackteWoerter": "Zerhackte Wörter (einzelne Buchstaben).",
+          "ohneLeerzeichen": "Wörter ohne Leerzeichen zusammengeklebt.",
+          "vieleZiffern": "Sehr viele Ziffern, vermutlich Tabellen.",
+          "ohneVokale": "Viele lange Wörter ohne Vokal, Hinweis auf Erkennungsfehler.",
+          "wiederholteZeilen": "Kopf- und Fußzeilen wiederholen sich auf jeder Seite."
         }
       }
     },

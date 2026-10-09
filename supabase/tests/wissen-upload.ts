@@ -167,6 +167,11 @@ function falscherSpeicher(
         pruefstatus: z.length === 0 ? null : stati.size === 1 ? (z[0]!.pruefstatus as FreigabeInfo["pruefstatus"]) : "gemischt",
         hochgeladenVon: von ?? null,
         pruefenBis: z[0]?.pruefen_bis ?? null,
+        // wie die Datenbank: Paketnummern aus extra.paket, Soll aus extra.pakete_gesamt
+        unvollstaendig: (() => {
+          const gesamt = Math.max(0, ...z.map((r) => Number(r.extra.pakete_gesamt ?? 0)));
+          return gesamt > 0 && new Set(z.map((r) => r.extra.paket)).size < gesamt;
+        })(),
       };
     },
     async entscheide(quelleId, a) {

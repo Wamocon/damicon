@@ -65,6 +65,8 @@ export async function entscheideUeberUpload(aktion: FreigabeAktion, quelleId: st
 
   // Freigeben und Ablehnen: nur, solange das Dokument wartet.
   if (info.pruefstatus !== "ungeprueft") throw new UploadFehler("nichtPruefbar");
+  // Ein Buch, dem Pakete fehlen, wird nicht freigegeben: Es ginge als halbes Buch in die Suche. Ablehnen und Loeschen gehen.
+  if (aktion === "freigeben" && info.unvollstaendig) throw new UploadFehler("unvollstaendig");
   // Freigeben braucht die zweite Person. Ablehnen darf auch, wer hochgeladen hat: Das ist ein Zurueckziehen, keine Freigabe.
   if (aktion === "freigeben") sicherheitsPruefung(info, d.pruefer.id);
   const neu = aktion === "freigeben" && art ? pruefenBis(art, jetzt) : null;

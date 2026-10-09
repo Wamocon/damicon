@@ -16,6 +16,7 @@ import { ohneEinordnung, type WissenDokumentZeile } from "@/lib/wissen/dokumente
 import { stufeSchluessel } from "@/lib/wissen/belege";
 import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN, typischerClusterVon, type Cluster } from "@/lib/wissen/quellenart";
 import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
+import { WissenBuecher } from "@/components/db/wissen-buecher";
 import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
 // Wissensverwaltung: Seite "Wissensbasis" im Bereich Administration (/dashboard/administration/wissensbasis). Admin-only:
@@ -58,6 +59,7 @@ export function WissenVerwaltung() {
     <div className="space-y-3">
       <p className="text-[11px] leading-4 text-muted-foreground">{t("lead")}</p>
       <WissenHochladenFormular beiErfolg={lade} />
+      <WissenBuecher beiFertig={lade} />
       {dokumente && !ladefehler && dokumente.some(ohneEinordnung) ? <WissenBestandEinordnen dokumente={dokumente} beiFertig={lade} /> : null}
       <div>
         <p className="mb-2 text-[11px] font-semibold text-card-foreground">{t("liste.titel")}</p>

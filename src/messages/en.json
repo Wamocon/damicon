@@ -1025,7 +1025,8 @@
       "wissenPdfDienst": "The PDF reader is not available on the server. This is not caused by your file, nothing was saved. Please inform technical support.",
       "wissenEinordnenLeer": "Nothing to classify: the selection is empty or invalid.",
       "wissenEinordnen": "The classification could not be saved. Nothing or only part of it changed, please reload the list and check.",
-      "wissenClusterPasstNicht": "Internet source, forum and internet research always come from the web. Please choose the cluster Internet source."
+      "wissenClusterPasstNicht": "Internet source, forum and internet research always come from the web. Please choose the cluster Internet source.",
+      "wissenUnvollstaendig": "This book is incomplete: parts are missing because the upload was interrupted. Please delete it and upload again. It cannot be approved until then."
     },
     "einladungen": {
       "erfolg": {
@@ -2516,6 +2517,48 @@
           "abbrechen": "Cancel",
           "speichern": "Save classification",
           "notfallsKurz": "last resort only"
+        }
+      },
+      "buecher": {
+        "titel": "Upload books and long documents",
+        "lead": "For books as PDF with a text layer (for example after OCR), Markdown and text, any length and several at once. Your browser reads the file itself and sends only the text in packages. The file never leaves your computer. Each book then waits for approval by a second person.",
+        "dateien": "Files (several possible)",
+        "dateienHinweis": "PDF, Markdown or text. The title is taken from the file name and can be changed per book. Identical content is recognised as a duplicate.",
+        "titelFeld": "Title",
+        "entfernen": "Remove",
+        "seite": "Page {seite} of {seiten}",
+        "paket": "Package {nr} of {gesamt}",
+        "paketFehler": "Package {nr} of {gesamt} failed, the book was removed again.",
+        "zeichen": "{anzahl} characters",
+        "fortschritt": "Upload progress",
+        "schlechtGesperrt": "The text is too poorly readable and will not be uploaded. Please create the file again with OCR.",
+        "fehlerLesen": "The file could not be read. Is it a valid PDF with a text layer?",
+        "start": "{anzahl, plural, one {Upload # book} other {Upload # books}}",
+        "stopp": "Cancel",
+        "schritt": {
+          "wartet": "Waiting",
+          "liest": "Reading",
+          "bereit": "Ready",
+          "laedt": "Uploading",
+          "fertig": "Uploaded",
+          "fehler": "Error",
+          "abgebrochen": "Cancelled"
+        }
+      },
+      "guete": {
+        "note": {
+          "gut": "Text well readable",
+          "pruefen": "Check text",
+          "schlecht": "Text poor"
+        },
+        "hinweis": {
+          "kaumText": "Hardly any text found, probably a scan without a text layer.",
+          "vieleSonderzeichen": "Many special characters, typical of poor OCR.",
+          "zerhackteWoerter": "Chopped words (single letters).",
+          "ohneLeerzeichen": "Words stuck together without spaces.",
+          "vieleZiffern": "Very many digits, probably tables.",
+          "ohneVokale": "Many long words without vowels, indicating recognition errors.",
+          "wiederholteZeilen": "Headers and footers repeat on every page."
         }
       }
     },

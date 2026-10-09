@@ -7,12 +7,14 @@ import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { aktualisiere, protokolliere, text } from "@/lib/actions/formular-helfer";
 import { wissenEinbettung } from "@/lib/wissen/embed";
+import { type BuchKopf, ladePaket, type PaketEingabe, pruefeBuchKopf, starteBuch } from "@/lib/wissen/buch-upload";
 import { ordneBestandEin, pruefeZuordnungen } from "@/lib/wissen/einordnen";
 import { entscheideUeberUpload, type FreigabeAktion } from "@/lib/wissen/freigabe";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
 import { pruefeUploadUmgebung, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
+import { standardStufe } from "@/lib/wissen/quellenart";
 import { MAX_DATEI_BYTES } from "@/lib/wissen/upload-konstanten";
-import { istUploadQuelleId } from "@/lib/wissen/upload-quelle";
+import { istUploadQuelleId, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { supabaseSpeicher } from "@/lib/wissen/speicher-supabase";
 import { gruppiereWissenDokumente, LISTE_SPALTEN, type WissenDokumentZeile, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
 
@@ -55,6 +57,7 @@ const FEHLER_SCHLUESSEL: Record<UploadFehler["code"], string> = {
   nichtFreigebbar: "fehler.wissenNichtFreigebbar",
   nichtPruefbar: "fehler.wissenNichtPruefbar",
   selbstFreigabe: "fehler.wissenSelbstFreigabe",
+  unvollstaendig: "fehler.wissenUnvollstaendig",
   freigeben: "fehler.wissenFreigeben",
 };
 
@@ -339,5 +342,94 @@ export async function wissenBestandEinordnen(
     }
     console.error("[damicon] Wissens-Einordnung unerwartet fehlgeschlagen:", error);
     return fehler("fehler.wissenEinordnen");
+  }
+}
+
+// ---- Buch-Upload (lange Dokumente in Paketen, buch-upload.ts) -------------------------------------------------------------
+// Der Browser liest die Datei selbst (PDF.js), bildet den Hash des ganzen Textes und schickt Kopf und Pakete nacheinander. Jede dieser
+// Actions prueft das Recht zuerst und wiederholt die Pruefung des Kopfes, denn der Browser ist nie die Instanz, der man glaubt.
+// Die Antwort ist ein AktionsStatus: bei Erfolg traegt id die Kennung des Dokuments und wert die Zahl der geschriebenen Abschnitte.
+
+async function buchProfil(): Promise<SessionProfile | AktionsStatus> {
+  try {
+    return await requirePermission("ki_assistent", "manage");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+}
+
+function buchFehler(error: unknown, was: string): AktionsStatus {
+  if (error instanceof UploadFehler) {
+    console.error("[damicon]", error.message);
+    return fehler(FEHLER_SCHLUESSEL[error.code], error.wert);
+  }
+  console.error(`[damicon] Buch-Upload (${was}) unerwartet fehlgeschlagen:`, error);
+  return fehler("fehler.unbekannt");
+}
+
+const buchAbhaengigkeiten = () => ({
+  speicher: supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient),
+  einbettung: wissenEinbettung(),
+});
+
+/** Beginn eines Buchs: prueft Kopf und Umgebung und erkennt Dubletten. Schreibt nichts. */
+export async function wissenBuchStarten(kopf: BuchKopf): Promise<AktionsStatus> {
+  const profil = await buchProfil();
+  if ("stand" in profil) return profil;
+  try {
+    const { quelleId } = await starteBuch(kopf, { id: profil.id, name: profil.fullName ?? null }, buchAbhaengigkeiten());
+    return { stand: "ok", id: quelleId };
+  } catch (error) {
+    return buchFehler(error, "starten");
+  }
+}
+
+/** Ein Paket eines Buchs: zerlegen, einbetten, schreiben. Bei einem Fehler bleiben die Pakete davor stehen (wissenBuchAbbrechen raeumt auf). */
+export async function wissenBuchPaket(paket: PaketEingabe): Promise<AktionsStatus> {
+  const profil = await buchProfil();
+  if ("stand" in profil) return profil;
+  try {
+    const erg = await ladePaket(paket, { id: profil.id, name: profil.fullName ?? null }, buchAbhaengigkeiten());
+    return { stand: "ok", id: erg.quelleId, wert: String(erg.chunks) };
+  } catch (error) {
+    return buchFehler(error, `Paket ${paket?.nr}`);
+  }
+}
+
+/** Ende eines Buchs: Eintrag im Protokoll (Person, Titel, Zahlen). Die Zeilen selbst sind mit dem letzten Paket geschrieben. */
+export async function wissenBuchAbschliessen(kopf: BuchKopf, abschnitte: number): Promise<AktionsStatus> {
+  const profil = await buchProfil();
+  if ("stand" in profil) return profil;
+  try {
+    const { meta, quelleId } = pruefeBuchKopf(kopf, { id: profil.id, name: profil.fullName ?? null }, new Date());
+    await protokolliere(profil, "wissen.hochgeladen", "wissen_chunks", null, {
+      titel: meta.titel,
+      bereich: kopf.bereich,
+      quelle_id: quelleId,
+      abschnitte: Number.isFinite(abschnitte) ? abschnitte : 0,
+      pakete: kopf.pakete,
+      zeichen: kopf.zeichen,
+      quellenart: meta.quellenart,
+      cluster: meta.cluster,
+      autoritaetsstufe: standardStufe(meta.quellenart),
+      pruefstatus: "ungeprueft",
+      buch: true,
+    });
+    return ok("ok.wissenHochgeladen", meta.titel);
+  } catch (error) {
+    return buchFehler(error, "abschliessen");
+  }
+}
+
+/** Bricht ein Buch ab und entfernt alles, was davon geschrieben wurde, samt Wortgewichten (wie Loeschen). */
+export async function wissenBuchAbbrechen(hash: string): Promise<AktionsStatus> {
+  const profil = await buchProfil();
+  if ("stand" in profil) return profil;
+  if (typeof hash !== "string" || !/^[0-9a-f]{64}$/.test(hash)) return fehler("fehler.eingabe");
+  try {
+    const erg = await loescheHochgeladenesDokument(uploadQuelleId(hash), { speicher: supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient) });
+    return { stand: "ok", wert: String(erg.geloescht) };
+  } catch (error) {
+    return buchFehler(error, "abbrechen");
   }
 }
