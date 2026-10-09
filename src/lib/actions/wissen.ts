@@ -371,7 +371,7 @@ function buchFehler(error: unknown, was: string): AktionsStatus {
     console.error("[damicon]", error.message);
     return fehler(FEHLER_SCHLUESSEL[error.code], error.wert);
   }
-  console.error(`[damicon] Buch-Upload (${was}) unerwartet fehlgeschlagen:`, error);
+  console.error("[damicon] Buch-Upload unerwartet fehlgeschlagen:", was, error);
   return fehler("fehler.unbekannt");
 }
 

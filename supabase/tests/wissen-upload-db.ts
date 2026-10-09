@@ -361,7 +361,11 @@ async function main() {
     meineQuellen.push(forum.quelleId);
     const fz = await zeilenVon(forum.quelleId);
     pruefe("Forum im Risikomanagement: Stufe 5, Link und maschinelle Uebersetzung stehen in der Zeile, ungeprueft", forum.autoritaetsstufe === 5 && fz.every((z) => z.quellenart === "forum" && z.url === "https://forum.beispiel.de/t/42" && z.textgrundlage === "maschinell_uebersetzt" && z.pruefstatus === "ungeprueft"));
-    pruefe("Forum im Bereich Recht wird gar nicht erst angelegt (quellenartGesperrt)", (await fehlerCode(() => verarbeiteUpload(eingabe({ text: "Forum Recht Blogeintrag Mandelbaum.", bereich: "recht", quellenart: "forum", url: "https://x.de/1" }), d))) === "quellenartGesperrt" && (await dienst.from("wissen_chunks").select("id").eq("titel", "Testkodex Db")).data?.length === 0);
+    // Ungesicherte Internetquellen sind in jedem Bereich zulaessig (Notbehelf, Entscheidung vom 09.10.2026): Der Upload gelingt, bleibt ungeprueft und wird wieder entfernt.
+    const forumRecht = await verarbeiteUpload(eingabe({ text: "Forum Recht Blogeintrag Mandelbaum.", titel: "Forum Recht Notbehelf", bereich: "recht", quellenart: "forum", url: "https://x.de/1" }), d);
+    meineQuellen.push(forumRecht.quelleId);
+    pruefe("Forum im Bereich Recht wird als Notbehelf angelegt (Stufe 5, ungeprueft)", forumRecht.autoritaetsstufe === 5 && (await zeilenVon(forumRecht.quelleId)).every((z) => z.quellenart === "forum" && z.pruefstatus === "ungeprueft"));
+    await loescheHochgeladenesDokument(forumRecht.quelleId, { speicher, umgebung: {}, schema: "public" });
     const fFrei = await entscheideUeberUpload("freigeben", forum.quelleId, { ...zweite, jetzt: alt });
     pruefe("Freigabe eines Forumsbeitrags setzt eine Wiedervorlage auf zwoelf Monate", fFrei.pruefenBis === "2026-01-10" && (await zeilenVon(forum.quelleId)).every((z) => z.pruefen_bis === "2026-01-10" && z.pruefstatus === "freigegeben"));
     const frageF = `Methode Pelikan Risikobewertung ${W.delta} ${W.eps}`;
@@ -369,7 +373,7 @@ async function main() {
     const sucheF = async (c: SupabaseClient) => ((await c.rpc("wissen_suche", { p_fragen: fragenF, p_limit: 8, p_kandidaten: 40 })).data ?? []) as Array<{ payload: { titel?: string } }>;
     pruefe("Wiedervorlage: ist sie abgelaufen, findet die Suche den Beitrag nicht mehr (auch nicht mit dem Dienst-Schluessel), obwohl er freigegeben ist", !(await sucheF(admin)).some((x) => x.payload.titel === "Forum Wiedervorlage") && !(await sucheF(dienst as unknown as SupabaseClient)).some((x) => x.payload.titel === "Forum Wiedervorlage"));
     const ablauf = gruppiereWissenDokumente(((await dienst.from("wissen_chunks").select(LISTE_SPALTEN).eq("quelle_id", forum.quelleId)).data ?? []) as unknown as WissenListeZeile[]);
-    pruefe("Liste: der abgelaufene Beitrag ist als abgelaufen gekennzeichnet und als Hinweis (Forum im Risiko)", ablauf[0]?.abgelaufen === true && ablauf[0]?.nutzung === "hinweis");
+    pruefe("Liste: der abgelaufene Beitrag ist als abgelaufen gekennzeichnet und als Notbehelf (Forum im Risiko)", ablauf[0]?.abgelaufen === true && ablauf[0]?.nutzung === "notfalls");
     pruefe("Verlaengern durch die hochladende Person -> selbstFreigabe", (await fehlerCode(() => entscheideUeberUpload("verlaengern", forum.quelleId, { ...zweite, pruefer: { id: ADMIN_ID } }))) === "selbstFreigabe");
     const eRueck = await dienst.from("wissen_chunks").update({ pruefen_bis: "2025-06-01", geprueft_von: CEO_ID, geprueft_am: jetztIso }).eq("quelle_id", forum.quelleId).select("id");
     pruefe("Waechter: die Wiedervorlage laesst sich nur nach hinten verschieben, nicht zurueck", !!eRueck.error && /nach hinten/.test(eRueck.error.message));
