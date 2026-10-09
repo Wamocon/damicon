@@ -13,8 +13,10 @@ import { bereichSchluessel, UPLOAD_BEREICHE, type UploadBereich } from "@/lib/wi
 //   autoritaetsstufe 1 bis 5, aus der Quellenart vorbelegt (bestehende Skala: 1 Primaerrecht ... 5 Presse).
 //   pruefstatus      ungeprueft, freigegeben, abgelehnt. Ein Upload ist erst durchsuchbar, wenn eine ZWEITE Person
 //                    ihn freigegeben hat (Vier-Augen-Prinzip, in der Datenbank erzwungen).
-// Wofuer eine Quelle taugt, haengt vom Bereich ab (Nutzung): Blogs und Foren sind fuer Gesetze und Vorschriften
-// ungeeignet, fuer Risikomanagement (Methoden aendern sich laufend) als Hinweis denkbar.
+// Wofuer eine Quelle taugt, haengt vom Bereich ab (Nutzung). Ungesicherte Internetquellen (Internetquelle, Forum, Recherche,
+// KI-Text) sind NOTFALLS nutzbar: nur wenn die Suche sonst keine tragende Quelle findet, und dann immer ausdruecklich als
+// Internetquelle ohne amtlichen Charakter gekennzeichnet (Entscheidung Nikos vom 09.10.2026; vorher waren sie fuer Recht,
+// Steuern und Compliance gesperrt). Das ist Nutzung "notfalls".
 
 /** Gold bis dreckig: von der Rechtsnorm bis zur ungeprueften Internetquelle. Reihenfolge = Rang. */
 export const QUELLENARTEN = [
@@ -50,8 +52,10 @@ export type Textgrundlage = (typeof TEXTGRUNDLAGEN)[number];
 export const PRUEFSTATUS = ["ungeprueft", "freigegeben", "abgelehnt"] as const;
 export type Pruefstatus = (typeof PRUEFSTATUS)[number];
 
-/** ja = normale Quelle, hinweis = nur als Hinweis (nie allein tragend), nein = fuer diesen Bereich nicht zulaessig. */
-export type Nutzung = "ja" | "hinweis" | "nein";
+/** ja = normale Quelle, hinweis = nur als Hinweis (nie allein tragend, steht hinter den tragenden Belegen),
+ *  notfalls = nur wenn die Suche sonst keinen tragenden Beleg findet (ungesicherte Internetquelle, immer ausdruecklich
+ *  gekennzeichnet), nein = fuer diesen Bereich nicht zulaessig (kein Upload, nie in der Suche). */
+export type Nutzung = "ja" | "hinweis" | "notfalls" | "nein";
 
 /** Die bestehende Skala der Autoritaetsstufe (src/lib/wissen/suche.ts, Werkzeugbeschreibung, Quellenanweisung). */
 export const STUFEN_NAMEN: Record<number, string> = {
@@ -131,7 +135,7 @@ export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
     stufe: 5,
     urlPflicht: true,
     pruefMonate: 12,
-    nutzung: reihe("nein", "nein", "nein", "hinweis", "hinweis"),
+    nutzung: alle("notfalls"),
   },
   forum: {
     label: "Forum oder Frage-Antwort-Portal",
@@ -139,7 +143,7 @@ export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
     stufe: 5,
     urlPflicht: true,
     pruefMonate: 12,
-    nutzung: reihe("nein", "nein", "nein", "hinweis", "hinweis"),
+    nutzung: alle("notfalls"),
   },
   internetrecherche: {
     label: "Ergebnis einer Internetrecherche",
@@ -147,7 +151,7 @@ export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
     stufe: 5,
     urlPflicht: false,
     pruefMonate: 12,
-    nutzung: reihe("nein", "nein", "nein", "hinweis", "hinweis"),
+    nutzung: alle("notfalls"),
   },
   ki_zusammenfassung: {
     label: "KI-Zusammenfassung",
@@ -155,7 +159,7 @@ export const QUELLENART_INFO: Record<Quellenart, QuellenartInfo> = {
     stufe: 5,
     urlPflicht: false,
     pruefMonate: 12,
-    nutzung: reihe("nein", "nein", "nein", "hinweis", "hinweis"),
+    nutzung: alle("notfalls"),
   },
 };
 
@@ -194,14 +198,20 @@ export const PRIMAER_MAX_STUFE = 3;
 /** Autoritaetsstufe, mit der ein Upload dieser Art angelegt wird. */
 export const standardStufe = (art: Quellenart): number => QUELLENART_INFO[art].stufe;
 
+const STRENGE: readonly Nutzung[] = ["ja", "hinweis", "notfalls", "nein"];
+
 /** Wofuer taugt diese Quelle in diesem Bereich? `bereich` darf der gespeicherte Wert sein ("legal" fuer Recht).
- *  Ohne Art (Bestand vor der Typisierung) oder in einem Bereich ohne Regel (Korpuswerte wie amtlich, kernwissen) gilt "ja":
- *  fuer den Bestand entscheidet weiter die Autoritaetsstufe. */
+ *  Ohne Art (Bestand vor der Typisierung) gilt "ja": fuer ihn entscheidet weiter die Autoritaetsstufe. Hat die Quelle eine Art,
+ *  der Bereich aber keine eigene Regel (Korpuswerte wie amtlich, fachquellen, kernwissen), gilt die STRENGSTE Regel der Art:
+ *  eine als Internetquelle eingeordnete Seite bleibt auch in "fachquellen" ein Notbehelf und wird so gekennzeichnet. */
 export function nutzungFuer(bereich: string, art: string | null | undefined): Nutzung {
   if (!istQuellenart(art)) return "ja";
   const schluessel = bereichSchluessel(bereich);
-  if (!(UPLOAD_BEREICHE as readonly string[]).includes(schluessel)) return "ja";
-  return QUELLENART_INFO[art].nutzung[schluessel as UploadBereich];
+  const regeln = QUELLENART_INFO[art].nutzung;
+  if (!(UPLOAD_BEREICHE as readonly string[]).includes(schluessel)) {
+    return Object.values(regeln).reduce<Nutzung>((strengste, n) => (STRENGE.indexOf(n) > STRENGE.indexOf(strengste) ? n : strengste), "ja");
+  }
+  return regeln[schluessel as UploadBereich];
 }
 
 /** Das Datum (JJJJ-MM-TT), ab dem eine neue Pruefung faellig ist, oder null, wenn die Art nie ablaeuft. */
@@ -230,16 +240,18 @@ export function einordnung(e: EinordnungEingabe): string {
   if (e.stand) teile.push(`Stand ${e.stand}`);
   if (istTextgrundlage(e.textgrundlage) && e.textgrundlage !== "original") teile.push(TEXTGRUNDLAGE_LABEL[e.textgrundlage]);
   if (e.nutzung === "hinweis") teile.push("nur als Hinweis, nicht geprüft");
+  if (e.nutzung === "notfalls") teile.push("ungesicherte Internetquelle, keine amtliche Quelle, nur als Notbehelf");
   return teile.join(", ");
 }
 
 /** Was die Suche aus den Belegen fuer die Antwort ableitet. massgeblich: mindestens ein Beleg der Stufen 1 bis 3, der
- *  in seinem Bereich uneingeschraenkt gilt. belastbar: mindestens ein Beleg, der nicht nur Hinweis ist. */
-export type BelegLage = "massgeblich" | "belastbar" | "nur_hinweise" | "keine";
+ *  in seinem Bereich uneingeschraenkt gilt. belastbar: mindestens ein Beleg, der nicht nur Hinweis ist. nur_unsichere: es
+ *  gibt NUR ungesicherte Internetquellen (Nutzung notfalls). */
+export type BelegLage = "massgeblich" | "belastbar" | "nur_hinweise" | "nur_unsichere" | "keine";
 
 export function belegLage(belege: ReadonlyArray<{ stufe: number | null; nutzung: Nutzung }>): BelegLage {
   if (belege.length === 0) return "keine";
   const tragend = belege.filter((b) => b.nutzung === "ja");
-  if (tragend.length === 0) return "nur_hinweise";
+  if (tragend.length === 0) return belege.every((b) => b.nutzung === "notfalls") ? "nur_unsichere" : "nur_hinweise";
   return tragend.some((b) => b.stufe !== null && b.stufe <= 3) ? "massgeblich" : "belastbar";
 }

@@ -96,9 +96,11 @@ function Quellenkarte({ nachrichtId, beleg }: { nachrichtId: string; beleg: Bele
   const nurAuskunft = beleg.stufe !== null && beleg.stufe >= 4;
   // Internetquelle, Forum, KI-Text ...: in diesem Bereich nur ein Hinweis, nie tragend (quellenart.ts).
   const nurHinweis = beleg.nutzung === "hinweis";
+  // Ungesicherte Internetquelle, nur als Notbehelf in der Antwort: gut sichtbar als unsicher gekennzeichnet (quellenart.ts, Nutzung notfalls).
+  const notbehelf = beleg.nutzung === "notfalls";
   const lang = zitatText(beleg.text).length > 360;
   return (
-    <li id={kartenId(nachrichtId, beleg.id)} className={cn("ki-quelle", `ki-quelle--${stufe}`, (nurAuskunft || nurHinweis) && "ki-quelle--auskunft")}>
+    <li id={kartenId(nachrichtId, beleg.id)} className={cn("ki-quelle", `ki-quelle--${stufe}`, (nurAuskunft || nurHinweis || notbehelf) && "ki-quelle--auskunft", notbehelf && "ki-quelle--notfalls")}>
       <div className="ki-quelle__kopf">
         <span className="ki-quelle__nr">{beleg.id.slice(1)}</span>
         <div className="min-w-0 flex-1">
@@ -118,7 +120,11 @@ function Quellenkarte({ nachrichtId, beleg }: { nachrichtId: string; beleg: Bele
           <TriangleAlert className="h-3 w-3" /> {t("quellen.ueberholt")}
         </p>
       ) : null}
-      {nurHinweis ? (
+      {notbehelf ? (
+        <p className="ki-quelle__warnung">
+          <TriangleAlert className="h-3 w-3" /> {t("quellen.notfalls")}
+        </p>
+      ) : nurHinweis ? (
         <p className="ki-quelle__warnung">
           <TriangleAlert className="h-3 w-3" /> {t("quellen.nurHinweis")}
         </p>
@@ -160,9 +166,11 @@ export function QuellenListe({ nachrichtId, belege, zitiert }: { nachrichtId: st
     zaehlung.set(k, (zaehlung.get(k) ?? 0) + 1);
   }
   // Auf Gesetzestext gestuetzt = mindestens eine zitierte Quelle der Stufen 1 bis 3.
-  const gestuetzt = anzuzeigen.some((b) => b.stufe !== null && b.stufe <= 3 && b.nutzung !== "hinweis");
-  // Alles Zitierte nur Hinweise (Internet, Forum, KI): ehrlich sagen, dass keine belastbare Quelle dahintersteht.
-  const nurHinweise = anzuzeigen.every((b) => b.nutzung === "hinweis");
+  const gestuetzt = anzuzeigen.some((b) => b.stufe !== null && b.stufe <= 3 && b.nutzung !== "hinweis" && b.nutzung !== "notfalls");
+  // Alles Zitierte nur Hinweise (Nachschlagewerk, Praxisbeitrag ...): ehrlich sagen, dass keine belastbare Quelle dahintersteht.
+  const nurHinweise = anzuzeigen.every((b) => b.nutzung === "hinweis" || b.nutzung === "notfalls");
+  // Alles Zitierte nur ungesicherte Internetquellen: das steht gleich in der Kopfzeile, rot, und nicht erst auf den Karten.
+  const nurUnsichere = anzuzeigen.every((b) => b.nutzung === "notfalls");
   return (
     // Eingeklappt: die Karten sind gross (Originaltext), die Beleglage in einer Zeile genuegt auf den ersten Blick.
     // Wer nachpruefen will, klappt auf, oder klickt eine Zitatmarke im Text (sie oeffnet und springt zur Karte).
@@ -172,8 +180,8 @@ export function QuellenListe({ nachrichtId, belege, zitiert }: { nachrichtId: st
         <span className="ki-quellen__titel">
           {t("quellen.titel")} ({anzuzeigen.length})
         </span>
-        <span className={cn("ki-quellen__lage", gestuetzt ? "ki-quellen__lage--gestuetzt" : "ki-quellen__lage--fach")}>
-          <span className="ki-quellen__urteil">{gestuetzt ? t("quellen.gestuetzt") : nurHinweise ? t("quellen.nurHinweise") : t("quellen.nurFach")}</span>
+        <span className={cn("ki-quellen__lage", gestuetzt ? "ki-quellen__lage--gestuetzt" : nurUnsichere ? "ki-quellen__lage--unsicher" : "ki-quellen__lage--fach")}>
+          <span className="ki-quellen__urteil">{gestuetzt ? t("quellen.gestuetzt") : nurUnsichere ? t("quellen.nurUnsichere") : nurHinweise ? t("quellen.nurHinweise") : t("quellen.nurFach")}</span>
           <span className="ki-quellen__zaehlung">
             {[...zaehlung].map(([k, n]) => (
               <span key={k} className={cn("ki-quellen__punkt", `ki-quellen__punkt--${k}`)}>

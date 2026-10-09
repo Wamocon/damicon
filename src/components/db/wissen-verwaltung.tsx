@@ -200,6 +200,7 @@ function WissenDokumentKarte({
             {clusterName ? <StatusPill tone="neutral">{clusterName}</StatusPill> : null}
             {artName ? <StatusPill tone="neutral">{artName}</StatusPill> : null}
             {dokument.nutzung === "hinweis" ? <StatusPill tone="warning">{t("nutzung.hinweis")}</StatusPill> : null}
+            {dokument.nutzung === "notfalls" ? <StatusPill tone="danger">{t("nutzung.notfalls")}</StatusPill> : null}
             {ersterEintrag ? (
               <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
             ) : null}
@@ -381,8 +382,8 @@ function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
             {t("clusterHinweis")} {t("clusterZwang")} {t("quellenartHinweis")}
           </span>
           {art ? (
-            <span className={`block text-[11px] ${nutzung === "hinweis" ? "font-semibold text-warning" : "text-muted-foreground"}`}>
-              {nutzung === "hinweis" ? t("nutzungHinweis") : t("stufeInfo", { stufe: QUELLENART_INFO[art].stufe })}
+            <span className={`block text-[11px] ${nutzung === "hinweis" || nutzung === "notfalls" ? "font-semibold text-warning" : "text-muted-foreground"}`}>
+              {nutzung === "notfalls" ? t("nutzungNotfalls") : nutzung === "hinweis" ? t("nutzungHinweis") : t("stufeInfo", { stufe: QUELLENART_INFO[art].stufe })}
             </span>
           ) : null}
         </div>
@@ -518,7 +519,7 @@ function WissenPruefenKnopf({
                   {artName}
                   {dokument.cluster ? `, ${t(`cluster.${dokument.cluster}` as never)}` : ""}
                   {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe}` : ""}
-                  {dokument.nutzung === "hinweis" ? `, ${t("nutzung.hinweis")}` : ""}
+                  {dokument.nutzung === "hinweis" ? `, ${t("nutzung.hinweis")}` : dokument.nutzung === "notfalls" ? `, ${t("nutzung.notfalls")}` : ""}
                 </dd>
               </div>
             ) : null}

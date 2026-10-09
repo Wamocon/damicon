@@ -2067,7 +2067,9 @@
         "maschinell_uebersetzt": "Machine translation"
       },
       "nurHinweis": "Only a hint from an unchecked source, not authoritative.",
-      "nurHinweise": "Hints only, no reliable source"
+      "notfalls": "Unverified internet source, not an official government source. Cited only as a last resort, please verify.",
+      "nurHinweise": "Hints only, no reliable source",
+      "nurUnsichere": "Internet sources only, no official government source: unreliable"
     },
     "anbieterVerwaltung": {
       "titel": "Manage AI providers",
@@ -2358,6 +2360,7 @@
         "quellenartHinweis": "By where the text comes from, not how you got it: a statute from an official website is a legal norm, not an internet source.",
         "nichtZulaessig": "not permitted for this area",
         "nutzungHinweis": "In this area only as a hint: the assistant labels the source as unchecked and never bases a binding statement on it alone.",
+        "nutzungNotfalls": "Unverified internet source: the assistant cites it only when it finds nothing more reliable, and states clearly that it is an internet source without official character.",
         "stufeInfo": "Will be created as level {stufe}.",
         "textgrundlage": "Text basis",
         "url": "Link to the source",
@@ -2419,7 +2422,8 @@
         "abgelaufen": "Review due"
       },
       "nutzung": {
-        "hinweis": "Hint only"
+        "hinweis": "Hint only",
+        "notfalls": "Last resort only"
       },
       "pruefung": {
         "knopf": "Review",
@@ -2499,6 +2503,7 @@
           "gesperrt": "No longer findable in their area: {anzahl}",
           "gesperrtKurz": "no longer findable",
           "nurHinweis": "Only as a hint: {anzahl}",
+          "notfalls": "Last resort only (unverified internet source): {anzahl}",
           "stufe": "Level changes: {anzahl}",
           "verlassenPrimaer": "Lose the reserved slots for legal sources: {anzahl}",
           "kommenInPrimaer": "Gain access to the reserved slots for legal sources: {anzahl}",
@@ -2509,7 +2514,8 @@
           "hinweisStufe": "The level follows the source type, as with an upload. The previous level is kept in the log.",
           "hinweisProtokoll": "Every classification is logged (person, document, type, cluster, level before and after).",
           "abbrechen": "Cancel",
-          "speichern": "Save classification"
+          "speichern": "Save classification",
+          "notfallsKurz": "last resort only"
         }
       }
     },

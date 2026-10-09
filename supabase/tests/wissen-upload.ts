@@ -686,20 +686,20 @@ async function main() {
 
   // ---- 13. Typisierung: Quellenart, Stufe, Nutzung je Bereich -----------------------------------------
   {
-    pruefe("Quellenart: dreizehn Arten, jede mit Stufe 1 bis 5 und einer Regel fuer jeden der fuenf Bereiche", QUELLENARTEN.length === 13 && QUELLENARTEN.every((a) => QUELLENART_INFO[a].stufe >= 1 && QUELLENART_INFO[a].stufe <= 5 && UPLOAD_BEREICHE.every((b) => ["ja", "hinweis", "nein"].includes(QUELLENART_INFO[a].nutzung[b]))));
+    pruefe("Quellenart: dreizehn Arten, jede mit Stufe 1 bis 5 und einer Regel fuer jeden der fuenf Bereiche", QUELLENARTEN.length === 13 && QUELLENARTEN.every((a) => QUELLENART_INFO[a].stufe >= 1 && QUELLENART_INFO[a].stufe <= 5 && UPLOAD_BEREICHE.every((b) => ["ja", "hinweis", "notfalls", "nein"].includes(QUELLENART_INFO[a].nutzung[b]))));
     const stufen = Object.fromEntries(QUELLENARTEN.map((a) => [a, standardStufe(a)]));
     pruefe("Stufe aus der Quellenart: Rechtsnorm 1, Rechtsprechung und Verwaltungsanweisung 2, Behoerdeninfo und Standard 3, Fachliteratur, Praxisbeitrag, intern 4, alles aus dem Netz und KI 5",
       stufen.rechtsnorm === 1 && stufen.rechtsprechung === 2 && stufen.verwaltungsanweisung === 2 && stufen.behoerdeninfo === 3 && stufen.standard === 3 && stufen.fachliteratur === 4 && stufen.praxisbeitrag === 4 && stufen.intern === 4 &&
         ["nachschlagewerk", "internetquelle", "forum", "internetrecherche", "ki_zusammenfassung"].every((a) => stufen[a] === 5), JSON.stringify(stufen));
-    pruefe("Entscheidung Nikos: Blogs und Foren sind fuer Recht, Steuern und Compliance gesperrt (nein), fuer Audit und Risiko nur ein Hinweis",
-      (["internetquelle", "forum"] as const).every((a) => nutzungFuer("recht", a) === "nein" && nutzungFuer("steuer", a) === "nein" && nutzungFuer("compliance", a) === "nein" && nutzungFuer("audit", a) === "hinweis" && nutzungFuer("risiko", a) === "hinweis"));
-    pruefe("Auch Internetrecherche und KI-Zusammenfassung sind fuer Recht, Steuern und Compliance gesperrt", (["internetrecherche", "ki_zusammenfassung"] as const).every((a) => ["recht", "steuer", "compliance"].every((b) => nutzungFuer(b, a) === "nein")));
+    pruefe("Entscheidung Nikos (09.10.2026): Internetquelle, Forum, Internetrecherche und KI-Zusammenfassung sind in JEDEM Bereich nur notfalls nutzbar (kein Verbot mehr, aber nur wenn es nichts Tragendes gibt)",
+      (["internetquelle", "forum", "internetrecherche", "ki_zusammenfassung"] as const).every((a) => UPLOAD_BEREICHE.every((b) => nutzungFuer(b, a) === "notfalls")));
     pruefe("Gesetz, Urteil, Verwaltungsanweisung, Behoerdeninfo und Fachliteratur gelten in jedem Bereich uneingeschraenkt", (["rechtsnorm", "rechtsprechung", "verwaltungsanweisung", "behoerdeninfo", "fachliteratur"] as const).every((a) => UPLOAD_BEREICHE.every((b) => nutzungFuer(b, a) === "ja")));
     pruefe("Praxisbeitrag ist in Recht, Steuern und Compliance nur ein Hinweis, in Audit und Risiko uneingeschraenkt", nutzungFuer("recht", "praxisbeitrag") === "hinweis" && nutzungFuer("compliance", "praxisbeitrag") === "hinweis" && nutzungFuer("audit", "praxisbeitrag") === "ja" && nutzungFuer("risiko", "praxisbeitrag") === "ja");
     pruefe("Norm oder Standard (ISO, COSO) traegt in Compliance, Audit und Risiko, ist in Recht und Steuern nur ein Hinweis", nutzungFuer("risiko", "standard") === "ja" && nutzungFuer("audit", "standard") === "ja" && nutzungFuer("recht", "standard") === "hinweis");
     pruefe("Invariante: Keine Quelle der Stufe 5 gilt in Recht, Steuern oder Compliance uneingeschraenkt (ja)", QUELLENARTEN.filter((a) => standardStufe(a) === 5).every((a) => ["recht", "steuer", "compliance"].every((b) => nutzungFuer(b, a) !== "ja")));
-    pruefe("Bestand ohne Typisierung (Quellenart leer) und Bereiche ohne Regel (amtlich, kernwissen) gelten wie bisher (ja)", nutzungFuer("legal", null) === "ja" && nutzungFuer("amtlich", "forum") === "ja" && nutzungFuer("kernwissen", undefined) === "ja");
-    pruefe("Der gespeicherte Bereich legal wird wie recht behandelt", nutzungFuer("legal", "forum") === "nein" && nutzungFuer("legal", "praxisbeitrag") === "hinweis");
+    pruefe("Bestand ohne Typisierung (Quellenart leer) gilt wie bisher (ja); ein Korpus-Bereich ohne eigene Regel (amtlich, fachquellen, kernwissen) nimmt die STRENGSTE Regel der Art: Internetquelle bleibt dort Notbehelf, Gesetz ja, Standard Hinweis",
+      nutzungFuer("legal", null) === "ja" && nutzungFuer("kernwissen", undefined) === "ja" && nutzungFuer("amtlich", "forum") === "notfalls" && nutzungFuer("fachquellen", "internetquelle") === "notfalls" && nutzungFuer("amtlich", "rechtsnorm") === "ja" && nutzungFuer("fachquellen", "standard") === "hinweis");
+    pruefe("Der gespeicherte Bereich legal wird wie recht behandelt", nutzungFuer("legal", "forum") === "notfalls" && nutzungFuer("legal", "praxisbeitrag") === "hinweis");
     pruefe("Wiedervorlage: Internetquelle, Forum, Internetrecherche, KI und Nachschlagewerk nach 12 Monaten, Praxisbeitrag und intern nach 24, Gesetz und Fachliteratur nie",
       pruefenBis("forum", new Date("2026-10-07T10:00:00Z")) === "2027-10-07" && pruefenBis("internetquelle", new Date("2026-10-07T10:00:00Z")) === "2027-10-07" && pruefenBis("praxisbeitrag", new Date("2026-10-07T10:00:00Z")) === "2028-10-07" &&
         pruefenBis("rechtsnorm", new Date("2026-10-07T10:00:00Z")) === null && pruefenBis("fachliteratur", new Date("2026-10-07T10:00:00Z")) === null);
@@ -719,7 +719,7 @@ async function main() {
     {
       const doku = lies("docs/wissensbasis-supabase.md");
       const zeilenDoku = doku.split(/\r?\n/).filter((l) => /^\| `[a-z_]+` \|/.test(l)).map((l) => l.split("|").slice(1, -1).map((c) => c.trim())).filter((c) => c.length === 10);
-      const wort: Record<string, string> = { ja: "ja", Hinweis: "hinweis", gesperrt: "nein" };
+      const wort: Record<string, string> = { ja: "ja", Hinweis: "hinweis", Notbehelf: "notfalls", gesperrt: "nein" };
       const abweichend = QUELLENARTEN.filter((a) => {
         const r = zeilenDoku.find((c) => c[0] === `\`${a}\``);
         if (!r) return true;
@@ -771,15 +771,28 @@ async function main() {
       pruefe("Cluster: ein unbekannter Cluster -> eingabe", codeU === "eingabe");
     }
 
-    // Entscheidung Nikos: Blog und Forum nicht fuer Recht, Steuern, Compliance
+    // Entscheidung Nikos (09.10.2026): ungesicherte Internetquellen sind auch fuer Recht, Steuern und Compliance erlaubt, aber nur als Notbehelf
     for (const art of ["internetquelle", "forum", "internetrecherche", "ki_zusammenfassung"]) {
-      const sg = falscherSpeicher();
-      const eg = falscheEinbettung();
-      const code = await fehlerCode(() => verarbeiteUpload(eingabe({ quellenart: art, bereich: "recht", url: "https://beispiel.de/x" }), { speicher: sg, einbettung: eg, jetzt: JETZT }));
-      pruefe(`Quellenart ${art} im Bereich Recht -> quellenartGesperrt, nichts gelesen, eingebettet oder geschrieben`, code === "quellenartGesperrt" && eg.aufrufe === 0 && sg.zeilen.size === 0 && sg.ereignisse.length === 0);
+      for (const bereich of ["recht", "steuer", "compliance"]) {
+        const sg = falscherSpeicher();
+        const ergI = await verarbeiteUpload(eingabe({ quellenart: art, bereich, url: "https://beispiel.de/x", titel: `Internet ${art} ${bereich}`, bytes: bytes(`Der Beitrag ${art} ${bereich} erklaert die Rueckstellung Kormoran im Jahresabschluss.`), dateiname: `i-${art}-${bereich}.txt` }), { speicher: sg, einbettung: falscheEinbettung(), jetzt: JETZT });
+        pruefe(`Quellenart ${art} im Bereich ${bereich} ist erlaubt (nur Notbehelf), beginnt ungeprueft und hat Stufe 5`, ergI.quellenart === art && [...sg.zeilen.values()].every((z) => z.quellenart === art && z.autoritaetsstufe === 5 && z.pruefstatus === "ungeprueft") && nutzungFuer(bereich, art) === "notfalls");
+      }
     }
-    pruefe("Quellenart Forum im Bereich Steuern und Compliance ebenfalls gesperrt", (await fehlerCode(() => verarbeiteUpload(eingabe({ quellenart: "forum", bereich: "steuer", url: "https://x.de" }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT }))) === "quellenartGesperrt" && (await fehlerCode(() => verarbeiteUpload(eingabe({ quellenart: "forum", bereich: "compliance", url: "https://x.de" }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT }))) === "quellenartGesperrt");
-
+    pruefe("Quellenart Internetquelle im Bereich Recht ohne Link -> urlFehlt (der Herkunftsnachweis bleibt Pflicht)", (await fehlerCode(() => verarbeiteUpload(eingabe({ quellenart: "internetquelle", bereich: "recht" }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT }))) === "urlFehlt");
+    {
+      // Der Sperrmechanismus (Nutzung nein) bleibt fuer kuenftige Regeln bestehen: hier mit einer voruebergehend verschaerften Regel geprueft.
+      const alt = QUELLENART_INFO.forum.nutzung.recht;
+      QUELLENART_INFO.forum.nutzung.recht = "nein";
+      try {
+        const sg = falscherSpeicher();
+        const eg = falscheEinbettung();
+        const code = await fehlerCode(() => verarbeiteUpload(eingabe({ quellenart: "forum", bereich: "recht", url: "https://beispiel.de/x" }), { speicher: sg, einbettung: eg, jetzt: JETZT }));
+        pruefe("Sperrmechanismus: eine Art mit Nutzung nein im Bereich -> quellenartGesperrt, nichts gelesen, eingebettet oder geschrieben", code === "quellenartGesperrt" && eg.aufrufe === 0 && sg.zeilen.size === 0 && sg.ereignisse.length === 0);
+      } finally {
+        QUELLENART_INFO.forum.nutzung.recht = alt;
+      }
+    }
     // Fuer Risiko: erlaubt, aber nur mit Link, nur als Hinweis
     const fr = falscherSpeicher();
     const dr = { speicher: fr, einbettung: falscheEinbettung(), jetzt: JETZT };
@@ -873,7 +886,7 @@ async function main() {
     const lw = liste.find((x) => x.titel === "Wartend")!;
     const la = liste.find((x) => x.titel === "Abgelaufen")!;
     pruefe("Liste: ungeprueft und abgelaufen stehen oben (sie warten auf eine Entscheidung), das Skript-Dokument ohne Typisierung ist freigegeben", liste.slice(0, 2).map((x) => x.titel).sort().join() === "Abgelaufen,Wartend" && liste.find((x) => x.titel === "Gesetz")!.pruefstatus === "freigegeben");
-    pruefe("Liste: Status, Abgelaufen-Kennzeichen, Nutzung (Forum im Risiko = hinweis) und Hochladende (profiles.id) sind je Dokument berechnet", lw.pruefstatus === "ungeprueft" && !lw.abgelaufen && la.abgelaufen && la.nutzung === "hinweis" && la.hochgeladenVonId === ADMIN.id && liste.find((x) => x.titel === "Aktuell")!.abgelaufen === false);
+    pruefe("Liste: Status, Abgelaufen-Kennzeichen, Nutzung (Forum im Risiko = notfalls) und Hochladende (profiles.id) sind je Dokument berechnet", lw.pruefstatus === "ungeprueft" && !lw.abgelaufen && la.abgelaufen && la.nutzung === "notfalls" && la.hochgeladenVonId === ADMIN.id && liste.find((x) => x.titel === "Aktuell")!.abgelaufen === false);
   }
 
   // ---- 15. Der Assistent haelt die Typisierung ein ---------------------------------------------------
@@ -895,7 +908,7 @@ async function main() {
       zeile("forum", "Forum Pfirsich", "Verjaehrungsfrist Pfirsichkernen Pelikan laut Forum zwei Jahre.", "legal", "forum", 5),
     ]);
     const r1 = await suche(sg);
-    pruefe("Assistent/Recht: ein Forumsbeitrag in einem Rechtsbereich (verbotene Kombination im Bestand) wird nie geliefert, die Regel gilt sofort", !r1.belege.some((b) => b.titel === "Forum Pfirsich"));
+    pruefe("Assistent/Recht: ein Forumsbeitrag (Notbehelf) kommt nicht, solange es einen tragenden Beleg gibt (hier das Gesetz)", !r1.belege.some((b) => b.titel === "Forum Pfirsich"));
     pruefe("Assistent/Recht: das Gesetz steht vor dem Nachschlagewerk, dieses ist ein Hinweis (nutzung hinweis), die Lage ist massgeblich", r1.belege[0]?.titel === "Gesetz Pfirsich" && r1.belege.find((b) => b.titel === "Lexikon Pfirsich")?.nutzung === "hinweis" && r1.lage === "massgeblich");
     const gesetzBeleg = r1.belege[0]!;
     pruefe("Assistent: jeder Beleg traegt die Einordnung im Klartext (Art, Stufe mit Name, Stand), vom Code berechnet", gesetzBeleg.quellenart === "rechtsnorm" && gesetzBeleg.einordnung === "Rechtsnorm, Stufe 1 (Primärrecht), Stand 2026-09-01", gesetzBeleg.einordnung);
@@ -920,7 +933,18 @@ async function main() {
       ...[1, 2, 3].map((i) => zeile(`forum${i}`, `Forum Risiko ${i}`, `Verjaehrungsfrist Pfirsichkernen Pelikan Methode ${i} im Forum.`, "risiko", "forum", 5)),
     ]);
     const r4 = await suche(srisiko);
-    pruefe("Assistent/Risiko: der Standard traegt, Forumsbeitraege kommen als Hinweis dazu, aber hoechstens zwei", r4.belege[0]?.titel === "ISO 31000" && r4.belege.filter((b) => b.nutzung === "hinweis").length === 2 && r4.lage === "massgeblich");
+    pruefe("Assistent/Risiko: der Standard traegt, Forumsbeitraege (Notbehelf) kommen NICHT dazu, solange es einen tragenden Beleg gibt", r4.belege[0]?.titel === "ISO 31000" && r4.belege.every((b) => b.nutzung !== "notfalls") && r4.lage === "massgeblich");
+
+    // Nur ungesicherte Internetquellen: erst dann kommen sie, hoechstens drei, und die Lage sagt es
+    const snur = mitDokumenten([
+      ...[1, 2, 3, 4].map((i) => zeile(`netz${i}`, `Erfahrungsbericht ${i}`, `Verjaehrungsfrist Pfirsichkernen Pelikan Erfahrung ${i} im Netz.`, "legal", "internetquelle", 5)),
+    ]);
+    const r6 = await suche(snur);
+    pruefe("Assistent/Notbehelf: gibt es NUR ungesicherte Internetquellen, kommen sie (hoechstens drei) mit Nutzung notfalls und der Lage nur_unsichere", r6.belege.length === 3 && r6.belege.every((b) => b.nutzung === "notfalls") && r6.lage === "nur_unsichere");
+    pruefe("Assistent/Notbehelf: die Einordnung nennt es im Klartext (ungesicherte Internetquelle, keine amtliche Quelle, nur als Notbehelf)", /Internetquelle, Stufe 5 \(Presse und ungesicherte Quellen\)/.test(r6.belege[0]!.einordnung) && /ungesicherte Internetquelle, keine amtliche Quelle, nur als Notbehelf/.test(r6.belege[0]!.einordnung), r6.belege[0]!.einordnung);
+    pruefe("Assistent/Notbehelf: das Werkzeug verlangt den Hinweis gleich zu Beginn der Antwort (keine offizielle staatliche Quelle, nur Internetquellen, nie als Tatsache)", /nur_unsichere/.test(hinweisFuerLage(r6.lage, false, true)) && /keine offizielle staatliche Quelle/.test(hinweisFuerLage(r6.lage, false, true)) && /Beginne die Antwort/.test(hinweisFuerLage(r6.lage, false, true)) && /nie als Tatsache/.test(hinweisFuerLage(r6.lage, false, true)));
+    pruefe("Assistent/Notbehelf: Belege mit nutzung notfalls werden in jeder Lage als Internetquelle gekennzeichnet (auch neben Hinweisen)", /nutzung notfalls/.test(hinweisFuerLage("nur_hinweise", true, true)) && /nutzung notfalls/.test(hinweisFuerLage("belastbar", false, true)) && !/nutzung notfalls/.test(hinweisFuerLage("belastbar", false, false)));
+    pruefe("Assistent/Notbehelf: die Beleglage unterscheidet nur_unsichere (alles Notbehelf) von nur_hinweise", belegLage([{ stufe: 5, nutzung: "notfalls" }]) === "nur_unsichere" && belegLage([{ stufe: 5, nutzung: "notfalls" }, { stufe: 5, nutzung: "hinweis" }]) === "nur_hinweise" && belegLage([{ stufe: 4, nutzung: "ja" }, { stufe: 5, nutzung: "notfalls" }]) === "belastbar");
 
     // Bestand ohne Typisierung bleibt wie bisher
     const sbestand = mitDokumenten([zeile("alt", "Altbestand", "Verjaehrungsfrist Pfirsichkernen Pelikan im Altbestand.", "legal", null, 2)]);
@@ -932,6 +956,7 @@ async function main() {
     pruefe("Werkzeug-Hinweis: belastbar verlangt 'laut Fachquelle', Hinweisbelege duerfen nie allein tragen", /laut Fachquelle/.test(hinweisFuerLage("belastbar", false)) && /nie allein tragend/.test(hinweisFuerLage("massgeblich", true)) && !/nie allein tragend/.test(hinweisFuerLage("massgeblich", false)));
     const prompt = quellenAnweisung("de");
     pruefe("Systemprompt: Regel 7 (Einordnung wiedergeben) und Regel 8 (Hinweise nie tragend, Lage nur_hinweise offen sagen)", /7\. Jeder Beleg hat das Feld einordnung/.test(prompt) && /8\. Belege mit nutzung hinweis/.test(prompt) && /nur_hinweise/.test(prompt));
+    pruefe("Systemprompt: Regel 9 (Notbehelf-Quellen: keine offizielle staatliche Quelle gleich zu Beginn sagen, als Internetquelle und unsicher nennen)", /9\. Belege mit nutzung notfalls/.test(prompt) && /nur_unsichere/.test(prompt) && /keine offizielle staatliche Quelle/.test(prompt));
     pruefe("Systemprompt: in den anderen Sprachen bleibt die Regel gleich und verlangt die Antwortsprache", ["en", "ru", "kk"].every((sp) => quellenAnweisung(sp as "en").includes("in der Antwortsprache in Klammern") && quellenAnweisung(sp as "en").includes("8. Belege mit nutzung hinweis")));
     const werkzeug = readFileSync("src/lib/ai/wissen-werkzeug.ts", "utf8");
     pruefe("Werkzeug: liefert die Lage mit und leitet den Hinweis daraus ab (im Code, nicht im Modell)", /lage: r\.lage/.test(werkzeug) && /hinweisFuerLage\(r\.lage/.test(werkzeug));

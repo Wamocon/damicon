@@ -36,6 +36,8 @@ export interface Wirkung {
   gesperrt: WirkungZeile[];
   /** Danach nur noch als Hinweis, nie allein tragend. */
   nurHinweis: WirkungZeile[];
+  /** Danach nur noch als Notbehelf (ungesicherte Internetquelle): erscheint nur, wenn es nichts Tragendes gibt, und ist so gekennzeichnet. */
+  notfalls: WirkungZeile[];
   stufeGeaendert: WirkungZeile[];
   verlassenPrimaer: WirkungZeile[];
   kommenInPrimaer: WirkungZeile[];
@@ -75,6 +77,7 @@ export function wirkungVon(dokumente: readonly WissenDokumentZeile[], zuordnunge
     abschnitte: zeilen.reduce((summe, z) => summe + z.chunks, 0),
     gesperrt: zeilen.filter((z) => z.nutzungNeu === "nein"),
     nurHinweis: zeilen.filter((z) => z.nutzungNeu === "hinweis"),
+    notfalls: zeilen.filter((z) => z.nutzungNeu === "notfalls"),
     stufeGeaendert: zeilen.filter((z) => z.stufeAlt !== z.stufeNeu),
     verlassenPrimaer: zeilen.filter((z) => z.verlaesstPrimaer),
     kommenInPrimaer: zeilen.filter((z) => z.kommtInPrimaer),

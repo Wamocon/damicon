@@ -2067,7 +2067,9 @@
         "maschinell_uebersetzt": "Maschinelle Übersetzung"
       },
       "nurHinweis": "Nur ein Hinweis aus einer ungeprüften Quelle, nicht maßgeblich.",
-      "nurHinweise": "Nur Hinweise, keine belastbare Quelle"
+      "notfalls": "Ungesicherte Internetquelle, keine offizielle staatliche Quelle. Nur als Notbehelf genannt, bitte nachprüfen.",
+      "nurHinweise": "Nur Hinweise, keine belastbare Quelle",
+      "nurUnsichere": "Nur Internetquellen, keine offizielle staatliche Quelle: unsicher"
     },
     "anbieterVerwaltung": {
       "titel": "KI-Anbieter verwalten",
@@ -2358,6 +2360,7 @@
         "quellenartHinweis": "Nach der Herkunft des Textes, nicht nach dem Weg: Ein Gesetzestext von einer amtlichen Webseite ist eine Rechtsnorm, kein Internetbeitrag.",
         "nichtZulaessig": "für diesen Bereich nicht zulässig",
         "nutzungHinweis": "In diesem Bereich nur als Hinweis: Der Assistent nennt die Quelle als ungeprüft und stützt nie eine verbindliche Aussage allein darauf.",
+        "nutzungNotfalls": "Ungesicherte Internetquelle: Der Assistent nennt sie nur, wenn er sonst nichts Tragendes findet, und kennzeichnet sie ausdrücklich als Internetquelle ohne amtlichen Charakter.",
         "stufeInfo": "Wird mit Stufe {stufe} angelegt.",
         "textgrundlage": "Textgrundlage",
         "url": "Link zur Quelle",
@@ -2419,7 +2422,8 @@
         "abgelaufen": "Prüfung fällig"
       },
       "nutzung": {
-        "hinweis": "Nur Hinweis"
+        "hinweis": "Nur Hinweis",
+        "notfalls": "Nur Notbehelf"
       },
       "pruefung": {
         "knopf": "Prüfen",
@@ -2499,6 +2503,7 @@
           "gesperrt": "Nicht mehr auffindbar in ihrem Bereich: {anzahl}",
           "gesperrtKurz": "nicht mehr auffindbar",
           "nurHinweis": "Nur noch als Hinweis: {anzahl}",
+          "notfalls": "Nur noch als Notbehelf (ungesicherte Internetquelle): {anzahl}",
           "stufe": "Stufe ändert sich: {anzahl}",
           "verlassenPrimaer": "Verlassen die reservierten Plätze für Rechtsquellen: {anzahl}",
           "kommenInPrimaer": "Bekommen Zugang zu den reservierten Plätzen für Rechtsquellen: {anzahl}",
@@ -2509,7 +2514,8 @@
           "hinweisStufe": "Die Stufe folgt der Quellenart, wie bei einem Upload. Die bisherige Stufe steht im Protokoll.",
           "hinweisProtokoll": "Jede Einordnung wird protokolliert (Person, Dokument, Art, Cluster, Stufe vorher und nachher).",
           "abbrechen": "Abbrechen",
-          "speichern": "Einordnung speichern"
+          "speichern": "Einordnung speichern",
+          "notfallsKurz": "nur Notbehelf"
         }
       }
     },

@@ -112,6 +112,8 @@ export function WissenBestandEinordnen({ dokumente, beiFertig }: { dokumente: Wi
     if (vollstaendig(w)) zuordnungen.push({ schluessel: d.schluessel, schluesselSpalte: d.schluesselSpalte, quellenart: w.art, cluster: w.cluster });
   }
   const wirkung = wirkungVon(offen, zuordnungen);
+  // Was die Administration beim Bestaetigen im Blick haben muss: gesperrt, Notbehelf, Hinweis und jede Stufenaenderung (ohne Doppelte).
+  const betroffen = [...wirkung.gesperrt, ...wirkung.notfalls, ...wirkung.nurHinweis, ...wirkung.stufeGeaendert.filter((z) => z.nutzungNeu === "ja")];
 
   const dialog = useRef<HTMLDialogElement>(null);
   // Nach einem Erfolg Auswahl und Aenderungen leeren und das Fenster schliessen, im Wrapper der Action (nicht in einem Effekt).
@@ -287,31 +289,24 @@ export function WissenBestandEinordnen({ dokumente, beiFertig }: { dokumente: Wi
             <li>{t("einordnen.dialog.dokumente", { anzahl: wirkung.dokumente, abschnitte: wirkung.abschnitte })}</li>
             {wirkung.gesperrt.length > 0 ? <li className="font-semibold text-destructive">{t("einordnen.dialog.gesperrt", { anzahl: wirkung.gesperrt.length })}</li> : null}
             {wirkung.nurHinweis.length > 0 ? <li className="font-semibold text-warning">{t("einordnen.dialog.nurHinweis", { anzahl: wirkung.nurHinweis.length })}</li> : null}
+            {wirkung.notfalls.length > 0 ? <li className="font-semibold text-destructive">{t("einordnen.dialog.notfalls", { anzahl: wirkung.notfalls.length })}</li> : null}
             {wirkung.stufeGeaendert.length > 0 ? <li>{t("einordnen.dialog.stufe", { anzahl: wirkung.stufeGeaendert.length })}</li> : null}
             {wirkung.verlassenPrimaer.length > 0 ? <li>{t("einordnen.dialog.verlassenPrimaer", { anzahl: wirkung.verlassenPrimaer.length })}</li> : null}
             {wirkung.kommenInPrimaer.length > 0 ? <li>{t("einordnen.dialog.kommenInPrimaer", { anzahl: wirkung.kommenInPrimaer.length })}</li> : null}
-            {wirkung.gesperrt.length + wirkung.nurHinweis.length + wirkung.stufeGeaendert.length === 0 ? (
-              <li className="text-muted-foreground">{t("einordnen.dialog.nichtsBesonderes")}</li>
-            ) : null}
+            {betroffen.length === 0 ? <li className="text-muted-foreground">{t("einordnen.dialog.nichtsBesonderes")}</li> : null}
           </ul>
-          {wirkung.gesperrt.length + wirkung.nurHinweis.length + wirkung.stufeGeaendert.length > 0 ? (
+          {betroffen.length > 0 ? (
             <div>
               <p className="mb-1 text-[11px] font-semibold">{t("einordnen.dialog.liste")}</p>
               <ul className="max-h-48 space-y-0.5 overflow-y-auto rounded-lg border border-border bg-muted/40 p-2 text-[11px] leading-4">
-                {[...wirkung.gesperrt, ...wirkung.nurHinweis, ...wirkung.stufeGeaendert.filter((z) => z.nutzungNeu === "ja")].slice(0, MAX_LISTE).map((z) => (
+                {betroffen.slice(0, MAX_LISTE).map((z) => (
                   <li key={z.schluessel} className="break-words">
                     {z.titel} ({bereichName(z.bereich)}
-                    {z.nutzungNeu === "nein" ? `, ${t("einordnen.dialog.gesperrtKurz")}` : z.nutzungNeu === "hinweis" ? `, ${t("nutzung.hinweis")}` : ""}
+                    {z.nutzungNeu === "nein" ? `, ${t("einordnen.dialog.gesperrtKurz")}` : z.nutzungNeu === "notfalls" ? `, ${t("einordnen.dialog.notfallsKurz")}` : z.nutzungNeu === "hinweis" ? `, ${t("nutzung.hinweis")}` : ""}
                     {z.stufeAlt !== z.stufeNeu ? `, ${t("einordnen.dialog.stufeVonNach", { alt: z.stufeAlt ?? "-", neu: z.stufeNeu })}` : ""})
                   </li>
                 ))}
-                {wirkung.gesperrt.length + wirkung.nurHinweis.length + wirkung.stufeGeaendert.filter((z) => z.nutzungNeu === "ja").length > MAX_LISTE ? (
-                  <li className="text-muted-foreground">
-                    {t("einordnen.dialog.weitere", {
-                      anzahl: wirkung.gesperrt.length + wirkung.nurHinweis.length + wirkung.stufeGeaendert.filter((z) => z.nutzungNeu === "ja").length - MAX_LISTE,
-                    })}
-                  </li>
-                ) : null}
+                {betroffen.length > MAX_LISTE ? <li className="text-muted-foreground">{t("einordnen.dialog.weitere", { anzahl: betroffen.length - MAX_LISTE })}</li> : null}
               </ul>
             </div>
           ) : null}

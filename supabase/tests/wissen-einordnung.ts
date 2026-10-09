@@ -79,7 +79,7 @@ const w = wirkungVon(doks, [
   { schluessel: "q-gibtsnicht", quellenart: "rechtsnorm", cluster: "internet" },
   { schluessel: "q-c", quellenart: "forum", cluster: "buecher" },
 ]);
-pruefe("Wirkung: Internetquelle im Bereich Recht ist danach nicht mehr auffindbar, im Risiko nur noch Hinweis", w.gesperrt.map((z) => z.schluessel).join() === "q-a" && w.nurHinweis.map((z) => z.schluessel).sort().join() === "q-b,q-e");
+pruefe("Wirkung: Internetquelle und Forum sind danach in jedem Bereich nur noch Notbehelf (Recht, Risiko), nichts ist gesperrt, nichts nur Hinweis", w.gesperrt.length === 0 && w.nurHinweis.length === 0 && w.notfalls.map((z) => z.schluessel).sort().join() === "q-a,q-b,q-e");
 pruefe("Wirkung: Abschnitte werden je Dokument gezaehlt (q-a hat zwei Zeilen)", w.abschnitte === 2 + 1 + 1 + 1 + 1 && w.dokumente === 5, `${w.dokumente} Dokumente, ${w.abschnitte} Abschnitte`);
 pruefe("Wirkung: Stufe 3 als Behoerdeninformation aendert nichts (Stufe 3, tragend)", !w.stufeGeaendert.some((z) => z.schluessel === "q-c"));
 pruefe("Wirkung: Stufe 5 als Rechtsnorm steigt auf 1 und bekommt Zugang zu den reservierten Plaetzen", w.kommenInPrimaer.map((z) => z.schluessel).join() === "q-d" && w.stufeGeaendert.some((z) => z.schluessel === "q-d" && z.stufeAlt === 5 && z.stufeNeu === 1));

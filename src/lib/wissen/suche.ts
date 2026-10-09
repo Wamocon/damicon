@@ -22,6 +22,12 @@ const PRIMAER_PLAETZE = 3;
 // Quellen, die in ihrem Bereich nur als Hinweis taugen (Internet, Forum, KI ...), stehen hinter allen tragenden Belegen und
 // belegen nie einen der reservierten Plaetze. Mehr als zwei kommen nicht in den Kontext.
 const HINWEIS_MAX = 2;
+// Ungesicherte Internetquellen (Nutzung "notfalls") kommen NUR in die Antwort, wenn die Suche keinen tragenden Beleg (Nutzung "ja")
+// gefunden hat: dann sind sie besser als nichts, aber ausdruecklich als solche gekennzeichnet. Mehr als drei sind nie dabei.
+const NOTFALLS_MAX = 3;
+// Es werden mehr Kandidaten geholt, als am Ende gezeigt werden: Ob es einen tragenden Beleg gibt, soll nicht davon abhaengen, ob er unter
+// den ersten sechs Treffern liegt, sondern ob die Suche ihn ueberhaupt findet. Erst nach dem Filtern wird auf das Limit gekuerzt.
+const KANDIDATEN_FAKTOR = 3;
 
 export interface Beleg {
   /** Zitierkennung fuer diese Antwort: S1, S2 ... */
@@ -206,7 +212,7 @@ export async function sucheWissen(
   // Gesetz - fuer Rechtsfragen muss der Gesetzestext aber immer dabei sein.
   const [primaer, alle] = await Promise.all([
     suchen({ rolle, nurAktuell, maxStufe: PRIMAER_MAX_STUFE }, { limit: PRIMAER_PLAETZE + 2 }),
-    suchen({ rolle, nurAktuell }, { limit }),
+    suchen({ rolle, nurAktuell }, { limit: limit * KANDIDATEN_FAKTOR }),
   ]);
   // Die reservierten Plaetze gehoeren tragenden Quellen: ein Hinweis (zum Beispiel eine Norm in einer Rechtsfrage) rueckt nicht ein.
   const primaerTragend = primaer.filter((t) => nutzungVon(t) === "ja");
@@ -219,7 +225,9 @@ export async function sucheWissen(
     if (nutzungVon(t) === "nein") continue;
     treffer.push(t);
   }
-  const geordnet = [...treffer.filter((t) => nutzungVon(t) === "ja"), ...treffer.filter((t) => nutzungVon(t) === "hinweis").slice(0, HINWEIS_MAX)];
+  const tragende = treffer.filter((t) => nutzungVon(t) === "ja");
+  const notbehelf = tragende.length === 0 ? treffer.filter((t) => nutzungVon(t) === "notfalls").slice(0, NOTFALLS_MAX) : [];
+  const geordnet = [...tragende, ...treffer.filter((t) => nutzungVon(t) === "hinweis").slice(0, HINWEIS_MAX), ...notbehelf];
   geordnet.length = Math.min(geordnet.length, limit);
   const t2 = performance.now();
   const belege = geordnet.map((t, i) => alsBeleg(t, i + 1));
