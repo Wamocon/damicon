@@ -17,6 +17,7 @@ import { bewerteText, schlechtesteNote } from "@/lib/wissen/textguete";
 import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { tokens } from "@/lib/wissen/sparse";
 import { schaetzeEin } from "@/lib/wissen/einschaetzung";
+import { gruppiereWissenDokumente } from "@/lib/wissen/dokumente-liste";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 
 let gesamt = 0;
@@ -282,6 +283,21 @@ async function rest() {
     const sp = speicherNeu();
     const code = await fehlerCode(() => ladePaket({ ...kopf, nr: 1, text: pakete[0]! }, ich, { ...abh(sp), umgebung: { VERCEL_ENV: "preview" }, schema: "public" }));
     pruefe("Umgebung: eine Vorschau mit dem Schema public schreibt nichts", code === "vorschau" && sp.zeilen.size === 0);
+  }
+
+  // ---- Liste aus wissen_liste(): zusammengefasste Zeilen mit Anzahl -------------------------------------
+  {
+    const basis = { id: "i", quelle_id: "upload:x", pfad: null, titel: "Buch", bereich: "legal", rollen: ["admin"], eingelesen_am: null, upload_quelle: "upload", hochgeladen_von: null, pruefstatus: "ungeprueft", pakete_gesamt: "3", guete: "gut" };
+    const liste = gruppiereWissenDokumente([
+      { ...basis, paket: "1", anzahl: 60 },
+      { ...basis, id: "j", paket: "2", anzahl: 55 },
+      { ...basis, id: "k", paket: "3", anzahl: 41 },
+    ]);
+    pruefe("Liste: Anzahlen zusammengefasster Zeilen werden addiert", liste.length === 1 && liste[0]!.chunks === 156 && liste[0]!.paketeDa === 3 && !liste[0]!.unvollstaendig);
+    const fehlt = gruppiereWissenDokumente([{ ...basis, paket: "1", anzahl: 60 }, { ...basis, id: "k", paket: "3", anzahl: 41 }]);
+    pruefe("Liste: ein fehlendes Paket macht das Buch unvollständig", fehlt[0]!.unvollstaendig === true && fehlt[0]!.paketeDa === 2);
+    const einzeln = gruppiereWissenDokumente([{ ...basis, paket: null, pakete_gesamt: null }, { ...basis, id: "j", paket: null, pakete_gesamt: null }]);
+    pruefe("Liste: Zeilen ohne Anzahl zählen einzeln", einzeln[0]!.chunks === 2);
   }
 
   // ---- Einschaetzung --------------------------------------------------------------------------------

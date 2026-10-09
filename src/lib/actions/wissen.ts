@@ -149,6 +149,13 @@ export async function wissenDokumenteLaden(): Promise<WissenDokumenteAntwort> {
   let ursache: string | null = null;
   try {
     const db = createServiceRoleClient() as unknown as SupabaseClient;
+    // Bevorzugt die Zusammenfassung in der Datenbank (Migration 20261127000000): ein Buch hat tausende Abschnitte, die Liste
+    // soll nicht jeden einzeln lesen. Fehlt die Funktion noch (Code vor Migration), faellt es auf das seitenweise Lesen zurueck.
+    const { data: gesamt, error: listeFehler } = await db.rpc("wissen_liste");
+    if (!listeFehler && Array.isArray(gesamt)) {
+      return { dokumente: gruppiereWissenDokumente(gesamt as unknown as WissenListeZeile[]), fehler: false, abgeschnitten: false, ichId: profil.id };
+    }
+    if (listeFehler) console.error("[damicon] wissen_liste nicht verfuegbar, lese seitenweise:", listeFehler.message);
     const zeilen: WissenListeZeile[] = [];
     let abgeschnitten = true; // bleibt wahr, wenn die Schleife ohne letzte (kurze) Seite endet
     for (let seite = 0; seite < MAX_SEITEN; seite++) {

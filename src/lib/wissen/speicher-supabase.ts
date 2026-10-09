@@ -14,7 +14,7 @@ const SCHREIB_FEHLER = (was: string, e: { message: string } | null) => {
 // PostgREST liefert je Abfrage hoechstens 1.000 Zeilen. Ein Buch hat leicht mehr Abschnitte: Zahlen kommen deshalb aus
 // Zaehlabfragen (count), nicht aus der Laenge einer Antwort, und alles, was ein ganzes Dokument betrifft, laeuft in Seiten.
 const SEITE = 1000;
-const LOESCH_STAPEL = 300;
+const LOESCH_STAPEL = 100; // 100 Kennungen in der Adresse (rund 4 KB): mehr lehnt der Server mit "URI too long" ab
 
 /** Speicher auf dem service_role-Client. Schreiben darf in wissen_chunks/wissen_begriffe nur der Dienst (RLS). */
 export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {

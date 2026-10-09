@@ -43,6 +43,8 @@ export interface WissenListeZeile {
   /** Einschaetzung der Textqualitaet (gut, pruefen, schlecht) und ihre Hinweise, durch Komma getrennt. */
   guete?: string | null;
   guete_hinweise?: string | null;
+  /** Aus wissen_liste(): so viele Textstellen mit gleichen Listenspalten stehen fuer diese Zeile (fehlt = 1). */
+  anzahl?: number | null;
 }
 
 /** Spalte von wissen_chunks, ueber die ein Dokument adressiert wird: so, wie die Liste gruppiert (quelle_id, sonst pfad, sonst id). */
@@ -102,6 +104,7 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
     const schluessel = z.quelle_id ?? z.pfad ?? z.id;
     const schluesselSpalte: SchluesselSpalte = z.quelle_id ? "quelle_id" : z.pfad ? "pfad" : "id";
     const status: Pruefstatus = istPruefstatus(z.pruefstatus) ? z.pruefstatus : "freigegeben";
+    const anzahl = typeof z.anzahl === "number" && z.anzahl > 0 ? z.anzahl : 1;
     // Pakete und Qualitaet zaehlen fuer jede Zeile, auch fuer die erste
     if (z.paket !== null && z.paket !== undefined && z.paket !== "") {
       const menge = pakete.get(schluessel) ?? new Set<number>();
@@ -125,7 +128,7 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
         datum: z.eingelesen_am,
         hochgeladenVon: z.hochgeladen_von,
         hochgeladenVonId: z.hochgeladen_von_id ?? null,
-        chunks: 1,
+        chunks: anzahl,
         herkunft: z.upload_quelle === UPLOAD_QUELLE ? "upload" : "skript",
         loeschbar: istUploadZeile(z),
         quellenart: z.quellenart ?? null,
@@ -145,7 +148,7 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
       });
       continue;
     }
-    vorhanden.chunks += 1;
+    vorhanden.chunks += anzahl;
     vorhanden.loeschbar &&= istUploadZeile(z);
     for (const r of z.rollen ?? []) if (!vorhanden.rollen.includes(r)) vorhanden.rollen.push(r);
     if (!vorhanden.rechtsstelle && z.rechtsstelle) vorhanden.rechtsstelle = z.rechtsstelle;
