@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { StatusPill } from "@/components/ui/kit";
 import { Auswahl, FormularKarte } from "@/components/db/formular-kit";
@@ -69,10 +69,20 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
   const [rollen, setRollen] = useState<string[]>([]);
   const [mitKi, setMitKi] = useState(true);
   const [laeuft, setLaeuft] = useState(false);
+  // Der Lauf des Hochladens: welche Buecher, wann gestartet, wann zu Ende (fuer Gesamtanzeige und Restzeit)
+  const [lauf, setLauf] = useState<{ ids: number[]; start: number; ende: number | null } | null>(null);
+  const [jetzt, setJetzt] = useState(() => Date.now());
   const abbruch = useRef<AbortController | null>(null);
   const zaehler = useRef(0);
   const clusterRef = useRef(cluster);
   clusterRef.current = cluster;
+
+  // Die Uhr tickt nur, solange hochgeladen wird: Sie treibt die Restzeit an.
+  useEffect(() => {
+    if (!laeuft) return;
+    const takt = setInterval(() => setJetzt(Date.now()), 1000);
+    return () => clearInterval(takt);
+  }, [laeuft]);
 
   const setze = (id: number, teil: Partial<Eintrag>) => setEintraege((alt) => alt.map((e) => (e.id === id ? { ...e, ...teil } : e)));
   const aendere = (id: number, feld: Feld, wert: string) =>
@@ -122,7 +132,8 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       const guete = bewerteText(text);
       const hash = text ? await sha256Hex(text) : null;
       const analyse = analysiereDokument(text, eintrag.datei.name);
-      setEintraege((alt) => alt.map((e) => (e.id === eintrag.id ? { ...uebernimm(e, analyse), schritt: "bereit", text, guete, hash, ki: "aus" } : e)));
+      const pakete = text ? teileInPakete(text).length : 0;
+      setEintraege((alt) => alt.map((e) => (e.id === eintrag.id ? { ...uebernimm(e, analyse), schritt: "bereit", text, guete, hash, pakete, ki: "aus" } : e)));
       return text ? { id: eintrag.id, dateiname: eintrag.datei.name, text } : null;
     } catch (fehler) {
       if (signal.aborted) {
@@ -263,6 +274,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
 
   const starte = async () => {
     setLaeuft(true);
+    setLauf({ ids: bereitZumLaden.map((e) => e.id), start: Date.now(), ende: null });
     const steuerung = new AbortController();
     abbruch.current = steuerung;
     try {
@@ -272,6 +284,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       }
     } finally {
       setLaeuft(false);
+      setLauf((alt) => (alt ? { ...alt, ende: Date.now() } : alt));
       beiFertig();
     }
   };
@@ -280,6 +293,20 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
   const entferne = (id: number) => setEintraege((alt) => alt.filter((e) => e.id !== id || e.schritt === "laedt"));
   const gesperrt = (e: Eintrag) => e.schritt === "laedt" || e.schritt === "fertig";
   const feldKlasse = "w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground disabled:opacity-60";
+
+  // Gesamtfortschritt: gelesen wird nacheinander, hochgeladen wird nach Paketen. Ein Buch zaehlt mit allen seinen Paketen, sobald es fertig
+  // oder gescheitert ist; ein laufendes mit den Paketen, die schon angekommen sind.
+  const liestNoch = eintraege.some((e) => e.schritt === "wartet" || e.schritt === "liest");
+  const gelesen = eintraege.filter((e) => e.schritt !== "wartet" && e.schritt !== "liest").length;
+  const imLauf = lauf ? eintraege.filter((e) => lauf.ids.includes(e.id)) : [];
+  const paketeGesamt = imLauf.reduce((s, e) => s + e.pakete, 0);
+  const paketeErledigt = imLauf.reduce((s, e) => s + (e.schritt === "fertig" || e.schritt === "fehler" || e.schritt === "abgebrochen" ? e.pakete : e.schritt === "laedt" ? e.paket : 0), 0);
+  const buecherFertig = imLauf.filter((e) => e.schritt === "fertig").length;
+  const buecherFehler = imLauf.filter((e) => e.schritt === "fehler" || e.schritt === "abgebrochen").length;
+  const aktuellesBuch = imLauf.find((e) => e.schritt === "laedt");
+  const prozent = paketeGesamt > 0 ? Math.min(100, Math.floor((paketeErledigt * 100) / paketeGesamt)) : 0;
+  const vergangen = lauf ? ((lauf.ende ?? jetzt) - lauf.start) / 1000 : 0;
+  const restMinuten = lauf && !lauf.ende && paketeErledigt >= 2 && vergangen >= 5 ? Math.max(1, Math.ceil(((vergangen / paketeErledigt) * (paketeGesamt - paketeErledigt)) / 60)) : null;
 
   return (
     <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
@@ -328,6 +355,35 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
         </label>
       </div>
 
+      {eintraege.length > 0 && (liestNoch || lauf) ? (
+        <div role="status" aria-live="polite" className="mt-3 space-y-1.5 rounded-lg border border-border bg-muted/30 p-2.5">
+          {liestNoch ? (
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-card-foreground">{t("fortschritt.lesen", { fertig: gelesen, gesamt: eintraege.length })}</p>
+              <progress className="h-1.5 w-full" max={eintraege.length} value={gelesen} aria-label={t("fortschritt.lesenBalken")} />
+            </div>
+          ) : null}
+          {lauf && imLauf.length > 0 ? (
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-card-foreground">
+                {lauf.ende
+                  ? buecherFehler > 0
+                    ? t("fortschritt.fertigMitFehlern", { ok: buecherFertig, fehler: buecherFehler })
+                    : t("fortschritt.fertig", { ok: buecherFertig })
+                  : t("fortschritt.hochladen", { buch: Math.min(buecherFertig + buecherFehler + 1, imLauf.length), buecher: imLauf.length, prozent })}
+              </p>
+              <progress className="h-2 w-full" max={Math.max(1, paketeGesamt)} value={paketeErledigt} aria-label={t("fortschritt.gesamtBalken")} />
+              <p className="text-[11px] text-muted-foreground">
+                {t("fortschritt.pakete", { erledigt: paketeErledigt, gesamt: paketeGesamt })}
+                {aktuellesBuch ? ` · ${t("fortschritt.aktuell", { titel: aktuellesBuch.titel.slice(0, 60), paket: aktuellesBuch.paket, pakete: aktuellesBuch.pakete })}` : ""}
+                {restMinuten !== null ? ` · ${t("fortschritt.rest", { minuten: restMinuten })}` : ""}
+              </p>
+              {!lauf.ende ? <p className="text-[11px] font-semibold text-muted-foreground">{t("fortschritt.nichtSchliessen")}</p> : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {eintraege.length > 0 ? (
         <ul className="mt-3 space-y-2">
           {eintraege.map((e) => {
@@ -365,6 +421,8 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                   {e.text ? ` · ${t("zeichen", { anzahl: e.text.length.toLocaleString() })}` : ""}
                 </p>
 
+                {e.schritt === "liest" && e.seiten > 0 ? <progress className="mt-1 h-1.5 w-full" max={e.seiten} value={e.seite} aria-label={t("fortschritt.lesenBalken")} /> : null}
+                {e.schritt === "laedt" && e.pakete > 0 ? <progress className="mt-1 h-1.5 w-full" max={e.pakete} value={e.paket} aria-label={t("fortschritt.buchBalken")} /> : null}
                 {e.analyse && e.schritt !== "wartet" && e.schritt !== "liest" ? (
                   <div className="mt-2 space-y-1.5">
                     <div className="grid gap-2 sm:grid-cols-3">

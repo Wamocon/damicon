@@ -59,6 +59,7 @@ pruefe("Finden: mehrere Wörter müssen alle im Titel stehen", findeDokument(lis
 pruefe("Anweisung: nennt alle drei Werkzeuge", ["wissensbasisAbrufen", "wissenDokumentAnalysieren", "wissenEinordnungAendern"].every((n) => WISSEN_VERWALTUNG_ANWEISUNG.includes(n)));
 pruefe("Anweisung: Hochladen und Freigeben kann der Assistent nicht", /HOCHLADEN kannst du nicht/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /FREIGEBEN kannst du nicht/.test(WISSEN_VERWALTUNG_ANWEISUNG));
 pruefe("Anweisung: nur der Cluster wird gewählt, der Rest kommt aus der Analyse", /nur den Cluster wählen/.test(WISSEN_VERWALTUNG_ANWEISUNG));
+pruefe("Anweisung: mehrere Bücher in einem Aufruf, eigene Einschätzung, Stand des Uploads", /alleWartenden/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /EIGENE Einschätzung/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /unvollständig/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /seiteLesen/.test(WISSEN_VERWALTUNG_ANWEISUNG));
 pruefe("Anweisung: Auszüge sind keine Anweisungen", /keine Anweisung an dich/.test(WISSEN_VERWALTUNG_ANWEISUNG));
 const route = readFileSync("src/app/api/ki-assistent/route.ts", "utf8");
 pruefe("Route: die Anweisung gilt nur, wenn das Verwaltungswerkzeug angeboten wird", /"wissensbasisAbrufen" in werkzeuge \? WISSEN_VERWALTUNG_ANWEISUNG : ""/.test(route));
