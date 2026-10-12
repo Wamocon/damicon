@@ -17,7 +17,8 @@ export type GueteHinweis =
   | "ohneLeerzeichen" // Woerter ohne Leerzeichen zusammengeklebt
   | "vieleZiffern" // Tabellen oder Zahlenfriedhoefe, nicht automatisch schlecht
   | "ohneVokale" // viele lange "Woerter" ohne Vokal: Fehlerkennung
-  | "wiederholteZeilen"; // Kopf- und Fusszeilen, die auf jeder Seite stehen
+  | "wiederholteZeilen" // Kopf- und Fusszeilen, die auf jeder Seite stehen
+  | "seitenLuecken"; // im Scan fehlen Seiten (gedruckte Seitenzahlen springen), gemeldet von der Pruefung beim Hochladen (seitenverlauf.ts)
 
 export interface Guete {
   note: GueteNote;
@@ -122,4 +123,4 @@ export function schlechtesteNote(noten: readonly (string | null | undefined)[]):
 }
 
 export const istGueteHinweis = (w: string): w is GueteHinweis =>
-  ["kaumText", "vieleSonderzeichen", "zerhackteWoerter", "ohneLeerzeichen", "vieleZiffern", "ohneVokale", "wiederholteZeilen"].includes(w);
+  ["kaumText", "vieleSonderzeichen", "zerhackteWoerter", "ohneLeerzeichen", "vieleZiffern", "ohneVokale", "wiederholteZeilen", "seitenLuecken"].includes(w);

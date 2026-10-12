@@ -2590,6 +2590,17 @@
           "fertigMitFehlern": "Beendet: {ok} Bücher hochgeladen, {fehler} nicht. Die Fehler stehen bei den Büchern."
         },
         "schlechtGesperrt": "Der Text ist zu schlecht lesbar und wird nicht hochgeladen. Bitte die Datei erneut mit OCR erzeugen.",
+        "seiten": {
+          "ok": "Seitenverlauf lückenlos ({seiten} Seiten, Seitenzahl auf {prozent} % der Seiten lesbar).",
+          "eingeschraenkt": "Keine Lücke gefunden, aber nur eingeschränkt prüfbar: Die Seitenzahl war nur auf {prozent} % der Seiten lesbar.",
+          "luecken": "{anzahl, plural, one {Im Scan fehlt # Seite} other {Im Scan fehlen # Seiten}}: {stellen}. Bitte die fehlenden Seiten nachscannen und die Datei neu erzeugen.",
+          "trotzdem": "Die Lücken sind bekannt, trotzdem hochladen (das Buch wird für die zweite Person als lückenhaft gekennzeichnet).",
+          "ohneText": "Seiten ohne Text mitten im Buch (PDF-Seiten): {liste}.",
+          "artikel": "{anzahl, plural, one {Es fehlt # Artikelnummer} other {Es fehlen # Artikelnummern}} in der Folge {von} bis {bis}: {stellen}. Aufgehobene Artikel können dabei sein, bitte stichprobenartig prüfen.",
+          "stelleEinzeln": "gedruckte Seite {von} (nach PDF-Seite {pdf})",
+          "stelleMehrere": "gedruckte Seiten {von} bis {bis} (nach PDF-Seite {pdf})",
+          "stelleUngefaehr": "{anzahl, plural, one {# Seite} other {# Seiten}} zwischen den gedruckten Seiten {von} und {bis} (nach PDF-Seite {pdf})"
+        },
         "fehlerLesen": "Die Datei konnte nicht gelesen werden. Ist es eine gültige PDF mit Textebene?",
         "start": "{anzahl, plural, one {# Buch hochladen} other {# Bücher hochladen}}",
         "stopp": "Abbrechen",
@@ -2620,7 +2631,8 @@
           "ohneLeerzeichen": "Wörter ohne Leerzeichen zusammengeklebt.",
           "vieleZiffern": "Sehr viele Ziffern, vermutlich Tabellen.",
           "ohneVokale": "Viele lange Wörter ohne Vokal, Hinweis auf Erkennungsfehler.",
-          "wiederholteZeilen": "Kopf- und Fußzeilen wiederholen sich auf jeder Seite."
+          "wiederholteZeilen": "Kopf- und Fußzeilen wiederholen sich auf jeder Seite.",
+          "seitenLuecken": "Im Scan fehlen Seiten (die gedruckten Seitenzahlen springen). Das Buch ist lückenhaft."
         }
       },
       "einschaetzung": {

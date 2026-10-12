@@ -8,8 +8,17 @@ import { wissenBuchAbbrechen, wissenBuchAbschliessen, wissenBuchPaket, wissenBuc
 import type { AktionsStatus } from "@/lib/actions/status";
 import { analysiereDokument, type Analyse } from "@/lib/wissen/analyse";
 import { fuehreZusammen, kiAuszug, type KiAntwort } from "@/lib/wissen/analyse-ki";
-import { pdfTextAusDatei } from "@/lib/wissen/buch-pdf";
+import { pdfLesenAusDatei } from "@/lib/wissen/buch-pdf";
 import { normalisiereText, sha256Hex, teileInPakete, titelAusDateiname } from "@/lib/wissen/buch-text";
+import {
+  alsSeitenAngabe,
+  beschreibeArtikelLuecken,
+  pruefeArtikelfolge,
+  pruefeSeitenverlauf,
+  type ArtikelPruefung,
+  type SeitenLuecke,
+  type SeitenPruefung,
+} from "@/lib/wissen/seitenverlauf";
 import { bewerteText, type Guete } from "@/lib/wissen/textguete";
 import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN, type Cluster } from "@/lib/wissen/quellenart";
 import { UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
@@ -19,6 +28,8 @@ import { UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 // die KI in analyse-ki.ts). Die Administration bestimmt nur den Cluster (er haengt vom Weg ab, nicht vom Text) und prueft die Vorschlaege, jede
 // Angabe ist je Buch aenderbar. Die Dateien werden nacheinander hochgeladen, damit der Server nie mehr als ein Paket gleichzeitig einbetten muss.
 // Jedes Buch bleibt UNGEPRUEFT, bis eine zweite Person es freigibt.
+// Seitenverlauf: Beim Lesen einer PDF vergleicht der Browser die gedruckten Seitenzahlen mit der Reihenfolge in der Datei (seitenverlauf.ts).
+// Fehlen Seiten im Scan, steht es am Buch, und das Hochladen verlangt eine ausdrueckliche Bestaetigung; die Luecken gehen zur zweiten Person mit.
 
 type Schritt = "wartet" | "liest" | "bereit" | "laedt" | "fertig" | "fehler" | "abgebrochen";
 type Feld = "bereich" | "quellenart" | "textgrundlage";
@@ -33,6 +44,11 @@ interface Eintrag {
   paket: number;
   pakete: number;
   guete: Guete | null;
+  /** Ergebnis der Pruefung des Seitenverlaufs (nur PDF) und, bei Gesetzen, der Artikelfolge. */
+  verlauf: SeitenPruefung | null;
+  artikel: ArtikelPruefung | null;
+  /** Die Administration nimmt die Luecken im Scan bewusst in Kauf. */
+  trotzdem: boolean;
   fehler: string | null;
   text: string | null;
   hash: string | null;
@@ -125,15 +141,17 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
   const lese = async (eintrag: Eintrag, signal: AbortSignal): Promise<{ id: number; dateiname: string; text: string } | null> => {
     setze(eintrag.id, { schritt: "liest", seite: 0, seiten: 0, fehler: null });
     try {
-      const roh = istTextDatei(eintrag.datei)
-        ? await eintrag.datei.text()
-        : await pdfTextAusDatei(eintrag.datei, (f) => setze(eintrag.id, { seite: f.seite, seiten: f.seiten }), signal);
-      const text = normalisiereText(roh);
+      const lesung = istTextDatei(eintrag.datei)
+        ? { text: await eintrag.datei.text(), raender: null }
+        : await pdfLesenAusDatei(eintrag.datei, (f) => setze(eintrag.id, { seite: f.seite, seiten: f.seiten }), signal);
+      const text = normalisiereText(lesung.text);
       const guete = bewerteText(text);
+      const seitenPruefung = lesung.raender ? pruefeSeitenverlauf(lesung.raender) : null;
+      const artikelPruefung = text ? pruefeArtikelfolge(text) : null;
       const hash = text ? await sha256Hex(text) : null;
       const analyse = analysiereDokument(text, eintrag.datei.name);
       const pakete = text ? teileInPakete(text).length : 0;
-      setEintraege((alt) => alt.map((e) => (e.id === eintrag.id ? { ...uebernimm(e, analyse), schritt: "bereit", text, guete, hash, pakete, ki: "aus" } : e)));
+      setEintraege((alt) => alt.map((e) => (e.id === eintrag.id ? { ...uebernimm(e, analyse), schritt: "bereit", text, guete, verlauf: seitenPruefung, artikel: artikelPruefung, trotzdem: false, hash, pakete, ki: "aus" } : e)));
       return text ? { id: eintrag.id, dateiname: eintrag.datei.name, text } : null;
     } catch (fehler) {
       if (signal.aborted) {
@@ -171,6 +189,9 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       paket: 0,
       pakete: 0,
       guete: null,
+      verlauf: null,
+      artikel: null,
+      trotzdem: false,
       fehler: null,
       text: null,
       hash: null,
@@ -217,8 +238,21 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
     setEintraege((alt) => alt.map((e) => (e.quellenart && !artPasst(e.quellenart, neu) ? { ...e, quellenart: "fachliteratur" } : e)));
   };
 
+  // Fehlende Seiten im Scan: Das Buch geht nur hoch, wenn die Administration es ausdruecklich bestaetigt.
+  const luckenOffen = (e: Eintrag): boolean => (e.verlauf?.fehlend ?? 0) > 0 && !e.trotzdem;
+  // Die Artikelfolge zaehlt nur bei Gesetzen (Rechtsnorm, Verwaltungsanweisung): Ein Kommentar oder ein Lehrbuch nennt nur einzelne Artikel.
+  const istGesetz = (e: Eintrag): boolean => e.quellenart === "rechtsnorm" || e.quellenart === "verwaltungsanweisung";
+
+  const stelle = (l: SeitenLuecke): string =>
+    l.genau
+      ? l.vonGedruckt === l.bisGedruckt
+        ? t("seiten.stelleEinzeln", { von: l.vonGedruckt, pdf: l.nachPdfSeite })
+        : t("seiten.stelleMehrere", { von: l.vonGedruckt, bis: l.bisGedruckt, pdf: l.nachPdfSeite })
+      : t("seiten.stelleUngefaehr", { anzahl: l.anzahl, von: l.vonGedruckt, bis: l.bisGedruckt, pdf: l.nachPdfSeite });
+
   const eintragOk = (e: Eintrag): boolean => {
     if (e.schritt !== "bereit" || !e.guete || e.guete.note === "schlecht" || !e.hash || !e.text) return false;
+    if (luckenOffen(e)) return false;
     if (!(UPLOAD_BEREICHE as readonly string[]).includes(e.bereich) || !istQuellenart(e.quellenart) || !artPasst(e.quellenart, cluster)) return false;
     if (nutzungFuer(e.bereich, e.quellenart) === "nein") return false;
     if (!(TEXTGRUNDLAGEN as readonly string[]).includes(e.textgrundlage)) return false;
@@ -245,6 +279,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       url: eintrag.url.trim() || undefined,
       pakete: pakete.length,
       zeichen: eintrag.text.length,
+      ...(eintrag.verlauf?.geprueft ? { seiten: alsSeitenAngabe(eintrag.verlauf, istGesetz(eintrag) ? eintrag.artikel : null) } : {}),
     };
     setze(eintrag.id, { schritt: "laedt", paket: 0, pakete: pakete.length, fehler: null });
     const start = await wissenBuchStarten(kopf);
@@ -479,6 +514,31 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                   </div>
                 ) : null}
 
+                {e.verlauf?.geprueft ? (
+                  e.verlauf.fehlend > 0 ? (
+                    <div className="mt-1 space-y-1 rounded-md border border-warning/50 bg-warning/10 p-2">
+                      <p role="alert" className="text-[11px] font-semibold text-warning">
+                        {t("seiten.luecken", { anzahl: e.verlauf.fehlend, stellen: e.verlauf.luecken.slice(0, 12).map(stelle).join("; ") + (e.verlauf.luecken.length > 12 ? " ..." : "") })}
+                      </p>
+                      <label className="flex items-start gap-2 text-[11px] text-card-foreground">
+                        <input type="checkbox" className="mt-0.5" checked={e.trotzdem} disabled={gesperrt(e)} onChange={(ev) => setze(e.id, { trotzdem: ev.target.checked })} />
+                        <span>{t("seiten.trotzdem")}</span>
+                      </label>
+                    </div>
+                  ) : e.verlauf.eingeschraenkt ? (
+                    <p className="mt-1 text-[11px] text-muted-foreground">{t("seiten.eingeschraenkt", { prozent: Math.round(e.verlauf.abdeckung * 100) })}</p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-muted-foreground">{t("seiten.ok", { seiten: e.verlauf.seiten, prozent: Math.round(e.verlauf.abdeckung * 100) })}</p>
+                  )
+                ) : null}
+                {e.verlauf?.geprueft && e.verlauf.ohneText.length > 0 ? (
+                  <p className="mt-1 text-[11px] text-muted-foreground">{t("seiten.ohneText", { liste: e.verlauf.ohneText.slice(0, 15).join(", ") + (e.verlauf.ohneText.length > 15 ? " ..." : "") })}</p>
+                ) : null}
+                {e.artikel && e.artikel.fehlend > 0 && istGesetz(e) ? (
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    {t("seiten.artikel", { anzahl: e.artikel.fehlend, von: e.artikel.kleinste, bis: e.artikel.groesste, stellen: beschreibeArtikelLuecken(e.artikel.luecken) })}
+                  </p>
+                ) : null}
                 {e.guete && e.guete.hinweise.length > 0 ? (
                   <p className={`mt-1 text-[11px] ${e.guete.note === "gut" ? "text-muted-foreground" : "font-semibold text-warning"}`}>
                     {e.guete.hinweise.map((h) => tHinweis(`hinweis.${h}` as never)).join(" ")}
@@ -486,7 +546,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                 ) : null}
                 {e.guete?.note === "schlecht" ? <p className="mt-1 text-[11px] font-semibold text-destructive">{t("schlechtGesperrt")}</p> : null}
                 {e.fehler ? <p role="alert" className="mt-1 text-[11px] font-semibold text-destructive">{e.fehler}</p> : null}
-                {e.schritt === "bereit" && e.guete?.note !== "schlecht" && !eintragOk(e) ? <p className="mt-1 text-[11px] font-semibold text-warning">{t("angabenFehlen")}</p> : null}
+                {e.schritt === "bereit" && e.guete?.note !== "schlecht" && !luckenOffen(e) && !eintragOk(e) ? <p className="mt-1 text-[11px] font-semibold text-warning">{t("angabenFehlen")}</p> : null}
               </li>
             );
           })}

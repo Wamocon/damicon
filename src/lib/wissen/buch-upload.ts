@@ -14,6 +14,7 @@ import {
   type UploadAbhaengigkeiten,
   type UploadMetadaten,
 } from "@/lib/wissen/hochladen";
+import { MAX_STELLEN, type SeitenAngabe } from "@/lib/wissen/seitenverlauf";
 import { bewerteText, type Guete } from "@/lib/wissen/textguete";
 import {
   clusterPasst,
@@ -61,6 +62,9 @@ export interface BuchKopf {
   /** Wie viele Pakete der Browser schicken wird und wie viele Zeichen der Text hat (Plausibilitaet und Unvollstaendigkeit). */
   pakete: number;
   zeichen: number;
+  /** Ergebnis der Pruefung des Seitenverlaufs im Browser (seitenverlauf.ts). Fehlt bei Markdown und Text. Der Server legt es nur ab (er sieht keine Seiten),
+   *  meldet bei fehlenden Seiten den Hinweis "seitenLuecken" und stuft die Textguete mindestens auf "pruefen" herauf. */
+  seiten?: SeitenAngabe;
 }
 
 export interface PaketEingabe extends BuchKopf {
@@ -72,6 +76,24 @@ export interface PaketEingabe extends BuchKopf {
 export interface BuchBasis {
   meta: UploadMetadaten;
   quelleId: string;
+}
+
+const STELLEN_ZEICHEN = /^[0-9@(),+\-\s]*$/;
+
+/** Prueft die Angabe zum Seitenverlauf aus dem Browser: nur Zahlen und kurze Zeichenketten aus Ziffern und Trennzeichen, nichts anderes wird gespeichert. */
+function pruefeSeitenAngabe(a: SeitenAngabe | undefined): SeitenAngabe | undefined {
+  if (a === undefined || a === null) return undefined;
+  const zahl = (x: unknown, max: number): x is number => typeof x === "number" && Number.isInteger(x) && x >= 0 && x <= max;
+  const text = (x: unknown): x is string => typeof x === "string" && x.length <= MAX_STELLEN && STELLEN_ZEICHEN.test(x);
+  if (typeof a !== "object" || !zahl(a.seiten, 100_000) || !zahl(a.fehlend, a.seiten) || !zahl(a.abdeckung, 100) || !text(a.stellen)) throw new UploadFehler("eingabe");
+  if (a.artikelFehlend !== undefined && (!zahl(a.artikelFehlend, 10_000) || !text(a.artikelStellen ?? ""))) throw new UploadFehler("eingabe");
+  return {
+    seiten: a.seiten,
+    fehlend: a.fehlend,
+    stellen: a.stellen,
+    abdeckung: a.abdeckung,
+    ...(a.artikelFehlend !== undefined ? { artikelFehlend: a.artikelFehlend, artikelStellen: a.artikelStellen ?? "" } : {}),
+  };
 }
 
 /** Prueft den Kopf wie der normale Upload seine Eingabe. Wirft ausschliesslich UploadFehler. */
@@ -93,6 +115,7 @@ export function pruefeBuchKopf(k: BuchKopf, hochgeladenVon: { id: string; name: 
   if (nutzungFuer(k.bereich, quellenart) === "nein") throw new UploadFehler("quellenartGesperrt");
   const url = normalisiereUrl(k.url);
   if (QUELLENART_INFO[quellenart].urlPflicht && !url) throw new UploadFehler("urlFehlt");
+  const seiten = pruefeSeitenAngabe(k.seiten);
 
   const quelleId = uploadQuelleId(k.hash);
   const meta: UploadMetadaten = {
@@ -108,6 +131,7 @@ export function pruefeBuchKopf(k: BuchKopf, hochgeladenVon: { id: string; name: 
     textgrundlage: textgrundlage as Textgrundlage,
     url,
     zeitpunkt: jetzt.toISOString(),
+    ...(seiten ? { seiten } : {}),
   };
   return { meta, quelleId };
 }
@@ -151,7 +175,10 @@ export async function ladePaket(
   if (p.text.length > MAX_PAKET_ZEICHEN) throw new UploadFehler("zuGross");
 
   // Die Qualitaet rechnet der Server selbst aus dem Text dieses Pakets; was der Browser dazu sagt, zaehlt nicht.
-  const guete = bewerteText(p.text, false);
+  const text = bewerteText(p.text, false);
+  // Fehlende Seiten im Scan (Pruefung im Browser) gelten fuer das ganze Buch und damit fuer jedes Paket: Hinweis und mindestens "pruefen".
+  const luecken = (meta.seiten?.fehlend ?? 0) > 0;
+  const guete: Guete = luecken ? { ...text, note: text.note === "gut" ? "pruefen" : text.note, hinweise: [...text.hinweise, "seitenLuecken"] } : text;
   const paketMeta: UploadMetadaten = {
     ...meta,
     dateiname: `${p.dateiname}#${String(p.nr).padStart(4, "0")}`,

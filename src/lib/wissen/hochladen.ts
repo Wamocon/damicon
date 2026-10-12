@@ -10,6 +10,7 @@ import {
   type WissensDokument,
 } from "@/lib/wissen/chunker";
 import type { Einbettung } from "@/lib/wissen/embed";
+import type { SeitenAngabe } from "@/lib/wissen/seitenverlauf";
 import {
   BEREICH_WERT,
   MAX_DATEI_BYTES,
@@ -222,6 +223,9 @@ export interface UploadMetadaten {
   paket?: { nr: number; gesamt: number };
   /** Einschaetzung der Textqualitaet (textguete.ts), vom Server aus dem Text berechnet und je Zeile abgelegt. */
   guete?: { note: string; hinweise: readonly string[] };
+  /** Nur beim Buch-Upload: Ergebnis der Pruefung des Seitenverlaufs (seitenverlauf.ts), vom Browser ermittelt und hier nur abgelegt.
+   *  Der Server sieht keine einzelnen Seiten, er kann es nicht nachrechnen; es ist ein Hinweis fuer die zweite Person, kein Beweis. */
+  seiten?: SeitenAngabe;
 }
 
 /** Ein Dokument im Sinne des Chunkers. Markdown darf sein Frontmatter mitbringen (wie im Korpus),
@@ -350,6 +354,17 @@ export function baueZeile(
         hochgeladen_von_name: m.hochgeladenVon.name,
         ...(m.paket ? { paket: m.paket.nr, pakete_gesamt: m.paket.gesamt } : {}),
         ...(m.guete ? { guete: m.guete.note, guete_hinweise: m.guete.hinweise.join(",") } : {}),
+        ...(m.seiten
+          ? {
+              seiten_pruefung: {
+                seiten: m.seiten.seiten,
+                fehlend: m.seiten.fehlend,
+                stellen: m.seiten.stellen,
+                abdeckung: m.seiten.abdeckung,
+                ...(m.seiten.artikelFehlend !== undefined ? { artikel_fehlend: m.seiten.artikelFehlend, artikel_stellen: m.seiten.artikelStellen ?? "" } : {}),
+              },
+            }
+          : {}),
       },
       quellenart: m.quellenart,
       cluster: m.cluster,

@@ -2590,6 +2590,17 @@
           "fertigMitFehlern": "Finished: {ok} books uploaded, {fehler} not. The errors are shown with the books."
         },
         "schlechtGesperrt": "The text is too poorly readable and will not be uploaded. Please create the file again with OCR.",
+        "seiten": {
+          "ok": "Page sequence complete ({seiten} pages, page number readable on {prozent} % of the pages).",
+          "eingeschraenkt": "No gap found, but only partly verifiable: the page number was readable on only {prozent} % of the pages.",
+          "luecken": "{anzahl, plural, one {# page is missing in the scan} other {# pages are missing in the scan}}: {stellen}. Please rescan the missing pages and create the file again.",
+          "trotzdem": "I know about the gaps, upload anyway (the book is marked as incomplete for the second person).",
+          "ohneText": "Pages without text in the middle of the book (PDF pages): {liste}.",
+          "artikel": "{anzahl, plural, one {# article number is missing} other {# article numbers are missing}} in the sequence {von} to {bis}: {stellen}. Repealed articles may be among them, please check a sample.",
+          "stelleEinzeln": "printed page {von} (after PDF page {pdf})",
+          "stelleMehrere": "printed pages {von} to {bis} (after PDF page {pdf})",
+          "stelleUngefaehr": "{anzahl, plural, one {# page} other {# pages}} between the printed pages {von} and {bis} (after PDF page {pdf})"
+        },
         "fehlerLesen": "The file could not be read. Is it a valid PDF with a text layer?",
         "start": "{anzahl, plural, one {Upload # book} other {Upload # books}}",
         "stopp": "Cancel",
@@ -2620,7 +2631,8 @@
           "ohneLeerzeichen": "Words stuck together without spaces.",
           "vieleZiffern": "Very many digits, probably tables.",
           "ohneVokale": "Many long words without vowels, indicating recognition errors.",
-          "wiederholteZeilen": "Headers and footers repeat on every page."
+          "wiederholteZeilen": "Headers and footers repeat on every page.",
+          "seitenLuecken": "Pages are missing in the scan (the printed page numbers jump). The book has gaps."
         }
       },
       "einschaetzung": {

@@ -429,6 +429,9 @@ export async function wissenBuchAbschliessen(kopf: BuchKopf, abschnitte: number)
       autoritaetsstufe: standardStufe(meta.quellenart),
       pruefstatus: "ungeprueft",
       buch: true,
+      // Pruefung des Seitenverlaufs im Browser: fehlende Seiten im Scan und, bei Gesetzen, fehlende Artikelnummern (nur Hinweise)
+      ...(meta.seiten ? { seiten_fehlend: meta.seiten.fehlend, seiten_stellen: meta.seiten.stellen, seiten_abdeckung: meta.seiten.abdeckung } : {}),
+      ...(meta.seiten?.artikelFehlend !== undefined ? { artikel_fehlend: meta.seiten.artikelFehlend, artikel_stellen: meta.seiten.artikelStellen ?? "" } : {}),
     });
     return ok("ok.wissenHochgeladen", meta.titel);
   } catch (error) {

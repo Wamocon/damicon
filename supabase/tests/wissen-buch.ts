@@ -13,7 +13,7 @@ import { entscheideUeberUpload } from "@/lib/wissen/freigabe";
 import { inhaltsHash, normalisiere, UploadFehler, type ChunkZeile, type WissenSpeicher } from "@/lib/wissen/hochladen";
 import type { Einbettung } from "@/lib/wissen/embed";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
-import { bewerteText, schlechtesteNote } from "@/lib/wissen/textguete";
+import { bewerteText, istGueteHinweis, schlechtesteNote } from "@/lib/wissen/textguete";
 import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { tokens } from "@/lib/wissen/sparse";
 import { schaetzeEin } from "@/lib/wissen/einschaetzung";
@@ -284,6 +284,36 @@ async function rest() {
     const sp = speicherNeu();
     const code = await fehlerCode(() => ladePaket({ ...kopf, nr: 1, text: pakete[0]! }, ich, { ...abh(sp), umgebung: { VERCEL_ENV: "preview" }, schema: "public" }));
     pruefe("Umgebung: eine Vorschau mit dem Schema public schreibt nichts", code === "vorschau" && sp.zeilen.size === 0);
+  }
+
+  // ---- Seitenverlauf: die Angabe aus dem Browser wird geprueft, abgelegt und als Hinweis gemeldet ----------------
+  {
+    const angabe = { seiten: 681, fehlend: 18, stellen: "48-49 (47), 2@276-278 (271)", abdeckung: 72, artikelFehlend: 48, artikelStellen: "85-89, 100" };
+    const f = (teil: unknown) => fehlerCode(() => pruefeBuchKopf({ ...kopf, seiten: teil as never }, ich, JETZT()));
+    pruefe("Seitenverlauf: eine gültige Angabe wird übernommen", pruefeBuchKopf({ ...kopf, seiten: angabe }, ich, JETZT()).meta.seiten?.fehlend === 18);
+    pruefe("Seitenverlauf: ohne Angabe bleibt das Feld leer (Markdown, Text)", pruefeBuchKopf(kopf, ich, JETZT()).meta.seiten === undefined);
+    pruefe("Seitenverlauf: mehr fehlende als vorhandene Seiten", (await f({ ...angabe, fehlend: 700 })) === "eingabe");
+    pruefe("Seitenverlauf: negative und gebrochene Zahlen", (await f({ ...angabe, fehlend: -1 })) === "eingabe" && (await f({ ...angabe, seiten: 10.5 })) === "eingabe");
+    pruefe("Seitenverlauf: Abdeckung über 100 Prozent", (await f({ ...angabe, abdeckung: 101 })) === "eingabe");
+    pruefe("Seitenverlauf: die Stellenangabe darf nur Ziffern und Trennzeichen enthalten", (await f({ ...angabe, stellen: "<script>alert(1)</script>" })) === "eingabe" && (await f({ ...angabe, artikelStellen: "85; DROP" })) === "eingabe");
+    pruefe("Seitenverlauf: zu lange Stellenangabe", (await f({ ...angabe, stellen: "1 ".repeat(400) })) === "eingabe");
+    pruefe("Seitenverlauf: kein Objekt", (await f("viele")) === "eingabe" && (await f(42)) === "eingabe");
+
+    const s = speicherNeu();
+    await ladePaket({ ...kopf, seiten: angabe, nr: 1, text: pakete[0]! }, ich, abh(s));
+    const z = [...s.zeilen.values()];
+    pruefe("Seitenverlauf: fehlende Seiten stufen die Güte auf prüfen herauf und melden den Hinweis", z.length > 0 && z.every((r) => r.extra.guete === "pruefen" && String(r.extra.guete_hinweise).split(",").includes("seitenLuecken")));
+    const sp = z[0]!.extra.seiten_pruefung as { fehlend: number; stellen: string; artikel_fehlend: number } | undefined;
+    pruefe("Seitenverlauf: die Angabe liegt an jeder Zeile", z.every((r) => (r.extra.seiten_pruefung as { fehlend?: number } | undefined)?.fehlend === 18) && sp?.stellen === "48-49 (47), 2@276-278 (271)" && sp?.artikel_fehlend === 48);
+    pruefe("Seitenverlauf: der Hinweis ist ein bekannter Güte-Hinweis (die Liste zeigt ihn an)", istGueteHinweis("seitenLuecken"));
+
+    const s2 = speicherNeu();
+    const erg = await ladePaket({ ...kopf, seiten: { seiten: 300, fehlend: 0, stellen: "", abdeckung: 90 }, nr: 1, text: pakete[0]! }, ich, abh(s2));
+    pruefe("Seitenverlauf: lückenlos bleibt gut, ohne Hinweis, die Angabe wird trotzdem abgelegt", erg.guete.note === "gut" && [...s2.zeilen.values()].every((r) => r.extra.guete === "gut" && !String(r.extra.guete_hinweise).includes("seitenLuecken") && (r.extra.seiten_pruefung as { fehlend: number }).fehlend === 0));
+
+    const s3 = speicherNeu();
+    await ladePaket({ ...kopf, seiten: angabe, nr: 1, text: "§$%&/()=?#*+~^°<>|{}[]@€ ".repeat(80) }, ich, abh(s3));
+    pruefe("Seitenverlauf: eine schlechte Textgüte bleibt schlecht", [...s3.zeilen.values()].every((r) => r.extra.guete === "schlecht" && String(r.extra.guete_hinweise).includes("seitenLuecken")));
   }
 
   // ---- Liste aus wissen_liste(): zusammengefasste Zeilen mit Anzahl -------------------------------------
