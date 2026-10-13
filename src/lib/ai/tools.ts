@@ -401,7 +401,7 @@ export function baueWerkzeuge(
     // Wissensbasis (Recht, Steuer, Compliance, Audit): nur mit Rollenrecht und vorhandenem Index.
     ...(wissenSuchen ? { wissenSuchen } : {}),
     // Verwaltung der Wissensbasis (Hochladen, Einordnen, Analysieren): nur Administration, nur lesend; Aenderungen laufen ueber die Aktion mit Bestaetigung.
-    ...(wissenVerwaltung ? { wissensbasisAbrufen: wissenVerwaltung.wissensbasisAbrufen, wissenDokumentAnalysieren: wissenVerwaltung.wissenDokumentAnalysieren } : {}),
+    ...(wissenVerwaltung ?? {}),
     ...baueDatenWerkzeuge(rolle, optionen.vorschau ?? false),
     ...(optionen.nurLesen ? {} : baueAktionen(rolle)),
     ...(optionen.agentModus ? { ohneAnsicht } : {}),

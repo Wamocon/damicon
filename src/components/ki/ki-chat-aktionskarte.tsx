@@ -20,6 +20,7 @@ import {
   MessageSquareWarning,
   Tags,
   Thermometer,
+  Trash2,
   X,
 } from "lucide-react";
 import type { AktionsErgebnis, AktionsKarte } from "@/components/ki/ki-chat-segmente";
@@ -35,6 +36,7 @@ const aktionsIcon: Record<AktionsName, ComponentType<{ className?: string }>> = 
   lohnPeriodeBerechnen: Calculator,
   mitarbeiterEinschalten: LifeBuoy,
   wissenEinordnungAendern: Tags,
+  wissenDokumenteEntfernen: Trash2,
 };
 
 export function KiChatAktionskarte({
@@ -53,6 +55,7 @@ export function KiChatAktionskarte({
   const aktionenT = useTranslations("aktionen");
 
   function aktionsWert(wert: unknown): string {
+    if (Array.isArray(wert)) return wert.map(aktionsWert).join(", ");
     const text = String(wert);
     return typeof wert === "string" && t.has(`aktion.werte.${wert}`) ? t(`aktion.werte.${wert}`) : text;
   }

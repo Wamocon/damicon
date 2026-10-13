@@ -828,7 +828,8 @@
       "scrolleZu": "Айналдырылды",
       "zeigeAuf": "Көрсетілді: {absicht}",
       "wissensbasisAbrufen": "Білім қоры тексерілді",
-      "wissenDokumentAnalysieren": "Құжат талданды"
+      "wissenDokumentAnalysieren": "Құжат талданды",
+      "wissenBestandAnalysieren": "Қор тексерілді"
     },
     "agentDenkt": "Агент деректерді теріп жатыр …",
     "agentPrueft": "Агент тексеріп жатыр: {werkzeug} …",
@@ -987,7 +988,8 @@
       "scrolleZu": "Айналдырып жатырмын …",
       "zeigeAuf": "Көрсетіп жатырмын: {absicht} …",
       "wissensbasisAbrufen": "Білім қорын оқып жатырмын …",
-      "wissenDokumentAnalysieren": "Құжатты талдап жатырмын …"
+      "wissenDokumentAnalysieren": "Құжатты талдап жатырмын …",
+      "wissenBestandAnalysieren": "Қорды тексеріп жатырмын …"
     },
     "ziel": {
       "mwstStatusAbrufen": "ҚҚС бойынша тіркеу",
@@ -1011,7 +1013,9 @@
       "mitarbeiterEinschalten": "Чат",
       "wissensbasisAbrufen": "Білім қорын басқару",
       "wissenDokumentAnalysieren": "Білім қорын басқару",
-      "wissenEinordnungAendern": "Білім қорын басқару"
+      "wissenEinordnungAendern": "Білім қорын басқару",
+      "wissenBestandAnalysieren": "Білім қорын басқару",
+      "wissenDokumenteEntfernen": "Білім қорын басқару"
     },
     "bereichAllgemein": "бөлім",
     "zielExtra": {
@@ -1066,7 +1070,8 @@
         "reklamationAnlegen": "Рекламация беру",
         "lohnPeriodeBerechnen": "Жалақыны есептеу",
         "mitarbeiterEinschalten": "Қызметкерге тапсыру",
-        "wissenEinordnungAendern": "Жіктеуді өзгерту"
+        "wissenEinordnungAendern": "Жіктеуді өзгерту",
+        "wissenDokumenteEntfernen": "Құжаттарды жою"
       },
       "felder": {
         "reihenblockCode": "Қатар блогы",
@@ -1088,7 +1093,8 @@
         "bereich": "Сала",
         "quellenart": "Дереккөз түрі",
         "cluster": "Кластер",
-        "textgrundlage": "Мәтін негізі"
+        "textgrundlage": "Мәтін негізі",
+        "dokumente": "Құжаттар"
       },
       "werte": {
         "angenommen": "қабылданды",
@@ -1214,7 +1220,8 @@
         "filterAlle": "Барлығы",
         "keineTreffer": "Бұл таңдауда құжат жоқ.",
         "unvollstaendig": "Толық емес",
-        "unvollstaendigHinweis": "Кітап толық жүктелмеген ({da}/{gesamt} пакет). Оны растауға болмайды. Жойып, қайта жүктеңіз."
+        "unvollstaendigHinweis": "Кітап толық жүктелмеген ({da}/{gesamt} пакет). Оны растауға болмайды. Жойып, қайта жүктеңіз.",
+        "qualitaet": "Сапасы {prozent} %"
       },
       "formular": {
         "titel": "Құжат жүктеу",
@@ -1443,7 +1450,8 @@
         "clusterHinweis": "Кітаптардың шаруашылыққа келген жолы. Осы таңдаудағы барлық файлдарға қолданылады.",
         "kiAn": "ЖИ арқылы талдау",
         "kiHinweis": "Талдау ережелері әрқашан браузерде жұмыс істейді. Қосымша ЖИ жіктеуді ұсынады. Ол үшін бапталған ЖИ провайдеріне әр файлдан шамамен 6 000 таңбалық үзінді (басы, ортасы, соңы) және файл аты жіберіледі. Провайдер болмаса, тек ережелер қолданылады.",
-        "angabenFehlen": "Сала, дереккөз түрі мен мәтін негізін тексеріңіз: үйлесім жарамсыз немесе сілтеме жоқ."
+        "angabenFehlen": "Сала, дереккөз түрі мен мәтін негізін тексеріңіз: үйлесім жарамсыз немесе сілтеме жоқ.",
+        "qualitaet": "Сапасы {prozent} %"
       },
       "guete": {
         "note": {
@@ -1640,6 +1648,13 @@
             "gewichte": "сөз салмақтары қайта есептелмеді",
             "unbekannt": "белгісіз қате"
           }
+        },
+        "qualitaet": {
+          "hinweis": "Пайыздағы сапа сақталған мәтіннің қаншалықты жақсы оқылатынын (мәтінді тану, сөз тасымалы; мазмұны мен нұсқауыштар есепке алынбайды) және сканда беттердің жетіспейтінін көрсетеді. Мәнсіз құжаттар: {anzahl}.",
+          "knopf": "Сапаны есептеу",
+          "fortschritt": "Есептелді: {fertig} / {gesamt} …",
+          "fertig": "Сапа есептелді, құжаттар: {anzahl}.",
+          "balken": "Сапаны есептеу барысы"
         }
       },
       "filter": {

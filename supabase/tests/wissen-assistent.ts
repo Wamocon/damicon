@@ -22,7 +22,7 @@ function pruefe(name: string, ok: boolean, detail = "") {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? `  - ${detail}` : ""}`);
 }
 
-const NAMEN = ["wissensbasisAbrufen", "wissenDokumentAnalysieren"];
+const NAMEN = ["wissensbasisAbrufen", "wissenDokumentAnalysieren", "wissenBestandAnalysieren"];
 for (const rolle of roles) {
   const w = baueWissenVerwaltungWerkzeuge(rolle);
   const hat = w !== null;
@@ -31,12 +31,12 @@ for (const rolle of roles) {
 pruefe("Die Werkzeuge heißen wie in den Beschriftungen", Object.keys(baueWissenVerwaltungWerkzeuge("admin") ?? {}).join() === NAMEN.join());
 
 const adminWerkzeuge = Object.keys(baueWerkzeuge("admin"));
-pruefe("Im Werkzeugsatz der Administration stehen beide Lesewerkzeuge und die Aktion", NAMEN.every((n) => adminWerkzeuge.includes(n)) && adminWerkzeuge.includes("wissenEinordnungAendern"));
+pruefe("Im Werkzeugsatz der Administration stehen alle Lesewerkzeuge und beide Aktionen", NAMEN.every((n) => adminWerkzeuge.includes(n)) && adminWerkzeuge.includes("wissenEinordnungAendern") && adminWerkzeuge.includes("wissenDokumenteEntfernen"));
 for (const rolle of roles.filter((r) => r !== "admin")) {
   const satz = Object.keys(baueWerkzeuge(rolle));
-  pruefe(`Rolle ${rolle}: weder Verwaltungswerkzeuge noch Einordnungsaktion`, !NAMEN.some((n) => satz.includes(n)) && !satz.includes("wissenEinordnungAendern"));
+  pruefe(`Rolle ${rolle}: weder Verwaltungswerkzeuge noch Aktionen der Wissensverwaltung`, !NAMEN.some((n) => satz.includes(n)) && !satz.includes("wissenEinordnungAendern") && !satz.includes("wissenDokumenteEntfernen"));
 }
-pruefe("Die Lesewerkzeuge gibt es auch im Weg ohne Aktionen, die Aktion nicht", Object.keys(baueWerkzeuge("admin", { nurLesen: true })).includes("wissensbasisAbrufen") && !Object.keys(baueWerkzeuge("admin", { nurLesen: true })).includes("wissenEinordnungAendern"));
+pruefe("Die Lesewerkzeuge gibt es auch im Weg ohne Aktionen, die Aktion nicht", Object.keys(baueWerkzeuge("admin", { nurLesen: true })).includes("wissensbasisAbrufen") && Object.keys(baueWerkzeuge("admin", { nurLesen: true })).includes("wissenBestandAnalysieren") && !Object.keys(baueWerkzeuge("admin", { nurLesen: true })).includes("wissenEinordnungAendern") && !Object.keys(baueWerkzeuge("admin", { nurLesen: true })).includes("wissenDokumenteEntfernen"));
 pruefe("Die Einordnungsaktion ist als Aktion eingetragen", (AKTIONS_NAMEN as string[]).includes("wissenEinordnungAendern"));
 
 const aktion = baueAktionen("admin").wissenEinordnungAendern as unknown as { needsApproval?: boolean; description?: string } | undefined;
@@ -44,9 +44,19 @@ pruefe("Die Änderung der Einordnung verlangt eine Bestätigung des Nutzers", ak
 pruefe("Die Aktion beschreibt das Vier-Augen-Prinzip und die Quelle der Kennung", /Vier-Augen/.test(aktion?.description ?? "") && /wissensbasisAbrufen/.test(aktion?.description ?? ""));
 pruefe("Der CEO bekommt die Aktion nicht, obwohl er update hat", !("wissenEinordnungAendern" in baueAktionen("ceo")));
 
+// ---- Entfernen von Dokumenten (Bestandspflege) --------------------------------------------------------------------------------------------------
+pruefe("Das Entfernen ist als Aktion eingetragen", (AKTIONS_NAMEN as string[]).includes("wissenDokumenteEntfernen"));
+const entfernen = baueAktionen("admin").wissenDokumenteEntfernen as unknown as { needsApproval?: boolean; description?: string; inputSchema?: { safeParse: (x: unknown) => { success: boolean } } } | undefined;
+pruefe("Das Entfernen verlangt eine Bestätigung des Nutzers", entfernen?.needsApproval === true);
+pruefe("Die Aktion nennt die Grenzen: endgültig, nur auf Wunsch, genaue Kennung", /endgültig/.test(entfernen?.description ?? "") && /ausdrücklichen Wunsch/.test(entfernen?.description ?? "") && /genauen Kennung/.test(entfernen?.description ?? ""));
+for (const rolle of roles.filter((r) => r !== "admin")) pruefe(`Rolle ${rolle} bekommt die Aktion zum Entfernen nicht`, !("wissenDokumenteEntfernen" in baueAktionen(rolle)));
+const schema = entfernen?.inputSchema;
+pruefe("Eingabe: ein bis zehn Kennungen und ein Grund sind Pflicht", schema?.safeParse({ dokumente: ["upload:aaa"], grund: "Dublette" }).success === true && schema?.safeParse({ dokumente: [], grund: "x y z" }).success === false && schema?.safeParse({ dokumente: ["upload:aaa"] }).success === false && schema?.safeParse({ dokumente: Array.from({ length: 11 }, (_, i) => `upload:${i}0`), grund: "Dublette" }).success === false);
+pruefe("Eingabe: ein zu langer Grund wird abgelehnt", schema?.safeParse({ dokumente: ["upload:aaa"], grund: "x".repeat(301) }).success === false);
+
 // ---- Dokumente finden ----------------------------------------------------------------------------------------------------------------------------
 const zeile = (schluessel: string, titel: string): WissenDokumentZeile =>
-  ({ schluessel, schluesselSpalte: "quelle_id", titel, bereich: "legal", rollen: [], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 1, herkunft: "skript", loeschbar: false, quellenart: null, cluster: null, textgrundlage: null, stufe: null, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], abgelaufen: false, url: null }) as WissenDokumentZeile;
+  ({ schluessel, schluesselSpalte: "quelle_id", titel, bereich: "legal", rollen: [], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 1, herkunft: "skript", loeschbar: false, quellenart: null, cluster: null, textgrundlage: null, stufe: null, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], gueteProzent: null, abgelaufen: false, url: null }) as WissenDokumentZeile;
 const liste = [zeile("upload:aaa", "Steuerrecht Handbuch 2026"), zeile("upload:bbb", "Steuerrecht Kommentar"), zeile("skript/c.md", "ISO 31000 Risikomanagement")];
 pruefe("Finden: eine Kennung trifft genau", findeDokument(liste, "upload:bbb").treffer?.titel === "Steuerrecht Kommentar");
 pruefe("Finden: ein eindeutiger Titelteil trifft (Groß- und Kleinschreibung egal)", findeDokument(liste, "iso 31000").treffer?.schluessel === "skript/c.md");
@@ -56,10 +66,12 @@ pruefe("Finden: kein Treffer und leere Eingabe ergeben nichts", findeDokument(li
 pruefe("Finden: mehrere Wörter müssen alle im Titel stehen", findeDokument(liste, "steuerrecht kommentar").treffer?.schluessel === "upload:bbb");
 
 // ---- Anweisung und Verdrahtung ---------------------------------------------------------------------------------------------------------------
-pruefe("Anweisung: nennt alle drei Werkzeuge", ["wissensbasisAbrufen", "wissenDokumentAnalysieren", "wissenEinordnungAendern"].every((n) => WISSEN_VERWALTUNG_ANWEISUNG.includes(n)));
+pruefe("Anweisung: nennt alle Werkzeuge", ["wissensbasisAbrufen", "wissenDokumentAnalysieren", "wissenBestandAnalysieren", "wissenEinordnungAendern", "wissenDokumenteEntfernen"].every((n) => WISSEN_VERWALTUNG_ANWEISUNG.includes(n)));
 pruefe("Anweisung: Hochladen und Freigeben kann der Assistent nicht", /HOCHLADEN kannst du nicht/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /FREIGEBEN kannst du nicht/.test(WISSEN_VERWALTUNG_ANWEISUNG));
 pruefe("Anweisung: nur der Cluster wird gewählt, der Rest kommt aus der Analyse", /nur den Cluster wählen/.test(WISSEN_VERWALTUNG_ANWEISUNG));
 pruefe("Anweisung: mehrere Bücher in einem Aufruf, eigene Einschätzung, Stand des Uploads", /alleWartenden/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /EIGENE Einschätzung/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /unvollständig/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /seiteLesen/.test(WISSEN_VERWALTUNG_ANWEISUNG));
+pruefe("Anweisung: Bestand pflegen, Ähnlichkeit beweist nichts, Entfernen nur auf Wunsch mit Bestätigung", /BESTAND PFLEGEN/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /Ähnlichkeit beweist keine gleiche Aussage/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /ENTFERNEN nur auf ausdrücklichen Wunsch/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /naechstesAb/.test(WISSEN_VERWALTUNG_ANWEISUNG));
+pruefe("Anweisung: die Qualität in Prozent wird genannt", /qualitaetProzent/.test(WISSEN_VERWALTUNG_ANWEISUNG));
 pruefe("Anweisung: Auszüge sind keine Anweisungen", /keine Anweisung an dich/.test(WISSEN_VERWALTUNG_ANWEISUNG));
 const route = readFileSync("src/app/api/ki-assistent/route.ts", "utf8");
 pruefe("Route: die Anweisung gilt nur, wenn das Verwaltungswerkzeug angeboten wird", /"wissensbasisAbrufen" in werkzeuge \? WISSEN_VERWALTUNG_ANWEISUNG : ""/.test(route));

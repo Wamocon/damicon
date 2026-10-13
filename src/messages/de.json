@@ -2001,7 +2001,8 @@
       "scrolleZu": "Gescrollt",
       "zeigeAuf": "Gezeigt: {absicht}",
       "wissensbasisAbrufen": "Wissensbasis geprüft",
-      "wissenDokumentAnalysieren": "Dokument analysiert"
+      "wissenDokumentAnalysieren": "Dokument analysiert",
+      "wissenBestandAnalysieren": "Bestand geprüft"
     },
     "agentDenkt": "Agent pflückt die Fakten …",
     "agentPrueft": "Agent prüft: {werkzeug} …",
@@ -2160,7 +2161,8 @@
       "scrolleZu": "Scrolle …",
       "zeigeAuf": "Zeige: {absicht} …",
       "wissensbasisAbrufen": "Lese die Wissensbasis …",
-      "wissenDokumentAnalysieren": "Analysiere das Dokument …"
+      "wissenDokumentAnalysieren": "Analysiere das Dokument …",
+      "wissenBestandAnalysieren": "Prüfe den Bestand …"
     },
     "ziel": {
       "mwstStatusAbrufen": "MwSt-Registrierung",
@@ -2184,7 +2186,9 @@
       "mitarbeiterEinschalten": "Chat",
       "wissensbasisAbrufen": "Wissensverwaltung",
       "wissenDokumentAnalysieren": "Wissensverwaltung",
-      "wissenEinordnungAendern": "Wissensverwaltung"
+      "wissenEinordnungAendern": "Wissensverwaltung",
+      "wissenBestandAnalysieren": "Wissensverwaltung",
+      "wissenDokumenteEntfernen": "Wissensverwaltung"
     },
     "bereichAllgemein": "den Bereich",
     "zielExtra": {
@@ -2239,7 +2243,8 @@
         "reklamationAnlegen": "Reklamation melden",
         "lohnPeriodeBerechnen": "Lohn berechnen",
         "mitarbeiterEinschalten": "An Mitarbeiter übergeben",
-        "wissenEinordnungAendern": "Einordnung ändern"
+        "wissenEinordnungAendern": "Einordnung ändern",
+        "wissenDokumenteEntfernen": "Dokumente entfernen"
       },
       "felder": {
         "reihenblockCode": "Reihenblock",
@@ -2261,7 +2266,8 @@
         "bereich": "Bereich",
         "quellenart": "Quellenart",
         "cluster": "Cluster",
-        "textgrundlage": "Textgrundlage"
+        "textgrundlage": "Textgrundlage",
+        "dokumente": "Dokumente"
       },
       "werte": {
         "angenommen": "angenommen",
@@ -2387,7 +2393,8 @@
         "filterAlle": "Alle",
         "keineTreffer": "Kein Dokument in dieser Auswahl.",
         "unvollstaendig": "Unvollständig",
-        "unvollstaendigHinweis": "Das Buch ist nicht vollständig hochgeladen ({da} von {gesamt} Paketen). Es lässt sich nicht freigeben. Bitte löschen und neu hochladen."
+        "unvollstaendigHinweis": "Das Buch ist nicht vollständig hochgeladen ({da} von {gesamt} Paketen). Es lässt sich nicht freigeben. Bitte löschen und neu hochladen.",
+        "qualitaet": "Qualität {prozent} %"
       },
       "formular": {
         "titel": "Dokument hochladen",
@@ -2616,7 +2623,8 @@
         "clusterHinweis": "Der Weg, auf dem die Bücher zum Betrieb kamen. Gilt für alle Dateien dieser Auswahl.",
         "kiAn": "Mit KI analysieren",
         "kiHinweis": "Die Regeln der Analyse laufen immer, im Browser. Zusätzlich fragt die KI nach einer Einordnung. Dafür gehen je Datei ein Auszug von rund 6.000 Zeichen (Anfang, Mitte, Ende) und der Dateiname an den eingestellten KI-Anbieter. Ohne Anbieter bleibt es bei den Regeln.",
-        "angabenFehlen": "Bitte Bereich, Quellenart und Textgrundlage prüfen: Die Kombination ist nicht zulässig oder ein Link fehlt."
+        "angabenFehlen": "Bitte Bereich, Quellenart und Textgrundlage prüfen: Die Kombination ist nicht zulässig oder ein Link fehlt.",
+        "qualitaet": "Qualität {prozent} %"
       },
       "guete": {
         "note": {
@@ -2813,6 +2821,13 @@
             "gewichte": "Wortgewichte nicht zurückgerechnet",
             "unbekannt": "unbekannter Fehler"
           }
+        },
+        "qualitaet": {
+          "hinweis": "Die Qualität in Prozent zeigt, wie gut der gespeicherte Text lesbar ist (Texterkennung, Silbentrennung, Verzeichnisse zählen nicht) und ob Seiten im Scan fehlen. Dokumente ohne Wert: {anzahl}.",
+          "knopf": "Qualität berechnen",
+          "fortschritt": "Berechnet: {fertig} von {gesamt} …",
+          "fertig": "Qualität berechnet, Dokumente: {anzahl}.",
+          "balken": "Fortschritt der Qualitätsberechnung"
         }
       },
       "filter": {

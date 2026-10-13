@@ -128,6 +128,7 @@ const werkzeugIcon: Record<string, ComponentType<{ className?: string }>> = {
   wissenSuchen: BookOpenCheck,
   wissensbasisAbrufen: Database,
   wissenDokumentAnalysieren: Eye,
+  wissenBestandAnalysieren: Eye,
   datenmodellErkunden: Database,
   datenLesen: Table2,
   seiteLesen: Eye,

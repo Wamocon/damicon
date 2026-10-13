@@ -2001,7 +2001,8 @@
       "scrolleZu": "Scrolled",
       "zeigeAuf": "Pointed at: {absicht}",
       "wissensbasisAbrufen": "Knowledge base checked",
-      "wissenDokumentAnalysieren": "Document analysed"
+      "wissenDokumentAnalysieren": "Document analysed",
+      "wissenBestandAnalysieren": "Stock checked"
     },
     "agentDenkt": "Agent is picking the facts …",
     "agentPrueft": "Agent is checking: {werkzeug} …",
@@ -2160,7 +2161,8 @@
       "scrolleZu": "Scrolling …",
       "zeigeAuf": "Pointing at: {absicht} …",
       "wissensbasisAbrufen": "Reading the knowledge base …",
-      "wissenDokumentAnalysieren": "Analysing the document …"
+      "wissenDokumentAnalysieren": "Analysing the document …",
+      "wissenBestandAnalysieren": "Checking the stock …"
     },
     "ziel": {
       "mwstStatusAbrufen": "VAT registration",
@@ -2184,7 +2186,9 @@
       "mitarbeiterEinschalten": "Chat",
       "wissensbasisAbrufen": "Knowledge management",
       "wissenDokumentAnalysieren": "Knowledge management",
-      "wissenEinordnungAendern": "Knowledge management"
+      "wissenEinordnungAendern": "Knowledge management",
+      "wissenBestandAnalysieren": "Knowledge management",
+      "wissenDokumenteEntfernen": "Knowledge management"
     },
     "bereichAllgemein": "the area",
     "zielExtra": {
@@ -2239,7 +2243,8 @@
         "reklamationAnlegen": "File complaint",
         "lohnPeriodeBerechnen": "Calculate payroll",
         "mitarbeiterEinschalten": "Hand over to a staff member",
-        "wissenEinordnungAendern": "Change classification"
+        "wissenEinordnungAendern": "Change classification",
+        "wissenDokumenteEntfernen": "Remove documents"
       },
       "felder": {
         "reihenblockCode": "Row block",
@@ -2261,7 +2266,8 @@
         "bereich": "Area",
         "quellenart": "Source type",
         "cluster": "Cluster",
-        "textgrundlage": "Text basis"
+        "textgrundlage": "Text basis",
+        "dokumente": "Documents"
       },
       "werte": {
         "angenommen": "accepted",
@@ -2387,7 +2393,8 @@
         "filterAlle": "All",
         "keineTreffer": "No document in this selection.",
         "unvollstaendig": "Incomplete",
-        "unvollstaendigHinweis": "The book was not fully uploaded ({da} of {gesamt} packages). It cannot be approved. Please delete it and upload it again."
+        "unvollstaendigHinweis": "The book was not fully uploaded ({da} of {gesamt} packages). It cannot be approved. Please delete it and upload it again.",
+        "qualitaet": "Quality {prozent}%"
       },
       "formular": {
         "titel": "Upload document",
@@ -2616,7 +2623,8 @@
         "clusterHinweis": "The way the books came to the farm. Applies to all files of this selection.",
         "kiAn": "Analyse with AI",
         "kiHinweis": "The analysis rules always run, in the browser. In addition the AI is asked for a classification. For this an excerpt of about 6,000 characters per file (start, middle, end) and the file name go to the configured AI provider. Without a provider only the rules apply.",
-        "angabenFehlen": "Please check area, source type and text basis: the combination is not allowed or a link is missing."
+        "angabenFehlen": "Please check area, source type and text basis: the combination is not allowed or a link is missing.",
+        "qualitaet": "Quality {prozent}%"
       },
       "guete": {
         "note": {
@@ -2813,6 +2821,13 @@
             "gewichte": "word weights not recalculated",
             "unbekannt": "unknown error"
           }
+        },
+        "qualitaet": {
+          "hinweis": "The quality in percent shows how well the stored text can be read (text recognition, hyphenation; tables of contents and indexes are not counted) and whether pages are missing from the scan. Documents without a value: {anzahl}.",
+          "knopf": "Calculate quality",
+          "fortschritt": "Calculated: {fertig} of {gesamt} …",
+          "fertig": "Quality calculated, documents: {anzahl}.",
+          "balken": "Progress of the quality calculation"
         }
       },
       "filter": {

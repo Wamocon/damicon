@@ -33,7 +33,9 @@ import { reklamationAnlegen } from "@/lib/actions/reklamationen";
 import { lohnPeriodeBerechnen } from "@/lib/actions/lohn";
 import { kiEskalationAnfordern } from "@/lib/actions/ki-assistent";
 import { wissenDokumentUmordnen } from "@/lib/actions/wissen";
+import { wissenBestandEntfernen } from "@/lib/actions/wissen-bestandspflege";
 import { findeDokument, ladeDokumente } from "@/lib/ai/wissen-verwaltung-werkzeug";
+import { MAX_GRUND } from "@/lib/wissen/bestandspflege-entfernen";
 import { CLUSTER, QUELLENARTEN, TEXTGRUNDLAGEN } from "@/lib/wissen/quellenart";
 import { UPLOAD_BEREICHE } from "@/lib/wissen/upload-konstanten";
 import { reklamationGruende } from "@/lib/domain/reklamationen";
@@ -258,6 +260,48 @@ const wissenEinordnungAendern = tool({
   },
 });
 
+const wissenDokumenteEntfernen = tool({
+  description:
+    "Entfernt Dokumente endgültig aus der Wissensbasis (Bestandspflege), höchstens zehn je Aufruf. Nur Administration. Die Dokumente gibst du mit ihrer genauen Kennung an (schluessel aus wissensbasisAbrufen oder wissenBestandAnalysieren, kein Titelteil). " +
+    "Das Entfernen ist nicht rückgängig zu machen und trifft auch Bestandsdokumente. Rufe es nur auf ausdrücklichen Wunsch des Nutzers auf, nachdem du ihm die Dokumente mit Titel und Grund genannt hast (bei Dubletten und abgedeckten Dokumenten nach dem Vergleich im Wortlaut mit wissenBestandAnalysieren) und er sie bestimmt hat. Der Grund wird im Protokoll festgehalten. Entfernt wird nichts, wenn eine Kennung unbekannt ist.",
+  inputSchema: z.object({
+    dokumente: z.array(z.string().min(2).max(300)).min(1).max(10).describe("Genaue Kennungen (schluessel) der Dokumente"),
+    grund: z.string().min(3).max(MAX_GRUND).describe("Kurzer Grund fürs Protokoll, zum Beispiel 'durch Buch X abgedeckt'"),
+  }),
+  needsApproval: true,
+  execute: async ({ dokumente, grund }) => {
+    const antwort = (ok: boolean, text: string) => ({ aktion: true as const, ok, meldungSchluessel: null, wert: null, text, ziel: ZIEL_WISSENSBASIS });
+    let liste;
+    try {
+      liste = await ladeDokumente();
+    } catch {
+      return antwort(false, "Die Dokumentliste ist gerade nicht lesbar. Es wurde nichts entfernt.");
+    }
+    const ids = [...new Set(dokumente.map((k) => k.trim()))];
+    const titel = new Map<string, string>();
+    const unbekannt: string[] = [];
+    for (const k of ids) {
+      const d = liste.find((x) => x.schluessel === k && x.schluesselSpalte === "quelle_id");
+      if (d) titel.set(k, d.titel);
+      else unbekannt.push(k);
+    }
+    if (unbekannt.length > 0) return antwort(false, `Keine genaue Kennung eines Dokuments: ${unbekannt.join(", ")}. Es wurde nichts entfernt. Nimm die Kennung (schluessel) aus wissensbasisAbrufen.`);
+    const erg = await wissenBestandEntfernen(ids, grund, String(ids.length));
+    if (!erg.zugriff) return antwort(false, "Dafür fehlt die Berechtigung (nur Administration).");
+    if (erg.bestaetigungFalsch) return antwort(false, "Die Bestätigung stimmte nicht. Es wurde nichts entfernt.");
+    const weg = erg.ergebnisse.filter((e) => e.status === "entfernt");
+    const schon = erg.ergebnisse.filter((e) => e.status === "schonWeg");
+    const bad = erg.ergebnisse.filter((e) => e.status === "fehler");
+    const name = (e: { quelleId: string; titel: string | null }) => e.titel ?? titel.get(e.quelleId) ?? e.quelleId;
+    const teile = [
+      weg.length > 0 ? `Entfernt: ${weg.map((e) => `${name(e)} (${e.abschnitte} Abschnitte)`).join("; ")}.` : "",
+      schon.length > 0 ? `Schon weg: ${schon.map(name).join("; ")}.` : "",
+      bad.length > 0 ? `Fehlgeschlagen: ${bad.map((e) => `${name(e)} (${e.code ?? "unbekannt"})`).join("; ")}.` : "",
+    ].filter(Boolean);
+    return antwort(bad.length === 0, teile.join(" "));
+  },
+});
+
 return {
   mwstSchwellePruefen: mwstPruefen,
   aufgabeAnlegen: aufgabeAnlegenWerkzeug,
@@ -267,6 +311,7 @@ return {
   lohnPeriodeBerechnen: lohnBerechnen,
   mitarbeiterEinschalten: einschalten,
   wissenEinordnungAendern,
+  wissenDokumenteEntfernen,
 } as const;
 }
 
@@ -286,5 +331,6 @@ export function baueAktionen(rolle: Role | null | undefined) {
     ...(darf("mitarbeiterEinschalten") ? { mitarbeiterEinschalten: ALLE_AKTIONEN.mitarbeiterEinschalten } : {}),
     // Die Verwaltung der Wissensbasis ist der Administration vorbehalten (ki_assistent:manage), nicht nur jeder Rolle mit update.
     ...(darf("wissenEinordnungAendern") && hasPermission(rolle, "ki_assistent", "manage") ? { wissenEinordnungAendern: ALLE_AKTIONEN.wissenEinordnungAendern } : {}),
+    ...(darf("wissenDokumenteEntfernen") && hasPermission(rolle, "ki_assistent", "manage") ? { wissenDokumenteEntfernen: ALLE_AKTIONEN.wissenDokumenteEntfernen } : {}),
   };
 }

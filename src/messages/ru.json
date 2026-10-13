@@ -828,7 +828,8 @@
       "scrolleZu": "Прокручено",
       "zeigeAuf": "Показано: {absicht}",
       "wissensbasisAbrufen": "База знаний проверена",
-      "wissenDokumentAnalysieren": "Документ проанализирован"
+      "wissenDokumentAnalysieren": "Документ проанализирован",
+      "wissenBestandAnalysieren": "Фонд проверен"
     },
     "agentDenkt": "Агент собирает факты …",
     "agentPrueft": "Агент проверяет: {werkzeug} …",
@@ -987,7 +988,8 @@
       "scrolleZu": "Прокручиваю …",
       "zeigeAuf": "Показываю: {absicht} …",
       "wissensbasisAbrufen": "Читаю базу знаний …",
-      "wissenDokumentAnalysieren": "Анализирую документ …"
+      "wissenDokumentAnalysieren": "Анализирую документ …",
+      "wissenBestandAnalysieren": "Проверяю фонд …"
     },
     "ziel": {
       "mwstStatusAbrufen": "Регистрация по НДС",
@@ -1011,7 +1013,9 @@
       "mitarbeiterEinschalten": "Чат",
       "wissensbasisAbrufen": "Управление базой знаний",
       "wissenDokumentAnalysieren": "Управление базой знаний",
-      "wissenEinordnungAendern": "Управление базой знаний"
+      "wissenEinordnungAendern": "Управление базой знаний",
+      "wissenBestandAnalysieren": "Управление базой знаний",
+      "wissenDokumenteEntfernen": "Управление базой знаний"
     },
     "bereichAllgemein": "раздел",
     "zielExtra": {
@@ -1066,7 +1070,8 @@
         "reklamationAnlegen": "Подать рекламацию",
         "lohnPeriodeBerechnen": "Рассчитать зарплату",
         "mitarbeiterEinschalten": "Передать сотруднику",
-        "wissenEinordnungAendern": "Изменить классификацию"
+        "wissenEinordnungAendern": "Изменить классификацию",
+        "wissenDokumenteEntfernen": "Удалить документы"
       },
       "felder": {
         "reihenblockCode": "Рядный блок",
@@ -1088,7 +1093,8 @@
         "bereich": "Область",
         "quellenart": "Тип источника",
         "cluster": "Кластер",
-        "textgrundlage": "Основа текста"
+        "textgrundlage": "Основа текста",
+        "dokumente": "Документы"
       },
       "werte": {
         "angenommen": "принята",
@@ -1214,7 +1220,8 @@
         "filterAlle": "Все",
         "keineTreffer": "В этой выборке нет документов.",
         "unvollstaendig": "Неполный",
-        "unvollstaendigHinweis": "Книга загружена не полностью ({da} из {gesamt} пакетов). Её нельзя одобрить. Удалите её и загрузите заново."
+        "unvollstaendigHinweis": "Книга загружена не полностью ({da} из {gesamt} пакетов). Её нельзя одобрить. Удалите её и загрузите заново.",
+        "qualitaet": "Качество {prozent} %"
       },
       "formular": {
         "titel": "Загрузить документ",
@@ -1443,7 +1450,8 @@
         "clusterHinweis": "Путь, которым книги попали на предприятие. Действует для всех файлов этого выбора.",
         "kiAn": "Анализировать с помощью ИИ",
         "kiHinweis": "Правила анализа всегда работают в браузере. Дополнительно ИИ предлагает классификацию. Для этого настроенному провайдеру ИИ отправляется фрагмент примерно в 6 000 символов на файл (начало, середина, конец) и имя файла. Без провайдера действуют только правила.",
-        "angabenFehlen": "Проверьте область, тип источника и основу текста: сочетание недопустимо или не хватает ссылки."
+        "angabenFehlen": "Проверьте область, тип источника и основу текста: сочетание недопустимо или не хватает ссылки.",
+        "qualitaet": "Качество {prozent} %"
       },
       "guete": {
         "note": {
@@ -1640,6 +1648,13 @@
             "gewichte": "веса слов не пересчитаны",
             "unbekannt": "неизвестная ошибка"
           }
+        },
+        "qualitaet": {
+          "hinweis": "Качество в процентах показывает, насколько хорошо читается сохранённый текст (распознавание, переносы; оглавления и указатели не учитываются) и не пропущены ли страницы скана. Документов без значения: {anzahl}.",
+          "knopf": "Рассчитать качество",
+          "fortschritt": "Рассчитано: {fertig} из {gesamt} …",
+          "fertig": "Качество рассчитано, документов: {anzahl}.",
+          "balken": "Ход расчёта качества"
         }
       },
       "filter": {
