@@ -21,6 +21,7 @@ import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
 import { WissenBuecher } from "@/components/db/wissen-buecher";
 import { WissenBestandspflege } from "@/components/db/wissen-bestandspflege";
 import { WissenOriginal } from "@/components/db/wissen-original";
+import { AnsichtSchalter, AufklappPfeil, useAnsicht, useAufgeklappt, type Ansicht } from "@/components/db/ansicht-schalter";
 import { WissenSeitenNachladen } from "@/components/db/wissen-nachladen";
 import { leseSeitenzahlen, lueckenAusStellen, pruefeAbdeckung, zaehleFehlend } from "@/lib/wissen/seiten-bestaetigung";
 import { beschreibeLuecken } from "@/lib/wissen/seitenverlauf";
@@ -50,6 +51,8 @@ export function WissenVerwaltung() {
   const [filter, setFilter] = useState<ListenFilter>(KEIN_FILTER);
   const [gewaehlt, setGewaehlt] = useState<ReadonlySet<string>>(new Set());
   const [, starte] = useTransition();
+  const [ansicht, setzeAnsicht] = useAnsicht("wissen.ansicht.dokumente");
+  const auf = useAufgeklappt<string>();
 
   const lade = useCallback(() => {
     starte(async () => {
@@ -87,7 +90,12 @@ export function WissenVerwaltung() {
       {dokumente && !ladefehler && dokumente.some(ohneEinordnung) ? <WissenBestandEinordnen dokumente={dokumente} beiFertig={lade} /> : null}
       {dokumente && !ladefehler && dokumente.length > 0 ? <WissenBestandspflege dokumente={dokumente} beiFertig={lade} /> : null}
       <div>
-        <p className="mb-2 text-[11px] font-semibold text-card-foreground">{t("liste.titel")}</p>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] font-semibold text-card-foreground">{t("liste.titel")}</p>
+          {dokumente && !ladefehler && dokumente.length > 0 ? (
+            <AnsichtSchalter ansicht={ansicht} beiWahl={setzeAnsicht} beiAlle={(offen) => auf.setzeAlle(sichtbar.map((d) => d.schluessel), offen)} />
+          ) : null}
+        </div>
         <AktionsMeldung status={aktionsMeldung} />
         {abgeschnitten ? <p role="status" className="mb-2 text-[11px] font-semibold text-destructive">{t("liste.abgeschnitten")}</p> : null}
         {ladefehler ? (
@@ -121,12 +129,15 @@ export function WissenVerwaltung() {
             {sichtbar.length === 0 ? (
               <Card className="text-center text-xs text-muted-foreground">{t("liste.keineTreffer")}</Card>
             ) : (
-              <ul className="space-y-2">
+              <ul className={ansicht === "raster" ? "grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,22rem),1fr))]" : "space-y-2"}>
                 {sichtbar.map((d) => (
                   <WissenDokumentKarte
                     key={d.schluessel}
                     dokument={d}
                     ichId={ichId}
+                    ansicht={ansicht}
+                    offen={auf.istOffen(d.schluessel, kannIchPruefen(d, ichId))}
+                    beiAufklappen={() => auf.schalte(d.schluessel, kannIchPruefen(d, ichId))}
                     gewaehlt={gewaehlt.has(d.schluessel)}
                     beiWahl={() => schalte(d.schluessel)}
                     beiErgebnis={(status) => {
@@ -152,12 +163,19 @@ function kannIchPruefen(d: WissenDokumentZeile, ichId: string | null): boolean {
 function WissenDokumentKarte({
   dokument,
   ichId,
+  ansicht,
+  offen,
+  beiAufklappen,
   gewaehlt,
   beiWahl,
   beiErgebnis,
 }: {
   dokument: WissenDokumentZeile;
   ichId: string | null;
+  ansicht: Ansicht;
+  /** Nur in der Liste: sind die Details aufgeklappt? */
+  offen: boolean;
+  beiAufklappen: () => void;
   gewaehlt: boolean;
   beiWahl: () => void;
   beiErgebnis: (status: AktionsStatus) => void;
@@ -187,15 +205,10 @@ function WissenDokumentKarte({
   const wartetAufAndere = eigener && (dokument.pruefstatus === "ungeprueft" || dokument.abgelaufen);
   const status = dokument.pruefstatus === "ungeprueft" ? "ungeprueft" : dokument.pruefstatus === "abgelehnt" ? "abgelehnt" : dokument.abgelaufen ? "abgelaufen" : "freigegeben";
 
-  return (
-    <li>
-      <Card>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <p className="flex min-w-0 items-start gap-2 break-words text-sm font-black text-card-foreground">
-            {waehlbar ? <input type="checkbox" checked={gewaehlt} onChange={beiWahl} aria-label={t("sammel.waehlen", { titel: dokument.titel })} className="mt-1 shrink-0" /> : null}
-            <span className="min-w-0">{dokument.titel}</span>
-          </p>
-          <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+  const detailId = `dok-${dokument.schluessel}`;
+  // Alle Angaben als Kennzeichen (Raster und aufgeklappte Liste); die zugeklappte Zeile zeigt nur die wichtigsten
+  const allePills = (
+    <>
             <StatusPill tone="info">{bereichName}</StatusPill>
             <StatusPill tone={dokument.herkunft === "upload" ? "success" : "neutral"}>{t(`herkunft.${dokument.herkunft}`)}</StatusPill>
             {ohneEinordnung(dokument) ? <StatusPill tone="warning">{t("liste.ohneEinordnung")}</StatusPill> : null}
@@ -212,9 +225,22 @@ function WissenDokumentKarte({
             {ersterEintrag ? (
               <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
             ) : null}
-          </div>
-        </div>
-        <dl className="mt-2 grid gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground sm:grid-cols-2">
+    </>
+  );
+  const kurzePills = (
+    <>
+      <StatusPill tone="info">{bereichName}</StatusPill>
+      {dokument.unvollstaendig ? <StatusPill tone="danger">{t("liste.unvollstaendig")}</StatusPill> : null}
+      {dokument.gueteProzent !== null ? <StatusPill tone={qualitaetTon(dokument.gueteProzent)}>{t("liste.qualitaet", { prozent: dokument.gueteProzent })}</StatusPill> : null}
+      {einschaetzung ? <StatusPill tone={EMPFEHLUNG_TON[einschaetzung.empfehlung]}>{t(`einschaetzung.empfehlung.${einschaetzung.empfehlung}` as never)}</StatusPill> : null}
+      {ersterEintrag ? (
+        <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
+      ) : null}
+    </>
+  );
+  const koerper = (
+    <>
+        <dl className={`mt-2 grid gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground ${ansicht === "raster" ? "" : "sm:grid-cols-2"}`}>
           {/* Die Einordnung steht immer da, auch beim Bestand ohne Typisierung: dort als "nicht eingeordnet", mit der Stufe, die er hat. */}
           <div className="sm:col-span-2">
             <dt className="inline font-semibold">{t("liste.einordnung")}: </dt>
@@ -294,12 +320,61 @@ function WissenDokumentKarte({
         ) : null}
         {einschaetzung ? <EinschaetzungGruende einschaetzung={einschaetzung} /> : null}
         {wartetAufAndere ? <p className="mt-2 text-[11px] font-semibold text-warning">{t("liste.wartet")}</p> : null}
-        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-2.5 empty:hidden">
+    </>
+  );
+  const knoepfe = (
+    <>
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-2.5 empty:hidden">
           <WissenUmordnenKnopf dokument={dokument} ichId={ichId} beiErgebnis={beiErgebnis} />
           {wartetAufMich ? <WissenPruefenKnopf dokument={dokument} bereichName={bereichName} artName={artName} beiErgebnis={beiErgebnis} /> : null}
           {/* Nur Uploads sind loeschbar. Skript-Dokumente haben keinen Knopf (und der Server lehnt sie ohnehin ab). */}
           {dokument.loeschbar ? <WissenLoeschenKnopf dokument={dokument} bereichName={bereichName} beiErgebnis={beiErgebnis} /> : null}
         </div>
+    </>
+  );
+
+  if (ansicht === "raster") {
+    return (
+      <li className="flex">
+        <Card className="flex w-full flex-col">
+          <div className="flex items-start gap-2">
+            {waehlbar ? <input type="checkbox" checked={gewaehlt} onChange={beiWahl} aria-label={t("sammel.waehlen", { titel: dokument.titel })} className="mt-1 shrink-0" /> : null}
+            <p className="min-w-0 break-words text-sm font-black text-card-foreground">{dokument.titel}</p>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">{allePills}</div>
+          {koerper}
+          <div className="mt-auto pt-3 empty:hidden">{knoepfe}</div>
+        </Card>
+      </li>
+    );
+  }
+
+  return (
+    <li>
+      <Card>
+        <div className="flex items-start gap-2">
+          {waehlbar ? <input type="checkbox" checked={gewaehlt} onChange={beiWahl} aria-label={t("sammel.waehlen", { titel: dokument.titel })} className="mt-1 shrink-0" /> : null}
+          <button
+            type="button"
+            aria-expanded={offen}
+            aria-controls={detailId}
+            onClick={beiAufklappen}
+            className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-1 text-left"
+          >
+            <span className="min-w-0 break-words text-sm font-black text-card-foreground">{dokument.titel}</span>
+            <span className="flex flex-wrap items-center justify-end gap-1.5">
+              {kurzePills}
+              <AufklappPfeil offen={offen} />
+            </span>
+          </button>
+        </div>
+        {offen ? (
+          <div id={detailId} className="mt-2 space-y-0 border-t border-border pt-2">
+            <div className="flex flex-wrap gap-1.5">{allePills}</div>
+            {koerper}
+            <div className="mt-3 empty:hidden">{knoepfe}</div>
+          </div>
+        ) : null}
       </Card>
     </li>
   );

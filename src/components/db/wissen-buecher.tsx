@@ -10,6 +10,7 @@ import { wissenOriginalPlatz } from "@/lib/actions/wissen-original";
 import { formatiereGroesse } from "@/lib/wissen/groesse";
 import { legeOriginalAb } from "@/lib/wissen/original-browser";
 import { ermittleOrte } from "@/lib/wissen/seiten-orte";
+import { AnsichtSchalter, AufklappPfeil, useAnsicht, useAufgeklappt } from "@/components/db/ansicht-schalter";
 import { mitWiederholung } from "@/lib/wissen/paket-wiederholung";
 import { qualitaetTon, vollstaendigkeitsFaktor } from "@/lib/wissen/qualitaet";
 import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
@@ -98,6 +99,9 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
   const tHinweis = useTranslations("kiAssistentAnsicht.wissensVerwaltung.guete");
   const tAnalyse = useTranslations("kiAssistentAnsicht.wissensVerwaltung.analyse");
   const tAktion = useTranslations("aktionen");
+  const [ansicht, setzeAnsicht] = useAnsicht("wissen.ansicht.hochladen");
+  const tAnsicht = useTranslations("kiAssistentAnsicht.wissensVerwaltung.ansicht");
+  const auf = useAufgeklappt<number>();
 
   const [eintraege, setEintraege] = useState<Eintrag[]>([]);
   const [cluster, setCluster] = useState<string>("buecher");
@@ -488,12 +492,21 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       ) : null}
 
       {eintraege.length > 0 ? (
-        <ul className="mt-3 space-y-2">
+        <div className="mt-3">
+          <AnsichtSchalter ansicht={ansicht} beiWahl={setzeAnsicht} beiAlle={(offen) => auf.setzeAlle(eintraege.map((x) => x.id), offen)} />
+        </div>
+      ) : null}
+      {eintraege.length > 0 ? (
+        <ul className={ansicht === "raster" ? "mt-3 grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,24rem),1fr))]" : "mt-3 space-y-2"}>
           {eintraege.map((e) => {
             const art = istQuellenart(e.quellenart) ? e.quellenart : null;
             const nutzung = art ? nutzungFuer(e.bereich, art) : "ja";
+            // In der Liste sind die Angaben zugeklappt, solange nichts zu tun ist. Was Aufmerksamkeit braucht (Fehler, Lücken ohne Bestätigung,
+            // unvollständige Angaben, gesperrter Text), steht aufgeklappt da; im Raster ist immer alles zu sehen.
+            const braucht = !!e.fehler || luckenOffen(e) || e.guete?.note === "schlecht" || (e.schritt === "bereit" && !eintragOk(e));
+            const offen = ansicht === "raster" || auf.istOffen(e.id, braucht);
             return (
-              <li key={e.id} className="rounded-lg border border-border p-2.5">
+              <li key={e.id} className="flex flex-col rounded-lg border border-border p-2.5">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <input
                     type="text"
@@ -501,7 +514,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                     disabled={gesperrt(e)}
                     onChange={(ev) => setze(e.id, { titel: ev.target.value })}
                     aria-label={t("titelFeld")}
-                    className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-semibold text-foreground"
+                    className={`min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-semibold text-foreground ${ansicht === "raster" ? "basis-full" : ""}`}
                   />
                   <div className="flex shrink-0 flex-wrap items-center gap-1.5">
                     <StatusPill tone={e.schritt === "fertig" ? "success" : e.schritt === "fehler" ? "danger" : e.schritt === "abgebrochen" ? "warning" : "info"}>
@@ -514,6 +527,18 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                     {e.schritt === "fertig" && e.original === "ok" ? <StatusPill tone="success">{t("original.abgelegt")}</StatusPill> : null}
                     {e.schritt === "fertig" && e.original !== null && e.original !== "ok" ? (
                       <StatusPill tone="warning">{t.has(`original.fehler.${e.original}` as never) ? t(`original.fehler.${e.original}` as never) : t("original.fehler.unbekannt")}</StatusPill>
+                    ) : null}
+                    {ansicht === "liste" ? (
+                      <button
+                        type="button"
+                        aria-expanded={offen}
+                        aria-controls={`eintrag-${e.id}`}
+                        aria-label={tAnsicht(offen ? "zuklappen" : "aufklappen", { titel: e.titel })}
+                        onClick={() => auf.schalte(e.id, braucht)}
+                        className="inline-flex size-6 items-center justify-center rounded-md border border-border"
+                      >
+                        <AufklappPfeil offen={offen} />
+                      </button>
                     ) : null}
                     {e.schritt !== "laedt" ? (
                       <button type="button" onClick={() => entferne(e.id)} className="text-[11px] font-semibold underline">
@@ -531,9 +556,11 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
 
                 {e.schritt === "liest" && e.seiten > 0 ? <progress className="mt-1 h-1.5 w-full" max={e.seiten} value={e.seite} aria-label={t("fortschritt.lesenBalken")} /> : null}
                 {e.schritt === "laedt" && e.pakete > 0 ? <progress className="mt-1 h-1.5 w-full" max={e.pakete} value={e.paket} aria-label={t("fortschritt.buchBalken")} /> : null}
+                {offen ? (
+                  <div id={`eintrag-${e.id}`}>
                 {e.analyse && e.schritt !== "wartet" && e.schritt !== "liest" ? (
                   <div className="mt-2 space-y-1.5">
-                    <div className="grid gap-2 sm:grid-cols-3">
+                    <div className={`grid gap-2 ${ansicht === "raster" ? "" : "sm:grid-cols-3"}`}>
                       <label className="block space-y-0.5">
                         <span className="text-[11px] font-semibold text-card-foreground">{tForm("bereich")}</span>
                         <select className={feldKlasse} value={e.bereich} disabled={gesperrt(e)} onChange={(ev) => aendere(e.id, "bereich", ev.target.value)}>
@@ -618,6 +645,8 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                   </p>
                 ) : null}
                 {e.guete?.note === "schlecht" ? <p className="mt-1 text-[11px] font-semibold text-destructive">{t("schlechtGesperrt")}</p> : null}
+                  </div>
+                ) : null}
                 {e.fehler ? <p role="alert" className="mt-1 text-[11px] font-semibold text-destructive">{e.fehler}</p> : null}
                 {e.schritt === "bereit" && e.guete?.note !== "schlecht" && !luckenOffen(e) && !eintragOk(e) ? <p className="mt-1 text-[11px] font-semibold text-warning">{t("angabenFehlen")}</p> : null}
               </li>

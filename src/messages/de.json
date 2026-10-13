@@ -2950,6 +2950,15 @@
           "unlesbar": "Die Datei ließ sich nicht lesen. Ist es eine PDF?",
           "zuVoll": "Der Speicher für wartende Originale ist voll. Bitte erst Bücher freigeben oder ablehnen."
         }
+      },
+      "ansicht": {
+        "gruppe": "Ansicht",
+        "liste": "Liste",
+        "raster": "Raster",
+        "alleAuf": "Alle aufklappen",
+        "alleZu": "Alle zuklappen",
+        "aufklappen": "Details von „{titel}“ aufklappen",
+        "zuklappen": "Details von „{titel}“ zuklappen"
       }
     },
     "sprachmodus": {

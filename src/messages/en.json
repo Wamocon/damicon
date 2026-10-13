@@ -2950,6 +2950,15 @@
           "unlesbar": "The file could not be read. Is it a PDF?",
           "zuVoll": "The storage for waiting originals is full. Please approve or reject books first."
         }
+      },
+      "ansicht": {
+        "gruppe": "View",
+        "liste": "List",
+        "raster": "Grid",
+        "alleAuf": "Expand all",
+        "alleZu": "Collapse all",
+        "aufklappen": "Expand details of “{titel}”",
+        "zuklappen": "Collapse details of “{titel}”"
       }
     },
     "sprachmodus": {
