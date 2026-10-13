@@ -20,15 +20,26 @@ async function ladePdfJs() {
   return pdfjs;
 }
 
-export interface PdfLesung {
-  /** Der bereinigte Text des ganzen Buchs. */
-  text: string;
+export interface PdfSeiten {
+  /** Der rohe Text jeder PDF-Seite, in der Reihenfolge der Datei. */
+  seiten: string[];
   /** Kopf- und Fusszeilen je Seite, fuer die Pruefung des Seitenverlaufs (seitenverlauf.ts). */
   raender: SeitenRand[];
 }
 
+export interface PdfLesung extends PdfSeiten {
+  /** Der bereinigte Text des ganzen Buchs. */
+  text: string;
+}
+
 /** Liest die PDF Seite fuer Seite: Text und, aus den Positionen der Textstuecke, den Rand jeder Seite (dort steht die gedruckte Seitenzahl). */
 export async function pdfLesenAusDatei(datei: File, beiSeite?: (f: PdfFortschritt) => void, abbruch?: AbortSignal): Promise<PdfLesung> {
+  const gelesen = await pdfSeitenAusDatei(datei, beiSeite, abbruch);
+  return { ...gelesen, text: bereinigeSeitentext(gelesen.seiten) };
+}
+
+/** Wie pdfLesenAusDatei, aber ohne den Text zusammenzusetzen: die einzelnen Seiten (fuer einen Nachtrag, der nur einzelne Seiten braucht). */
+export async function pdfSeitenAusDatei(datei: File, beiSeite?: (f: PdfFortschritt) => void, abbruch?: AbortSignal): Promise<PdfSeiten> {
   const pdfjs = await ladePdfJs();
   const daten = new Uint8Array(await datei.arrayBuffer());
   const dokument = await pdfjs.getDocument({ data: daten }).promise;
@@ -54,7 +65,7 @@ export async function pdfLesenAusDatei(datei: File, beiSeite?: (f: PdfFortschrit
       seite.cleanup();
       beiSeite?.({ seite: nr, seiten: dokument.numPages });
     }
-    return { text: bereinigeSeitentext(seiten), raender };
+    return { seiten, raender };
   } finally {
     await dokument.destroy().catch(() => undefined);
   }

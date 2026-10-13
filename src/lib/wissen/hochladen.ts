@@ -84,7 +84,9 @@ export type UploadFehlerCode =
   | "nichtPruefbar"
   | "selbstFreigabe"
   | "unvollstaendig"
-  | "vermerkFehlt"
+  | "seitenNichtBestaetigt"
+  | "seitenNichtAbgedeckt"
+  | "nachtragUngueltig"
   | "freigeben"
   // Einordnung nachtraeglich aendern (umordnen.ts)
   | "selbstUmordnen"
@@ -362,6 +364,7 @@ export function baueZeile(
                 fehlend: m.seiten.fehlend,
                 stellen: m.seiten.stellen,
                 abdeckung: m.seiten.abdeckung,
+                ...(m.seiten.orte ? { orte: m.seiten.orte } : {}),
                 ...(m.seiten.artikelFehlend !== undefined ? { artikel_fehlend: m.seiten.artikelFehlend, artikel_stellen: m.seiten.artikelStellen ?? "" } : {}),
               },
             }
@@ -408,8 +411,12 @@ export interface WissenSpeicher {
   /** Entscheidet ueber ein UNGEPRUEFTES Upload-Dokument (freigegeben oder abgelehnt). Die Anweisung filtert selbst auf
    *  Upload-Marker und pruefstatus = ungeprueft. Liefert die Zahl der Zeilen, die dieser Aufruf wirklich geaendert hat. */
   entscheide(quelleId: string, a: { status: "freigegeben" | "abgelehnt"; pruefer: string; zeitpunkt: string; pruefenBis: string | null }): Promise<number>;
-  /** Legt den Vermerk der pruefenden Person zu fehlenden Scanseiten ab (eine Zeile je Dokument, ersetzt einen frueheren). Nur vor der Freigabe eines Buchs mit Seitenluecken. */
-  legeSeitenVermerkAb?(quelleId: string, a: { vermerk: string; stellen: string | null; von: string; zeitpunkt: string }): Promise<void>;
+  /** Legt die Bestaetigung der pruefenden Person zu fehlenden Scanseiten ab: die gedruckten Seitenzahlen, die korrekt fehlen, und einen freiwilligen Grund
+   *  (eine Zeile je Dokument, ersetzt eine fruehere). Nur vor der Freigabe eines Buchs mit Seitenluecken, die die Angabe ganz abdeckt. */
+  legeSeitenVermerkAb?(
+    quelleId: string,
+    a: { vermerk: string | null; bestaetigt: string; stellen: string | null; von: string; zeitpunkt: string },
+  ): Promise<void>;
   /** Verschiebt die Wiedervorlage eines freigegebenen Upload-Dokuments. Liefert die Zahl geaenderter Zeilen. */
   verlaengere(quelleId: string, a: { pruefer: string; zeitpunkt: string; pruefenBis: string }): Promise<number>;
   /** Der Anfang des Textes fuer die Pruefung (hoechstens `maxZeichen`), auch fuer ungepruefte Dokumente. */
@@ -434,6 +441,10 @@ export interface FreigabeInfo {
   /** Seitenverlauf-Pruefung beim Hochladen (extra.seiten_pruefung): Zahl der fehlenden gedruckten Seiten und ihre Stellen ("48-49 (47)"). Fehlt bei Dokumenten ohne Pruefung. */
   seitenFehlend?: number;
   seitenStellen?: string | null;
+  /** Wo die Luecken im Text des Buchs liegen (extra.seiten_pruefung.orte), fuer einen Nachtrag. */
+  seitenOrte?: string | null;
+  /** Gedruckte Seiten, die per Nachtrag nachgeladen wurden ("48-49, 120", Tabelle wissen_seiten_nachtrag); null = kein Nachtrag. */
+  seitenNachgeladen?: string | null;
 }
 
 export interface UploadErgebnis {

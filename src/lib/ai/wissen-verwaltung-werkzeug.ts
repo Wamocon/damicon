@@ -71,7 +71,17 @@ function kurz(d: WissenDokumentZeile) {
     hochgeladenVon: d.hochgeladenVon,
     guete: d.guete,
     qualitaetProzent: d.gueteProzent,
-    ...(d.seitenFehlend > 0 ? { fehlendeSeiten: d.seitenFehlend, fehlendeSeitenStellen: d.seitenStellen, seitenVermerk: d.seitenVermerk } : {}),
+    ...(d.seitenFehlend > 0
+      ? {
+          fehlendeSeiten: d.seitenFehlend,
+          fehlendeSeitenStellen: d.seitenStellen,
+          offeneSeiten: d.seitenOffen,
+          offeneSeitenStellen: d.seitenOffenStellen,
+          nachgeladeneSeiten: d.seitenNachgeladen,
+          bestaetigteSeiten: d.seitenBestaetigt,
+          seitenVermerk: d.seitenVermerk,
+        }
+      : {}),
     ...(e ? { empfehlung: e.empfehlung, gruende: e.gruende.map((g) => g.code) } : {}),
   };
 }

@@ -58,9 +58,10 @@ function vektorVon(text: string): number[] {
 }
 const einbettung: Einbettung = { modell: "synthetisch-bge-m3", dimension: 1024, async einbetten(texte: string[]) { return texte.map(vektorVon); } };
 
-function speicherNeu(): WissenSpeicher & { zeilen: Map<string, ChunkZeile>; begriffe: Map<number, number>; vermerke: Map<string, { vermerk: string; stellen: string | null; von: string }> } {
+function speicherNeu(): WissenSpeicher & { zeilen: Map<string, ChunkZeile>; begriffe: Map<number, number>; vermerke: Map<string, { vermerk: string | null; bestaetigt: string; stellen: string | null; von: string }>; nachgeladen: Map<string, string> } {
   const zeilen = new Map<string, ChunkZeile>();
-  const vermerke = new Map<string, { vermerk: string; stellen: string | null; von: string }>();
+  const vermerke = new Map<string, { vermerk: string | null; bestaetigt: string; stellen: string | null; von: string }>();
+  const nachgeladen = new Map<string, string>();
   const begriffe = new Map<number, number>();
   const quelleVon = (r: ChunkZeile) => ({ quelle_id: r.quelle_id, upload_quelle: typeof r.extra.quelle === "string" ? r.extra.quelle : null });
   const unvollstaendig = (z: ChunkZeile[]) => {
@@ -71,6 +72,7 @@ function speicherNeu(): WissenSpeicher & { zeilen: Map<string, ChunkZeile>; begr
     zeilen,
     begriffe,
     vermerke,
+    nachgeladen,
     async findeQuelle(id) {
       const z = [...zeilen.values()].find((r) => r.quelle_id === id);
       return z ? { titel: z.titel } : null;
@@ -106,9 +108,11 @@ function speicherNeu(): WissenSpeicher & { zeilen: Map<string, ChunkZeile>; begr
         unvollstaendig: unvollstaendig(z),
         seitenFehlend: Number((z[0]?.extra.seiten_pruefung as { fehlend?: number } | undefined)?.fehlend ?? 0) || 0,
         seitenStellen: ((z[0]?.extra.seiten_pruefung as { stellen?: string } | undefined)?.stellen ?? null) as string | null,
+        seitenOrte: null,
+        seitenNachgeladen: nachgeladen.get(id) ?? null,
       };
     },
-    async legeSeitenVermerkAb(id, a) { vermerke.set(id, { vermerk: a.vermerk, stellen: a.stellen, von: a.von }); },
+    async legeSeitenVermerkAb(id, a) { vermerke.set(id, { vermerk: a.vermerk, bestaetigt: a.bestaetigt, stellen: a.stellen, von: a.von }); },
     async entscheide(id, a) {
       const z = [...zeilen.values()].filter((r) => r.quelle_id === id && r.pruefstatus === "ungeprueft");
       if (a.status === "freigegeben" && z.some((r) => r.extra.hochgeladen_von === a.pruefer)) throw new Error("Vier-Augen-Prinzip");
@@ -278,50 +282,97 @@ async function rest() {
     pruefe("Vier-Augen: eine zweite Person gibt das vollständige Buch frei", zweite.abschnitte === s.zeilen.size && [...s.zeilen.values()].every((z) => z.pruefstatus === "freigegeben"));
   }
 
-  // ---- Vermerk zu fehlenden Scanseiten bei der Freigabe -----------------------------------------------------------------
+  // ---- Fehlende Scanseiten bei der Freigabe: die Angabe der korrekt fehlenden Seiten muss alle Lücken abdecken ------------------------
   {
     const MIT_LUECKEN = { ...kopf, seiten: { seiten: 100, fehlend: 2, stellen: "48-49 (47)", abdeckung: 90 } };
     const hochladen = async (s: ReturnType<typeof speicherNeu>, k: BuchKopf) => {
       for (let i = 0; i < pakete.length; i++) await ladePaket({ ...k, nr: i + 1, text: pakete[i]! }, ich, abh(s));
       return uploadQuelleId(k.hash);
     };
-    const frei = (s: ReturnType<typeof speicherNeu>, id: string, seitenVermerk?: string | null, aktion: "freigeben" | "ablehnen" = "freigeben") =>
-      entscheideUeberUpload(aktion, id, { speicher: s, pruefer: { id: "admin-b" }, jetzt: JETZT, umgebung: {}, schema: "public_preview", seitenVermerk });
+    const frei = (s: ReturnType<typeof speicherNeu>, id: string, seitenBestaetigt?: string | null, aktion: "freigeben" | "ablehnen" = "freigeben", seitenVermerk?: string | null) =>
+      entscheideUeberUpload(aktion, id, { speicher: s, pruefer: { id: "admin-b" }, jetzt: JETZT, umgebung: {}, schema: "public_preview", seitenBestaetigt, seitenVermerk });
+    const unveraendert = (s: ReturnType<typeof speicherNeu>) => [...s.zeilen.values()].every((z) => z.pruefstatus === "ungeprueft") && s.vermerke.size === 0;
 
     {
       const s = speicherNeu();
       const id = await hochladen(s, MIT_LUECKEN);
       const info = await s.ladeFreigabeInfo(id);
-      pruefe("Vermerk: die Seitenangabe des Hochladens kommt bei der Freigabe an (2 Seiten, Stelle 48-49)", info.seitenFehlend === 2 && info.seitenStellen === "48-49 (47)");
+      pruefe("Bestätigung: die Seitenangabe des Hochladens kommt bei der Freigabe an (2 Seiten, Stelle 48-49)", info.seitenFehlend === 2 && info.seitenStellen === "48-49 (47)");
       const ohne = await fehlerCode(() => frei(s, id));
-      pruefe("Vermerk: ein Buch mit Seitenlücken lässt sich ohne Vermerk nicht freigeben", ohne === "vermerkFehlt", String(ohne));
-      pruefe("Vermerk: ohne Vermerk ändert sich nichts (weiter ungeprüft, kein Vermerk abgelegt)", [...s.zeilen.values()].every((z) => z.pruefstatus === "ungeprueft") && s.vermerke.size === 0);
-      const leer = await fehlerCode(() => frei(s, id, "   "));
-      const kurz = await fehlerCode(() => frei(s, id, "ok"));
-      pruefe("Vermerk: leer oder zu kurz zählt nicht als Vermerk", leer === "vermerkFehlt" && kurz === "vermerkFehlt");
-      const erg = await frei(s, id, "  Leere Seiten   im Buch \n");
-      pruefe("Vermerk: mit Vermerk wird freigegeben", erg.abschnitte === s.zeilen.size && [...s.zeilen.values()].every((z) => z.pruefstatus === "freigegeben"));
+      pruefe("Bestätigung: ein Buch mit Seitenlücken lässt sich ohne Angabe der korrekt fehlenden Seiten nicht freigeben", ohne === "seitenNichtBestaetigt", String(ohne));
+      pruefe("Bestätigung: ohne Angabe ändert sich nichts (weiter ungeprüft, nichts abgelegt)", unveraendert(s));
+      pruefe("Bestätigung: leer oder ungültig zählt nicht als Angabe", (await fehlerCode(() => frei(s, id, "   "))) === "seitenNichtBestaetigt" && (await fehlerCode(() => frei(s, id, "abc"))) === "seitenNichtBestaetigt" && (await fehlerCode(() => frei(s, id, "49-48"))) === "seitenNichtBestaetigt");
+      const teil = await s.ladeFreigabeInfo(id).then(() => fehlerCode(() => frei(s, id, "48")));
+      pruefe("Bestätigung: deckt die Angabe nicht alle Lücken ab (nur Seite 48), gibt es keine Freigabe", teil === "seitenNichtAbgedeckt", String(teil));
+      let wert = "";
+      try {
+        await frei(s, id, "48");
+      } catch (e) {
+        wert = e instanceof UploadFehler ? (e.wert ?? "") : "";
+      }
+      pruefe("Bestätigung: die Meldung nennt, was offen bleibt (Seite 49 nach PDF-Seite 47)", wert === "49 (47)", wert);
+      pruefe("Bestätigung: auch ein Fehlschlag legt nichts ab", unveraendert(s));
+      pruefe("Bestätigung: Seiten außerhalb der Lücke decken nichts ab", (await fehlerCode(() => frei(s, id, "50-51"))) === "seitenNichtAbgedeckt" && unveraendert(s));
+      const erg = await frei(s, id, " 48 - 49 ", "freigeben", "  Leere Seiten   im Buch \n");
+      pruefe("Bestätigung: deckt die Angabe alle Lücken ab, wird freigegeben", erg.abschnitte === s.zeilen.size && [...s.zeilen.values()].every((z) => z.pruefstatus === "freigegeben"));
       const v = s.vermerke.get(id);
-      pruefe("Vermerk: bereinigt abgelegt, mit den fehlenden Seiten und der prüfenden Person", v?.vermerk === "Leere Seiten im Buch" && v?.stellen === "48-49 (47)" && v?.von === "admin-b", JSON.stringify(v));
-      pruefe("Vermerk: das Ergebnis nennt Zahl und Vermerk (für das Protokoll)", erg.seitenFehlend === 2 && erg.seitenVermerk === "Leere Seiten im Buch");
+      pruefe("Bestätigung: abgelegt mit den bestätigten Seiten, dem Grund, den Stellen und der prüfenden Person", v?.bestaetigt === "48-49" && v?.vermerk === "Leere Seiten im Buch" && v?.stellen === "48-49 (47)" && v?.von === "admin-b", JSON.stringify(v));
+      pruefe("Bestätigung: das Ergebnis nennt Zahl, bestätigte Seiten und Grund (für das Protokoll)", erg.seitenFehlend === 2 && erg.seitenBestaetigt === "48-49" && erg.seitenVermerk === "Leere Seiten im Buch");
+    }
+    {
+      const s = speicherNeu();
+      const id = await hochladen(s, MIT_LUECKEN);
+      const erg = await frei(s, id, "48, 49, 300");
+      pruefe("Bestätigung: der Grund ist freiwillig, überzählige Seitenzahlen werden nicht mit abgelegt", erg.seitenVermerk === null && s.vermerke.get(id)?.vermerk === null && s.vermerke.get(id)?.bestaetigt === "48-49");
     }
     {
       const s = speicherNeu();
       const id = await hochladen(s, MIT_LUECKEN);
       const abg = await frei(s, id, null, "ablehnen");
-      pruefe("Vermerk: Ablehnen braucht keinen Vermerk", abg.abschnitte === s.zeilen.size && [...s.zeilen.values()].every((z) => z.pruefstatus === "abgelehnt") && s.vermerke.size === 0);
+      pruefe("Bestätigung: Ablehnen braucht keine Angabe", abg.abschnitte === s.zeilen.size && [...s.zeilen.values()].every((z) => z.pruefstatus === "abgelehnt") && s.vermerke.size === 0);
     }
     {
       const s = speicherNeu();
       const id = await hochladen(s, { ...kopf, seiten: { seiten: 100, fehlend: 0, stellen: "", abdeckung: 95 } });
       const erg = await frei(s, id);
-      pruefe("Vermerk: ein Buch ohne Seitenlücken braucht keinen und legt keinen ab", erg.seitenFehlend === 0 && erg.seitenVermerk === null && s.vermerke.size === 0);
+      pruefe("Bestätigung: ein Buch ohne Seitenlücken braucht keine und legt keine ab", erg.seitenFehlend === 0 && erg.seitenBestaetigt === null && s.vermerke.size === 0);
     }
     {
       const s = speicherNeu();
       const id = await hochladen(s, kopf);
-      const erg = await frei(s, id, "Leere Seiten im Buch");
-      pruefe("Vermerk: ohne Seitenprüfung (Text, Markdown) wird ein mitgeschickter Vermerk nicht abgelegt", erg.seitenVermerk === null && s.vermerke.size === 0);
+      const erg = await frei(s, id, "48-49", "freigeben", "Leere Seiten im Buch");
+      pruefe("Bestätigung: ohne Seitenprüfung (Text, Markdown) wird eine mitgeschickte Angabe nicht abgelegt", erg.seitenBestaetigt === null && erg.seitenVermerk === null && s.vermerke.size === 0);
+    }
+    {
+      // nachgeladen: sind die Lücken per Nachtrag gedeckt, braucht die Freigabe keine Bestätigung mehr
+      const s = speicherNeu();
+      const id = await hochladen(s, MIT_LUECKEN);
+      s.nachgeladen.set(id, "48");
+      pruefe("Nachgeladen: ist nur Seite 48 nachgeladen, bleibt 49 offen und braucht die Bestätigung", (await fehlerCode(() => frei(s, id))) === "seitenNichtBestaetigt" && (await fehlerCode(() => frei(s, id, "48"))) === "seitenNichtAbgedeckt");
+      const nur49 = await frei(s, id, "49");
+      pruefe("Nachgeladen: die Bestätigung braucht nur noch die offene Seite 49", nur49.seitenFehlend === 1 && nur49.seitenBestaetigt === "49" && s.vermerke.get(id)?.bestaetigt === "49");
+    }
+    {
+      const s = speicherNeu();
+      const id = await hochladen(s, MIT_LUECKEN);
+      s.nachgeladen.set(id, "48-49");
+      const erg = await frei(s, id);
+      pruefe("Nachgeladen: sind alle Lücken nachgeladen, wird ohne Bestätigung freigegeben und nichts abgelegt", erg.seitenFehlend === 0 && erg.seitenBestaetigt === null && s.vermerke.size === 0);
+    }
+    {
+      // unscharfe Lücke: 2 Seiten irgendwo zwischen 105 und 107
+      const s = speicherNeu();
+      const id = await hochladen(s, { ...kopf, seiten: { seiten: 300, fehlend: 2, stellen: "2@105-107 (PDF 106-108)", abdeckung: 90 } });
+      pruefe("Unscharf: eine einzelne Seite aus dem Bereich genügt nicht", (await fehlerCode(() => frei(s, id, "106"))) === "seitenNichtAbgedeckt");
+      pruefe("Unscharf: Seiten außerhalb des Bereichs decken nichts ab", (await fehlerCode(() => frei(s, id, "300, 301"))) === "seitenNichtAbgedeckt");
+      const erg = await frei(s, id, "105, 107");
+      pruefe("Unscharf: zwei Seiten aus dem Bereich decken die Lücke", erg.seitenBestaetigt === "105, 107" && [...s.zeilen.values()].every((z) => z.pruefstatus === "freigegeben"));
+    }
+    {
+      // Lücken, die nicht einzeln bekannt sind: lassen sich nicht bestätigen, das Buch gehört neu gescannt
+      const s = speicherNeu();
+      const id = await hochladen(s, { ...kopf, seiten: { seiten: 300, fehlend: 5, stellen: "48-49 (47)", abdeckung: 90 } });
+      pruefe("Unbekannt: fehlen mehr Seiten, als die Stellen nennen, ist keine Freigabe möglich", (await fehlerCode(() => frei(s, id, "48-49, 1-10"))) === "seitenNichtAbgedeckt" && unveraendert(s));
     }
     pruefe("saeubereVermerk: Leerraum und Steuerzeichen werden bereinigt", saeubereVermerk("  Leere\tSeiten\u0000 im   Buch  ") === "Leere Seiten im Buch");
     pruefe("saeubereVermerk: zu kurz, leer und null ergeben leer", saeubereVermerk("ab") === "" && saeubereVermerk("   ") === "" && saeubereVermerk(null) === "" && saeubereVermerk(undefined) === "");
@@ -363,7 +414,9 @@ async function rest() {
     pruefe("Seitenverlauf: negative und gebrochene Zahlen", (await f({ ...angabe, fehlend: -1 })) === "eingabe" && (await f({ ...angabe, seiten: 10.5 })) === "eingabe");
     pruefe("Seitenverlauf: Abdeckung über 100 Prozent", (await f({ ...angabe, abdeckung: 101 })) === "eingabe");
     pruefe("Seitenverlauf: die Stellenangabe darf nur Ziffern und Trennzeichen enthalten", (await f({ ...angabe, stellen: "<script>alert(1)</script>" })) === "eingabe" && (await f({ ...angabe, artikelStellen: "85; DROP" })) === "eingabe");
-    pruefe("Seitenverlauf: zu lange Stellenangabe", (await f({ ...angabe, stellen: "1 ".repeat(400) })) === "eingabe");
+    pruefe("Seitenverlauf: zu lange Stellenangabe", (await f({ ...angabe, stellen: "1 ".repeat(600) })) === "eingabe");
+    pruefe("Seitenverlauf: die Orte der Lücken (Paket:Promille) werden übernommen", pruefeBuchKopf({ ...kopf, seiten: { ...angabe, orte: "3:410,7:0" } }, ich, JETZT()).meta.seiten?.orte === "3:410,7:0");
+    pruefe("Seitenverlauf: die Orte dürfen nur Ziffern, Doppelpunkt und Komma enthalten und nicht zu lang sein", (await f({ ...angabe, orte: "3:410; DROP" })) === "eingabe" && (await f({ ...angabe, orte: "1:1,".repeat(300) })) === "eingabe" && (await f({ ...angabe, orte: 5 })) === "eingabe");
     pruefe("Seitenverlauf: kein Objekt", (await f("viele")) === "eingabe" && (await f(42)) === "eingabe");
 
     const s = speicherNeu();
@@ -409,7 +462,7 @@ async function rest() {
   // ---- Filter der Liste -------------------------------------------------------------------------------------
   {
     const z = (teil: Partial<WissenDokumentZeile>): WissenDokumentZeile =>
-      ({ schluessel: "k", schluesselSpalte: "quelle_id", titel: "Dokument", bereich: "legal", rollen: ["admin", "buchhaltung"], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 5, herkunft: "skript", loeschbar: false, quellenart: "fachliteratur", cluster: "buecher", textgrundlage: "original", stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, abgelaufen: false, url: null, ...teil }) as WissenDokumentZeile;
+      ({ schluessel: "k", schluesselSpalte: "quelle_id", titel: "Dokument", bereich: "legal", rollen: ["admin", "buchhaltung"], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 5, herkunft: "skript", loeschbar: false, quellenart: "fachliteratur", cluster: "buecher", textgrundlage: "original", stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, seitenBestaetigt: null, seitenVermerkt: false, seitenNachgeladen: null, seitenOffen: 0, seitenOffenStellen: null, abgelaufen: false, url: null, ...teil }) as WissenDokumentZeile;
     const gesetz = z({ schluessel: "g", titel: "Steuerkodex 2026", bereich: "steuer", quellenart: "rechtsnorm", cluster: "internet", stufe: 1 });
     const behoerde = z({ schluessel: "b", titel: "KGD Merkblatt", bereich: "amtlich", quellenart: "behoerdeninfo", cluster: "internet", stufe: 3 });
     const buch = z({ schluessel: "u", titel: "Umsatzsteuer Handbuch", bereich: "steuer", herkunft: "upload", pruefstatus: "ungeprueft" });
@@ -442,7 +495,7 @@ async function rest() {
       schluessel: "upload:abc", schluesselSpalte: "quelle_id", titel: "Buch", bereich: "steuer", rollen: ["admin"], datum: null,
       hochgeladenVon: "A", hochgeladenVonId: "a", chunks: 120, herkunft: "upload", loeschbar: true, quellenart: "fachliteratur", cluster: "buecher",
       stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "ungeprueft", pruefenBis: null, paketeGesamt: 3, paketeDa: 3, unvollstaendig: false,
-      guete: "gut", gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, abgelaufen: false, url: null, textgrundlage: "original", ...teil,
+      guete: "gut", gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, seitenBestaetigt: null, seitenVermerkt: false, seitenNachgeladen: null, seitenOffen: 0, seitenOffenStellen: null, abgelaufen: false, url: null, textgrundlage: "original", ...teil,
     });
     const codes = (teil: Partial<WissenDokumentZeile>) => schaetzeEin(zeile(teil)).gruende.map((g) => g.code);
     pruefe("Einschätzung: sauberes Buch wird zur Freigabe empfohlen", schaetzeEin(zeile()).empfehlung === "freigeben" && schaetzeEin(zeile()).gruende.length === 0);

@@ -1,5 +1,7 @@
 import { pruefeUploadUmgebung, UploadFehler, type FreigabeInfo, type WissenSpeicher } from "@/lib/wissen/hochladen";
 import { istQuellenart, pruefenBis, type Quellenart } from "@/lib/wissen/quellenart";
+import { alsBereichsText, leseSeitenzahlen, offenerStand, pruefeAbdeckung } from "@/lib/wissen/seiten-bestaetigung";
+import { beschreibeLuecken } from "@/lib/wissen/seitenverlauf";
 import { istUploadQuelleId } from "@/lib/wissen/upload-quelle";
 
 // Vier-Augen-Prinzip fuer hochgeladene Wissensdokumente. Ein Upload ist ungeprueft und fuer niemanden durchsuchbar (auch
@@ -22,8 +24,10 @@ export interface FreigabeErgebnis {
   abschnitte: number;
   /** Neue Wiedervorlage (JJJJ-MM-TT) oder null, wenn die Art nie ablaeuft. */
   pruefenBis: string | null;
-  /** Fehlende Scanseiten laut Seitenverlauf-Pruefung (0 = keine bekannt) und der Vermerk, mit dem die Freigabe sie bestaetigt hat. */
+  /** Fehlende Scanseiten, die bei der Entscheidung noch offen waren (0 = keine; nachgeladene Seiten sind abgezogen), die bestaetigten gedruckten Seitenzahlen
+   *  und der freiwillige Grund. */
   seitenFehlend: number;
+  seitenBestaetigt: string | null;
   seitenVermerk: string | null;
 }
 
@@ -34,7 +38,10 @@ export interface FreigabeAbhaengigkeiten {
   jetzt?: () => Date;
   umgebung?: Record<string, string | undefined>;
   schema?: string;
-  /** Vermerk der pruefenden Person zu fehlenden Scanseiten, zum Beispiel "Leere Seiten im Buch". Pflicht, wenn ein Buch mit Seitenluecken freigegeben wird. */
+  /** Gedruckte Seitenzahlen, die die pruefende Person als korrekt fehlend bestaetigt ("48-49, 120"). Pflicht, wenn ein Buch mit offenen Seitenluecken freigegeben
+   *  wird, und sie muss ALLE offenen Luecken abdecken (seiten-bestaetigung.ts). */
+  seitenBestaetigt?: string | null;
+  /** Freiwilliger Grund zu den bestaetigten Seiten, zum Beispiel "Leere Seiten im Buch". */
   seitenVermerk?: string | null;
 }
 
@@ -79,7 +86,7 @@ export async function entscheideUeberUpload(aktion: FreigabeAktion, quelleId: st
       throw new UploadFehler("freigeben", info.titel ?? undefined, u);
     });
     if (n !== info.anzahl) throw new UploadFehler("nichtPruefbar");
-    return { titel: info.titel, bereich: info.bereich, quellenart: info.quellenart, abschnitte: n, pruefenBis: neu, seitenFehlend: info.seitenFehlend ?? 0, seitenVermerk: null };
+    return { titel: info.titel, bereich: info.bereich, quellenart: info.quellenart, abschnitte: n, pruefenBis: neu, seitenFehlend: 0, seitenBestaetigt: null, seitenVermerk: null };
   }
 
   // Freigeben und Ablehnen: nur, solange das Dokument wartet.
@@ -88,16 +95,30 @@ export async function entscheideUeberUpload(aktion: FreigabeAktion, quelleId: st
   if (aktion === "freigeben" && info.unvollstaendig) throw new UploadFehler("unvollstaendig");
   // Freigeben braucht die zweite Person. Ablehnen darf auch, wer hochgeladen hat: Das ist ein Zurueckziehen, keine Freigabe.
   if (aktion === "freigeben") sicherheitsPruefung(info, d.pruefer.id);
-  // Fehlen im Scan Seiten (Seitenverlauf-Pruefung beim Hochladen), bestaetigt die pruefende Person sie mit einem Vermerk, nachdem sie am Original
-  // nachgesehen hat ("Leere Seiten im Buch"). Ohne Vermerk keine Freigabe. Ablehnen braucht keinen. Der Vermerk wird VOR der Entscheidung abgelegt:
-  // Scheitert diese, bleibt ein Vermerk zu einem weiter wartenden Dokument, harmlos; umgekehrt gaebe es ein freigegebenes Buch ohne Vermerk.
-  const seitenFehlend = info.seitenFehlend ?? 0;
+  // Fehlen im Scan Seiten (Seitenverlauf-Pruefung beim Hochladen) und sind sie nicht nachgeladen, sieht die pruefende Person am Original nach und gibt die
+  // gedruckten Seitenzahlen an, die KORREKT fehlen (Leerseiten, Notizseiten). Die Angabe muss ALLE offenen Luecken abdecken: Sonst fehlt echter Inhalt, und das
+  // Buch wird nicht freigegeben (die Seiten werden nachgeladen oder das Buch wird neu hochgeladen). Ablehnen braucht nichts davon. Die Bestaetigung wird VOR der
+  // Entscheidung abgelegt: Scheitert diese, bleibt sie zu einem weiter wartenden Dokument, harmlos; umgekehrt gaebe es ein freigegebenes Buch ohne Bestaetigung.
+  const stand = offenerStand({
+    fehlendBeimHochladen: info.seitenFehlend ?? 0,
+    stellen: info.seitenStellen ?? null,
+    orte: info.seitenOrte ?? null,
+    nachgeladen: leseSeitenzahlen(info.seitenNachgeladen).seiten,
+    bestaetigt: false,
+  });
+  let bestaetigt: string | null = null;
   let vermerk: string | null = null;
-  if (aktion === "freigeben" && seitenFehlend > 0) {
-    vermerk = saeubereVermerk(d.seitenVermerk);
-    if (!vermerk) throw new UploadFehler("vermerkFehlt", info.titel ?? undefined);
+  if (aktion === "freigeben" && stand.fehlend > 0) {
+    // Lücken, die nicht einzeln bekannt sind (zu viele, nicht lesbar), lassen sich nicht bestätigen: Das Buch gehört neu gescannt.
+    if (stand.unbekannt > 0) throw new UploadFehler("seitenNichtAbgedeckt", beschreibeLuecken(stand.luecken) || "-");
+    const angabe = leseSeitenzahlen(d.seitenBestaetigt);
+    if (angabe.fehler || angabe.seiten.length === 0) throw new UploadFehler("seitenNichtBestaetigt", info.titel ?? undefined);
+    const abdeckung = pruefeAbdeckung({ luecken: stand.luecken, weitere: 0 }, angabe.seiten);
+    if (!abdeckung.ok) throw new UploadFehler("seitenNichtAbgedeckt", beschreibeLuecken(abdeckung.offen));
     if (!d.speicher.legeSeitenVermerkAb) throw new UploadFehler("freigeben", info.titel ?? undefined);
-    await d.speicher.legeSeitenVermerkAb(quelleId, { vermerk, stellen: info.seitenStellen ?? null, von: d.pruefer.id, zeitpunkt }).catch((u) => {
+    bestaetigt = alsBereichsText(abdeckung.bestaetigt);
+    vermerk = saeubereVermerk(d.seitenVermerk) || null;
+    await d.speicher.legeSeitenVermerkAb(quelleId, { vermerk, bestaetigt, stellen: info.seitenStellen ?? null, von: d.pruefer.id, zeitpunkt }).catch((u) => {
       throw new UploadFehler("freigeben", info.titel ?? undefined, u);
     });
   }
@@ -109,7 +130,7 @@ export async function entscheideUeberUpload(aktion: FreigabeAktion, quelleId: st
     });
   // Eine Anweisung, alles oder nichts: weniger Zeilen heisst, jemand anderes war schneller.
   if (n !== info.anzahl) throw new UploadFehler("nichtPruefbar");
-  return { titel: info.titel, bereich: info.bereich, quellenart: info.quellenart, abschnitte: n, pruefenBis: neu, seitenFehlend, seitenVermerk: vermerk };
+  return { titel: info.titel, bereich: info.bereich, quellenart: info.quellenart, abschnitte: n, pruefenBis: neu, seitenFehlend: stand.fehlend, seitenBestaetigt: bestaetigt, seitenVermerk: vermerk };
 }
 
 /** Das Vier-Augen-Prinzip: Wer hochgeladen hat, gibt nicht frei. Ist der Hochladende unbekannt, wird nicht freigegeben. */

@@ -236,8 +236,11 @@ export function pruefeSeitenverlauf(seiten: readonly SeitenRand[]): SeitenPruefu
   };
 }
 
+/** Wie viele Luecken die Kurzform einzeln auffuehrt; darueber steht nur "+N". Ein Buch mit so vielen Luecken gehoert neu gescannt (seiten-bestaetigung.ts). */
+export const MAX_LUECKEN_STELLEN = 40;
+
 /** Kurze Beschreibung der Luecken fuer Anzeige, Protokoll und Speicher: "48-49 (nach PDF-Seite 47), 4 Seiten zwischen 438 und 445 (nach PDF-Seite 428)". */
-export function beschreibeLuecken(luecken: readonly SeitenLuecke[], maxStellen = 12): string {
+export function beschreibeLuecken(luecken: readonly SeitenLuecke[], maxStellen = MAX_LUECKEN_STELLEN): string {
   const teile = luecken.slice(0, maxStellen).map((l) =>
     l.genau
       ? `${l.vonGedruckt === l.bisGedruckt ? l.vonGedruckt : `${l.vonGedruckt}-${l.bisGedruckt}`} (${l.nachPdfSeite})`
@@ -258,20 +261,27 @@ export interface SeitenAngabe {
   stellen: string;
   /** Anteil der Seiten mit lesbarer Seitenzahl in Prozent (0 bis 100). */
   abdeckung: number;
+  /** Wo die Luecken im Text des Buchs liegen: je Luecke (Reihenfolge wie in stellen) "paket:promille", durch Komma getrennt. Damit ein Nachtrag
+   *  (nachtrag.ts) die nachgeladenen Seiten an der richtigen Stelle einreiht. Fehlt, wenn der Browser die Lage nicht bestimmen konnte. */
+  orte?: string;
   /** Bei Gesetzen: fehlende Artikelnummern (nur ein Hinweis, aufgehobene Artikel koennen dabei sein). */
   artikelFehlend?: number;
   artikelStellen?: string;
 }
 
-/** Laenge der Stellenangabe, die der Server annimmt. */
-export const MAX_STELLEN = 400;
+/** Laenge der Stellenangabe, die der Server annimmt (bis zu 40 Luecken). */
+export const MAX_STELLEN = 1000;
+/** Laenge der Angabe der Orte der Luecken. */
+export const MAX_ORTE = 600;
 
-export function alsSeitenAngabe(p: SeitenPruefung, a: ArtikelPruefung | null): SeitenAngabe {
+export function alsSeitenAngabe(p: SeitenPruefung, a: ArtikelPruefung | null, orte?: readonly { paket: number; promille: number }[]): SeitenAngabe {
+  const ortText = orte && orte.length === Math.min(p.luecken.length, MAX_LUECKEN_STELLEN) ? orte.map((o) => `${o.paket}:${o.promille}`).join(",").slice(0, MAX_ORTE) : "";
   return {
     seiten: p.seiten,
     fehlend: p.fehlend,
     stellen: beschreibeLuecken(p.luecken).slice(0, MAX_STELLEN),
     abdeckung: Math.round(p.abdeckung * 100),
+    ...(ortText ? { orte: ortText } : {}),
     ...(a ? { artikelFehlend: a.fehlend, artikelStellen: beschreibeArtikelLuecken(a.luecken).slice(0, MAX_STELLEN) } : {}),
   };
 }

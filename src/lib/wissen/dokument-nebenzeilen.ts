@@ -9,6 +9,7 @@ import { entferneOriginal } from "@/lib/wissen/original";
 export const NEBENTABELLEN = [
   { tabelle: "wissen_qualitaet", name: "Qualitätswert" },
   { tabelle: "wissen_seiten_vermerk", name: "Seiten-Vermerk" },
+  { tabelle: "wissen_seiten_nachtrag", name: "Nachgeladene Seiten" },
 ] as const;
 
 /**

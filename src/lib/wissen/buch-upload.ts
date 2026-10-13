@@ -14,7 +14,7 @@ import {
   type UploadAbhaengigkeiten,
   type UploadMetadaten,
 } from "@/lib/wissen/hochladen";
-import { MAX_STELLEN, type SeitenAngabe } from "@/lib/wissen/seitenverlauf";
+import { MAX_ORTE, MAX_STELLEN, type SeitenAngabe } from "@/lib/wissen/seitenverlauf";
 import { bewerteText, type Guete } from "@/lib/wissen/textguete";
 import {
   clusterPasst,
@@ -89,12 +89,14 @@ function pruefeSeitenAngabe(a: SeitenAngabe | undefined): SeitenAngabe | undefin
   const zahl = (x: unknown, max: number): x is number => typeof x === "number" && Number.isInteger(x) && x >= 0 && x <= max;
   const text = (x: unknown, erlaubt: RegExp = STELLEN_ZEICHEN): x is string => typeof x === "string" && x.length <= MAX_STELLEN && erlaubt.test(x);
   if (typeof a !== "object" || !zahl(a.seiten, 100_000) || !zahl(a.fehlend, a.seiten) || !zahl(a.abdeckung, 100) || !text(a.stellen, SEITEN_STELLEN_ZEICHEN)) throw new UploadFehler("eingabe");
+  if (a.orte !== undefined && (typeof a.orte !== "string" || a.orte.length > MAX_ORTE || !/^[0-9:,]*$/.test(a.orte))) throw new UploadFehler("eingabe");
   if (a.artikelFehlend !== undefined && (!zahl(a.artikelFehlend, 10_000) || !text(a.artikelStellen ?? ""))) throw new UploadFehler("eingabe");
   return {
     seiten: a.seiten,
     fehlend: a.fehlend,
     stellen: a.stellen,
     abdeckung: a.abdeckung,
+    ...(a.orte ? { orte: a.orte } : {}),
     ...(a.artikelFehlend !== undefined ? { artikelFehlend: a.artikelFehlend, artikelStellen: a.artikelStellen ?? "" } : {}),
   };
 }

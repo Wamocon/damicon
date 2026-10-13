@@ -57,9 +57,9 @@ async function main() {
       storage: { from: () => ({ remove: async (pfade: string[]) => { entfernteDateien.push(pfade); return { error: null }; } }) },
     }) as unknown as SupabaseClient;
 
-  pruefe("Nebenzeilen: die Liste nennt Qualitätswert und Seiten-Vermerk", NEBENTABELLEN.map((x) => x.tabelle).join() === "wissen_qualitaet,wissen_seiten_vermerk");
+  pruefe("Nebenzeilen: die Liste nennt Qualitätswert, Seiten-Vermerk und nachgeladene Seiten", NEBENTABELLEN.map((x) => x.tabelle).join() === "wissen_qualitaet,wissen_seiten_vermerk,wissen_seiten_nachtrag");
   await entferneNebenzeilen(baueClient(), quelle);
-  pruefe("Nebenzeilen: jede Tabelle der Liste und der Verweis auf das Original werden für genau diese Kennung gelöscht", ["wissen_qualitaet", "wissen_seiten_vermerk", "wissen_original"].every((t) => geloescht.includes(`${t}:quelle_id=${quelle}`)) && geloescht.length === 3, geloescht.join(" | "));
+  pruefe("Nebenzeilen: jede Tabelle der Liste und der Verweis auf das Original werden für genau diese Kennung gelöscht", ["wissen_qualitaet", "wissen_seiten_vermerk", "wissen_seiten_nachtrag", "wissen_original"].every((t) => geloescht.includes(`${t}:quelle_id=${quelle}`)) && geloescht.length === 4, geloescht.join(" | "));
   pruefe("Nebenzeilen: die Datei der Original-PDF wird aus dem Speicher entfernt", entfernteDateien.length === 1 && entfernteDateien[0]![0] === "b".repeat(32) + ".pdf", JSON.stringify(entfernteDateien));
   geloescht.length = 0;
   entfernteDateien.length = 0;
@@ -71,7 +71,7 @@ async function main() {
   } finally {
     console.error = alt;
   }
-  pruefe("Nebenzeilen: scheitert eine Tabelle, werden die übrigen trotzdem geleert und der Fehler nur protokolliert", geloescht.length === 3 && entfernteDateien.length === 1 && meldungen.some((m) => m.includes("Qualitätswert")), meldungen.join(" | "));
+  pruefe("Nebenzeilen: scheitert eine Tabelle, werden die übrigen trotzdem geleert und der Fehler nur protokolliert", geloescht.length === 4 && entfernteDateien.length === 1 && meldungen.some((m) => m.includes("Qualitätswert")), meldungen.join(" | "));
   geloescht.length = 0;
   await entferneNebenzeilen(baueClient(), "legal/Legal/x/y.md");
   pruefe("Nebenzeilen: für eine Skript-Quelle (kein Upload) gibt es kein Original, die Tabellen werden trotzdem bereinigt", geloescht.filter((g) => g.startsWith("wissen_original")).length === 0 || geloescht.length >= 2);

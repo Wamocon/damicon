@@ -12,8 +12,8 @@
 //   * Einordnung wird nur ergaenzt, nie ueberschrieben
 //   * quelle_id schon in public (angefangenes Buch) und unbekannte pruefende Person werden uebersprungen und gemeldet
 //   * Wortgewichte: df addiert, IDF mit der neuen Zahl der Textstellen
-//   * Nebenzeilen: Vermerk zu fehlenden Seiten und Qualitaetswert kommen mit dem Dokument, nicht fuer Ungepruefte und Uebersprungene;
-//     eine in public unbekannte Person bleibt leer, der Vermerk kommt trotzdem
+//   * Nebenzeilen: Bestaetigung der fehlenden Seiten (bestaetigte Seiten, Grund), nachgeladene Seiten und Qualitaetswert kommen mit dem Dokument,
+//     nicht fuer Ungepruefte und Uebersprungene; eine in public unbekannte Person bleibt leer, die Zeile kommt trotzdem
 //   * zweiter Lauf aendert nichts; die Vorschau bleibt unveraendert
 // Sicherheitsnetz: nur lokale Datenbank (--local), nur Zeilen mit dem Test-Praefix.
 // =============================================================================
@@ -47,6 +47,7 @@ function aufraeumen() {
   for (const s of ["public", "public_preview"]) {
     q(`delete from ${s}.wissen_seiten_vermerk where quelle_id like 'upload:abtest%'`);
     q(`delete from ${s}.wissen_qualitaet where quelle_id like 'upload:abtest%'`);
+    q(`delete from ${s}.wissen_seiten_nachtrag where quelle_id like 'upload:abtest%'`);
   }
   q(`delete from public.wissen_begriffe where hash in (${TEST_HASHES.join(",")})`);
   q(`delete from public.wissen_entfernt where quelle_id like 'abtest%' or quelle_id like 'upload:abtest%'`);
@@ -104,11 +105,17 @@ $t$`);
             '{880004:1}/1000000000'::extensions.sparsevec, 'ungeprueft', 'fachliteratur', 'buecher', 4, '${B}', now())`);
   q(`update public_preview.wissen_chunks set pruefstatus = 'freigegeben' where id = '${id(12)}'`);
   // Nebenzeilen in der Vorschau: Vermerke (Eins von B, Sechs von C, Zwei ungeprueft, Fuenf uebersprungen) und Qualitaetswerte (Eins, Zwei)
-  q(`insert into public_preview.wissen_seiten_vermerk (quelle_id, vermerk, fehlende_seiten, vermerkt_von) values
-       ('upload:abtest-eins', 'Leere Seiten im Buch', '48-49 (47)', '${B}'),
-       ('upload:abtest-sechs', 'Seiten fehlen auch im gedruckten Buch', '10-11 (9)', '${C}'),
-       ('upload:abtest-zwei', 'Vermerk eines ungeprueften Buchs', '1-2 (0)', '${B}'),
-       ('upload:abtest-fuenf', 'Vermerk eines uebersprungenen Buchs', '3-4 (2)', '${B}')`);
+  q(`insert into public_preview.wissen_seiten_vermerk (quelle_id, vermerk, bestaetigte_seiten, fehlende_seiten, vermerkt_von) values
+       ('upload:abtest-eins', 'Leere Seiten im Buch', '48-49', '48-49 (47)', '${B}'),
+       ('upload:abtest-sechs', 'Seiten fehlen auch im gedruckten Buch', null, '10-11 (9)', '${C}'),
+       ('upload:abtest-zwei', 'Vermerk eines ungeprueften Buchs', '1-2', '1-2 (0)', '${B}'),
+       ('upload:abtest-fuenf', 'Vermerk eines uebersprungenen Buchs', '3-4', '3-4 (2)', '${B}')`);
+  // Nachgeladene Seiten: Eins (von B) und Sechs (von C, in public unbekannt) kommen mit, Zwei (ungeprueft) nicht
+  q(`insert into public_preview.wissen_seiten_nachtrag (quelle_id, nr, seiten, abschnitte, nachgeladen_von) values
+       ('upload:abtest-eins', 1, '50', 2, '${B}'),
+       ('upload:abtest-eins', 2, '60-61', 3, '${B}'),
+       ('upload:abtest-sechs', 1, '12', 1, '${C}'),
+       ('upload:abtest-zwei', 1, '7', 1, '${B}')`);
   q(`insert into public_preview.wissen_qualitaet (quelle_id, prozent) values ('upload:abtest-eins', 97), ('upload:abtest-zwei', 55)`);
   q(`insert into public.wissen_begriffe (hash, df, idf) values (880001, 1, 0.5), (880002, 2, 0.4) on conflict (hash) do update set df = excluded.df, idf = excluded.idf`);
   // Grabsteine der Bestandspflege: bewusst in public entfernt, in der Vorschau noch da. Der Abgleich darf sie nicht zurueckkopieren.
@@ -159,16 +166,22 @@ try {
   pruefe("Wortgewichte: IDF mit der neuen Zahl der Textstellen", Math.abs(Number(gewichte.get(880003)?.idf) - erwartet) < 1e-4, `${gewichte.get(880003)?.idf} / ${erwartet.toFixed(5)}`);
 
   // ---- Nebenzeilen (Regel 7)
-  const vermerke = new Map(q(`select quelle_id, vermerk, fehlende_seiten, vermerkt_von::text as von from public.wissen_seiten_vermerk where quelle_id like 'upload:abtest%'`).map((r) => [r.quelle_id, r]));
+  const vermerke = new Map(q(`select quelle_id, vermerk, bestaetigte_seiten, fehlende_seiten, vermerkt_von::text as von from public.wissen_seiten_vermerk where quelle_id like 'upload:abtest%'`).map((r) => [r.quelle_id, r]));
   pruefe("Vermerk: Buch Eins bringt seinen Vermerk mit, samt fehlenden Seiten und der prüfenden Person", vermerke.get("upload:abtest-eins")?.vermerk === "Leere Seiten im Buch" && vermerke.get("upload:abtest-eins")?.fehlende_seiten === "48-49 (47)" && vermerke.get("upload:abtest-eins")?.von === B, JSON.stringify(vermerke.get("upload:abtest-eins")));
   pruefe("Vermerk: eine in public unbekannte Person bleibt leer, der Vermerk kommt trotzdem mit (Buch Sechs)", vermerke.get("upload:abtest-sechs")?.vermerk === "Seiten fehlen auch im gedruckten Buch" && vermerke.get("upload:abtest-sechs")?.von === null, JSON.stringify(vermerke.get("upload:abtest-sechs")));
   pruefe("Vermerk: nichts für ungeprüfte und übersprungene Bücher", !vermerke.has("upload:abtest-zwei") && !vermerke.has("upload:abtest-fuenf"));
+  pruefe("Bestätigung: die bestätigten Seiten kommen mit (Buch Eins), ein früherer Vermerk ohne bestätigte Seiten bleibt so (Buch Sechs)", vermerke.get("upload:abtest-eins")?.bestaetigte_seiten === "48-49" && vermerke.get("upload:abtest-sechs")?.bestaetigte_seiten === null, JSON.stringify([vermerke.get("upload:abtest-eins")?.bestaetigte_seiten, vermerke.get("upload:abtest-sechs")?.bestaetigte_seiten]));
+  const nachtraege = q(`select quelle_id, nr, seiten, abschnitte, nachgeladen_von::text as von from public.wissen_seiten_nachtrag where quelle_id like 'upload:abtest%' order by quelle_id, nr`);
+  pruefe("Nachtrag: die nachgeladenen Seiten von Buch Eins kommen mit (zwei Nachträge, mit Nummer und Abschnitten)", nachtraege.filter((r) => r.quelle_id === "upload:abtest-eins").map((r) => `${r.nr}:${r.seiten}:${r.abschnitte}`).join() === "1:50:2,2:60-61:3", JSON.stringify(nachtraege));
+  pruefe("Nachtrag: eine in public unbekannte Person bleibt leer, der Nachtrag kommt trotzdem mit (Buch Sechs)", nachtraege.some((r) => r.quelle_id === "upload:abtest-sechs" && r.seiten === "12" && r.von === null));
+  pruefe("Nachtrag: nichts für ungeprüfte Bücher", !nachtraege.some((r) => r.quelle_id === "upload:abtest-zwei"));
   const qualitaet = new Map(q(`select quelle_id, prozent from public.wissen_qualitaet where quelle_id like 'upload:abtest%'`).map((r) => [r.quelle_id, Number(r.prozent)]));
   pruefe("Qualität: der berechnete Wert von Buch Eins kommt mit, der eines ungeprüften Buchs nicht", qualitaet.get("upload:abtest-eins") === 97 && !qualitaet.has("upload:abtest-zwei"), JSON.stringify([...qualitaet]));
-  pruefe("Nebenzeilen: die Vorschau behält ihre Zeilen", Number(q(`select count(*)::int as n from public_preview.wissen_seiten_vermerk where quelle_id like 'upload:abtest%'`)[0].n) === 4 && Number(q(`select count(*)::int as n from public_preview.wissen_qualitaet where quelle_id like 'upload:abtest%'`)[0].n) === 2);
+  pruefe("Nebenzeilen: die Vorschau behält ihre Zeilen", Number(q(`select count(*)::int as n from public_preview.wissen_seiten_vermerk where quelle_id like 'upload:abtest%'`)[0].n) === 4 && Number(q(`select count(*)::int as n from public_preview.wissen_seiten_nachtrag where quelle_id like 'upload:abtest%'`)[0].n) === 4 && Number(q(`select count(*)::int as n from public_preview.wissen_qualitaet where quelle_id like 'upload:abtest%'`)[0].n) === 2);
 
   const zweiter = abgleich("--anwenden");
   pruefe("Zweiter Lauf: nichts mehr zu tun", zweiter.includes("Neue Dokumente (freigegeben in public_preview, in public nicht vorhanden): 0") && JSON.stringify(zeilen("public")) === JSON.stringify(pub));
+  pruefe("Zweiter Lauf: Nachträge bleiben unverändert (keine Doppelungen)", Number(q(`select count(*)::int as n from public.wissen_seiten_nachtrag where quelle_id like 'upload:abtest%'`)[0].n) === 3);
   pruefe("Zweiter Lauf: Vermerke und Qualitätswerte bleiben unverändert (keine Doppelungen)", Number(q(`select count(*)::int as n from public.wissen_seiten_vermerk where quelle_id like 'upload:abtest%'`)[0].n) === 2 && Number(q(`select count(*)::int as n from public.wissen_qualitaet where quelle_id like 'upload:abtest%'`)[0].n) === 1);
 } finally {
   aufraeumen();

@@ -11,6 +11,7 @@ import {
   alsSeitenAngabe,
   beschreibeArtikelLuecken,
   beschreibeLuecken,
+  MAX_STELLEN,
   pruefeArtikelfolge,
   pruefeSeitenverlauf,
   randAusStuecken,
@@ -181,7 +182,7 @@ function ohne(n: number, fehlen: readonly number[]): number[] {
   const g = alsSeitenAngabe(p, { artikel: 100, kleinste: 1, groesste: 100, luecken: [[85, 89]], fehlend: 5 });
   pruefe("Angabe: Artikelhinweis nur, wenn mitgegeben", g.artikelFehlend === 5 && g.artikelStellen === "85-89");
   const lang = alsSeitenAngabe({ ...p, luecken: Array.from({ length: 200 }, (_, i) => ({ nachPdfSeite: i, vonGedruckt: i * 10, bisGedruckt: i * 10 + 1, anzahl: 2, genau: true })) }, null);
-  pruefe("Angabe: die Stellenangabe bleibt kurz (höchstens 400 Zeichen)", lang.stellen.length <= 400 && /^[0-9@(),+\-\sPDF]*$/.test(lang.stellen), String(lang.stellen.length));
+  pruefe("Angabe: die Stellenangabe bleibt kurz (höchstens MAX_STELLEN Zeichen)", lang.stellen.length <= MAX_STELLEN && lang.stellen.endsWith(" +160") && /^[0-9@(),+\-\sPDF]*$/.test(lang.stellen), String(lang.stellen.length));
 }
 
 // ---- Lücke mit einer Seite ohne lesbare Zahl (Buchhalter-Nachschlagewerk, 13.10.2026) ---------------------------

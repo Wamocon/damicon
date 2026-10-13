@@ -3,6 +3,7 @@ import type { BestandsSpeicher } from "@/lib/wissen/bestandspflege-entfernen";
 import type { DokumentNaehe, NaeheProbe } from "@/lib/wissen/bestandspflege";
 import { entferneNebenzeilen } from "@/lib/wissen/dokument-nebenzeilen";
 import { dokumentQualitaet, type DokumentQualitaet } from "@/lib/wissen/qualitaet";
+import { leseSeitenzahlen, offenerStand } from "@/lib/wissen/seiten-bestaetigung";
 import { supabaseSpeicher } from "@/lib/wissen/speicher-supabase";
 
 // Datenbankzugriff der Bestandspflege auf dem service_role-Client (nach der Rechteprüfung der Action). Die Logik steht in bestandspflege.ts
@@ -69,30 +70,55 @@ const MAX_ZEILEN = 6000; // das größte Buch hat rund 2.500 Abschnitte
 
 /**
  * Berechnet die Qualität eines Dokuments aus dem gespeicherten Text (in Buchreihenfolge: Pfad mit der Paketnummer, dann Teil) und legt sie in
- * wissen_qualitaet ab. Bei einem Buch mit Seitenverlauf-Prüfung (extra.seiten_pruefung) mindern fehlende Seiten den Wert. Liefert null, wenn es
- * keinen Text gibt (dann wird nichts geschrieben).
+ * wissen_qualitaet ab. Bei einem Buch mit Seitenverlauf-Prüfung (extra.seiten_pruefung) mindern OFFENE fehlende Seiten den Wert, also solche, die weder
+ * nachgeladen (wissen_seiten_nachtrag) noch von der prüfenden Person als korrekt fehlend bestätigt sind (wissen_seiten_vermerk): Eine Leerseite hat keinen Text,
+ * der gelesen werden könnte, sie gehört nicht in die Qualität; fehlt echter Inhalt, steht das Buch nicht freigegeben da und der Abzug gilt. Liefert null, wenn
+ * es keinen Text gibt (dann wird nichts geschrieben).
  */
 export async function berechneQualitaetFuer(db: SupabaseClient, quelleId: string): Promise<DokumentQualitaet | null> {
   const texte: string[] = [];
-  let seiten: { seiten: number; fehlend: number } | null = null;
+  let seiten: { seiten: number; fehlend: number; stellen: string | null; orte: string | null } | null = null;
   for (let von = 0; von < MAX_ZEILEN; von += TEXT_SEITE) {
     const { data, error } = await db
       .from("wissen_chunks")
-      .select("text, sp_seiten:extra->seiten_pruefung->>seiten, sp_fehlend:extra->seiten_pruefung->>fehlend")
+      .select("text, sp_seiten:extra->seiten_pruefung->>seiten, sp_fehlend:extra->seiten_pruefung->>fehlend, sp_stellen:extra->seiten_pruefung->>stellen, sp_orte:extra->seiten_pruefung->>orte")
       .eq("quelle_id", quelleId)
       .order("pfad")
       .order("teil")
       .order("id")
       .range(von, von + TEXT_SEITE - 1);
     FEHLER("Qualität (Text lesen)", error);
-    const zeilen = (data ?? []) as unknown as { text: string; sp_seiten: string | null; sp_fehlend: string | null }[];
+    const zeilen = (data ?? []) as unknown as {
+      text: string;
+      sp_seiten: string | null;
+      sp_fehlend: string | null;
+      sp_stellen: string | null;
+      sp_orte: string | null;
+    }[];
     for (const z of zeilen) {
       texte.push(z.text);
-      if (!seiten && z.sp_seiten !== null && z.sp_fehlend !== null) seiten = { seiten: Number(z.sp_seiten), fehlend: Number(z.sp_fehlend) };
+      if (!seiten && z.sp_seiten !== null && z.sp_fehlend !== null) seiten = { seiten: Number(z.sp_seiten), fehlend: Number(z.sp_fehlend), stellen: z.sp_stellen, orte: z.sp_orte };
     }
     if (zeilen.length < TEXT_SEITE) break;
   }
-  const q = dokumentQualitaet(texte, seiten);
+  let offen: { seiten: number; fehlend: number } | null = null;
+  if (seiten) {
+    const [vermerk, nachtraege] = await Promise.all([
+      db.from("wissen_seiten_vermerk").select("quelle_id").eq("quelle_id", quelleId).limit(1),
+      db.from("wissen_seiten_nachtrag").select("seiten").eq("quelle_id", quelleId),
+    ]);
+    FEHLER("Qualität (Seiten-Bestätigung lesen)", vermerk.error);
+    FEHLER("Qualität (Nachträge lesen)", nachtraege.error);
+    const stand = offenerStand({
+      fehlendBeimHochladen: seiten.fehlend,
+      stellen: seiten.stellen,
+      orte: seiten.orte,
+      nachgeladen: ((nachtraege.data ?? []) as unknown as { seiten: string }[]).flatMap((n) => leseSeitenzahlen(n.seiten).seiten),
+      bestaetigt: (vermerk.data ?? []).length > 0,
+    });
+    offen = { seiten: seiten.seiten, fehlend: stand.fehlend };
+  }
+  const q = dokumentQualitaet(texte, offen);
   if (!q) return null;
   const { error } = await db.from("wissen_qualitaet").upsert({ quelle_id: quelleId, prozent: q.prozent, berechnet_am: new Date().toISOString() }, { onConflict: "quelle_id" });
   FEHLER("wissen_qualitaet", error);

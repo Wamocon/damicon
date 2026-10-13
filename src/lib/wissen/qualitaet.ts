@@ -8,6 +8,9 @@ import { bewerteText, type GueteNote } from "@/lib/wissen/textguete";
 //
 // Fehlen im Scan Seiten (seitenverlauf.ts), mindert das die Qualität: Ein Buch mit sauberem Text, dem 18 von 681 Seiten fehlen, ist nicht zu 100 Prozent
 // brauchbar. Der Faktor ist 1 minus das Fünffache des Anteils fehlender Seiten, höchstens um die Hälfte (siehe vollstaendigkeitsFaktor).
+// Gezählt werden nur OFFENE fehlende Seiten (seiten-bestaetigung.ts, offenerStand). Seiten, die die prüfende Person als korrekt fehlend bestätigt hat
+// (Leerseiten, Notizseiten), und nachgeladene Seiten zählen nicht: Eine Leerseite hat keinen Text, der gelesen werden könnte. Fehlt echter Inhalt, ist die
+// Lücke offen, das Buch lässt sich nicht freigeben, und der Abzug gilt, bis die Seiten nachgeladen sind.
 
 export const QUALITAET_PAKET_ZEICHEN = 80_000;
 

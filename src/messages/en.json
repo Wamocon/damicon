@@ -951,7 +951,8 @@
       "wissenEingeordnet": "{wert} documents classified.",
       "wissenSammelFreigegeben": "Approved and searchable: {wert} documents (details in the window).",
       "wissenSammelAbgelehnt": "Rejected: {wert} documents. They stay blocked and can be deleted.",
-      "wissenUmgeordnet": "Classification of “{wert}” changed."
+      "wissenUmgeordnet": "Classification of “{wert}” changed.",
+      "wissenNachgeladen": "Pages {wert} loaded and inserted into the book."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1032,7 +1033,9 @@
       "wissenUnvollstaendig": "This book is incomplete: parts are missing because the upload was interrupted. Please delete it and upload again. It cannot be approved until then.",
       "wissenSelbstUmordnen": "The classification of an approved document is not changed by the person who uploaded it. Please ask a second person.",
       "wissenKeineAenderung": "Nothing was changed: the chosen values match the current classification.",
-      "wissenVermerkFehlt": "According to the page sequence check this book has missing pages. A note is required to approve it (for example \"Blank pages in the book\"). Please approve it individually in the review window, not in the bulk approval."
+      "wissenSeitenNichtBestaetigt": "This book has open missing pages. To approve it, enter the printed page numbers that are correctly missing. Please approve it individually in the review window, not in the bulk approval.",
+      "wissenSeitenNichtAbgedeckt": "The pages entered do not cover all missing pages. Open: {wert}. Real content is missing, so the book cannot be approved. Please load the pages later or delete the book and upload it again.",
+      "wissenNachtragUngueltig": "The loaded pages do not match any open gap of this book. Nothing was inserted."
     },
     "einladungen": {
       "erfolg": {
@@ -2398,7 +2401,10 @@
         "qualitaet": "Quality {prozent}%",
         "seitenFehlen": "Missing pages according to the check",
         "seitenFehlenWert": "{anzahl} ({stellen})",
-        "seitenVermerk": "Note on the missing pages"
+        "seitenVermerk": "Reason for the missing pages",
+        "seitenNachgeladen": "Pages loaded later",
+        "seitenBestaetigt": "Confirmed as correctly missing",
+        "seitenOffen": "Still open (blocks approval)"
       },
       "formular": {
         "titel": "Upload document",
@@ -2498,12 +2504,41 @@
         "abbrechen": "Cancel",
         "seiten": {
           "titel": "Pages are missing from the scan",
-          "text": "The page sequence check at upload found {anzahl} missing printed pages: {stellen}. Please check the original to see whether content is missing or the pages are blank.",
+          "text": "The page sequence check at upload found missing printed pages. Still open: {anzahl}, locations: {stellen}.",
           "erklaerung": "Notation: \"48-49 (47)\" means: printed pages 48 to 49 are missing after PDF page 47. \"2@105-107 (PDF 106-108)\" means: two pages are missing somewhere between printed pages 105 and 107, within PDF pages 106 to 108, because no page number was readable on at least one of them. Please look at these PDF pages in the original.",
-          "vermerk": "Note on the missing pages (required for approval)",
+          "vermerk": "Reason (optional)",
           "platzhalter": "for example: Blank pages in the book",
           "vorschlag": "Blank pages in the book",
-          "noetig": "Please enter a note to approve."
+          "nachgeladen": "Already loaded later: {seiten}.",
+          "regel": "Enter below the printed page numbers that are correctly missing from the book (for example blank or note pages). The entry must cover all open gaps. If real content is missing, the book will not be approved: load the missing pages as a PDF or delete the book and upload the whole PDF again.",
+          "unbekannt": "{anzahl, plural, one {# further missing page is} other {# further missing pages are}} not known individually (too many gaps or not readable). This cannot be confirmed. Please rescan and upload the whole PDF again.",
+          "bestaetigt": "Printed page numbers that are correctly missing (required for approval)",
+          "bestaetigtPlatzhalter": "for example: 48-49, 120",
+          "angabeUngueltig": "The entry is invalid. Page numbers and ranges separated by commas are allowed, for example 48-49, 120.",
+          "nochNichts": "No page number entered yet.",
+          "abgedeckt": "All open gaps are covered ({seiten, plural, one {# page} other {# pages}} confirmed as correctly missing).",
+          "nichtAbgedeckt": "Not covered: {anzahl, plural, one {# page} other {# pages}}, locations: {stellen}. Without these pages real content is missing and the book cannot be approved.",
+          "uebrig": "These page numbers do not belong to any open gap and do not count: {liste}.",
+          "gesperrt": "Approval is only possible once all gaps are covered. Rejecting is always possible."
+        },
+        "nachladen": {
+          "titel": "Real content missing? Load the pages later",
+          "erklaerung": "Upload the missing pages as a PDF with text recognition (OCR). The system reads the printed page numbers, inserts the pages into the book at the position of the gap and then offers the book for approval again. Alternatively delete the book and upload the whole PDF again.",
+          "manuell": "Printed page numbers of the file (only needed if they are not readable)",
+          "manuellPlatzhalter": "for example: 48-49 (in the order of the pages in the file)",
+          "waehlen": "Choose PDF with the missing pages",
+          "oeffnet": "Opening file ...",
+          "liest": "Reading page {seite} of {seiten} ...",
+          "sendet": "Inserting pages {seiten} into the book ...",
+          "fertig": "Loaded and inserted: {seiten}. The book is being rated again.",
+          "keinePdf": "Please choose a PDF file.",
+          "angabeUngueltig": "The page numbers are invalid. Numbers and ranges separated by commas are allowed.",
+          "angabeAnzahl": "{angegeben} page numbers were given, but the file has {seiten} pages. Both must match.",
+          "unklar": "No printed page number was readable on these pages of the file: {liste}. Please enter the page numbers by hand (in the order of the pages in the file) and choose the file again.",
+          "ausserhalb": "These pages of the file do not belong to any open gap: {liste}. Nothing was loaded.",
+          "keineZuordnung": "No page of the file matches an open gap. Nothing was loaded.",
+          "ohneText": "At least one page of the file has no text. Please create the file with text recognition (OCR).",
+          "lesenFehler": "The file could not be read or loaded. Is it a valid PDF with a text layer?"
         }
       },
       "cluster": {

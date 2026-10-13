@@ -55,17 +55,20 @@ function fuegeZeilenZusammen(seite: string): string {
  */
 export function bereinigeSeitentext(rohSeiten: readonly string[]): string {
   return rohSeiten
-    .map((seite) =>
-      fuegeZeilenZusammen(
-        seite
-          .replace(/\r\n?/g, "\n")
-          .replace(/[ \t]+/g, " ")
-          // Silbentrennung: Buchstabe, Bindestrich, Zeilenende, Kleinbuchstabe -> ein Wort
-          .replace(/(\p{L})[-­]\n(\p{Ll})/gu, "$1$2"),
-      ).trim(),
-    )
+    .map(bereinigeEineSeite)
     .filter((s) => s.length > 0)
     .join("\n\n");
+}
+
+/** Die Bereinigung einer einzelnen Seite (siehe bereinigeSeitentext). Zwischen zwei nicht leeren Seiten steht dort ein Absatz. */
+export function bereinigeEineSeite(seite: string): string {
+  return fuegeZeilenZusammen(
+    seite
+      .replace(/\r\n?/g, "\n")
+      .replace(/[ \t]+/g, " ")
+      // Silbentrennung: Buchstabe, Bindestrich, Zeilenende, Kleinbuchstabe -> ein Wort
+      .replace(/(\p{L})[-\u00ad]\n(\p{Ll})/gu, "$1$2"),
+  ).trim();
 }
 
 /** Schneidet einen zu langen Absatz an Satzenden, zur Not hart an einer Wortgrenze. */

@@ -129,11 +129,16 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
         anzahl === 0 ? null : ungeprueft === anzahl ? "ungeprueft" : freigegeben === anzahl ? "freigegeben" : abgelehnt === anzahl ? "abgelehnt" : "gemischt";
       const { data, error } = await db
         .from("wissen_chunks")
-        .select("titel, bereich, quellenart, pruefen_bis, hochgeladen_von:extra->>hochgeladen_von, seiten_fehlend:extra->seiten_pruefung->>fehlend, seiten_stellen:extra->seiten_pruefung->>stellen")
+        .select("titel, bereich, quellenart, pruefen_bis, hochgeladen_von:extra->>hochgeladen_von, seiten_fehlend:extra->seiten_pruefung->>fehlend, seiten_stellen:extra->seiten_pruefung->>stellen, seiten_orte:extra->seiten_pruefung->>orte")
         .eq("quelle_id", quelleId)
         .limit(1);
       SCHREIB_FEHLER("Freigabe (lesen)", error);
-      const erste = ((data ?? []) as unknown as Array<{ titel: string | null; bereich: string | null; quellenart: string | null; pruefen_bis: string | null; hochgeladen_von: string | null; seiten_fehlend: string | null; seiten_stellen: string | null }>)[0];
+      const erste = ((data ?? []) as unknown as Array<{ titel: string | null; bereich: string | null; quellenart: string | null; pruefen_bis: string | null; hochgeladen_von: string | null; seiten_fehlend: string | null; seiten_stellen: string | null; seiten_orte: string | null }>)[0];
+
+      // Nachgeladene Seiten (Nachtraege): die gedruckten Seitenzahlen, in der Reihenfolge der Nachtraege
+      const { data: nachtraege, error: nachtragFehler } = await db.from("wissen_seiten_nachtrag").select("seiten").eq("quelle_id", quelleId).order("nr");
+      SCHREIB_FEHLER("Freigabe (Nachtraege)", nachtragFehler);
+      const nachgeladen = ((nachtraege ?? []) as unknown as { seiten: string }[]).map((n) => n.seiten).join(", ");
 
       // Vollstaendigkeit eines Buchs: Welche Paketnummern gibt es, und wie viele sollten es sein? In Seiten gelesen, nur die zwei kleinen Felder.
       const nummern = new Set<number>();
@@ -163,13 +168,18 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
         unvollstaendig: gesamt > 0 && nummern.size < gesamt,
         seitenFehlend: Number(erste?.seiten_fehlend ?? 0) || 0,
         seitenStellen: erste?.seiten_stellen ?? null,
+        seitenOrte: erste?.seiten_orte ?? null,
+        seitenNachgeladen: nachgeladen || null,
       };
     },
     async legeSeitenVermerkAb(quelleId, a) {
       const { error } = await db
         .from("wissen_seiten_vermerk")
-        .upsert({ quelle_id: quelleId, vermerk: a.vermerk, fehlende_seiten: a.stellen, vermerkt_von: a.von, vermerkt_am: a.zeitpunkt }, { onConflict: "quelle_id" });
-      SCHREIB_FEHLER("Vermerk zu fehlenden Seiten", error);
+        .upsert(
+          { quelle_id: quelleId, vermerk: a.vermerk, bestaetigte_seiten: a.bestaetigt, fehlende_seiten: a.stellen, vermerkt_von: a.von, vermerkt_am: a.zeitpunkt },
+          { onConflict: "quelle_id" },
+        );
+      SCHREIB_FEHLER("Bestaetigung der fehlenden Seiten", error);
     },
     async entscheide(quelleId, a) {
       // Eine Anweisung: alle Zeilen des Dokuments oder keine. Marker und Status stehen noch einmal im Filter; der Waechter

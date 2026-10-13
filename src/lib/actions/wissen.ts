@@ -22,6 +22,9 @@ import type { KiAntwort } from "@/lib/wissen/analyse-ki";
 import { MAX_DATEI_BYTES } from "@/lib/wissen/upload-konstanten";
 import { istUploadQuelleId, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { supabaseSpeicher } from "@/lib/wissen/speicher-supabase";
+import { berechneQualitaetFuer } from "@/lib/wissen/speicher-bestandspflege";
+import { ladeNachtrag, type NachtragGruppe } from "@/lib/wissen/nachtrag";
+import { supabaseNachtrag } from "@/lib/wissen/speicher-nachtrag";
 import { gruppiereWissenDokumente, LISTE_SPALTEN, type WissenDokumentZeile, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
 
 // Admin-Upload in die Wissensbasis (Recht, Steuer, Compliance, Audit, Risiko). Dieselbe Berechtigung wie die
@@ -64,7 +67,9 @@ const FEHLER_SCHLUESSEL: Record<UploadFehler["code"], string> = {
   nichtPruefbar: "fehler.wissenNichtPruefbar",
   selbstFreigabe: "fehler.wissenSelbstFreigabe",
   unvollstaendig: "fehler.wissenUnvollstaendig",
-  vermerkFehlt: "fehler.wissenVermerkFehlt",
+  seitenNichtBestaetigt: "fehler.wissenSeitenNichtBestaetigt",
+  seitenNichtAbgedeckt: "fehler.wissenSeitenNichtAbgedeckt",
+  nachtragUngueltig: "fehler.wissenNachtragUngueltig",
   freigeben: "fehler.wissenFreigeben",
   selbstUmordnen: "fehler.wissenSelbstUmordnen",
   keineAenderung: "fehler.wissenKeineAenderung",
@@ -243,10 +248,13 @@ export async function wissenDokumentPruefen(
     const ergebnis = await entscheideUeberUpload(aktion, quelleId, {
       speicher: supabaseSpeicher(dienstClient()),
       pruefer: { id: profil.id },
+      seitenBestaetigt: text(formData, "seiten_bestaetigt"),
       seitenVermerk: text(formData, "seiten_vermerk"),
     });
     // Die Original-PDF wird nur bis zur Entscheidung gebraucht (Freigabe und Ablehnung); eine Verlängerung ändert daran nichts.
     if (aktion !== "verlaengern") await entferneOriginal(dienstClient(), quelleId);
+    // Mit der Entscheidung ändert sich, was an der Qualität zählt: Bestätigt fehlende Seiten mindern sie nicht mehr. Ein Fehler hier hält die Entscheidung nicht auf.
+    if (aktion === "freigeben") await berechneQualitaetFuer(dienstClient(), quelleId).catch((u) => console.error("[damicon] Qualität nach der Freigabe nicht berechnet:", u));
     await protokolliere(profil, PRUEF_PROTOKOLL[aktion], "wissen_chunks", null, {
       titel: ergebnis.titel,
       bereich: ergebnis.bereich,
@@ -254,7 +262,7 @@ export async function wissenDokumentPruefen(
       abschnitte: ergebnis.abschnitte,
       quellenart: ergebnis.quellenart,
       pruefen_bis: ergebnis.pruefenBis,
-      ...(ergebnis.seitenFehlend > 0 ? { seiten_fehlend: ergebnis.seitenFehlend, seiten_vermerk: ergebnis.seitenVermerk } : {}),
+      ...(ergebnis.seitenBestaetigt ? { seiten_fehlend: ergebnis.seitenFehlend, seiten_bestaetigt: ergebnis.seitenBestaetigt, seiten_vermerk: ergebnis.seitenVermerk } : {}),
     });
     aktualisiere(formData);
     return ok(PRUEF_MELDUNG[aktion], ergebnis.titel ?? "");
@@ -454,6 +462,34 @@ export async function wissenBuchAbbrechen(hash: string): Promise<AktionsStatus> 
     return { stand: "ok", wert: String(erg.geloescht) };
   } catch (error) {
     return buchFehler(error, "abbrechen");
+  }
+}
+
+/**
+ * Lädt fehlende Seiten eines wartenden Buchs nach (nachtrag.ts). Der Browser hat die OCR-PDF gelesen und schickt je Lücke die gedruckten Seitenzahlen und den
+ * Text; der Server prüft, dass sie zu offenen Lücken gehören, und reiht sie ins Buch ein. Danach wird die Qualität neu berechnet.
+ */
+export async function wissenSeitenNachladen(quelleId: string, gruppen: NachtragGruppe[]): Promise<AktionsStatus> {
+  const profil = await buchProfil();
+  if ("stand" in profil) return profil;
+  if (typeof quelleId !== "string" || !quelleId) return fehler("fehler.eingabe");
+  try {
+    const erg = await ladeNachtrag(
+      { quelleId, gruppen },
+      { ...buchAbhaengigkeiten(), nachtrag: supabaseNachtrag(dienstClient()), pruefer: { id: profil.id } },
+    );
+    await berechneQualitaetFuer(dienstClient(), quelleId).catch((u) => console.error("[damicon] Qualität nach dem Nachladen nicht berechnet:", u));
+    await protokolliere(profil, "wissen.nachgeladen", "wissen_chunks", null, {
+      titel: erg.titel,
+      bereich: erg.bereich,
+      quelle_id: quelleId,
+      seiten: erg.seiten,
+      abschnitte: erg.abschnitte,
+      seiten_offen: erg.offen,
+    });
+    return { ...ok("ok.wissenNachgeladen", erg.seiten), id: quelleId };
+  } catch (error) {
+    return buchFehler(error, "nachladen");
   }
 }
 

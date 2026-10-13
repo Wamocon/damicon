@@ -4,6 +4,8 @@
 // Reine Funktion, ohne Datenbank, damit sie testbar bleibt.
 
 import { istCluster, istPruefstatus, nutzungFuer, type Cluster, type Nutzung, type Pruefstatus } from "@/lib/wissen/quellenart";
+import { leseSeitenzahlen, offenerStand } from "@/lib/wissen/seiten-bestaetigung";
+import { beschreibeLuecken } from "@/lib/wissen/seitenverlauf";
 import { istGueteHinweis, schlechtesteNote, type GueteHinweis, type GueteNote } from "@/lib/wissen/textguete";
 import { istUploadZeile, UPLOAD_QUELLE } from "@/lib/wissen/upload-quelle";
 
@@ -52,6 +54,11 @@ export interface WissenListeZeile {
   seiten_fehlend?: string | number | null;
   seiten_stellen?: string | null;
   seiten_vermerk?: string | null;
+  /** Gedruckte Seitenzahlen, die die pruefende Person als korrekt fehlend bestaetigt hat (wissen_seiten_vermerk), ob es eine Bestaetigung gibt (auch aus der Zeit
+   *  des Freitext-Vermerks) und die per Nachtrag nachgeladenen Seiten (wissen_seiten_nachtrag). Nur aus wissen_liste(). */
+  seiten_bestaetigt?: string | null;
+  seiten_vermerkt?: boolean | null;
+  seiten_nachgeladen?: string | null;
   /** Aus wissen_liste(): so viele Textstellen mit gleichen Listenspalten stehen fuer diese Zeile (fehlt = 1). */
   anzahl?: number | null;
 }
@@ -103,6 +110,13 @@ export interface WissenDokumentZeile {
   seitenFehlend: number;
   seitenStellen: string | null;
   seitenVermerk: string | null;
+  /** Die als korrekt fehlend bestaetigten gedruckten Seiten, ob es eine Bestaetigung gibt, und die nachgeladenen Seiten. */
+  seitenBestaetigt: string | null;
+  seitenVermerkt: boolean;
+  seitenNachgeladen: string | null;
+  /** Fehlende Seiten, die noch offen sind (nicht nachgeladen, nicht bestaetigt) und wo ("48-49 (47)"): Sie mindern die Qualitaet und verhindern die Freigabe. */
+  seitenOffen: number;
+  seitenOffenStellen: string | null;
   /** Freigegeben, aber die Wiedervorlage ist erreicht: wird nicht mehr gefunden, bis eine zweite Person verlaengert. */
   abgelaufen: boolean;
   url: string | null;
@@ -167,6 +181,11 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
         seitenFehlend: Number(z.seiten_fehlend ?? 0) || 0,
         seitenStellen: z.seiten_stellen ?? null,
         seitenVermerk: z.seiten_vermerk ?? null,
+        seitenBestaetigt: z.seiten_bestaetigt ?? null,
+        seitenVermerkt: z.seiten_vermerkt === true,
+        seitenNachgeladen: z.seiten_nachgeladen ?? null,
+        seitenOffen: 0,
+        seitenOffenStellen: null,
         originalGroesse: typeof z.original_groesse === "number" ? z.original_groesse : typeof z.original_groesse === "string" ? Number(z.original_groesse) || null : null,
         abgelaufen: false,
         url: z.url ?? null,
@@ -180,6 +199,9 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
       vorhanden.seitenStellen = z.seiten_stellen ?? null;
     }
     if (vorhanden.seitenVermerk === null && z.seiten_vermerk) vorhanden.seitenVermerk = z.seiten_vermerk;
+    if (vorhanden.seitenBestaetigt === null && z.seiten_bestaetigt) vorhanden.seitenBestaetigt = z.seiten_bestaetigt;
+    if (z.seiten_vermerkt === true) vorhanden.seitenVermerkt = true;
+    if (vorhanden.seitenNachgeladen === null && z.seiten_nachgeladen) vorhanden.seitenNachgeladen = z.seiten_nachgeladen;
     if (vorhanden.originalGroesse === null && z.original_groesse != null && Number(z.original_groesse) > 0) vorhanden.originalGroesse = Number(z.original_groesse);
     vorhanden.loeschbar &&= istUploadZeile(z);
     for (const r of z.rollen ?? []) if (!vorhanden.rollen.includes(r)) vorhanden.rollen.push(r);
@@ -198,6 +220,16 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
     d.unvollstaendig = d.paketeGesamt !== null && d.paketeDa < d.paketeGesamt;
     d.guete = schlechtesteNote(gueteNoten.get(d.schluessel) ?? []);
     d.gueteHinweise = [...(gueteHinweise.get(d.schluessel) ?? [])];
+    if (d.seitenFehlend > 0) {
+      const stand = offenerStand({
+        fehlendBeimHochladen: d.seitenFehlend,
+        stellen: d.seitenStellen,
+        nachgeladen: leseSeitenzahlen(d.seitenNachgeladen).seiten,
+        bestaetigt: d.seitenVermerkt,
+      });
+      d.seitenOffen = stand.fehlend;
+      d.seitenOffenStellen = stand.fehlend > 0 ? beschreibeLuecken(stand.luecken) || d.seitenStellen : null;
+    }
   }
   for (const d of liste) d.abgelaufen = d.pruefstatus === "freigegeben" && d.pruefenBis !== null && d.pruefenBis < heute;
   // Was auf eine Entscheidung wartet, steht oben. Danach neueste zuerst; ohne Datum ans Ende, dort nach Bereich und Titel.

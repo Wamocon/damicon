@@ -951,7 +951,8 @@
       "wissenEingeordnet": "{wert} Dokumente eingeordnet.",
       "wissenSammelFreigegeben": "Freigegeben und durchsuchbar: {wert} Dokumente (Einzelheiten im Fenster).",
       "wissenSammelAbgelehnt": "Abgelehnt: {wert} Dokumente. Sie bleiben gesperrt und lassen sich löschen.",
-      "wissenUmgeordnet": "Einordnung von „{wert}“ geändert."
+      "wissenUmgeordnet": "Einordnung von „{wert}“ geändert.",
+      "wissenNachgeladen": "Seiten {wert} nachgeladen und ins Buch eingereiht."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1032,7 +1033,9 @@
       "wissenUnvollstaendig": "Dieses Buch ist unvollständig: Es fehlen Teile, weil das Hochladen abgebrochen wurde. Bitte löschen und neu hochladen. Freigeben ist erst dann möglich.",
       "wissenSelbstUmordnen": "Die Einordnung eines freigegebenen Dokuments ändert nicht die Person, die es hochgeladen hat. Bitte eine zweite Person bitten.",
       "wissenKeineAenderung": "Es wurde nichts geändert: Die gewählten Angaben entsprechen der bisherigen Einordnung.",
-      "wissenVermerkFehlt": "Dieses Buch hat laut Seitenverlauf-Prüfung fehlende Seiten. Zum Freigeben ist ein Vermerk nötig (zum Beispiel \"Leere Seiten im Buch\"). Bitte einzeln im Prüffenster freigeben, nicht in der Sammelfreigabe."
+      "wissenSeitenNichtBestaetigt": "Dieses Buch hat offene fehlende Seiten. Zum Freigeben sind die gedruckten Seitenzahlen anzugeben, die korrekt fehlen. Bitte einzeln im Prüffenster freigeben, nicht in der Sammelfreigabe.",
+      "wissenSeitenNichtAbgedeckt": "Die angegebenen Seiten decken nicht alle fehlenden Seiten ab. Offen: {wert}. Es fehlt echter Inhalt, das Buch lässt sich nicht freigeben. Bitte die Seiten nachladen oder das Buch löschen und neu hochladen.",
+      "wissenNachtragUngueltig": "Die nachgeladenen Seiten passen zu keiner offenen Lücke dieses Buchs. Es wurde nichts eingereiht."
     },
     "einladungen": {
       "erfolg": {
@@ -2398,7 +2401,10 @@
         "qualitaet": "Qualität {prozent} %",
         "seitenFehlen": "Fehlende Seiten laut Prüfung",
         "seitenFehlenWert": "{anzahl} ({stellen})",
-        "seitenVermerk": "Vermerk zu den fehlenden Seiten"
+        "seitenVermerk": "Grund zu den fehlenden Seiten",
+        "seitenNachgeladen": "Nachgeladene Seiten",
+        "seitenBestaetigt": "Als korrekt fehlend bestätigt",
+        "seitenOffen": "Noch offen (verhindert die Freigabe)"
       },
       "formular": {
         "titel": "Dokument hochladen",
@@ -2498,12 +2504,41 @@
         "abbrechen": "Abbrechen",
         "seiten": {
           "titel": "Im Scan fehlen Seiten",
-          "text": "Die Seitenverlauf-Prüfung beim Hochladen hat {anzahl} fehlende gedruckte Seiten gefunden: {stellen}. Bitte am Original prüfen, ob dort Inhalt fehlt oder die Seiten leer sind.",
+          "text": "Die Seitenverlauf-Prüfung beim Hochladen hat fehlende gedruckte Seiten gefunden. Noch offen: {anzahl}, Stellen: {stellen}.",
           "erklaerung": "Schreibweise: \"48-49 (47)\" heißt: gedruckte Seiten 48 bis 49 fehlen nach PDF-Seite 47. \"2@105-107 (PDF 106-108)\" heißt: zwei Seiten fehlen irgendwo zwischen den gedruckten Seiten 105 und 107, und zwar in den PDF-Seiten 106 bis 108, weil auf mindestens einer davon keine Seitenzahl lesbar war. Bitte diese PDF-Seiten am Original ansehen.",
-          "vermerk": "Vermerk zu den fehlenden Seiten (Pflicht für die Freigabe)",
+          "vermerk": "Grund (freiwillig)",
           "platzhalter": "zum Beispiel: Leere Seiten im Buch",
           "vorschlag": "Leere Seiten im Buch",
-          "noetig": "Zum Freigeben bitte einen Vermerk eintragen."
+          "nachgeladen": "Bereits nachgeladen: {seiten}.",
+          "regel": "Gib unten die gedruckten Seitenzahlen an, die im Buch korrekt fehlen (zum Beispiel Leer- oder Notizseiten). Die Angabe muss alle offenen Lücken abdecken. Fehlt echter Inhalt, wird das Buch nicht freigegeben: Dann die fehlenden Seiten als PDF nachladen oder das Buch löschen und die ganze PDF neu hochladen.",
+          "unbekannt": "{anzahl, plural, one {Eine weitere fehlende Seite ist} other {# weitere fehlende Seiten sind}} nicht einzeln bekannt (zu viele Lücken oder nicht lesbar). Das lässt sich nicht bestätigen. Bitte neu scannen und die ganze PDF neu hochladen.",
+          "bestaetigt": "Gedruckte Seitenzahlen, die korrekt fehlen (Pflicht für die Freigabe)",
+          "bestaetigtPlatzhalter": "zum Beispiel: 48-49, 120",
+          "angabeUngueltig": "Die Angabe ist ungültig. Erlaubt sind Seitenzahlen und Bereiche, durch Komma getrennt, zum Beispiel 48-49, 120.",
+          "nochNichts": "Noch keine Seitenzahl angegeben.",
+          "abgedeckt": "Alle offenen Lücken sind abgedeckt ({seiten, plural, one {# Seite} other {# Seiten}} als korrekt fehlend bestätigt).",
+          "nichtAbgedeckt": "Nicht abgedeckt: {anzahl, plural, one {# Seite} other {# Seiten}}, Stellen: {stellen}. Ohne diese Seiten fehlt echter Inhalt, das Buch lässt sich nicht freigeben.",
+          "uebrig": "Diese Seitenzahlen gehören zu keiner offenen Lücke und zählen nicht: {liste}.",
+          "gesperrt": "Freigeben ist erst möglich, wenn alle Lücken abgedeckt sind. Ablehnen geht immer."
+        },
+        "nachladen": {
+          "titel": "Echter Inhalt fehlt? Seiten nachladen",
+          "erklaerung": "Lade die fehlenden Seiten als PDF mit Texterkennung (OCR) hoch. Das System liest die gedruckten Seitenzahlen, reiht die Seiten an der Stelle der Lücke ins Buch ein und zeigt das Buch danach erneut zur Freigabe. Alternativ das Buch löschen und die ganze PDF neu hochladen.",
+          "manuell": "Gedruckte Seitenzahlen der Datei (nur nötig, wenn sie nicht lesbar sind)",
+          "manuellPlatzhalter": "zum Beispiel: 48-49 (in der Reihenfolge der Seiten der Datei)",
+          "waehlen": "PDF mit den fehlenden Seiten wählen",
+          "oeffnet": "Datei wird geöffnet ...",
+          "liest": "Lese Seite {seite} von {seiten} ...",
+          "sendet": "Reihe die Seiten {seiten} ins Buch ein ...",
+          "fertig": "Nachgeladen und eingereiht: {seiten}. Das Buch wird neu bewertet.",
+          "keinePdf": "Bitte eine PDF-Datei wählen.",
+          "angabeUngueltig": "Die Seitenzahlen sind ungültig. Erlaubt sind Zahlen und Bereiche, durch Komma getrennt.",
+          "angabeAnzahl": "Es wurden {angegeben} Seitenzahlen angegeben, die Datei hat aber {seiten} Seiten. Beides muss übereinstimmen.",
+          "unklar": "Auf diesen Seiten der Datei war keine gedruckte Seitenzahl lesbar: {liste}. Bitte die Seitenzahlen von Hand angeben (in der Reihenfolge der Seiten der Datei) und die Datei erneut wählen.",
+          "ausserhalb": "Diese Seiten der Datei gehören zu keiner offenen Lücke: {liste}. Es wurde nichts nachgeladen.",
+          "keineZuordnung": "Keine Seite der Datei passt zu einer offenen Lücke. Es wurde nichts nachgeladen.",
+          "ohneText": "Auf mindestens einer Seite der Datei gibt es keinen Text. Bitte die Datei mit Texterkennung (OCR) erzeugen.",
+          "lesenFehler": "Die Datei konnte nicht gelesen oder nachgeladen werden. Ist es eine gültige PDF mit Textebene?"
         }
       },
       "cluster": {

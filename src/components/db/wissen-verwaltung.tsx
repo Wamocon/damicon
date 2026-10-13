@@ -21,6 +21,9 @@ import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
 import { WissenBuecher } from "@/components/db/wissen-buecher";
 import { WissenBestandspflege } from "@/components/db/wissen-bestandspflege";
 import { WissenOriginal } from "@/components/db/wissen-original";
+import { WissenSeitenNachladen } from "@/components/db/wissen-nachladen";
+import { leseSeitenzahlen, lueckenAusStellen, pruefeAbdeckung, zaehleFehlend } from "@/lib/wissen/seiten-bestaetigung";
+import { beschreibeLuecken } from "@/lib/wissen/seitenverlauf";
 import { qualitaetTon } from "@/lib/wissen/qualitaet";
 import { WissenUmordnenKnopf } from "@/components/db/wissen-umordnen";
 import { WissenListenFilter } from "@/components/db/wissen-liste-filter";
@@ -246,6 +249,24 @@ function WissenDokumentKarte({
             <div className="sm:col-span-2">
               <dt className="inline font-semibold">{t("liste.seitenFehlen")}: </dt>
               <dd className="inline">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenFehlend, stellen: dokument.seitenStellen ?? "-" })}</dd>
+            </div>
+          ) : null}
+          {dokument.seitenNachgeladen ? (
+            <div className="sm:col-span-2">
+              <dt className="inline font-semibold">{t("liste.seitenNachgeladen")}: </dt>
+              <dd className="inline break-words">{dokument.seitenNachgeladen}</dd>
+            </div>
+          ) : null}
+          {dokument.seitenBestaetigt ? (
+            <div className="sm:col-span-2">
+              <dt className="inline font-semibold">{t("liste.seitenBestaetigt")}: </dt>
+              <dd className="inline break-words">{dokument.seitenBestaetigt}</dd>
+            </div>
+          ) : null}
+          {dokument.seitenOffen > 0 && dokument.pruefstatus === "ungeprueft" ? (
+            <div className="sm:col-span-2">
+              <dt className="inline font-semibold text-destructive">{t("liste.seitenOffen")}: </dt>
+              <dd className="inline break-words">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenOffen, stellen: dokument.seitenOffenStellen ?? dokument.seitenStellen ?? "-" })}</dd>
             </div>
           ) : null}
           {dokument.seitenVermerk ? (
@@ -488,10 +509,16 @@ function WissenPruefenKnopf({
   const zuletzt = useRef(status);
   const [vorschau, setVorschau] = useState<"laedt" | { text: string; fehler: boolean } | null>(null);
   const erneut = dokument.pruefstatus === "freigegeben";
-  // Fehlen im Scan Seiten, bestätigt die prüfende Person sie mit einem Vermerk (Pflicht für die Freigabe, nicht für das Ablehnen).
+  // Fehlen im Scan Seiten, gibt die prüfende Person die gedruckten Seitenzahlen an, die KORREKT fehlen (Leerseiten). Sie müssen ALLE offenen Lücken abdecken,
+  // sonst fehlt echter Inhalt: keine Freigabe, die Seiten werden nachgeladen oder das Buch wird neu hochgeladen. Ablehnen geht immer. Der Server prüft dasselbe.
+  const [bestaetigt, setBestaetigt] = useState("");
   const [vermerk, setVermerk] = useState("");
-  const luecken = !erneut && dokument.seitenFehlend > 0;
-  const vermerkOk = !luecken || vermerk.trim().length >= 3;
+  const luecken = !erneut && dokument.seitenOffen > 0;
+  const gelesen = lueckenAusStellen(dokument.seitenOffenStellen ?? dokument.seitenStellen);
+  const unbekannt = Math.max(0, dokument.seitenOffen - zaehleFehlend(gelesen.luecken));
+  const angabe = leseSeitenzahlen(bestaetigt);
+  const abdeckung = pruefeAbdeckung({ luecken: gelesen.luecken, weitere: unbekannt }, angabe.seiten);
+  const seitenOk = !luecken || (!angabe.fehler && angabe.seiten.length > 0 && abdeckung.ok);
 
   // Nach der Antwort (Erfolg oder Fehler): Fenster zu, Meldung und Neuladen beim Eltern-Element.
   useEffect(() => {
@@ -503,7 +530,8 @@ function WissenPruefenKnopf({
   }, [status, beiErgebnis]);
 
   const oeffnen = () => {
-    setVermerk(dokument.seitenVermerk ?? "");
+    setBestaetigt("");
+    setVermerk("");
     dialog.current?.showModal();
     setVorschau("laedt");
     wissenDokumentVorschau(dokument.schluessel)
@@ -587,35 +615,72 @@ function WissenPruefenKnopf({
           </div>
           {!erneut && dokument.herkunft === "upload" ? <WissenOriginal dokument={dokument} beiGeaendert={() => beiErgebnis(leer)} /> : null}
           {luecken ? (
-            <div role="group" aria-labelledby={`${titelId}-seiten`} className="space-y-1.5 rounded-lg border border-warning/30 bg-warning/[0.08] p-2">
-              <p id={`${titelId}-seiten`} className="text-[11px] font-semibold text-warning">
-                {t("pruefung.seiten.titel")}
-              </p>
-              <p className="break-words text-[11px]">{t("pruefung.seiten.text", { anzahl: dokument.seitenFehlend, stellen: dokument.seitenStellen ?? "-" })}</p>
-              <p className="text-[11px] text-muted-foreground">{t("pruefung.seiten.erklaerung")}</p>
-              <label className="block space-y-1">
-                <span className="text-[11px] font-semibold">{t("pruefung.seiten.vermerk")}</span>
-                <input
-                  name="seiten_vermerk"
-                  value={vermerk}
-                  maxLength={300}
-                  required
-                  aria-required="true"
-                  placeholder={t("pruefung.seiten.platzhalter")}
-                  onChange={(e) => setVermerk(e.target.value)}
-                  // Enter darf das Formular nicht abschicken: Der erste Knopf im Fenster ist "Ablehnen".
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") e.preventDefault();
-                  }}
-                  className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
-                />
-              </label>
-              <div className="flex flex-wrap items-center gap-2">
-                <button type="button" onClick={() => setVermerk(t("pruefung.seiten.vorschlag"))} className="inline-flex h-7 items-center rounded-lg border border-border px-2 text-[11px] font-semibold">
-                  {t("pruefung.seiten.vorschlag")}
-                </button>
-                {!vermerkOk ? <span className="text-[11px] text-muted-foreground">{t("pruefung.seiten.noetig")}</span> : null}
+            <div className="space-y-2">
+              <div role="group" aria-labelledby={`${titelId}-seiten`} className="space-y-1.5 rounded-lg border border-warning/30 bg-warning/[0.08] p-2">
+                <p id={`${titelId}-seiten`} className="text-[11px] font-semibold text-warning">
+                  {t("pruefung.seiten.titel")}
+                </p>
+                <p className="break-words text-[11px]">{t("pruefung.seiten.text", { anzahl: dokument.seitenOffen, stellen: dokument.seitenOffenStellen ?? dokument.seitenStellen ?? "-" })}</p>
+                {dokument.seitenNachgeladen ? <p className="break-words text-[11px]">{t("pruefung.seiten.nachgeladen", { seiten: dokument.seitenNachgeladen })}</p> : null}
+                <p className="text-[11px]">{t("pruefung.seiten.regel")}</p>
+                <p className="text-[11px] text-muted-foreground">{t("pruefung.seiten.erklaerung")}</p>
+                {unbekannt > 0 ? <p className="text-[11px] font-semibold text-destructive">{t("pruefung.seiten.unbekannt", { anzahl: unbekannt })}</p> : null}
+                <label className="block space-y-1">
+                  <span className="text-[11px] font-semibold">{t("pruefung.seiten.bestaetigt")}</span>
+                  <input
+                    name="seiten_bestaetigt"
+                    value={bestaetigt}
+                    maxLength={400}
+                    inputMode="text"
+                    autoComplete="off"
+                    aria-describedby={`${titelId}-abdeckung`}
+                    placeholder={t("pruefung.seiten.bestaetigtPlatzhalter")}
+                    onChange={(e) => setBestaetigt(e.target.value)}
+                    // Enter darf das Formular nicht abschicken: Der erste Knopf im Fenster ist "Ablehnen".
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.preventDefault();
+                    }}
+                    className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                  />
+                </label>
+                <div id={`${titelId}-abdeckung`} role="status" aria-live="polite" className="space-y-0.5 text-[11px]">
+                  {angabe.fehler ? (
+                    <p className="font-semibold text-destructive">{t("pruefung.seiten.angabeUngueltig")}</p>
+                  ) : angabe.seiten.length === 0 ? (
+                    <p className="text-muted-foreground">{t("pruefung.seiten.nochNichts")}</p>
+                  ) : abdeckung.ok ? (
+                    <p className="font-semibold">{t("pruefung.seiten.abgedeckt", { seiten: abdeckung.bestaetigt.length })}</p>
+                  ) : (
+                    <p className="break-words font-semibold text-destructive">
+                      {t("pruefung.seiten.nichtAbgedeckt", { anzahl: abdeckung.fehlendOffen, stellen: beschreibeLuecken(abdeckung.offen) || "-" })}
+                    </p>
+                  )}
+                  {!angabe.fehler && abdeckung.uebrig.length > 0 ? (
+                    <p className="break-words text-muted-foreground">{t("pruefung.seiten.uebrig", { liste: abdeckung.uebrig.slice(0, 12).join(", ") + (abdeckung.uebrig.length > 12 ? " ..." : "") })}</p>
+                  ) : null}
+                </div>
+                <label className="block space-y-1">
+                  <span className="text-[11px] font-semibold">{t("pruefung.seiten.vermerk")}</span>
+                  <input
+                    name="seiten_vermerk"
+                    value={vermerk}
+                    maxLength={300}
+                    placeholder={t("pruefung.seiten.platzhalter")}
+                    onChange={(e) => setVermerk(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.preventDefault();
+                    }}
+                    className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                  />
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button type="button" onClick={() => setVermerk(t("pruefung.seiten.vorschlag"))} className="inline-flex h-7 items-center rounded-lg border border-border px-2 text-[11px] font-semibold">
+                    {t("pruefung.seiten.vorschlag")}
+                  </button>
+                </div>
+                {!seitenOk ? <p className="text-[11px] font-semibold text-destructive">{t("pruefung.seiten.gesperrt")}</p> : null}
               </div>
+              <WissenSeitenNachladen quelleId={dokument.schluessel} offen={gelesen.luecken} beiGeaendert={() => beiErgebnis(leer)} />
             </div>
           ) : null}
           <p role="note" className="rounded-lg border border-warning/30 bg-warning/[0.08] p-2 text-xs font-semibold text-warning">
@@ -634,7 +699,7 @@ function WissenPruefenKnopf({
                 <button type="submit" name="aktion" value="ablehnen" disabled={laeuft} className={`${knopfKlasse} border-destructive/40 text-destructive`}>
                   {t("pruefung.ablehnen")}
                 </button>
-                <button type="submit" name="aktion" value="freigeben" disabled={laeuft || !vermerkOk} className={`${knopfKlasse} border-primary bg-primary text-primary-foreground`}>
+                <button type="submit" name="aktion" value="freigeben" disabled={laeuft || !seitenOk} className={`${knopfKlasse} border-primary bg-primary text-primary-foreground`}>
                   {t("pruefung.freigeben")}
                 </button>
               </>

@@ -9,6 +9,7 @@ import { wissenQualitaetBerechnen } from "@/lib/actions/wissen-bestandspflege";
 import { wissenOriginalPlatz } from "@/lib/actions/wissen-original";
 import { formatiereGroesse } from "@/lib/wissen/groesse";
 import { legeOriginalAb } from "@/lib/wissen/original-browser";
+import { ermittleOrte } from "@/lib/wissen/seiten-orte";
 import { mitWiederholung } from "@/lib/wissen/paket-wiederholung";
 import { qualitaetTon, vollstaendigkeitsFaktor } from "@/lib/wissen/qualitaet";
 import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
@@ -54,6 +55,8 @@ interface Eintrag {
   /** Ergebnis der Pruefung des Seitenverlaufs (nur PDF) und, bei Gesetzen, der Artikelfolge. */
   verlauf: SeitenPruefung | null;
   artikel: ArtikelPruefung | null;
+  /** Der rohe Text jeder PDF-Seite (nur PDF): daraus bestimmt der Browser, wo im Buch eine Luecke liegt (seiten-orte.ts). */
+  roheSeiten: string[] | null;
   /** Die Administration nimmt die Luecken im Scan bewusst in Kauf. */
   trotzdem: boolean;
   /** Qualitaet in Prozent (Text und Vollstaendigkeit), vor dem Hochladen im Browser gerechnet; null vor dem Lesen. */
@@ -159,7 +162,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
     setze(eintrag.id, { schritt: "liest", seite: 0, seiten: 0, fehler: null });
     try {
       const lesung = istTextDatei(eintrag.datei)
-        ? { text: await eintrag.datei.text(), raender: null }
+        ? { text: await eintrag.datei.text(), raender: null, seiten: null }
         : await pdfLesenAusDatei(eintrag.datei, (f) => setze(eintrag.id, { seite: f.seite, seiten: f.seiten }), signal);
       const text = normalisiereText(lesung.text);
       const guete = bewerteText(text);
@@ -168,7 +171,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       const hash = text ? await sha256Hex(text) : null;
       const analyse = analysiereDokument(text, eintrag.datei.name);
       const pakete = text ? teileInPakete(text).length : 0;
-      setEintraege((alt) => alt.map((e) => (e.id === eintrag.id ? { ...uebernimm(e, analyse), schritt: "bereit", text, guete, verlauf: seitenPruefung, artikel: artikelPruefung, trotzdem: false, qualitaet: Math.round(guete.prozent * vollstaendigkeitsFaktor(seitenPruefung?.geprueft ? { seiten: seitenPruefung.seiten, fehlend: seitenPruefung.fehlend } : null)), hash, pakete, ki: "aus" } : e)));
+      setEintraege((alt) => alt.map((e) => (e.id === eintrag.id ? { ...uebernimm(e, analyse), schritt: "bereit", text, guete, verlauf: seitenPruefung, artikel: artikelPruefung, roheSeiten: lesung.seiten, trotzdem: false, qualitaet: Math.round(guete.prozent * vollstaendigkeitsFaktor(seitenPruefung?.geprueft ? { seiten: seitenPruefung.seiten, fehlend: seitenPruefung.fehlend } : null)), hash, pakete, ki: "aus" } : e)));
       return text ? { id: eintrag.id, dateiname: eintrag.datei.name, text } : null;
     } catch (fehler) {
       if (signal.aborted) {
@@ -208,6 +211,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       guete: null,
       verlauf: null,
       artikel: null,
+      roheSeiten: null,
       trotzdem: false,
       qualitaet: null,
       original: null,
@@ -311,7 +315,9 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       url: eintrag.url.trim() || undefined,
       pakete: pakete.length,
       zeichen: eintrag.text.length,
-      ...(eintrag.verlauf?.geprueft ? { seiten: alsSeitenAngabe(eintrag.verlauf, istGesetz(eintrag) ? eintrag.artikel : null) } : {}),
+      ...(eintrag.verlauf?.geprueft
+        ? { seiten: alsSeitenAngabe(eintrag.verlauf, istGesetz(eintrag) ? eintrag.artikel : null, eintrag.roheSeiten ? ermittleOrte(eintrag.roheSeiten, pakete, eintrag.verlauf.luecken) : undefined) }
+        : {}),
     };
     setze(eintrag.id, { schritt: "laedt", paket: 0, pakete: pakete.length, fehler: null });
     const start = await wissenBuchStarten(kopf);
