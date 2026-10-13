@@ -66,7 +66,7 @@
     "test:wissen-buch": "npx --yes tsx supabase/tests/wissen-buch.ts",
     "test:rechte": "node scripts/qualitaet/rechte.mjs",
     "qualitaet:ungenutzt": "node scripts/qualitaet/ungenutzt.mjs",
-    "test:dubletten": "npx --yes jscpd@4.0.5 src --min-tokens 80 --min-lines 8 --threshold 1 --ignore \"**/database.types.ts,**/*.json\" --reporters consoleFull --silent",
+    "test:dubletten": "npx --yes jscpd@4.0.5 src --min-tokens 80 --min-lines 8 --threshold 0.1 --ignore \"**/database.types.ts,**/*.json\" --reporters console",
     "test:wissen-seiten": "npx --yes tsx supabase/tests/wissen-seiten.ts",
     "test:wissen-bestaetigung": "npx --yes tsx supabase/tests/wissen-bestaetigung.ts",
     "test:wissen-qualitaet": "npx --yes tsx supabase/tests/wissen-qualitaet.ts",
