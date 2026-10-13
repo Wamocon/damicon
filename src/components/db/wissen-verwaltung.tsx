@@ -179,21 +179,12 @@ function WissenDokumentKarte({
   beiErgebnis: (status: AktionsStatus) => void;
 }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
-  const tRolle = useTranslations("roles");
-  const tStufe = useTranslations("kiAssistentAnsicht.quellen.stufe");
-  const format = useFormatter();
-  const datum = dokument.datum && !Number.isNaN(Date.parse(dokument.datum))
-    ? format.dateTime(new Date(dokument.datum), { dateStyle: "medium" })
-    : t("liste.keinDatum");
   // Gespeichert ist "legal", angezeigt wird die Bezeichnung "Recht".
   const bereichKey = bereichSchluessel(dokument.bereich);
   const bereichName = (UPLOAD_BEREICHE as readonly string[]).includes(bereichKey)
     ? t(`bereich.${bereichKey}` as never)
     : dokument.bereich || t("liste.keinBereich");
   const artName = istQuellenart(dokument.quellenart) ? t(`quellenart.${dokument.quellenart}` as never) : null;
-  const cluster = dokument.cluster;
-  const clusterName = cluster ? t(`cluster.${cluster}` as never) : null;
-  const stufeName = dokument.stufe !== null ? tStufe(stufeSchluessel(dokument.stufe)) : null;
   const ersterEintrag = dokument.herkunft === "upload";
   const eigener = !!ichId && dokument.hochgeladenVonId === ichId;
   const wartetAufMich = !eigener && !dokument.unvollstaendig && (dokument.pruefstatus === "ungeprueft" || dokument.abgelaufen);
@@ -205,109 +196,12 @@ function WissenDokumentKarte({
 
   const detailId = `dok-${dokument.schluessel}`;
   // Alle Angaben als Kennzeichen (Raster und aufgeklappte Liste); die zugeklappte Zeile zeigt nur die wichtigsten
-  const allePills = (
-    <>
-            <StatusPill tone="info">{bereichName}</StatusPill>
-            <StatusPill tone={dokument.herkunft === "upload" ? "success" : "neutral"}>{t(`herkunft.${dokument.herkunft}`)}</StatusPill>
-            {ohneEinordnung(dokument) ? <StatusPill tone="warning">{t("liste.ohneEinordnung")}</StatusPill> : null}
-            {clusterName ? <StatusPill tone="neutral">{clusterName}</StatusPill> : null}
-            {artName ? <StatusPill tone="neutral">{artName}</StatusPill> : null}
-            {dokument.nutzung === "hinweis" ? <StatusPill tone="warning">{t("nutzung.hinweis")}</StatusPill> : null}
-            {dokument.nutzung === "notfalls" ? <StatusPill tone="danger">{t("nutzung.notfalls")}</StatusPill> : null}
-            {dokument.unvollstaendig ? <StatusPill tone="danger">{t("liste.unvollstaendig")}</StatusPill> : null}
-            {dokument.guete ? (
-              <StatusPill tone={dokument.guete === "gut" ? "success" : dokument.guete === "pruefen" ? "warning" : "danger"}>{tGuete(`note.${dokument.guete}` as never)}</StatusPill>
-            ) : null}
-            {dokument.gueteProzent !== null ? <StatusPill tone={qualitaetTon(dokument.gueteProzent)}>{t("liste.qualitaet", { prozent: dokument.gueteProzent })}</StatusPill> : null}
-            {einschaetzung ? <StatusPill tone={EMPFEHLUNG_TON[einschaetzung.empfehlung]}>{t(`einschaetzung.empfehlung.${einschaetzung.empfehlung}` as never)}</StatusPill> : null}
-            {ersterEintrag ? (
-              <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
-            ) : null}
-    </>
-  );
-  const kurzePills = (
-    <>
-      <StatusPill tone="info">{bereichName}</StatusPill>
-      {dokument.unvollstaendig ? <StatusPill tone="danger">{t("liste.unvollstaendig")}</StatusPill> : null}
-      {dokument.gueteProzent !== null ? <StatusPill tone={qualitaetTon(dokument.gueteProzent)}>{t("liste.qualitaet", { prozent: dokument.gueteProzent })}</StatusPill> : null}
-      {einschaetzung ? <StatusPill tone={EMPFEHLUNG_TON[einschaetzung.empfehlung]}>{t(`einschaetzung.empfehlung.${einschaetzung.empfehlung}` as never)}</StatusPill> : null}
-      {ersterEintrag ? (
-        <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
-      ) : null}
-    </>
-  );
+  const kennzeichen = { dokument, bereichName, einschaetzung, status } as const;
+  const allePills = <DokumentKennzeichen {...kennzeichen} kurz={false} />;
+  const kurzePills = <DokumentKennzeichen {...kennzeichen} kurz />;
   const koerper = (
     <>
-        <dl className={`mt-2 grid gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground ${ansicht === "raster" ? "" : "sm:grid-cols-2"}`}>
-          {/* Die Einordnung steht immer da, auch beim Bestand ohne Typisierung: dort als "nicht eingeordnet", mit der Stufe, die er hat. */}
-          <div className="sm:col-span-2">
-            <dt className="inline font-semibold">{t("liste.einordnung")}: </dt>
-            <dd className="inline">
-              {artName && clusterName ? `${artName}, ${clusterName}` : artName ? artName : t("liste.ohneEinordnung")}
-              {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe} (${stufeName})` : ""}
-            </dd>
-          </div>
-          <div>
-            <dt className="inline font-semibold">{t("liste.rollen")}: </dt>
-            <dd className="inline">{dokument.rollen.map((r) => tRolle(r as never)).join(", ") || "-"}</dd>
-          </div>
-          <div>
-            <dt className="inline font-semibold">{t("liste.datum")}: </dt>
-            <dd className="inline">{datum}</dd>
-          </div>
-          <div>
-            <dt className="inline font-semibold">{t("liste.von")}: </dt>
-            <dd className="inline">{dokument.hochgeladenVon ?? t("liste.vonSkript")}</dd>
-          </div>
-          <div>
-            <dt className="inline font-semibold">{t("liste.abschnitte")}: </dt>
-            <dd className="inline">{dokument.chunks}</dd>
-          </div>
-          {dokument.pruefenBis ? (
-            <div>
-              <dt className="inline font-semibold">{t("liste.pruefenBis")}: </dt>
-              <dd className="inline">{format.dateTime(new Date(dokument.pruefenBis), { dateStyle: "medium" })}</dd>
-            </div>
-          ) : null}
-          {dokument.seitenFehlend > 0 ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold">{t("liste.seitenFehlen")}: </dt>
-              <dd className="inline">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenFehlend, stellen: dokument.seitenStellen ?? "-" })}</dd>
-            </div>
-          ) : null}
-          {dokument.seitenNachgeladen ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold">{t("liste.seitenNachgeladen")}: </dt>
-              <dd className="inline break-words">{dokument.seitenNachgeladen}</dd>
-            </div>
-          ) : null}
-          {dokument.seitenBestaetigt ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold">{t("liste.seitenBestaetigt")}: </dt>
-              <dd className="inline break-words">{dokument.seitenBestaetigt}</dd>
-            </div>
-          ) : null}
-          {dokument.seitenOffen > 0 && dokument.pruefstatus === "ungeprueft" ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold text-destructive">{t("liste.seitenOffen")}: </dt>
-              <dd className="inline break-words">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenOffen, stellen: dokument.seitenOffenStellen ?? dokument.seitenStellen ?? "-" })}</dd>
-            </div>
-          ) : null}
-          {dokument.seitenVermerk ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold">{t("liste.seitenVermerk")}: </dt>
-              <dd className="inline break-words">{dokument.seitenVermerk}</dd>
-            </div>
-          ) : null}
-          {dokument.url ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold">{t("liste.link")}: </dt>
-              <dd className="inline break-all">
-                <QuellenLink url={dokument.url} />
-              </dd>
-            </div>
-          ) : null}
-        </dl>
+        <DokumentAngaben dokument={dokument} ansicht={ansicht} />
         {dokument.unvollstaendig ? (
           <p role="alert" className="mt-2 text-[11px] font-semibold text-destructive">
             {t("liste.unvollstaendigHinweis", { da: dokument.paketeDa, gesamt: dokument.paketeGesamt ?? 0 })}
@@ -375,6 +269,136 @@ function WissenDokumentKarte({
         ) : null}
       </Card>
     </li>
+  );
+}
+
+/**
+ * Die Kennzeichen eines Dokuments (Bereich, Herkunft, Einordnung, Nutzung, Güte, Qualität, Empfehlung, Status). `kurz` zeigt nur die wichtigsten
+ * für die zugeklappte Zeile, in derselben Reihenfolge; vorher standen beide Listen getrennt in der Karte.
+ */
+function DokumentKennzeichen({
+  dokument,
+  bereichName,
+  einschaetzung,
+  status,
+  kurz,
+}: {
+  dokument: WissenDokumentZeile;
+  bereichName: string;
+  einschaetzung: Einschaetzung | null;
+  status: "ungeprueft" | "abgelehnt" | "abgelaufen" | "freigegeben";
+  kurz: boolean;
+}) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  const tGuete = useTranslations("kiAssistentAnsicht.wissensVerwaltung.guete");
+  const artName = istQuellenart(dokument.quellenart) ? t(`quellenart.${dokument.quellenart}` as never) : null;
+  const clusterName = dokument.cluster ? t(`cluster.${dokument.cluster}` as never) : null;
+  const lang = !kurz;
+  return (
+    <>
+      <StatusPill tone="info">{bereichName}</StatusPill>
+      {lang ? <StatusPill tone={dokument.herkunft === "upload" ? "success" : "neutral"}>{t(`herkunft.${dokument.herkunft}`)}</StatusPill> : null}
+      {lang && ohneEinordnung(dokument) ? <StatusPill tone="warning">{t("liste.ohneEinordnung")}</StatusPill> : null}
+      {lang && clusterName ? <StatusPill tone="neutral">{clusterName}</StatusPill> : null}
+      {lang && artName ? <StatusPill tone="neutral">{artName}</StatusPill> : null}
+      {lang && dokument.nutzung === "hinweis" ? <StatusPill tone="warning">{t("nutzung.hinweis")}</StatusPill> : null}
+      {lang && dokument.nutzung === "notfalls" ? <StatusPill tone="danger">{t("nutzung.notfalls")}</StatusPill> : null}
+      {dokument.unvollstaendig ? <StatusPill tone="danger">{t("liste.unvollstaendig")}</StatusPill> : null}
+      {lang && dokument.guete ? (
+        <StatusPill tone={dokument.guete === "gut" ? "success" : dokument.guete === "pruefen" ? "warning" : "danger"}>{tGuete(`note.${dokument.guete}` as never)}</StatusPill>
+      ) : null}
+      {dokument.gueteProzent !== null ? <StatusPill tone={qualitaetTon(dokument.gueteProzent)}>{t("liste.qualitaet", { prozent: dokument.gueteProzent })}</StatusPill> : null}
+      {einschaetzung ? <StatusPill tone={EMPFEHLUNG_TON[einschaetzung.empfehlung]}>{t(`einschaetzung.empfehlung.${einschaetzung.empfehlung}` as never)}</StatusPill> : null}
+      {dokument.herkunft === "upload" ? (
+        <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
+      ) : null}
+    </>
+  );
+}
+
+/** Die Angaben eines Dokuments als Liste (Einordnung, Rollen, Datum, Herkunft, Seiten, Link): in der Kachel und in der aufgeklappten Zeile. */
+function DokumentAngaben({ dokument, ansicht }: { dokument: WissenDokumentZeile; ansicht: Ansicht }) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  const tRolle = useTranslations("roles");
+  const tStufe = useTranslations("kiAssistentAnsicht.quellen.stufe");
+  const format = useFormatter();
+  const datum = dokument.datum && !Number.isNaN(Date.parse(dokument.datum))
+    ? format.dateTime(new Date(dokument.datum), { dateStyle: "medium" })
+    : t("liste.keinDatum");
+  const artName = istQuellenart(dokument.quellenart) ? t(`quellenart.${dokument.quellenart}` as never) : null;
+  const clusterName = dokument.cluster ? t(`cluster.${dokument.cluster}` as never) : null;
+  const stufeName = dokument.stufe !== null ? tStufe(stufeSchluessel(dokument.stufe)) : null;
+  return (
+    <dl className={`mt-2 grid gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground ${ansicht === "raster" ? "" : "sm:grid-cols-2"}`}>
+      {/* Die Einordnung steht immer da, auch beim Bestand ohne Typisierung: dort als "nicht eingeordnet", mit der Stufe, die er hat. */}
+      <div className="sm:col-span-2">
+        <dt className="inline font-semibold">{t("liste.einordnung")}: </dt>
+        <dd className="inline">
+          {artName && clusterName ? `${artName}, ${clusterName}` : artName ? artName : t("liste.ohneEinordnung")}
+          {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe} (${stufeName})` : ""}
+        </dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("liste.rollen")}: </dt>
+        <dd className="inline">{dokument.rollen.map((r) => tRolle(r as never)).join(", ") || "-"}</dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("liste.datum")}: </dt>
+        <dd className="inline">{datum}</dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("liste.von")}: </dt>
+        <dd className="inline">{dokument.hochgeladenVon ?? t("liste.vonSkript")}</dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("liste.abschnitte")}: </dt>
+        <dd className="inline">{dokument.chunks}</dd>
+      </div>
+      {dokument.pruefenBis ? (
+        <div>
+          <dt className="inline font-semibold">{t("liste.pruefenBis")}: </dt>
+          <dd className="inline">{format.dateTime(new Date(dokument.pruefenBis), { dateStyle: "medium" })}</dd>
+        </div>
+      ) : null}
+      {dokument.seitenFehlend > 0 ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold">{t("liste.seitenFehlen")}: </dt>
+          <dd className="inline">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenFehlend, stellen: dokument.seitenStellen ?? "-" })}</dd>
+        </div>
+      ) : null}
+      {dokument.seitenNachgeladen ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold">{t("liste.seitenNachgeladen")}: </dt>
+          <dd className="inline break-words">{dokument.seitenNachgeladen}</dd>
+        </div>
+      ) : null}
+      {dokument.seitenBestaetigt ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold">{t("liste.seitenBestaetigt")}: </dt>
+          <dd className="inline break-words">{dokument.seitenBestaetigt}</dd>
+        </div>
+      ) : null}
+      {dokument.seitenOffen > 0 && dokument.pruefstatus === "ungeprueft" ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold text-destructive">{t("liste.seitenOffen")}: </dt>
+          <dd className="inline break-words">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenOffen, stellen: dokument.seitenOffenStellen ?? dokument.seitenStellen ?? "-" })}</dd>
+        </div>
+      ) : null}
+      {dokument.seitenVermerk ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold">{t("liste.seitenVermerk")}: </dt>
+          <dd className="inline break-words">{dokument.seitenVermerk}</dd>
+        </div>
+      ) : null}
+      {dokument.url ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold">{t("liste.link")}: </dt>
+          <dd className="inline break-all">
+            <QuellenLink url={dokument.url} />
+          </dd>
+        </div>
+      ) : null}
+    </dl>
   );
 }
 

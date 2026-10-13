@@ -10,7 +10,7 @@ import { wissenOriginalPlatz } from "@/lib/actions/wissen-original";
 import { formatiereGroesse } from "@/lib/wissen/groesse";
 import { legeOriginalAb } from "@/lib/wissen/original-browser";
 import { ermittleOrte } from "@/lib/wissen/seiten-orte";
-import { AnsichtSchalter, AufklappPfeil, useAnsicht, useAufgeklappt } from "@/components/db/ansicht-schalter";
+import { AnsichtSchalter, AufklappPfeil, useAnsicht, useAufgeklappt, type Ansicht } from "@/components/db/ansicht-schalter";
 import { mitWiederholung } from "@/lib/wissen/paket-wiederholung";
 import { qualitaetTon, vollstaendigkeitsFaktor } from "@/lib/wissen/qualitaet";
 import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
@@ -87,20 +87,33 @@ function istTextDatei(datei: File): boolean {
 
 const artPasst = (art: string, cluster: string): boolean => istQuellenart(art) && istCluster(cluster) && clusterPasst(art, cluster);
 
+
+// Fehlende Seiten im Scan: Das Buch geht nur hoch, wenn die Administration es ausdruecklich bestaetigt.
+const luckenOffen = (e: Eintrag): boolean => (e.verlauf?.fehlend ?? 0) > 0 && !e.trotzdem;
+// Die Artikelfolge zaehlt nur bei Gesetzen (Rechtsnorm, Verwaltungsanweisung): Ein Kommentar oder ein Lehrbuch nennt nur einzelne Artikel.
+const istGesetz = (e: Eintrag): boolean => e.quellenart === "rechtsnorm" || e.quellenart === "verwaltungsanweisung";
+const gesperrt = (e: Eintrag) => e.schritt === "laedt" || e.schritt === "fertig";
+const feldKlasse = "w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground disabled:opacity-60";
+
+function eintragOk(e: Eintrag, cluster: string): boolean {
+  if (e.schritt !== "bereit" || !e.guete || e.guete.note === "schlecht" || !e.hash || !e.text) return false;
+  if (luckenOffen(e)) return false;
+  if (!(UPLOAD_BEREICHE as readonly string[]).includes(e.bereich) || !istQuellenart(e.quellenart) || !artPasst(e.quellenart, cluster)) return false;
+  if (nutzungFuer(e.bereich, e.quellenart) === "nein") return false;
+  if (!(TEXTGRUNDLAGEN as readonly string[]).includes(e.textgrundlage)) return false;
+  if (e.titel.trim().length === 0) return false;
+  if (QUELLENART_INFO[e.quellenart].urlPflicht && !/^https?:\/\//i.test(e.url.trim())) return false;
+  return true;
+}
+
 export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
   const locale = useLocale();
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.buecher");
   const tForm = useTranslations("kiAssistentAnsicht.wissensVerwaltung.formular");
-  const tBereich = useTranslations("kiAssistentAnsicht.wissensVerwaltung.bereich");
-  const tArt = useTranslations("kiAssistentAnsicht.wissensVerwaltung.quellenart");
   const tCluster = useTranslations("kiAssistentAnsicht.wissensVerwaltung.cluster");
-  const tText = useTranslations("kiAssistentAnsicht.wissensVerwaltung.textgrundlage");
   const tRolle = useTranslations("roles");
-  const tHinweis = useTranslations("kiAssistentAnsicht.wissensVerwaltung.guete");
-  const tAnalyse = useTranslations("kiAssistentAnsicht.wissensVerwaltung.analyse");
   const tAktion = useTranslations("aktionen");
   const [ansicht, setzeAnsicht] = useAnsicht("wissen.ansicht.hochladen");
-  const tAnsicht = useTranslations("kiAssistentAnsicht.wissensVerwaltung.ansicht");
   const auf = useAufgeklappt<number>();
 
   const [eintraege, setEintraege] = useState<Eintrag[]>([]);
@@ -267,29 +280,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
     setEintraege((alt) => alt.map((e) => (e.quellenart && !artPasst(e.quellenart, neu) ? { ...e, quellenart: "fachliteratur" } : e)));
   };
 
-  // Fehlende Seiten im Scan: Das Buch geht nur hoch, wenn die Administration es ausdruecklich bestaetigt.
-  const luckenOffen = (e: Eintrag): boolean => (e.verlauf?.fehlend ?? 0) > 0 && !e.trotzdem;
-  // Die Artikelfolge zaehlt nur bei Gesetzen (Rechtsnorm, Verwaltungsanweisung): Ein Kommentar oder ein Lehrbuch nennt nur einzelne Artikel.
-  const istGesetz = (e: Eintrag): boolean => e.quellenart === "rechtsnorm" || e.quellenart === "verwaltungsanweisung";
-
-  const stelle = (l: SeitenLuecke): string =>
-    l.genau
-      ? l.vonGedruckt === l.bisGedruckt
-        ? t("seiten.stelleEinzeln", { von: l.vonGedruckt, pdf: l.nachPdfSeite })
-        : t("seiten.stelleMehrere", { von: l.vonGedruckt, bis: l.bisGedruckt, pdf: l.nachPdfSeite })
-      : t("seiten.stelleUngefaehr", { anzahl: l.anzahl, von: l.vonGedruckt, bis: l.bisGedruckt, pdf: l.nachPdfSeite, pdfBis: l.bisPdfSeite ?? l.nachPdfSeite });
-
-  const eintragOk = (e: Eintrag): boolean => {
-    if (e.schritt !== "bereit" || !e.guete || e.guete.note === "schlecht" || !e.hash || !e.text) return false;
-    if (luckenOffen(e)) return false;
-    if (!(UPLOAD_BEREICHE as readonly string[]).includes(e.bereich) || !istQuellenart(e.quellenart) || !artPasst(e.quellenart, cluster)) return false;
-    if (nutzungFuer(e.bereich, e.quellenart) === "nein") return false;
-    if (!(TEXTGRUNDLAGEN as readonly string[]).includes(e.textgrundlage)) return false;
-    if (e.titel.trim().length === 0) return false;
-    if (QUELLENART_INFO[e.quellenart].urlPflicht && !/^https?:\/\//i.test(e.url.trim())) return false;
-    return true;
-  };
-  const bereitZumLaden = eintraege.filter(eintragOk);
+  const bereitZumLaden = eintraege.filter((e) => eintragOk(e, cluster));
   const kannStarten = !laeuft && istCluster(cluster) && bereitZumLaden.length > 0 && !eintraege.some((e) => e.ki === "laeuft");
 
   // Ein Buch hochladen. Bei einem Fehler wird alles Geschriebene wieder entfernt (wissenBuchAbbrechen).
@@ -398,8 +389,6 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
 
   const stoppe = () => abbruch.current?.abort();
   const entferne = (id: number) => setEintraege((alt) => alt.filter((e) => e.id !== id || e.schritt === "laedt"));
-  const gesperrt = (e: Eintrag) => e.schritt === "laedt" || e.schritt === "fertig";
-  const feldKlasse = "w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground disabled:opacity-60";
 
   // Gesamtfortschritt: gelesen wird nacheinander, hochgeladen wird nach Paketen. Ein Buch zaehlt mit allen seinen Paketen, sobald es fertig
   // oder gescheitert ist; ein laufendes mit den Paketen, die schon angekommen sind.
@@ -499,157 +488,20 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       {eintraege.length > 0 ? (
         <ul className={ansicht === "raster" ? "mt-3 grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,24rem),1fr))]" : "mt-3 space-y-2"}>
           {eintraege.map((e) => {
-            const art = istQuellenart(e.quellenart) ? e.quellenart : null;
-            const nutzung = art ? nutzungFuer(e.bereich, art) : "ja";
-            // In der Liste sind die Angaben zugeklappt, solange nichts zu tun ist. Was Aufmerksamkeit braucht (Fehler, Lücken ohne Bestätigung,
-            // unvollständige Angaben, gesperrter Text), steht aufgeklappt da; im Raster ist immer alles zu sehen.
-            const braucht = !!e.fehler || luckenOffen(e) || e.guete?.note === "schlecht" || (e.schritt === "bereit" && !eintragOk(e));
-            const offen = ansicht === "raster" || auf.istOffen(e.id, braucht);
+            const braucht = !!e.fehler || luckenOffen(e) || e.guete?.note === "schlecht" || (e.schritt === "bereit" && !eintragOk(e, cluster));
             return (
-              <li key={e.id} className="flex flex-col rounded-lg border border-border p-2.5">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <input
-                    type="text"
-                    value={e.titel}
-                    disabled={gesperrt(e)}
-                    onChange={(ev) => setze(e.id, { titel: ev.target.value })}
-                    aria-label={t("titelFeld")}
-                    className={`min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-semibold text-foreground ${ansicht === "raster" ? "basis-full" : ""}`}
-                  />
-                  <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-                    <StatusPill tone={e.schritt === "fertig" ? "success" : e.schritt === "fehler" ? "danger" : e.schritt === "abgebrochen" ? "warning" : "info"}>
-                      {t(`schritt.${e.schritt}` as never)}
-                    </StatusPill>
-                    {e.guete ? (
-                      <StatusPill tone={e.guete.note === "gut" ? "success" : e.guete.note === "pruefen" ? "warning" : "danger"}>{tHinweis(`note.${e.guete.note}` as never)}</StatusPill>
-                    ) : null}
-                    {e.qualitaet !== null ? <StatusPill tone={qualitaetTon(e.qualitaet)}>{t("qualitaet", { prozent: e.qualitaet })}</StatusPill> : null}
-                    {e.schritt === "fertig" && e.original === "ok" ? <StatusPill tone="success">{t("original.abgelegt")}</StatusPill> : null}
-                    {e.schritt === "fertig" && e.original !== null && e.original !== "ok" ? (
-                      <StatusPill tone="warning">{t.has(`original.fehler.${e.original}` as never) ? t(`original.fehler.${e.original}` as never) : t("original.fehler.unbekannt")}</StatusPill>
-                    ) : null}
-                    {ansicht === "liste" ? (
-                      <button
-                        type="button"
-                        aria-expanded={offen}
-                        aria-controls={`eintrag-${e.id}`}
-                        aria-label={tAnsicht(offen ? "zuklappen" : "aufklappen", { titel: e.titel })}
-                        onClick={() => auf.schalte(e.id, braucht)}
-                        className="inline-flex size-6 items-center justify-center rounded-md border border-border"
-                      >
-                        <AufklappPfeil offen={offen} />
-                      </button>
-                    ) : null}
-                    {e.schritt !== "laedt" ? (
-                      <button type="button" onClick={() => entferne(e.id)} className="text-[11px] font-semibold underline">
-                        {t("entfernen")}
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  {e.datei.name} ({(e.datei.size / 1_048_576).toFixed(1)} MB)
-                  {e.schritt === "liest" && e.seiten > 0 ? ` · ${t("seite", { seite: e.seite, seiten: e.seiten })}` : ""}
-                  {e.schritt === "laedt" ? ` · ${e.versuch > 0 ? t("erneut", { nr: e.paket + 1, gesamt: e.pakete, versuch: e.versuch + 1 }) : e.paket >= e.pakete && e.pakete > 0 ? t("original.fortschritt", { prozent: e.originalProzent ?? 0 }) : t("paket", { nr: e.paket, gesamt: e.pakete })}` : ""}
-                  {e.text ? ` · ${t("zeichen", { anzahl: e.text.length.toLocaleString() })}` : ""}
-                </p>
-
-                {e.schritt === "liest" && e.seiten > 0 ? <progress className="mt-1 h-1.5 w-full" max={e.seiten} value={e.seite} aria-label={t("fortschritt.lesenBalken")} /> : null}
-                {e.schritt === "laedt" && e.pakete > 0 ? <progress className="mt-1 h-1.5 w-full" max={e.pakete} value={e.paket} aria-label={t("fortschritt.buchBalken")} /> : null}
-                {offen ? (
-                  <div id={`eintrag-${e.id}`}>
-                {e.analyse && e.schritt !== "wartet" && e.schritt !== "liest" ? (
-                  <div className="mt-2 space-y-1.5">
-                    <div className={`grid gap-2 ${ansicht === "raster" ? "" : "sm:grid-cols-3"}`}>
-                      <label className="block space-y-0.5">
-                        <span className="text-[11px] font-semibold text-card-foreground">{tForm("bereich")}</span>
-                        <select className={feldKlasse} value={e.bereich} disabled={gesperrt(e)} onChange={(ev) => aendere(e.id, "bereich", ev.target.value)}>
-                          {UPLOAD_BEREICHE.map((b) => (
-                            <option key={b} value={b}>
-                              {tBereich(b)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="block space-y-0.5">
-                        <span className="text-[11px] font-semibold text-card-foreground">{tForm("quellenart")}</span>
-                        <select className={feldKlasse} value={e.quellenart} disabled={gesperrt(e)} onChange={(ev) => aendere(e.id, "quellenart", ev.target.value)}>
-                          <option value="">{tForm("bitteWaehlen")}</option>
-                          {QUELLENARTEN.map((a) => (
-                            <option key={a} value={a} disabled={nutzungFuer(e.bereich, a) === "nein" || !artPasst(a, cluster)}>
-                              {tArt(a)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="block space-y-0.5">
-                        <span className="text-[11px] font-semibold text-card-foreground">{tForm("textgrundlage")}</span>
-                        <select className={feldKlasse} value={e.textgrundlage} disabled={gesperrt(e)} onChange={(ev) => aendere(e.id, "textgrundlage", ev.target.value)}>
-                          {TEXTGRUNDLAGEN.map((g) => (
-                            <option key={g} value={g}>
-                              {tText(g)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-                    {art && QUELLENART_INFO[art].urlPflicht ? (
-                      <label className="block space-y-0.5">
-                        <span className="text-[11px] font-semibold text-card-foreground">{tForm("url")}</span>
-                        <input type="url" className={feldKlasse} placeholder="https://" value={e.url} disabled={gesperrt(e)} onChange={(ev) => setze(e.id, { url: ev.target.value })} />
-                      </label>
-                    ) : null}
-                    <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <StatusPill tone={e.analyse.sicherheit === "hoch" ? "success" : e.analyse.sicherheit === "mittel" ? "info" : "warning"}>
-                        {tAnalyse(`sicherheit.${e.analyse.sicherheit}` as never)}
-                      </StatusPill>
-                      <span>
-                        {e.ki === "laeuft" ? tAnalyse("kiLaeuft") : e.analyse.quelle === "ki" ? tAnalyse("vonKi") : e.ki === "keine" && mitKi ? tAnalyse("nurRegeln") : tAnalyse("vonRegeln")}
-                        {e.analyse.hinweis ? `: ${e.analyse.hinweis}` : e.analyse.gruende.length > 0 ? `: ${e.analyse.gruende.map((g) => tAnalyse(`grund.${g}` as never)).join(", ")}` : ""}
-                      </span>
-                    </p>
-                    {nutzung === "hinweis" || nutzung === "notfalls" ? (
-                      <p className="text-[11px] font-semibold text-warning">{nutzung === "notfalls" ? tForm("nutzungNotfalls") : tForm("nutzungHinweis")}</p>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                {e.verlauf?.geprueft ? (
-                  e.verlauf.fehlend > 0 ? (
-                    <div className="mt-1 space-y-1 rounded-md border border-warning/50 bg-warning/10 p-2">
-                      <p role="alert" className="text-[11px] font-semibold text-warning">
-                        {t("seiten.luecken", { anzahl: e.verlauf.fehlend, stellen: e.verlauf.luecken.slice(0, 12).map(stelle).join("; ") + (e.verlauf.luecken.length > 12 ? " ..." : "") })}
-                      </p>
-                      <label className="flex items-start gap-2 text-[11px] text-card-foreground">
-                        <input type="checkbox" className="mt-0.5" checked={e.trotzdem} disabled={gesperrt(e)} onChange={(ev) => setze(e.id, { trotzdem: ev.target.checked })} />
-                        <span>{t("seiten.trotzdem")}</span>
-                      </label>
-                    </div>
-                  ) : e.verlauf.eingeschraenkt ? (
-                    <p className="mt-1 text-[11px] text-muted-foreground">{t("seiten.eingeschraenkt", { prozent: Math.round(e.verlauf.abdeckung * 100) })}</p>
-                  ) : (
-                    <p className="mt-1 text-[11px] text-muted-foreground">{t("seiten.ok", { seiten: e.verlauf.seiten, prozent: Math.round(e.verlauf.abdeckung * 100) })}</p>
-                  )
-                ) : null}
-                {e.verlauf?.geprueft && e.verlauf.ohneText.length > 0 ? (
-                  <p className="mt-1 text-[11px] text-muted-foreground">{t("seiten.ohneText", { liste: e.verlauf.ohneText.slice(0, 15).join(", ") + (e.verlauf.ohneText.length > 15 ? " ..." : "") })}</p>
-                ) : null}
-                {e.artikel && e.artikel.fehlend > 0 && istGesetz(e) ? (
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    {t("seiten.artikel", { anzahl: e.artikel.fehlend, von: e.artikel.kleinste, bis: e.artikel.groesste, stellen: beschreibeArtikelLuecken(e.artikel.luecken) })}
-                  </p>
-                ) : null}
-                {e.guete && e.guete.hinweise.length > 0 ? (
-                  <p className={`mt-1 text-[11px] ${e.guete.note === "gut" ? "text-muted-foreground" : "font-semibold text-warning"}`}>
-                    {e.guete.hinweise.map((h) => tHinweis(`hinweis.${h}` as never)).join(" ")}
-                  </p>
-                ) : null}
-                {e.guete?.note === "schlecht" ? <p className="mt-1 text-[11px] font-semibold text-destructive">{t("schlechtGesperrt")}</p> : null}
-                  </div>
-                ) : null}
-                {e.fehler ? <p role="alert" className="mt-1 text-[11px] font-semibold text-destructive">{e.fehler}</p> : null}
-                {e.schritt === "bereit" && e.guete?.note !== "schlecht" && !luckenOffen(e) && !eintragOk(e) ? <p className="mt-1 text-[11px] font-semibold text-warning">{t("angabenFehlen")}</p> : null}
-              </li>
+              <BuchEintrag
+                key={e.id}
+                e={e}
+                ansicht={ansicht}
+                offen={ansicht === "raster" || auf.istOffen(e.id, braucht)}
+                beiAufklappen={() => auf.schalte(e.id, braucht)}
+                cluster={cluster}
+                mitKi={mitKi}
+                setze={setze}
+                aendere={aendere}
+                entferne={entferne}
+              />
             );
           })}
         </ul>
@@ -677,5 +529,225 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
         </p>
       ) : null}
     </FormularKarte>
+  );
+}
+
+/** Ein Eintrag der Auflistung beim Hochladen: Kopf mit Titel und Zustand, darunter (in der Liste aufklappbar) Analyse, Seitenverlauf und Hinweise. */
+function BuchEintrag({
+  e,
+  ansicht,
+  offen,
+  beiAufklappen,
+  cluster,
+  mitKi,
+  setze,
+  aendere,
+  entferne,
+}: {
+  e: Eintrag;
+  ansicht: Ansicht;
+  offen: boolean;
+  beiAufklappen: () => void;
+  cluster: string;
+  mitKi: boolean;
+  setze: (id: number, teil: Partial<Eintrag>) => void;
+  aendere: (id: number, feld: Feld, wert: string) => void;
+  entferne: (id: number) => void;
+}) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.buecher");
+  const tHinweis = useTranslations("kiAssistentAnsicht.wissensVerwaltung.guete");
+  const tAnsicht = useTranslations("kiAssistentAnsicht.wissensVerwaltung.ansicht");
+
+  return (
+    <li className="flex flex-col rounded-lg border border-border p-2.5">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <input
+          type="text"
+          value={e.titel}
+          disabled={gesperrt(e)}
+          onChange={(ev) => setze(e.id, { titel: ev.target.value })}
+          aria-label={t("titelFeld")}
+          className={`min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-semibold text-foreground ${ansicht === "raster" ? "basis-full" : ""}`}
+        />
+        <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+          <StatusPill tone={e.schritt === "fertig" ? "success" : e.schritt === "fehler" ? "danger" : e.schritt === "abgebrochen" ? "warning" : "info"}>
+            {t(`schritt.${e.schritt}` as never)}
+          </StatusPill>
+          {e.guete ? (
+            <StatusPill tone={e.guete.note === "gut" ? "success" : e.guete.note === "pruefen" ? "warning" : "danger"}>{tHinweis(`note.${e.guete.note}` as never)}</StatusPill>
+          ) : null}
+          {e.qualitaet !== null ? <StatusPill tone={qualitaetTon(e.qualitaet)}>{t("qualitaet", { prozent: e.qualitaet })}</StatusPill> : null}
+          {e.schritt === "fertig" && e.original === "ok" ? <StatusPill tone="success">{t("original.abgelegt")}</StatusPill> : null}
+          {e.schritt === "fertig" && e.original !== null && e.original !== "ok" ? (
+            <StatusPill tone="warning">{t.has(`original.fehler.${e.original}` as never) ? t(`original.fehler.${e.original}` as never) : t("original.fehler.unbekannt")}</StatusPill>
+          ) : null}
+          {ansicht === "liste" ? (
+            <button
+              type="button"
+              aria-expanded={offen}
+              aria-controls={`eintrag-${e.id}`}
+              aria-label={tAnsicht(offen ? "zuklappen" : "aufklappen", { titel: e.titel })}
+              onClick={beiAufklappen}
+              className="inline-flex size-6 items-center justify-center rounded-md border border-border"
+            >
+              <AufklappPfeil offen={offen} />
+            </button>
+          ) : null}
+          {e.schritt !== "laedt" ? (
+            <button type="button" onClick={() => entferne(e.id)} className="text-[11px] font-semibold underline">
+              {t("entfernen")}
+            </button>
+          ) : null}
+        </div>
+      </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        {e.datei.name} ({(e.datei.size / 1_048_576).toFixed(1)} MB)
+        {e.schritt === "liest" && e.seiten > 0 ? ` · ${t("seite", { seite: e.seite, seiten: e.seiten })}` : ""}
+        {e.schritt === "laedt" ? ` · ${e.versuch > 0 ? t("erneut", { nr: e.paket + 1, gesamt: e.pakete, versuch: e.versuch + 1 }) : e.paket >= e.pakete && e.pakete > 0 ? t("original.fortschritt", { prozent: e.originalProzent ?? 0 }) : t("paket", { nr: e.paket, gesamt: e.pakete })}` : ""}
+        {e.text ? ` · ${t("zeichen", { anzahl: e.text.length.toLocaleString() })}` : ""}
+      </p>
+
+      {e.schritt === "liest" && e.seiten > 0 ? <progress className="mt-1 h-1.5 w-full" max={e.seiten} value={e.seite} aria-label={t("fortschritt.lesenBalken")} /> : null}
+      {e.schritt === "laedt" && e.pakete > 0 ? <progress className="mt-1 h-1.5 w-full" max={e.pakete} value={e.paket} aria-label={t("fortschritt.buchBalken")} /> : null}
+      {offen ? (
+        <div id={`eintrag-${e.id}`}>
+          <BuchAnalyse e={e} ansicht={ansicht} cluster={cluster} mitKi={mitKi} aendere={aendere} setze={setze} />
+          <BuchHinweise e={e} setze={setze} />
+        </div>
+      ) : null}
+      {e.fehler ? <p role="alert" className="mt-1 text-[11px] font-semibold text-destructive">{e.fehler}</p> : null}
+      {e.schritt === "bereit" && e.guete?.note !== "schlecht" && !luckenOffen(e) && !eintragOk(e, cluster) ? <p className="mt-1 text-[11px] font-semibold text-warning">{t("angabenFehlen")}</p> : null}
+    </li>
+  );
+}
+
+/** Die vorgeschlagene Einordnung eines Eintrags (Bereich, Quellenart, Textgrundlage, Link) mit der Herkunft des Vorschlags. */
+function BuchAnalyse({
+  e,
+  ansicht,
+  cluster,
+  mitKi,
+  aendere,
+  setze,
+}: {
+  e: Eintrag;
+  ansicht: Ansicht;
+  cluster: string;
+  mitKi: boolean;
+  aendere: (id: number, feld: Feld, wert: string) => void;
+  setze: (id: number, teil: Partial<Eintrag>) => void;
+}) {
+  const tForm = useTranslations("kiAssistentAnsicht.wissensVerwaltung.formular");
+  const tBereich = useTranslations("kiAssistentAnsicht.wissensVerwaltung.bereich");
+  const tArt = useTranslations("kiAssistentAnsicht.wissensVerwaltung.quellenart");
+  const tText = useTranslations("kiAssistentAnsicht.wissensVerwaltung.textgrundlage");
+  const tAnalyse = useTranslations("kiAssistentAnsicht.wissensVerwaltung.analyse");
+  const art = istQuellenart(e.quellenart) ? e.quellenart : null;
+  const nutzung = art ? nutzungFuer(e.bereich, art) : "ja";
+  return (
+    <>
+      {e.analyse && e.schritt !== "wartet" && e.schritt !== "liest" ? (
+        <div className="mt-2 space-y-1.5">
+          <div className={`grid gap-2 ${ansicht === "raster" ? "" : "sm:grid-cols-3"}`}>
+            <label className="block space-y-0.5">
+              <span className="text-[11px] font-semibold text-card-foreground">{tForm("bereich")}</span>
+              <select className={feldKlasse} value={e.bereich} disabled={gesperrt(e)} onChange={(ev) => aendere(e.id, "bereich", ev.target.value)}>
+                {UPLOAD_BEREICHE.map((b) => (
+                  <option key={b} value={b}>
+                    {tBereich(b)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block space-y-0.5">
+              <span className="text-[11px] font-semibold text-card-foreground">{tForm("quellenart")}</span>
+              <select className={feldKlasse} value={e.quellenart} disabled={gesperrt(e)} onChange={(ev) => aendere(e.id, "quellenart", ev.target.value)}>
+                <option value="">{tForm("bitteWaehlen")}</option>
+                {QUELLENARTEN.map((a) => (
+                  <option key={a} value={a} disabled={nutzungFuer(e.bereich, a) === "nein" || !artPasst(a, cluster)}>
+                    {tArt(a)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block space-y-0.5">
+              <span className="text-[11px] font-semibold text-card-foreground">{tForm("textgrundlage")}</span>
+              <select className={feldKlasse} value={e.textgrundlage} disabled={gesperrt(e)} onChange={(ev) => aendere(e.id, "textgrundlage", ev.target.value)}>
+                {TEXTGRUNDLAGEN.map((g) => (
+                  <option key={g} value={g}>
+                    {tText(g)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {art && QUELLENART_INFO[art].urlPflicht ? (
+            <label className="block space-y-0.5">
+              <span className="text-[11px] font-semibold text-card-foreground">{tForm("url")}</span>
+              <input type="url" className={feldKlasse} placeholder="https://" value={e.url} disabled={gesperrt(e)} onChange={(ev) => setze(e.id, { url: ev.target.value })} />
+            </label>
+          ) : null}
+          <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+            <StatusPill tone={e.analyse.sicherheit === "hoch" ? "success" : e.analyse.sicherheit === "mittel" ? "info" : "warning"}>
+              {tAnalyse(`sicherheit.${e.analyse.sicherheit}` as never)}
+            </StatusPill>
+            <span>
+              {e.ki === "laeuft" ? tAnalyse("kiLaeuft") : e.analyse.quelle === "ki" ? tAnalyse("vonKi") : e.ki === "keine" && mitKi ? tAnalyse("nurRegeln") : tAnalyse("vonRegeln")}
+              {e.analyse.hinweis ? `: ${e.analyse.hinweis}` : e.analyse.gruende.length > 0 ? `: ${e.analyse.gruende.map((g) => tAnalyse(`grund.${g}` as never)).join(", ")}` : ""}
+            </span>
+          </p>
+          {nutzung === "hinweis" || nutzung === "notfalls" ? (
+            <p className="text-[11px] font-semibold text-warning">{nutzung === "notfalls" ? tForm("nutzungNotfalls") : tForm("nutzungHinweis")}</p>
+          ) : null}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+/** Seitenverlauf, Artikelfolge und Textgüte eines Eintrags; bei Lücken im Scan die Bestätigung, trotzdem hochzuladen. */
+function BuchHinweise({ e, setze }: { e: Eintrag; setze: (id: number, teil: Partial<Eintrag>) => void }) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.buecher");
+  const tHinweis = useTranslations("kiAssistentAnsicht.wissensVerwaltung.guete");
+  const stelle = (l: SeitenLuecke): string =>
+    l.genau
+      ? l.vonGedruckt === l.bisGedruckt
+        ? t("seiten.stelleEinzeln", { von: l.vonGedruckt, pdf: l.nachPdfSeite })
+        : t("seiten.stelleMehrere", { von: l.vonGedruckt, bis: l.bisGedruckt, pdf: l.nachPdfSeite })
+      : t("seiten.stelleUngefaehr", { anzahl: l.anzahl, von: l.vonGedruckt, bis: l.bisGedruckt, pdf: l.nachPdfSeite, pdfBis: l.bisPdfSeite ?? l.nachPdfSeite });
+  return (
+    <>
+      {e.verlauf?.geprueft ? (
+        e.verlauf.fehlend > 0 ? (
+          <div className="mt-1 space-y-1 rounded-md border border-warning/50 bg-warning/10 p-2">
+            <p role="alert" className="text-[11px] font-semibold text-warning">
+              {t("seiten.luecken", { anzahl: e.verlauf.fehlend, stellen: e.verlauf.luecken.slice(0, 12).map(stelle).join("; ") + (e.verlauf.luecken.length > 12 ? " ..." : "") })}
+            </p>
+            <label className="flex items-start gap-2 text-[11px] text-card-foreground">
+              <input type="checkbox" className="mt-0.5" checked={e.trotzdem} disabled={gesperrt(e)} onChange={(ev) => setze(e.id, { trotzdem: ev.target.checked })} />
+              <span>{t("seiten.trotzdem")}</span>
+            </label>
+          </div>
+        ) : e.verlauf.eingeschraenkt ? (
+          <p className="mt-1 text-[11px] text-muted-foreground">{t("seiten.eingeschraenkt", { prozent: Math.round(e.verlauf.abdeckung * 100) })}</p>
+        ) : (
+          <p className="mt-1 text-[11px] text-muted-foreground">{t("seiten.ok", { seiten: e.verlauf.seiten, prozent: Math.round(e.verlauf.abdeckung * 100) })}</p>
+        )
+      ) : null}
+      {e.verlauf?.geprueft && e.verlauf.ohneText.length > 0 ? (
+        <p className="mt-1 text-[11px] text-muted-foreground">{t("seiten.ohneText", { liste: e.verlauf.ohneText.slice(0, 15).join(", ") + (e.verlauf.ohneText.length > 15 ? " ..." : "") })}</p>
+      ) : null}
+      {e.artikel && e.artikel.fehlend > 0 && istGesetz(e) ? (
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          {t("seiten.artikel", { anzahl: e.artikel.fehlend, von: e.artikel.kleinste, bis: e.artikel.groesste, stellen: beschreibeArtikelLuecken(e.artikel.luecken) })}
+        </p>
+      ) : null}
+      {e.guete && e.guete.hinweise.length > 0 ? (
+        <p className={`mt-1 text-[11px] ${e.guete.note === "gut" ? "text-muted-foreground" : "font-semibold text-warning"}`}>
+          {e.guete.hinweise.map((h) => tHinweis(`hinweis.${h}` as never)).join(" ")}
+        </p>
+      ) : null}
+      {e.guete?.note === "schlecht" ? <p className="mt-1 text-[11px] font-semibold text-destructive">{t("schlechtGesperrt")}</p> : null}
+    </>
   );
 }
