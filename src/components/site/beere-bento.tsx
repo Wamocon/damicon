@@ -6,6 +6,7 @@ import { LoopClip } from "@/components/site/loop-clip";
 import { Reveal } from "@/components/site/reveal";
 import { beerenNahaufnahme } from "@/lib/site-medien";
 import { cn } from "@/lib/utils";
+import { AbschnittKopf } from "@/components/site/abschnitt-kopf";
 
 // "Warum die Himbeere anders ist" als Bento in zwei Gruppen. Oben die Frucht
 // selbst, auf nachtblauem Grund: keine schützende Haut, 60 Minuten bis zur
@@ -299,15 +300,7 @@ export function BeereBento() {
     <section id="himbeere" className="scroll-mt-20 border-b border-border py-16 md:py-24">
       <div className="container">
         <Reveal art="wisch">
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-            {s("berryEyebrow")}
-          </p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-            {s("berryTitle")}
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {s("berryLead")}
-          </p>
+          <AbschnittKopf ueberzeile={s("berryEyebrow")} titel={s("berryTitle")} einleitung={s("berryLead")} />
         </Reveal>
 
         <Reveal staffel className="mt-10 grid gap-3 md:grid-cols-6 lg:grid-cols-12">

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { AlertTriangle, CheckCircle2, Snowflake } from "lucide-react";
-import { Card, StatusPill, type Tone } from "@/components/ui/kit";
+import { Card, StatusPill } from "@/components/ui/kit";
 import { Zaehler } from "@/components/ui/zaehler";
 import {
   ArbeitszeitFormular,
@@ -14,12 +14,7 @@ import { SteigeScanFeld } from "@/components/db/steige-scan-feld";
 import { kg } from "@/components/db/pflueckaufgabe-anzeige";
 import type { AufgabenStatus } from "@/lib/domain/pflueckaufgaben";
 import type { KuehlMessung, Nachweiskette, PflueckerOption } from "@/lib/data/nachweiskette";
-
-const ergebnisTon: Record<string, Tone> = {
-  ok: "success",
-  warnung: "warning",
-  verstoss: "danger",
-};
+import { kuehlErgebnisTon } from "@/components/db/toene";
 
 // So viele Steigen stehen in der Karte; mehr ruft der Scan am Sammelpunkt auf.
 const STEIGEN_VORSCHAU = 6;
@@ -146,7 +141,7 @@ export async function NachweiskettenKarte({
                   key={m.id}
                   className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground"
                 >
-                  <StatusPill tone={ergebnisTon[m.ergebnis] ?? "neutral"}>
+                  <StatusPill tone={kuehlErgebnisTon[m.ergebnis] ?? "neutral"}>
                     {t(`ergebnis.${m.ergebnis}`)}
                   </StatusPill>
                   <span className="font-mono">

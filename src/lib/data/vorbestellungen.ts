@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { einsAus } from "@/lib/data/util";
+import { preislisteAusZeile } from "@/lib/data/preislisten";
 import {
   demoKontingente,
   demoPreislisten,
@@ -150,23 +151,7 @@ export async function ladePreislisten(kundeId?: string): Promise<PreislisteZeile
 
   return data
     .filter((p) => !p.gueltig_bis || p.gueltig_bis >= heute)
-    .map((p) => ({
-      id: p.id,
-      name: p.name,
-      gueltigAb: p.gueltig_ab,
-      gueltigBis: p.gueltig_bis,
-      aktiv: p.aktiv,
-      kundengruppe: p.kundengruppe,
-      positionen: (p.preislisten_positionen ?? []).map((pos) => {
-        const sorte = einsAus(pos.sorten);
-        return {
-          id: pos.id,
-          sorte: sorte?.name ?? "-",
-          preisTengeKg: Number(pos.preis_tenge_kg),
-          minMengeKg: Number(pos.min_menge_kg),
-        };
-      }),
-    }));
+    .map(preislisteAusZeile);
 }
 
 // Referenzlisten fuer das Anlegen-Formular - eigene, kleine Kopie statt eines

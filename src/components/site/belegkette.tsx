@@ -12,6 +12,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { Reveal } from "@/components/site/reveal";
 import { knopfKlassen } from "@/components/ui/kit";
+import { AbschnittKopf } from "@/components/site/abschnitt-kopf";
 
 // Die Nachweiskette als Kette, nicht als fuenf gleiche Karten: Vom Code auf
 // der Schale laeuft eine Linie durch alle Glieder, die nacheinander
@@ -55,15 +56,7 @@ export function Belegkette() {
     >
       <div className="container">
         <Reveal art="wisch">
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-            {s("proofEyebrow")}
-          </p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-            {s("proofTitle")}
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {s("proofLead")}
-          </p>
+          <AbschnittKopf ueberzeile={s("proofEyebrow")} titel={s("proofTitle")} einleitung={s("proofLead")} />
         </Reveal>
 
         <Reveal className="group relative mt-12">

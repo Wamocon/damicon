@@ -120,18 +120,6 @@ export async function ladeDatenmodell(): Promise<Map<string, TabellenInfo>> {
 export const FILTER_OPERATOREN = ["gleich", "ungleich", "groesser", "groesserGleich", "kleiner", "kleinerGleich", "enthaelt", "istLeer", "istNichtLeer"] as const;
 export type FilterOperator = (typeof FILTER_OPERATOREN)[number];
 
-export const PostgrestOperator: Record<FilterOperator, string> = {
-  gleich: "eq",
-  ungleich: "neq",
-  groesser: "gt",
-  groesserGleich: "gte",
-  kleiner: "lt",
-  kleinerGleich: "lte",
-  enthaelt: "ilike",
-  istLeer: "is",
-  istNichtLeer: "not.is",
-};
-
 /** Kuerzt lange Texte, damit ein einzelnes Freitextfeld die Antwort nicht sprengt. */
 export function kuerzeWert(wert: unknown): unknown {
   if (typeof wert === "string" && wert.length > 240) return `${wert.slice(0, 240)} ...`;

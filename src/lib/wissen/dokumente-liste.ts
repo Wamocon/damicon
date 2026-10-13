@@ -127,118 +127,140 @@ export const ohneEinordnung = (d: Pick<WissenDokumentZeile, "quellenart" | "clus
 
 const RANG: Record<Pruefstatus, number> = { ungeprueft: 0, abgelehnt: 1, freigegeben: 2 };
 
+/** Was je Dokument über alle seine Zeilen gesammelt wird, bevor es fertig ist: die Paketnummern und die Gütenoten mit Hinweisen. */
+interface Sammlung {
+  pakete: Set<number>;
+  noten: (string | null | undefined)[];
+  hinweise: Set<GueteHinweis>;
+}
+
+const zahlOderNull = (wert: number | string | null | undefined): number | null =>
+  typeof wert === "number" ? wert : typeof wert === "string" ? Number(wert) || null : null;
+
+/** Das Dokument aus seiner ersten Zeile. */
+function neuesDokument(z: WissenListeZeile, schluessel: string, schluesselSpalte: SchluesselSpalte, status: Pruefstatus, anzahl: number): WissenDokumentZeile {
+  return {
+    schluessel,
+    schluesselSpalte,
+    titel: z.titel ?? z.pfad ?? schluessel,
+    bereich: z.bereich ?? "",
+    rollen: [...(z.rollen ?? [])],
+    datum: z.eingelesen_am,
+    hochgeladenVon: z.hochgeladen_von,
+    hochgeladenVonId: z.hochgeladen_von_id ?? null,
+    chunks: anzahl,
+    herkunft: z.upload_quelle === UPLOAD_QUELLE ? "upload" : "skript",
+    loeschbar: istUploadZeile(z),
+    quellenart: z.quellenart ?? null,
+    cluster: istCluster(z.cluster) ? z.cluster : null,
+    textgrundlage: z.textgrundlage ?? null,
+    stufe: z.autoritaetsstufe ?? null,
+    rechtsstelle: z.rechtsstelle ?? null,
+    nutzung: nutzungFuer(z.bereich ?? "", z.quellenart),
+    pruefstatus: status,
+    pruefenBis: z.pruefen_bis ?? null,
+    paketeGesamt: z.pakete_gesamt ? Number(z.pakete_gesamt) : null,
+    paketeDa: 0,
+    unvollstaendig: false,
+    guete: null,
+    gueteHinweise: [],
+    gueteProzent: typeof z.guete_prozent === "number" ? z.guete_prozent : null,
+    seitenFehlend: Number(z.seiten_fehlend ?? 0) || 0,
+    seitenStellen: z.seiten_stellen ?? null,
+    seitenVermerk: z.seiten_vermerk ?? null,
+    seitenBestaetigt: z.seiten_bestaetigt ?? null,
+    seitenVermerkt: z.seiten_vermerkt === true,
+    seitenNachgeladen: z.seiten_nachgeladen ?? null,
+    seitenOffen: 0,
+    seitenOffenStellen: null,
+    originalGroesse: zahlOderNull(z.original_groesse),
+    abgelaufen: false,
+    url: z.url ?? null,
+  };
+}
+
+/** Jede weitere Zeile desselben Dokuments: Zahlen addieren, Lücken füllen, und das Dokument gilt so streng wie seine strengste Zeile. */
+function fuehreZusammen(d: WissenDokumentZeile, z: WissenListeZeile, status: Pruefstatus, anzahl: number): void {
+  d.chunks += anzahl;
+  if (d.gueteProzent === null && typeof z.guete_prozent === "number") d.gueteProzent = z.guete_prozent;
+  if (d.seitenFehlend === 0 && Number(z.seiten_fehlend ?? 0) > 0) {
+    d.seitenFehlend = Number(z.seiten_fehlend);
+    d.seitenStellen = z.seiten_stellen ?? null;
+  }
+  d.seitenVermerk ??= z.seiten_vermerk || null;
+  d.seitenBestaetigt ??= z.seiten_bestaetigt || null;
+  if (z.seiten_vermerkt === true) d.seitenVermerkt = true;
+  d.seitenNachgeladen ??= z.seiten_nachgeladen || null;
+  if (d.originalGroesse === null && z.original_groesse != null && Number(z.original_groesse) > 0) d.originalGroesse = Number(z.original_groesse);
+  d.loeschbar &&= istUploadZeile(z);
+  for (const r of z.rollen ?? []) if (!d.rollen.includes(r)) d.rollen.push(r);
+  if (!d.rechtsstelle && z.rechtsstelle) d.rechtsstelle = z.rechtsstelle;
+  if (z.pakete_gesamt) d.paketeGesamt = Math.max(d.paketeGesamt ?? 0, Number(z.pakete_gesamt));
+  if (z.eingelesen_am && (!d.datum || z.eingelesen_am > d.datum)) d.datum = z.eingelesen_am;
+  if (!d.hochgeladenVon && z.hochgeladen_von) d.hochgeladenVon = z.hochgeladen_von;
+  if (!d.hochgeladenVonId && z.hochgeladen_von_id) d.hochgeladenVonId = z.hochgeladen_von_id;
+  // Ein Dokument gilt so streng wie seine strengste Zeile (ungeprueft vor abgelehnt vor freigegeben).
+  if (RANG[status] < RANG[d.pruefstatus]) d.pruefstatus = status;
+  if (z.pruefen_bis && (!d.pruefenBis || z.pruefen_bis < d.pruefenBis)) d.pruefenBis = z.pruefen_bis;
+}
+
+/** Pakete und Güte zählen für jede Zeile, auch für die erste. */
+function sammle(m: Sammlung, z: WissenListeZeile): void {
+  if (z.paket !== null && z.paket !== undefined && z.paket !== "") m.pakete.add(Number(z.paket));
+  if (z.guete) m.noten.push(z.guete);
+  if (z.guete_hinweise) for (const h of z.guete_hinweise.split(",")) if (istGueteHinweis(h)) m.hinweise.add(h);
+}
+
+/** Was erst aus allen Zeilen folgt: Vollständigkeit, schlechteste Note, offene Seiten, abgelaufene Wiedervorlage. */
+function vervollstaendige(d: WissenDokumentZeile, m: Sammlung, heute: string): void {
+  d.paketeDa = m.pakete.size;
+  d.unvollstaendig = d.paketeGesamt !== null && d.paketeDa < d.paketeGesamt;
+  d.guete = schlechtesteNote(m.noten);
+  d.gueteHinweise = [...m.hinweise];
+  if (d.seitenFehlend > 0) {
+    const stand = offenerStand({
+      fehlendBeimHochladen: d.seitenFehlend,
+      stellen: d.seitenStellen,
+      nachgeladen: leseSeitenzahlen(d.seitenNachgeladen).seiten,
+      bestaetigt: d.seitenVermerkt,
+    });
+    d.seitenOffen = stand.fehlend;
+    d.seitenOffenStellen = stand.fehlend > 0 ? beschreibeLuecken(stand.luecken) || d.seitenStellen : null;
+  }
+  d.abgelaufen = d.pruefstatus === "freigegeben" && d.pruefenBis !== null && d.pruefenBis < heute;
+}
+
+/** Was auf eine Entscheidung wartet, steht oben. Danach neueste zuerst; ohne Datum ans Ende, dort nach Bereich und Titel. */
+function reihenfolge(a: WissenDokumentZeile, b: WissenDokumentZeile): number {
+  const wartetA = a.pruefstatus === "ungeprueft" || a.abgelaufen;
+  const wartetB = b.pruefstatus === "ungeprueft" || b.abgelaufen;
+  if (wartetA !== wartetB) return wartetA ? -1 : 1;
+  if (a.datum && b.datum && a.datum !== b.datum) return a.datum < b.datum ? 1 : -1;
+  if (!a.datum !== !b.datum) return a.datum ? -1 : 1;
+  return a.bereich.localeCompare(b.bereich) || a.titel.localeCompare(b.titel);
+}
+
 /** `heute` (JJJJ-MM-TT) ist ein Parameter, damit Tests ohne Uhr auskommen. */
 export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], heute = new Date().toISOString().slice(0, 10)): WissenDokumentZeile[] {
-  const gruppen = new Map<string, WissenDokumentZeile>();
-  const pakete = new Map<string, Set<number>>();
-  const gueteNoten = new Map<string, (string | null | undefined)[]>();
-  const gueteHinweise = new Map<string, Set<GueteHinweis>>();
+  const gruppen = new Map<string, { dokument: WissenDokumentZeile; sammlung: Sammlung }>();
   for (const z of zeilen) {
     const schluessel = z.quelle_id ?? z.pfad ?? z.id;
-    const schluesselSpalte: SchluesselSpalte = z.quelle_id ? "quelle_id" : z.pfad ? "pfad" : "id";
     const status: Pruefstatus = istPruefstatus(z.pruefstatus) ? z.pruefstatus : "freigegeben";
     const anzahl = typeof z.anzahl === "number" && z.anzahl > 0 ? z.anzahl : 1;
-    // Pakete und Qualitaet zaehlen fuer jede Zeile, auch fuer die erste
-    if (z.paket !== null && z.paket !== undefined && z.paket !== "") {
-      const menge = pakete.get(schluessel) ?? new Set<number>();
-      menge.add(Number(z.paket));
-      pakete.set(schluessel, menge);
-    }
-    if (z.guete) gueteNoten.set(schluessel, [...(gueteNoten.get(schluessel) ?? []), z.guete]);
-    if (z.guete_hinweise) {
-      const menge = gueteHinweise.get(schluessel) ?? new Set<GueteHinweis>();
-      for (const h of z.guete_hinweise.split(",")) if (istGueteHinweis(h)) menge.add(h);
-      gueteHinweise.set(schluessel, menge);
-    }
     const vorhanden = gruppen.get(schluessel);
-    if (!vorhanden) {
-      gruppen.set(schluessel, {
-        schluessel,
-        schluesselSpalte,
-        titel: z.titel ?? z.pfad ?? schluessel,
-        bereich: z.bereich ?? "",
-        rollen: [...(z.rollen ?? [])],
-        datum: z.eingelesen_am,
-        hochgeladenVon: z.hochgeladen_von,
-        hochgeladenVonId: z.hochgeladen_von_id ?? null,
-        chunks: anzahl,
-        herkunft: z.upload_quelle === UPLOAD_QUELLE ? "upload" : "skript",
-        loeschbar: istUploadZeile(z),
-        quellenart: z.quellenart ?? null,
-        cluster: istCluster(z.cluster) ? z.cluster : null,
-        textgrundlage: z.textgrundlage ?? null,
-        stufe: z.autoritaetsstufe ?? null,
-        rechtsstelle: z.rechtsstelle ?? null,
-        nutzung: nutzungFuer(z.bereich ?? "", z.quellenart),
-        pruefstatus: status,
-        pruefenBis: z.pruefen_bis ?? null,
-        paketeGesamt: z.pakete_gesamt ? Number(z.pakete_gesamt) : null,
-        paketeDa: 0,
-        unvollstaendig: false,
-        guete: null,
-        gueteHinweise: [],
-        gueteProzent: typeof z.guete_prozent === "number" ? z.guete_prozent : null,
-        seitenFehlend: Number(z.seiten_fehlend ?? 0) || 0,
-        seitenStellen: z.seiten_stellen ?? null,
-        seitenVermerk: z.seiten_vermerk ?? null,
-        seitenBestaetigt: z.seiten_bestaetigt ?? null,
-        seitenVermerkt: z.seiten_vermerkt === true,
-        seitenNachgeladen: z.seiten_nachgeladen ?? null,
-        seitenOffen: 0,
-        seitenOffenStellen: null,
-        originalGroesse: typeof z.original_groesse === "number" ? z.original_groesse : typeof z.original_groesse === "string" ? Number(z.original_groesse) || null : null,
-        abgelaufen: false,
-        url: z.url ?? null,
-      });
+    if (vorhanden) {
+      fuehreZusammen(vorhanden.dokument, z, status, anzahl);
+      sammle(vorhanden.sammlung, z);
       continue;
     }
-    vorhanden.chunks += anzahl;
-    if (vorhanden.gueteProzent === null && typeof z.guete_prozent === "number") vorhanden.gueteProzent = z.guete_prozent;
-    if (vorhanden.seitenFehlend === 0 && Number(z.seiten_fehlend ?? 0) > 0) {
-      vorhanden.seitenFehlend = Number(z.seiten_fehlend);
-      vorhanden.seitenStellen = z.seiten_stellen ?? null;
-    }
-    if (vorhanden.seitenVermerk === null && z.seiten_vermerk) vorhanden.seitenVermerk = z.seiten_vermerk;
-    if (vorhanden.seitenBestaetigt === null && z.seiten_bestaetigt) vorhanden.seitenBestaetigt = z.seiten_bestaetigt;
-    if (z.seiten_vermerkt === true) vorhanden.seitenVermerkt = true;
-    if (vorhanden.seitenNachgeladen === null && z.seiten_nachgeladen) vorhanden.seitenNachgeladen = z.seiten_nachgeladen;
-    if (vorhanden.originalGroesse === null && z.original_groesse != null && Number(z.original_groesse) > 0) vorhanden.originalGroesse = Number(z.original_groesse);
-    vorhanden.loeschbar &&= istUploadZeile(z);
-    for (const r of z.rollen ?? []) if (!vorhanden.rollen.includes(r)) vorhanden.rollen.push(r);
-    if (!vorhanden.rechtsstelle && z.rechtsstelle) vorhanden.rechtsstelle = z.rechtsstelle;
-    if (z.pakete_gesamt) vorhanden.paketeGesamt = Math.max(vorhanden.paketeGesamt ?? 0, Number(z.pakete_gesamt));
-    if (z.eingelesen_am && (!vorhanden.datum || z.eingelesen_am > vorhanden.datum)) vorhanden.datum = z.eingelesen_am;
-    if (!vorhanden.hochgeladenVon && z.hochgeladen_von) vorhanden.hochgeladenVon = z.hochgeladen_von;
-    if (!vorhanden.hochgeladenVonId && z.hochgeladen_von_id) vorhanden.hochgeladenVonId = z.hochgeladen_von_id;
-    // Ein Dokument gilt so streng wie seine strengste Zeile (ungeprueft vor abgelehnt vor freigegeben).
-    if (RANG[status] < RANG[vorhanden.pruefstatus]) vorhanden.pruefstatus = status;
-    if (z.pruefen_bis && (!vorhanden.pruefenBis || z.pruefen_bis < vorhanden.pruefenBis)) vorhanden.pruefenBis = z.pruefen_bis;
+    const schluesselSpalte: SchluesselSpalte = z.quelle_id ? "quelle_id" : z.pfad ? "pfad" : "id";
+    const eintrag = { dokument: neuesDokument(z, schluessel, schluesselSpalte, status, anzahl), sammlung: { pakete: new Set<number>(), noten: [], hinweise: new Set<GueteHinweis>() } };
+    sammle(eintrag.sammlung, z);
+    gruppen.set(schluessel, eintrag);
   }
-  const liste = [...gruppen.values()];
-  for (const d of liste) {
-    d.paketeDa = pakete.get(d.schluessel)?.size ?? 0;
-    d.unvollstaendig = d.paketeGesamt !== null && d.paketeDa < d.paketeGesamt;
-    d.guete = schlechtesteNote(gueteNoten.get(d.schluessel) ?? []);
-    d.gueteHinweise = [...(gueteHinweise.get(d.schluessel) ?? [])];
-    if (d.seitenFehlend > 0) {
-      const stand = offenerStand({
-        fehlendBeimHochladen: d.seitenFehlend,
-        stellen: d.seitenStellen,
-        nachgeladen: leseSeitenzahlen(d.seitenNachgeladen).seiten,
-        bestaetigt: d.seitenVermerkt,
-      });
-      d.seitenOffen = stand.fehlend;
-      d.seitenOffenStellen = stand.fehlend > 0 ? beschreibeLuecken(stand.luecken) || d.seitenStellen : null;
-    }
-  }
-  for (const d of liste) d.abgelaufen = d.pruefstatus === "freigegeben" && d.pruefenBis !== null && d.pruefenBis < heute;
-  // Was auf eine Entscheidung wartet, steht oben. Danach neueste zuerst; ohne Datum ans Ende, dort nach Bereich und Titel.
-  return liste.sort((a, b) => {
-    const wartetA = a.pruefstatus === "ungeprueft" || a.abgelaufen;
-    const wartetB = b.pruefstatus === "ungeprueft" || b.abgelaufen;
-    if (wartetA !== wartetB) return wartetA ? -1 : 1;
-    if (a.datum && b.datum && a.datum !== b.datum) return a.datum < b.datum ? 1 : -1;
-    if (!a.datum !== !b.datum) return a.datum ? -1 : 1;
-    return a.bereich.localeCompare(b.bereich) || a.titel.localeCompare(b.titel);
+  const liste = [...gruppen.values()].map(({ dokument, sammlung }) => {
+    vervollstaendige(dokument, sammlung, heute);
+    return dokument;
   });
+  return liste.sort(reihenfolge);
 }

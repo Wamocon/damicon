@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, Ban, Thermometer } from "lucide-react";
+import { CheckCircle2, Thermometer } from "lucide-react";
 import {
   lieferungAnlegen,
   lieferungStornieren,
@@ -10,14 +10,7 @@ import {
   uebergabeErfassen,
 } from "@/lib/actions/lieferungen";
 import { leer } from "@/lib/actions/status";
-import {
-  AktionsMeldung,
-  Auswahl,
-  Feld,
-  FormularKarte,
-  PfadFeld,
-  SubmitKnopf,
-} from "@/components/db/formular-kit";
+import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, StornoKnopf, SubmitKnopf } from "@/components/db/formular-kit";
 import type { AuswahlZeile } from "@/lib/domain/lieferungen";
 import { formularZiel } from "@/lib/formular-ziele";
 
@@ -169,21 +162,6 @@ export function TransportMessungFormular({ lieferungId }: { lieferungId: string 
 }
 
 export function LieferungStornierenKnopf({ lieferungId }: { lieferungId: string }) {
-  const [status, action] = useActionState(lieferungStornieren, leer);
   const t = useTranslations("lieferungenAnsicht");
-
-  return (
-    <form action={action} className="mt-2">
-      <PfadFeld />
-      <input type="hidden" name="id" value={lieferungId} />
-      <button
-        type="submit"
-        className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive"
-      >
-        <Ban className="h-3.5 w-3.5" />
-        {t("stornieren")}
-      </button>
-      <AktionsMeldung status={status} />
-    </form>
-  );
+  return <StornoKnopf id={lieferungId} aktion={lieferungStornieren} label={t("stornieren")} />;
 }

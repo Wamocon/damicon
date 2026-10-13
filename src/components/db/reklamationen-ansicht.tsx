@@ -19,15 +19,7 @@ import { hasPermission } from "@/lib/rbac";
 import { reklamationStatusMeta } from "@/lib/domain/reklamationen";
 import { LeererZustand } from "@/components/ui/liste";
 import { formularZiel } from "@/lib/formular-ziele";
-
-// Dieselbe Zuordnung wie nachweiskette-ansicht.tsx (dort nicht exportiert,
-// nur drei Zeilen - eine eigene kleine Kopie ist hier zumutbarer als eine
-// gemeinsame Utility fuer eine Drei-Werte-Tabelle.
-const ergebnisTon: Record<string, Tone> = {
-  ok: "success",
-  warnung: "warning",
-  verstoss: "danger",
-};
+import { kuehlErgebnisTon } from "@/components/db/toene";
 
 // Reklamationsmanagement (WMCNL-1455). Liste + Detail wie bei
 // pflueckaufgaben-ansicht.tsx: die Auswahl laeuft ueber die Adresszeile, damit
@@ -281,7 +273,7 @@ export async function ReklamationenAnsicht({
                       <dd className="mt-1 space-y-1">
                         {detail.kuehlmessungen.map((m) => (
                           <div key={m.id} className="flex flex-wrap items-center gap-1.5 text-xs">
-                            <StatusPill tone={ergebnisTon[m.ergebnis] ?? "neutral"}>
+                            <StatusPill tone={kuehlErgebnisTon[m.ergebnis] ?? "neutral"}>
                               {kkT(`ergebnis.${m.ergebnis}`)}
                             </StatusPill>
                             <span className="text-foreground">
@@ -304,7 +296,7 @@ export async function ReklamationenAnsicht({
                       <dd className="mt-1 space-y-1">
                         {detail.transportMessungen.map((m) => (
                           <div key={m.id} className="flex flex-wrap items-center gap-1.5 text-xs">
-                            <StatusPill tone={ergebnisTon[m.ergebnis] ?? "neutral"}>
+                            <StatusPill tone={kuehlErgebnisTon[m.ergebnis] ?? "neutral"}>
                               {m.temperaturC} °C · {kkT(`ergebnis.${m.ergebnis}`)}
                             </StatusPill>
                             <span className="text-muted-foreground">{datum(m.gemessenAm)}</span>

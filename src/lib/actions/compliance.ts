@@ -185,33 +185,23 @@ export async function zweckVerantwortlichenSetzen(
   _status: AktionsStatus,
   formData: FormData,
 ): Promise<AktionsStatus> {
-  let profil: SessionProfile;
-  try {
-    profil = await requirePermission("compliance", "update");
-  } catch (error) {
-    return zugriffsFehler(error);
-  }
-
-  const id = text(formData, "id");
-  const verantwortlichProfilId = text(formData, "verantwortlich_profil_id");
-  if (!id || !verantwortlichProfilId) return fehler("fehler.eingabe");
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("verarbeitungszwecke")
-    .update({ verantwortlich_profil_id: verantwortlichProfilId })
-    .eq("id", id);
-
-  if (error) return dbFehler(error);
-
-  await protokolliere(profil, "zweck.verantwortlicher_gesetzt", id, {});
-  aktualisiere(formData);
-  return ok("ok.zweckVerantwortlich");
+  return verantwortlichenSetzen(formData, "verarbeitungszwecke", "zweck.verantwortlicher_gesetzt", "ok.zweckVerantwortlich");
 }
 
 export async function vorfallVerantwortlichenSetzen(
   _status: AktionsStatus,
   formData: FormData,
+): Promise<AktionsStatus> {
+  return verantwortlichenSetzen(formData, "datenschutzvorfaelle", "vorfall.verantwortlicher_gesetzt", "ok.vorfallVerantwortlich");
+}
+
+// Gemeinsamer Ablauf beider Aktionen (nicht exportiert, also keine eigene Server Action): Recht pruefen, Eingabe pruefen, die Person
+// am Zweck oder Vorfall setzen, protokollieren.
+async function verantwortlichenSetzen(
+  formData: FormData,
+  tabelle: "verarbeitungszwecke" | "datenschutzvorfaelle",
+  protokollAktion: string,
+  meldung: string,
 ): Promise<AktionsStatus> {
   let profil: SessionProfile;
   try {
@@ -225,16 +215,13 @@ export async function vorfallVerantwortlichenSetzen(
   if (!id || !verantwortlichProfilId) return fehler("fehler.eingabe");
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("datenschutzvorfaelle")
-    .update({ verantwortlich_profil_id: verantwortlichProfilId })
-    .eq("id", id);
+  const { error } = await supabase.from(tabelle).update({ verantwortlich_profil_id: verantwortlichProfilId }).eq("id", id);
 
   if (error) return dbFehler(error);
 
-  await protokolliere(profil, "vorfall.verantwortlicher_gesetzt", id, {});
+  await protokolliere(profil, protokollAktion, id, {});
   aktualisiere(formData);
-  return ok("ok.vorfallVerantwortlich");
+  return ok(meldung);
 }
 
 export async function vorfallMelden(

@@ -12,49 +12,30 @@ import type { BrigadeOption } from "@/lib/domain/personal";
 // Rotationsplan-Termin (Bedarfsrechnung) oder einen Reserve-Pflücker einer
 // Brigade zuweisen - dieselbe kompakte Inline-Auswahl an beiden Stellen.
 
-export function TerminBrigadeZuweisenFormular({
-  terminId,
-  brigaden,
-}: {
-  terminId: string;
-  brigaden: BrigadeOption[];
-}) {
-  const [status, action] = useActionState(rotationsplanBrigadeZuweisen, leer);
-  const t = useTranslations("personalAnsicht");
-
-  return (
-    <form action={action} className="mt-1.5 flex flex-wrap items-end gap-1.5">
-      <PfadFeld />
-      <input type="hidden" name="id" value={terminId} />
-      <Auswahl
-        label={t("brigade")}
-        name="brigade_id"
-        required
-        options={[
-          { wert: "", text: t("bitteWaehlen") },
-          ...brigaden.map((b) => ({ wert: b.id, text: b.name })),
-        ]}
-      />
-      <SubmitKnopf label={t("zuweisen")} status={status} />
-      <AktionsMeldung status={status} />
-    </form>
-  );
+export function TerminBrigadeZuweisenFormular({ terminId, brigaden }: { terminId: string; brigaden: BrigadeOption[] }) {
+  return <BrigadeZuweisenFormular id={terminId} brigaden={brigaden} aktion={rotationsplanBrigadeZuweisen} />;
 }
 
-export function PfleuckerBrigadeZuweisenFormular({
-  pflueckerId,
+export function PfleuckerBrigadeZuweisenFormular({ pflueckerId, brigaden }: { pflueckerId: string; brigaden: BrigadeOption[] }) {
+  return <BrigadeZuweisenFormular id={pflueckerId} brigaden={brigaden} aktion={pfleuckerBrigadeZuweisen} />;
+}
+
+function BrigadeZuweisenFormular({
+  id,
   brigaden,
+  aktion,
 }: {
-  pflueckerId: string;
+  id: string;
   brigaden: BrigadeOption[];
+  aktion: typeof rotationsplanBrigadeZuweisen;
 }) {
-  const [status, action] = useActionState(pfleuckerBrigadeZuweisen, leer);
+  const [status, action] = useActionState(aktion, leer);
   const t = useTranslations("personalAnsicht");
 
   return (
     <form action={action} className="mt-1.5 flex flex-wrap items-end gap-1.5">
       <PfadFeld />
-      <input type="hidden" name="id" value={pflueckerId} />
+      <input type="hidden" name="id" value={id} />
       <Auswahl
         label={t("brigade")}
         name="brigade_id"

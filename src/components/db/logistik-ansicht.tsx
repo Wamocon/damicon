@@ -20,18 +20,7 @@ import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
 import { formularZiel } from "@/lib/formular-ziele";
-
-const statusTon: Record<string, Tone> = {
-  geplant: "neutral",
-  zugestellt: "success",
-  storniert: "danger",
-};
-
-const kuehlTon: Record<string, Tone> = {
-  ok: "success",
-  warnung: "warning",
-  verstoss: "danger",
-};
+import { kuehlErgebnisTon, lieferStatusTon } from "@/components/db/toene";
 
 const tourStatusTon: Record<string, Tone> = {
   geplant: "neutral",
@@ -100,7 +89,7 @@ export async function LogistikAnsicht() {
                       <p className="font-mono text-[11px] text-muted-foreground">{l.chargeCode}</p>
                     ) : null}
                   </div>
-                  <StatusPill tone={statusTon[l.status] ?? "neutral"}>
+                  <StatusPill tone={lieferStatusTon[l.status] ?? "neutral"}>
                     {t(`status.${l.status}`)}
                   </StatusPill>
                 </div>
@@ -133,7 +122,7 @@ export async function LogistikAnsicht() {
                     <div className="col-span-2">
                       <dt className="text-muted-foreground">{t("temperatur")}</dt>
                       <dd>
-                        <StatusPill tone={kuehlTon[gesamturteil.ergebnis] ?? "neutral"}>
+                        <StatusPill tone={kuehlErgebnisTon[gesamturteil.ergebnis] ?? "neutral"}>
                           {gesamturteil.temperaturC} °C ·{" "}
                           {kkT(`ergebnis.${gesamturteil.ergebnis}`)}
                         </StatusPill>
@@ -150,7 +139,7 @@ export async function LogistikAnsicht() {
                     <ul className="mt-1 flex flex-wrap gap-1.5">
                       {l.transportMessungen.map((m) => (
                         <li key={m.id}>
-                          <StatusPill tone={kuehlTon[m.ergebnis] ?? "neutral"}>
+                          <StatusPill tone={kuehlErgebnisTon[m.ergebnis] ?? "neutral"}>
                             {m.temperaturC} °C
                           </StatusPill>
                         </li>
