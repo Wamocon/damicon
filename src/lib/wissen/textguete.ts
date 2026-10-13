@@ -44,11 +44,35 @@ const VOKALE = /[aeiouyäöüàáâèéêìíòóùúаеёиоуыэюяіәө�
 const EIN_BUCHSTABEN_WORT = new Set(["a", "i", "o", "u", "в", "и", "к", "о", "с", "у", "я", "а", "ә", "ө"]);
 const MIN_ZEICHEN = 300;
 
+const PUNKTLINIE = /(?:\s*[.…·]){4,}\s*\d{0,4}/g;
+
+/**
+ * Nimmt aus dem Text, was kein Fliesstext ist und die Note zu Unrecht verschlechtert: die Punktlinien eines Inhaltsverzeichnisses
+ * ("Artikel 5 .......... 12", die Titel bleiben), Initialen in Literaturlisten und Zeilen, die fast nur aus Zahlen bestehen (Sachregister, Fundstellen).
+ * Beides ist bei einem Buch normal und beschaedigt keinen Suchtreffer. Am 12.10.2026 stuften sich so acht Buecher selbst herab, weil EIN Paket
+ * (das Inhaltsverzeichnis am Anfang oder das Register am Ende) aus Punkten und Zahlen bestand, obwohl der ganze Text sauber war.
+ */
+export function ohneVerzeichnisse(text: string): string {
+  return text
+    .replace(PUNKTLINIE, " ")
+    // Initialen in Literaturlisten ("Казакова Н.А.", "Smith J. K."): Ein Grossbuchstabe mit Punkt ist kein zerhacktes Wort.
+    .replace(/(?<!\p{L})\p{Lu}\.(?=\s|\p{Lu}|$)/gu, "")
+    .split("\n")
+    .filter((zeile) => {
+      const roh = zeile.replace(/\s+/g, "");
+      if (roh.length < 20) return true;
+      const ziffern = (roh.match(/\p{N}/gu) ?? []).length / roh.length;
+      const buchstaben = (roh.match(/\p{L}/gu) ?? []).length / roh.length;
+      return !(ziffern >= 0.4 && buchstaben < 0.5);
+    })
+    .join("\n");
+}
+
 /**
  * @param ganzesDokument false bei einem Paket eines langen Dokuments: Ein kurzes Paket ist dort normal, "kaumText" gilt nur fuer das Ganze.
  */
 export function bewerteText(text: string, ganzesDokument = true): Guete {
-  const sauber = text.replace(/\r\n?/g, "\n");
+  const sauber = ohneVerzeichnisse(text.replace(/\r\n?/g, "\n"));
   const ohneRaum = sauber.replace(/\s+/g, "");
   const woerter = sauber.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) ?? [];
   const buchstaben = (ohneRaum.match(/\p{L}/gu) ?? []).length;

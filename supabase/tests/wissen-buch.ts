@@ -13,7 +13,7 @@ import { entscheideUeberUpload } from "@/lib/wissen/freigabe";
 import { inhaltsHash, normalisiere, UploadFehler, type ChunkZeile, type WissenSpeicher } from "@/lib/wissen/hochladen";
 import type { Einbettung } from "@/lib/wissen/embed";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
-import { bewerteText, istGueteHinweis, schlechtesteNote } from "@/lib/wissen/textguete";
+import { bewerteText, istGueteHinweis, ohneVerzeichnisse, schlechtesteNote } from "@/lib/wissen/textguete";
 import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { tokens } from "@/lib/wissen/sparse";
 import { schaetzeEin } from "@/lib/wissen/einschaetzung";
@@ -157,6 +157,18 @@ async function rest() {
     const russisch = bewerteText("Срок исковой давности по налоговым обязательствам начинается с окончания календарного года, в котором возникло обязательство. ".repeat(10));
     pruefe("Güte: russischer Text ist gut", russisch.note === "gut", JSON.stringify(russisch.hinweise));
 
+    // Verzeichnisse, Register und Initialen verschlechtern die Note nicht (am 12.10.2026 stuften sich acht Bücher deswegen selbst herab)
+    const verzeichnis = Array.from({ length: 40 }, (_, i) => `Статья ${i + 1}. Общие положения по применению нормы ${"." .repeat(60)} ${i + 10}`).join("\n");
+    const nurVerzeichnis = bewerteText(verzeichnis, false);
+    pruefe("Güte: ein Paket nur aus Inhaltsverzeichnis mit Punktlinien ist nicht schlecht", nurVerzeichnis.note === "gut" && !nurVerzeichnis.hinweise.includes("vieleSonderzeichen"), JSON.stringify(nurVerzeichnis.hinweise));
+    const register = Array.from({ length: 40 }, (_, i) => `Ущерб ${i + 3}, ${i + 14}, ${i + 35}, ${i + 39}, ${i + 43}, ${i + 48}, ${i + 49}, ${i + 93}`).join("\n");
+    pruefe("Güte: ein Sachregister aus Zahlenreihen ist nicht schlecht", bewerteText(register, false).note === "gut");
+    const literatur = Array.from({ length: 60 }, (_, i) => `${i + 1}. Казакова Н.А., Петров И.В., Smith J. K. Аудит: учебник для бакалавров. Москва: Юрайт, 2018.`).join("\n");
+    const lit = bewerteText(literatur, false);
+    pruefe("Güte: Initialen in einer Literaturliste sind keine zerhackten Wörter", !lit.hinweise.includes("zerhackteWoerter") && lit.note !== "schlecht", JSON.stringify(lit.hinweise));
+    const echt = bewerteText(`${verzeichnis}\n${"§$%&/()=?#*+~^°<>|{}[]@€ ".repeat(80)}`, false);
+    pruefe("Güte: echter Zeichensalat neben einem Verzeichnis bleibt schlecht", echt.note === "schlecht");
+    pruefe("Güte: ohneVerzeichnisse lässt Fließtext unverändert", ohneVerzeichnisse(buchText(3)) === buchText(3));
     pruefe("Güte: schlechteste Note", schlechtesteNote(["gut", "pruefen", "schlecht", "gut"]) === "schlecht" && schlechtesteNote(["gut", "gut"]) === "gut" && schlechtesteNote([]) === null && schlechtesteNote([null, "x"]) === null);
   }
 
