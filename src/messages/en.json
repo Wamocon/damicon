@@ -2635,8 +2635,13 @@
             "keinUpload": "Original not saved",
             "nichtDa": "Original not saved",
             "zugriff": "Original not saved",
-            "unbekannt": "Original not saved"
-          }
+            "unbekannt": "Original not saved",
+            "zuVoll": "Original not saved (storage full)"
+          },
+          "fortschritt": "Saving the original, {prozent} %"
+        },
+        "platz": {
+          "zuVoll": "The originals exceed {grenze} of storage (already waiting: {wartend}, new selection: {neu}). Please upload separately: upload and approve one part first, then the next."
         }
       },
       "guete": {
@@ -2881,18 +2886,19 @@
         "nachtragen": "Add original",
         "nachtragenHinweis": "Choose the PDF the book was uploaded from. It is read in the browser and compared with the stored text before it is saved. It stays only until approval.",
         "liest": "Reading the file … page {seite} of {seiten}",
-        "laedt": "Saving the original …",
+        "laedt": "Saving the original … {prozent} %",
         "fertig": "Original saved.",
         "fehler": {
           "passtNicht": "This file does not match the stored text. Please choose the PDF the book was uploaded from.",
-          "ungueltig": "This is not a PDF, or it is empty or too large (500 MB at most).",
+          "ungueltig": "This is not a PDF, or it is empty or too large (1 GB at most).",
           "keinDokument": "The document is no longer waiting for approval.",
           "keinUpload": "Only uploaded books have an original.",
           "nichtDa": "The file did not arrive in storage.",
           "speicher": "The original could not be saved. The file may be larger than the storage limit.",
           "zugriff": "You do not have permission for this.",
           "unbekannt": "The original could not be saved.",
-          "unlesbar": "The file could not be read. Is it a PDF?"
+          "unlesbar": "The file could not be read. Is it a PDF?",
+          "zuVoll": "The storage for waiting originals is full. Please approve or reject books first."
         }
       }
     },

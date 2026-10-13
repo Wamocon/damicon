@@ -2635,8 +2635,13 @@
             "keinUpload": "Original nicht abgelegt",
             "nichtDa": "Original nicht abgelegt",
             "zugriff": "Original nicht abgelegt",
-            "unbekannt": "Original nicht abgelegt"
-          }
+            "unbekannt": "Original nicht abgelegt",
+            "zuVoll": "Original nicht abgelegt (Speicher voll)"
+          },
+          "fortschritt": "Original wird abgelegt, {prozent} %"
+        },
+        "platz": {
+          "zuVoll": "Die Originale überschreiten {grenze} Speicher (bereits wartend: {wartend}, neue Auswahl: {neu}). Bitte getrennt hochladen: erst einen Teil hochladen und freigeben, dann den nächsten."
         }
       },
       "guete": {
@@ -2881,18 +2886,19 @@
         "nachtragen": "Original nachtragen",
         "nachtragenHinweis": "Wählen Sie die PDF, aus der das Buch hochgeladen wurde. Sie wird im Browser gelesen und mit dem gespeicherten Text verglichen, bevor sie abgelegt wird. Sie bleibt nur bis zur Freigabe.",
         "liest": "Lese die Datei … Seite {seite} von {seiten}",
-        "laedt": "Lege das Original ab …",
+        "laedt": "Lege das Original ab … {prozent} %",
         "fertig": "Original abgelegt.",
         "fehler": {
           "passtNicht": "Diese Datei passt nicht zum gespeicherten Text. Bitte die PDF wählen, aus der das Buch hochgeladen wurde.",
-          "ungueltig": "Das ist keine PDF oder sie ist leer oder zu groß (höchstens 500 MB).",
+          "ungueltig": "Das ist keine PDF oder sie ist leer oder zu groß (höchstens 1 GB).",
           "keinDokument": "Das Dokument wartet nicht mehr auf die Freigabe.",
           "keinUpload": "Nur hochgeladene Bücher haben ein Original.",
           "nichtDa": "Die Datei ist nicht im Speicher angekommen.",
           "speicher": "Das Original konnte nicht gespeichert werden. Möglicherweise ist die Datei größer als das Limit des Speichers.",
           "zugriff": "Dafür fehlt die Berechtigung.",
           "unbekannt": "Das Original konnte nicht abgelegt werden.",
-          "unlesbar": "Die Datei ließ sich nicht lesen. Ist es eine PDF?"
+          "unlesbar": "Die Datei ließ sich nicht lesen. Ist es eine PDF?",
+          "zuVoll": "Der Speicher für wartende Originale ist voll. Bitte erst Bücher freigeben oder ablehnen."
         }
       }
     },

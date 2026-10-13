@@ -5,11 +5,14 @@
 -- nur den Text. Jetzt legt der Browser die PDF zusätzlich in einen privaten Speicher (Bucket "wissen-originale"); die Anwendung merkt sich in
 -- wissen_original, welche Datei zu welchem Dokument gehört. Die Datei bleibt NUR bis zur Freigabe: Bei Freigabe, Ablehnung, Löschen und Entfernen
 -- löscht die Anwendung Datei und Verweis (src/lib/wissen/original.ts). Gelesen wird nur über kurzlebige signierte Adressen, die der Server nach der
--- Rechteprüfung (ki_assistent:manage, nur Administration) erzeugt; es gibt bewusst keine Policy für angemeldete Nutzer.
+-- Rechteprüfung (ki_assistent:manage, nur Administration) erzeugt; es gibt bewusst keine Lese-Policy für angemeldete Nutzer.
+-- Geschrieben wird mit dem wiederaufnehmbaren Upload (TUS, Stücke zu 6 MB) direkt vom Browser, mit der Sitzung der Administration: Dafür gibt es genau
+-- eine Policy, INSERT für die Rolle admin (wie bei den Buckets belege und dokumente). Größe, Typ und Platz prüft der Server vorher
+-- (src/lib/wissen/original.ts: je Datei höchstens 1 GiB, alle wartenden Originale zusammen höchstens 50 GiB).
 --
--- Keine Datenänderung an vorhandenen Dokumenten: Die Tabelle ist leer, der Bucket neu. Das Größenlimit des Buckets (500 MiB) kann nicht über dem
--- Gesamtlimit des Supabase-Projekts liegen (Einstellung Storage im Dashboard); ist die Datei größer, bleibt der Upload des Textes unberührt und die
--- Oberfläche meldet, dass das Original nicht gespeichert wurde.
+-- Keine Datenänderung an vorhandenen Dokumenten: Die Tabelle ist leer, der Bucket neu. Das Größenlimit des Buckets (1 GiB) kann nicht über dem
+-- Gesamtlimit des Supabase-Projekts liegen (Dashboard, Storage, Einstellungen; für dieses Projekt auf 1 GB gestellt); ist die Datei größer, bleibt der
+-- Upload des Textes unberührt und die Oberfläche meldet, dass das Original nicht gespeichert wurde.
 -- wissen_liste() liefert zusätzlich original_groesse (null = kein Original); sonst unverändert gegenüber 20261203000000.
 -- Der Dateiname endet auf _pgvector.sql: wissen_chunks gibt es in PGlite nicht, die schnellen Tests überspringen ihn.
 -- =============================================================================
@@ -17,8 +20,15 @@
 set search_path = public;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('wissen-originale', 'wissen-originale', false, 524288000, array['application/pdf'])
+values ('wissen-originale', 'wissen-originale', false, 1073741824, array['application/pdf'])
 on conflict (id) do nothing;
+
+create policy wissen_originale_insert_admin on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'wissen-originale'
+    and public.has_role('admin')
+  );
 
 create table if not exists public.wissen_original (
   quelle_id text primary key,

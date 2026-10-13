@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { StatusPill } from "@/components/ui/kit";
 import { Auswahl, FormularKarte } from "@/components/db/formular-kit";
 import { wissenBuchAbbrechen, wissenBuchAbschliessen, wissenBuchPaket, wissenBuchStarten, wissenKiAnalyse } from "@/lib/actions/wissen";
 import { wissenQualitaetBerechnen } from "@/lib/actions/wissen-bestandspflege";
+import { wissenOriginalPlatz } from "@/lib/actions/wissen-original";
+import { GIB } from "@/lib/wissen/original";
 import { legeOriginalAb } from "@/lib/wissen/original-browser";
 import { qualitaetTon, vollstaendigkeitsFaktor } from "@/lib/wissen/qualitaet";
 import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
@@ -57,6 +59,8 @@ interface Eintrag {
   qualitaet: number | null;
   /** Original-PDF zur Prüfung abgelegt (ok), nicht abgelegt (Code des Grundes) oder nicht versucht (null). */
   original: "ok" | string | null;
+  /** Fortschritt des Originals in Prozent, solange es hochgeladen wird. */
+  originalProzent: number | null;
   fehler: string | null;
   text: string | null;
   hash: string | null;
@@ -77,6 +81,7 @@ function istTextDatei(datei: File): boolean {
 const artPasst = (art: string, cluster: string): boolean => istQuellenart(art) && istCluster(cluster) && clusterPasst(art, cluster);
 
 export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
+  const locale = useLocale();
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.buecher");
   const tForm = useTranslations("kiAssistentAnsicht.wissensVerwaltung.formular");
   const tBereich = useTranslations("kiAssistentAnsicht.wissensVerwaltung.bereich");
@@ -91,6 +96,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
   const [eintraege, setEintraege] = useState<Eintrag[]>([]);
   const [cluster, setCluster] = useState<string>("buecher");
   const [rollen, setRollen] = useState<string[]>([]);
+  const [platzFehler, setPlatzFehler] = useState<string | null>(null);
   const [mitKi, setMitKi] = useState(true);
   const [laeuft, setLaeuft] = useState(false);
   // Der Lauf des Hochladens: welche Buecher, wann gestartet, wann zu Ende (fuer Gesamtanzeige und Restzeit)
@@ -202,6 +208,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       trotzdem: false,
       qualitaet: null,
       original: null,
+      originalProzent: null,
       fehler: null,
       text: null,
       hash: null,
@@ -320,13 +327,30 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
     // Speichers) lässt das Buch hochgeladen und wird nur gemeldet; "Original nachtragen" im Prüffenster holt es nach.
     let original: Eintrag["original"] = null;
     if (ende.stand === "ok" && !istTextDatei(eintrag.datei)) {
-      const abgelegt = await legeOriginalAb(eintrag.datei, uploadQuelleId(eintrag.hash));
+      const abgelegt = await legeOriginalAb(eintrag.datei, uploadQuelleId(eintrag.hash), (prozent) => setze(eintrag.id, { originalProzent: prozent }));
       original = abgelegt.ok ? "ok" : abgelegt.code;
     }
-    setze(eintrag.id, ende.stand === "ok" ? { schritt: "fertig", original } : { schritt: "fehler", fehler: meldung(ende) });
+    setze(eintrag.id, ende.stand === "ok" ? { schritt: "fertig", original, originalProzent: null } : { schritt: "fehler", fehler: meldung(ende) });
   };
 
+  // Obergrenze für die Originale: wartende zusammen mit der neuen Auswahl. Wird sie überschritten, startet nichts (der Text der Bücher bliebe ohne
+  // Original). Ist die Prüfung selbst nicht möglich, geht es weiter: Das Original scheitert dann je Buch mit eigener Meldung.
+  // Größe mit passender Einheit: ab 0,1 GB in GB (zwei Stellen), darunter in MB.
+  const einheit = locale === "ru" || locale === "kk" ? { gb: "ГБ", mb: "МБ" } : { gb: "GB", mb: "MB" };
+  const gb = (bytes: number) =>
+    bytes >= GIB / 10
+      ? `${(bytes / GIB).toLocaleString(locale, { maximumFractionDigits: 2 })} ${einheit.gb}`
+      : `${(bytes / 1_048_576).toLocaleString(locale, { maximumFractionDigits: 1 })} ${einheit.mb}`;
   const starte = async () => {
+    setPlatzFehler(null);
+    const pdfBytes = bereitZumLaden.filter((e) => !istTextDatei(e.datei)).reduce((summe, e) => summe + e.datei.size, 0);
+    if (pdfBytes > 0) {
+      const platz = await wissenOriginalPlatz(pdfBytes).catch(() => null);
+      if (platz && platz.ok && !platz.passt) {
+        setPlatzFehler(t("platz.zuVoll", { grenze: gb(platz.grenze), wartend: gb(platz.wartend), neu: gb(platz.neu) }));
+        return;
+      }
+    }
     setLaeuft(true);
     setLauf({ ids: bereitZumLaden.map((e) => e.id), start: Date.now(), ende: null });
     const steuerung = new AbortController();
@@ -476,7 +500,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                 <p className="mt-1 text-[11px] text-muted-foreground">
                   {e.datei.name} ({(e.datei.size / 1_048_576).toFixed(1)} MB)
                   {e.schritt === "liest" && e.seiten > 0 ? ` · ${t("seite", { seite: e.seite, seiten: e.seiten })}` : ""}
-                  {e.schritt === "laedt" ? ` · ${e.paket >= e.pakete && e.pakete > 0 ? t("original.laeuft") : t("paket", { nr: e.paket, gesamt: e.pakete })}` : ""}
+                  {e.schritt === "laedt" ? ` · ${e.paket >= e.pakete && e.pakete > 0 ? t("original.fortschritt", { prozent: e.originalProzent ?? 0 }) : t("paket", { nr: e.paket, gesamt: e.pakete })}` : ""}
                   {e.text ? ` · ${t("zeichen", { anzahl: e.text.length.toLocaleString() })}` : ""}
                 </p>
 
@@ -593,6 +617,11 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
           </button>
         ) : null}
       </div>
+      {platzFehler ? (
+        <p role="alert" className="mt-2 rounded-lg border border-destructive/30 bg-destructive/[0.08] p-2 text-xs font-semibold text-destructive">
+          {platzFehler}
+        </p>
+      ) : null}
     </FormularKarte>
   );
 }

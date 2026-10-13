@@ -1,20 +1,26 @@
 import { wissenOriginalBestaetigen, wissenOriginalVorbereiten } from "@/lib/actions/wissen-original";
 import { createClient } from "@/lib/supabase/client";
-import { ORIGINAL_BUCKET } from "@/lib/wissen/original";
+import { ladeInStuecken } from "@/lib/wissen/tus-upload";
 
-// Browser-Seite der Original-PDF (original.ts): die Datei geht direkt in den privaten Speicher, nicht durch eine Server Action.
-// Ablauf: Adresse holen (Rechte und Prüfung auf dem Server), hochladen, Verweis ablegen. Jeder Fehler wird als Code zurückgegeben; er hält nie den Upload
-// des Textes auf (der Aufrufer meldet ihn nur).
+// Browser-Seite der Original-PDF (original.ts): wiederaufnehmbarer Upload (TUS, tus-upload.ts) direkt in den privaten Speicher, nicht durch eine Server
+// Action. Ablauf: vorbereiten (Rechte, Größe und Obergrenze prüft der Server), in Stücken hochladen, Verweis ablegen. Der Upload läuft mit der Sitzung der
+// angemeldeten Person; der Bucket erlaubt das Schreiben nur der Administration (Migration 20261204000000). Jeder Fehler wird als Code zurückgegeben und
+// hält nie den Upload des Textes auf (der Aufrufer meldet ihn nur).
 
-export type OriginalAblage = { ok: true } | { ok: false; code: "zugriff" | "ungueltig" | "keinUpload" | "keinDokument" | "nichtDa" | "speicher" | "unbekannt" };
+export type OriginalCode = "zugriff" | "ungueltig" | "keinUpload" | "keinDokument" | "nichtDa" | "zuVoll" | "speicher" | "unbekannt";
+export type OriginalAblage = { ok: true } | { ok: false; code: OriginalCode };
 
-export async function legeOriginalAb(datei: File, quelleId: string): Promise<OriginalAblage> {
+export async function legeOriginalAb(datei: File, quelleId: string, beiFortschritt?: (prozent: number) => void): Promise<OriginalAblage> {
   try {
     const vor = await wissenOriginalVorbereiten(quelleId, datei.name, datei.size);
     if (!vor.ok) return { ok: false, code: vor.code };
-    const { error } = await createClient().storage.from(ORIGINAL_BUCKET).uploadToSignedUrl(vor.pfad, vor.token, datei, { contentType: "application/pdf" });
-    if (error) {
-      console.error("[damicon] Original hochladen fehlgeschlagen:", error.message);
+    const { data } = await createClient().auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { ok: false, code: "zugriff" };
+    try {
+      await ladeInStuecken(datei, { url: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "", token, bucket: vor.bucket, pfad: vor.pfad }, beiFortschritt);
+    } catch (fehler) {
+      console.error("[damicon] Original hochladen fehlgeschlagen:", fehler);
       return { ok: false, code: "speicher" };
     }
     const fertig = await wissenOriginalBestaetigen(quelleId, datei.name);

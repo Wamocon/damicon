@@ -14,7 +14,7 @@ import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
 // Speicher (original.ts). Beim Nachtragen wird die gewählte PDF im Browser gelesen und ihr Text-Hash mit der Kennung des Dokuments verglichen:
 // Nur die PDF, aus der das Buch entstand, wird angenommen. Alle Knöpfe sind type="button": Das Prüffenster ist ein Formular.
 
-type Phase = { art: "ruhe" } | { art: "oeffnet" } | { art: "liest"; seite: number; seiten: number } | { art: "laedt" } | { art: "fertig" } | { art: "fehler"; text: string };
+type Phase = { art: "ruhe" } | { art: "oeffnet" } | { art: "liest"; seite: number; seiten: number } | { art: "laedt"; prozent: number } | { art: "fertig" } | { art: "fehler"; text: string };
 
 function groesseText(bytes: number): string {
   return bytes >= 1_048_576 ? `${(bytes / 1_048_576).toFixed(1).replace(".", ",")} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -61,8 +61,8 @@ export function WissenOriginal({ dokument, beiGeaendert }: { dokument: WissenDok
         setPhase({ art: "fehler", text: t("fehler.passtNicht") });
         return;
       }
-      setPhase({ art: "laedt" });
-      const ergebnis = await legeOriginalAb(datei, dokument.schluessel);
+      setPhase({ art: "laedt", prozent: 0 });
+      const ergebnis = await legeOriginalAb(datei, dokument.schluessel, (prozent) => setPhase({ art: "laedt", prozent }));
       if (!ergebnis.ok) {
         setPhase({ art: "fehler", text: fehlerText(ergebnis.code) });
         return;
@@ -109,7 +109,7 @@ export function WissenOriginal({ dokument, beiGeaendert }: { dokument: WissenDok
         </>
       )}
       <p role="status" aria-live="polite" className="text-[11px] font-semibold">
-        {phase.art === "liest" ? t("liest", { seite: phase.seite, seiten: phase.seiten }) : phase.art === "laedt" ? t("laedt") : phase.art === "fertig" ? t("fertig") : null}
+        {phase.art === "liest" ? t("liest", { seite: phase.seite, seiten: phase.seiten }) : phase.art === "laedt" ? t("laedt", { prozent: phase.prozent }) : phase.art === "fertig" ? t("fertig") : null}
       </p>
       {phase.art === "fehler" ? (
         <p role="alert" className="text-[11px] font-semibold text-destructive">

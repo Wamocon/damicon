@@ -117,6 +117,7 @@
     "remark-gfm": "^4.0.1",
     "remark-parse": "^11.0.0",
     "tailwind-merge": "^2.6.1",
+    "tus-js-client": "4.3.1",
     "unified": "^11.0.5",
     "zod": "^4.6.5"
   },
