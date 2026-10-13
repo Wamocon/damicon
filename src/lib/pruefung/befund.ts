@@ -46,6 +46,8 @@ export interface BefundKontext {
   bereich: Pruefbereich;
   /** Kennungen, die die Wissenssuche fuer dieses Feld geliefert hat. */
   gueltigeBelege: ReadonlySet<string>;
+  /** Davon die Kennungen ungesicherter Internetquellen (Nutzung "notfalls"): Sie tragen allein keine Aussage. */
+  unsichereBelege?: ReadonlySet<string>;
   nachweise: Nachweis[];
   hatDaten: boolean;
 }
@@ -54,6 +56,7 @@ export function pruefeBefund(e: BefundEingabe, k: BefundKontext): Befund {
   let { status, schwere } = e;
   const belege = [...new Set(e.belege.map((b) => b.trim()))].filter((b) => k.gueltigeBelege.has(b));
   let ohneRechtsbeleg = false;
+  let nurUnsichereQuellen = false;
   let ohneDaten = false;
   let massnahmen: Massnahme[] = e.massnahmen;
 
@@ -64,6 +67,11 @@ export function pruefeBefund(e: BefundEingabe, k: BefundKontext): Befund {
   if ((status === "verstoss" || status === "luecke" || status === "konform") && belege.length === 0) {
     status = "hinweis";
     ohneRechtsbeleg = true;
+  }
+  // Stuetzen nur ungesicherte Internetquellen (Erfahrungsberichte, Foren, Bewertungen, Wikipedia), ist das keine Grundlage fuer eine Feststellung.
+  if ((status === "verstoss" || status === "luecke" || status === "konform") && belege.length > 0 && belege.every((b) => k.unsichereBelege?.has(b))) {
+    status = "hinweis";
+    nurUnsichereQuellen = true;
   }
   if (status === "konform") {
     schwere = "keine";
@@ -85,6 +93,7 @@ export function pruefeBefund(e: BefundEingabe, k: BefundKontext): Befund {
     nachweise: k.nachweise,
     massnahmen,
     ...(ohneRechtsbeleg ? { ohneRechtsbeleg } : {}),
+    ...(nurUnsichereQuellen ? { nurUnsichereQuellen } : {}),
     ...(ohneDaten ? { ohneDaten } : {}),
   };
 }

@@ -56,6 +56,13 @@ const ohneDaten = pruefeBefund(eingabe(), kontext({ hatDaten: false, nachweise: 
 pruefe("Ohne Betriebsdaten ist nur ein Hinweis moeglich (nichts raten)", ohneDaten.status === "hinweis" && ohneDaten.ohneDaten === true);
 const konformOhne = pruefeBefund(eingabe({ status: "konform", schwere: "keine", belege: [], massnahmen: [] }), kontext());
 pruefe("'Konform' ohne Rechtsbeleg ist keine Aussage: Hinweis", konformOhne.status === "hinweis" && konformOhne.ohneRechtsbeleg === true);
+// Ungesicherte Internetquellen (Nutzung "notfalls") tragen allein keine Feststellung
+const nurUnsicher = pruefeBefund(eingabe({ belege: ["S1", "S2"] }), kontext({ unsichereBelege: new Set(["S1", "S2"]) }));
+pruefe("Nur ungesicherte Internetquellen als Beleg: Hinweis statt Verstoss, mit Vermerk", nurUnsicher.status === "hinweis" && nurUnsicher.nurUnsichereQuellen === true && nurUnsicher.belege.length === 2);
+const gemischt = pruefeBefund(eingabe({ belege: ["S1", "S2"] }), kontext({ unsichereBelege: new Set(["S2"]) }));
+pruefe("Mit einer tragenden Quelle daneben bleibt der Verstoss bestehen", gemischt.status === "verstoss" && gemischt.nurUnsichereQuellen === undefined);
+const unsicherKonform = pruefeBefund(eingabe({ status: "konform", schwere: "keine", belege: ["S2"], massnahmen: [] }), kontext({ unsichereBelege: new Set(["S2"]) }));
+pruefe("'Konform' allein auf eine unsichere Quelle gestuetzt wird zum Hinweis", unsicherKonform.status === "hinweis" && unsicherKonform.nurUnsichereQuellen === true);
 const konformMit = pruefeBefund(eingabe({ status: "konform", schwere: "hoch" }), kontext());
 pruefe("'Konform' mit Beleg: Schwere 'keine' und keine Massnahmen", konformMit.status === "konform" && konformMit.schwere === "keine" && konformMit.massnahmen.length === 0);
 pruefe("Verstoss mit Schwere 'keine' wird auf 'mittel' angehoben", pruefeBefund(eingabe({ schwere: "keine" }), kontext()).schwere === "mittel");
@@ -83,7 +90,7 @@ pruefe("kanonisch: undefined wird ausgelassen", kanonisch({ a: 1, b: undefined }
 // ---- Ablauf mit Mock-Modell --------------------------------------------------------------------
 const FRISTEN_REIHE = ["sofort", "7 Tage", "30 Tage", "90 Tage"];
 const nutzung = { inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 1, text: 1, reasoning: 0 } };
-const beleg = (id: string, stufe = 1): Beleg => ({ id, fundstelle: `НК РК ст. ${id}`, titel: "t", sprache: "ru", stufe, gueltigAb: "2026-01-01", gueltigBis: null, ueberholt: false, konfidenz: null, abgerufenAm: "2026-09-19", url: "https://adilet.zan.kz/x", bereich: "steuer", text: "Текст нормы", punktzahl: 1 });
+const beleg = (id: string, stufe = 1): Beleg => ({ id, fundstelle: `НК РК ст. ${id}`, titel: "t", sprache: "ru", stufe, gueltigAb: "2026-01-01", gueltigBis: null, ueberholt: false, konfidenz: null, abgerufenAm: "2026-09-19", url: "https://adilet.zan.kz/x", bereich: "steuer", text: "Текст нормы", punktzahl: 1, quellenart: null, textgrundlage: null, nutzung: "ja", einordnung: "" });
 const felderImPrompt = (prompt: string) => [...prompt.matchAll(/=== PR(?:Ü|UE)FUNGSFELD ([a-z-]+):/g)].map((m) => m[1]!);
 const ersteBelegNr = (prompt: string, feld: string) => new RegExp(`=== PR(?:Ü|UE)FUNGSFELD ${feld}:[\\s\\S]*?\\[(S\\d+)\\]`).exec(prompt)?.[1];
 
@@ -170,7 +177,7 @@ function abhaengigkeiten(v: Verhalten, opts: { werkzeuge?: Record<string, unknow
     suche: async () => {
       if (opts.sucheFehler) throw new Error("Qdrant nicht erreichbar");
       nr++;
-      return { belege: [beleg("S1"), beleg("S2", 4)], dauerMs: { einbettung: 1, suche: 1, gesamt: 2 } };
+      return { belege: [beleg("S1"), beleg("S2", 4)], lage: "massgeblich" as const, dauerMs: { einbettung: 1, suche: 1, gesamt: 2 } };
     },
     jetzt: () => new Date("2026-09-20T10:00:00Z"),
     neueId: () => `lauf-${++nr}`,

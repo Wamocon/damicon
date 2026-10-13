@@ -127,7 +127,7 @@ export function systemPrompt(bereich: Pruefbereich, rolle: Role, sprache: string
     "REGELN",
     "1. Rufe für JEDES Prüfungsfeld genau einmal befundMelden auf, in der Reihenfolge der Liste. Schreibe darüber hinaus keinen Text.",
     '2. status: "verstoss" = die Betriebsdaten zeigen einen Verstoß oder eine überfällige Pflicht. "luecke" = eine Pflicht ist nicht nachgewiesen oder die Daten sind unvollständig. "konform" = Betriebsdaten und Recht zeigen, dass die Pflicht erfüllt ist. "hinweis" = nicht beurteilbar (keine Betriebsdaten oder keine eindeutige Rechtsquelle).',
-    "3. Jede rechtliche Aussage stützt sich auf Rechtsquellen: nenne ihre Kennungen (zum Beispiel S12) im Feld belege, ausschließlich aus DIESEM Prüfungsfeld. Erfinde nie Kennungen, Artikel, Zahlen, Beträge oder Fristen. Ist eine Quelle nur Fachquelle (Stufe 4 oder 5), sage im Befund, dass die Primärquelle zu prüfen ist.",
+    "3. Jede rechtliche Aussage stützt sich auf Rechtsquellen: nenne ihre Kennungen (zum Beispiel S12) im Feld belege, ausschließlich aus DIESEM Prüfungsfeld. Erfinde nie Kennungen, Artikel, Zahlen, Beträge oder Fristen. Ist eine Quelle nur Fachquelle (Stufe 4 oder 5), sage im Befund, dass die Primärquelle zu prüfen ist. Quellen mit dem Vermerk \"Notbehelf\" sind ungesicherte Internetquellen (Erfahrungsbericht, Forum, Bewertung, Wikipedia) und keine amtlichen Quellen: Stütze Verstoß, Lücke oder konform nie allein auf sie, und schreibe im Befund ausdrücklich, dass es eine ungesicherte Internetquelle ist.",
     "4. befund: zwei bis vier Sätze. Zuerst, was die Betriebsdaten zeigen (mit Zahlen), dann die Norm im Klartext (zum Beispiel 'НК РК ст. 101') und was daraus folgt. Russischen Wortlaut nur kurz zitieren und übersetzen.",
     "5. massnahmen nur bei verstoss oder luecke, höchstens drei: konkret (was genau), verantwortlich (admin, betriebsleitung, buchhaltung oder brigade), frist (sofort, 7 Tage, 30 Tage oder 90 Tage). Nur Schritte, die sich aus Daten und Rechtsquellen ergeben.",
     '6. Sei streng und ehrlich: lieber "hinweis" als eine Behauptung ohne Grundlage. Eine Prüfung ist nur so viel wert, wie sie belegt ist.',
@@ -142,7 +142,7 @@ export function agentPrompt(felder: Feldstand[]): string {
     .map((f) => {
       const daten = f.faktenText ? f.faktenText : "NICHT VERFÜGBAR (für diese Rolle liegen zu diesem Feld keine Betriebsdaten vor)";
       const recht = f.belege.length
-        ? f.belege.map((b) => `[${b.id}] ${b.fundstelle} | Stufe ${b.stufe ?? "?"} | Stand ${b.gueltigAb ?? b.abgerufenAm ?? "?"}\n${kurz(b.text.replace(/\s+/g, " "), MAX_AUSZUG)}`).join("\n\n")
+        ? f.belege.map((b) => `[${b.id}] ${b.fundstelle} | Stufe ${b.stufe ?? "?"} | Stand ${b.gueltigAb ?? b.abgerufenAm ?? "?"} | ${b.einordnung}\n${kurz(b.text.replace(/\s+/g, " "), MAX_AUSZUG)}`).join("\n\n")
         : `KEINE TREFFER${f.rechtFehler ? ` (${f.rechtFehler})` : ""}`;
       return `=== PRÜFUNGSFELD ${f.punkt.id}: ${f.punkt.titel}\nFrage: ${f.punkt.frage}\n\nBETRIEBSDATEN:\n${daten}\n\nRECHTSQUELLEN:\n${recht}`;
     })
@@ -281,6 +281,7 @@ export async function fuehrePruefungAus(
                 id: `${feld.punkt.id}`,
                 bereich,
                 gueltigeBelege: new Set(feld.belege.map((x) => x.id)),
+                unsichereBelege: new Set(feld.belege.filter((x) => x.nutzung === "notfalls").map((x) => x.id)),
                 nachweise: feld.nachweise,
                 hatDaten: feld.nachweise.length > 0,
               }),

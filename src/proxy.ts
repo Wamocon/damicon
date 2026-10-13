@@ -5,6 +5,7 @@ import { routing } from "@/i18n/routing";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { DB_OPTION } from "@/lib/supabase/schema";
 import { mfaHerausforderungOffen } from "@/lib/domain/mfa";
+import { adminSeiteBySlug, ADMINISTRATION } from "@/lib/administration";
 import { moduleByPath, zones } from "@/lib/modules";
 
 // Next.js 16: `src/proxy.ts` ersetzt das veraltete `middleware.ts`.
@@ -39,6 +40,8 @@ function unbekanntesModul(pfad: string): boolean {
   const treffer = modulPfad.exec(pfad);
   if (!treffer) return false;
   const [, zone, slug] = treffer;
+  // Administration ist keine Zone, hat aber dieselbe Form: /dashboard/administration/<seite>.
+  if (zone === ADMINISTRATION) return !adminSeiteBySlug(slug);
   return zones.some((z) => z.key === zone) && !moduleByPath(zone, slug);
 }
 

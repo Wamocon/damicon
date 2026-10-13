@@ -61,6 +61,11 @@ export function BefundKarte({ b, belege, index }: { b: Befund; belege: Bericht["
             <FileWarning className="h-3.5 w-3.5" /> {t("bericht.ohneRechtsbeleg")}
           </p>
         ) : null}
+        {b.nurUnsichereQuellen ? (
+          <p className="pr-warnzeile">
+            <FileWarning className="h-3.5 w-3.5" /> {t("bericht.nurUnsichereQuellen")}
+          </p>
+        ) : null}
         {b.ohneDaten ? (
           <p className="pr-warnzeile">
             <Database className="h-3.5 w-3.5" /> {t("bericht.ohneDaten")}

@@ -26,7 +26,7 @@ import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { BlattZeile } from "@/components/ui/blatt-zeile";
 import { Sheet } from "@/components/ui/sheet";
 import { haustierZustand } from "@/lib/haustier";
-import type { ZoneKey } from "@/lib/modules";
+import type { BereichKey } from "@/lib/administration";
 import { cn } from "@/lib/utils";
 
 // Untere Leiste, nur unter `md`. Drei Knoepfe: Menue, KI-Assistent, Konto.
@@ -144,7 +144,7 @@ function BereichsListe({
   onNavigate,
 }: {
   ziele: NavZiel[];
-  onBereich: (zone: ZoneKey) => void;
+  onBereich: (zone: BereichKey) => void;
   onNavigate: () => void;
 }) {
   return (
@@ -252,9 +252,9 @@ function MenueBlattInhalt({
   onBereich,
   onNavigate,
 }: {
-  zone: ZoneKey | null;
-  gezeigteZone: ZoneKey | null;
-  onBereich: (zone: ZoneKey) => void;
+  zone: BereichKey | null;
+  gezeigteZone: BereichKey | null;
+  onBereich: (zone: BereichKey) => void;
   onNavigate: () => void;
 }) {
   // Beide Listen entstehen hier und werden weitergereicht, statt dass jede
@@ -309,8 +309,8 @@ export function UntereLeiste() {
   // wessen Module die zweite Ansicht zeichnet: beim Zurueck wird `zone` sofort
   // null, die Ansicht faehrt aber noch nach rechts aus dem Bild und waere
   // sonst waehrend der ganzen Bewegung leer.
-  const [zone, setZone] = useState<ZoneKey | null>(null);
-  const [gezeigteZone, setGezeigteZone] = useState<ZoneKey | null>(null);
+  const [zone, setZone] = useState<BereichKey | null>(null);
+  const [gezeigteZone, setGezeigteZone] = useState<BereichKey | null>(null);
   const aktiveZone = useAktiveZone();
   const navRef = useRef<HTMLElement>(null);
   // Der KI-Knopf schaltet kein eigenes Blatt, sondern dasselbe Panel wie der
@@ -349,7 +349,7 @@ export function UntereLeiste() {
     setBlatt(ziel);
   };
 
-  const hinein = (gewaehlt: ZoneKey) => {
+  const hinein = (gewaehlt: BereichKey) => {
     setGezeigteZone(gewaehlt);
     setZone(gewaehlt);
   };

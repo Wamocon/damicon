@@ -416,7 +416,7 @@ Meldet `db push`, dass lokale Migrationen älter sind als die letzte Remote-Migr
 
 1. `KI_ANBIETER_SCHLUESSEL` in Vercel setzen und neu deployen.
 2. API-Schlüssel eintragen, entweder
-   - **im Panel:** als Admin anmelden, "KI fragen", Zahnrad, Anbieter anlegen: Typ `anthropic`, Basis-URL `https://api.anthropic.com` (ohne `/v1`), Modell `claude-haiku-4-5`, API-Schlüssel. Danach "Als Standard" wählen. Das Formular legt nur an (ein zweiter Versuch mit demselben Namen scheitert), einen Schlüsselwechsel kennt es nicht.
+   - **in der Administration:** als Admin anmelden, in der Seitenleiste unter "Administration" die Seite "KI-Anbieter" öffnen, Anbieter anlegen: Typ `anthropic`, Basis-URL `https://api.anthropic.com` (ohne `/v1`), Modell `claude-haiku-4-5`, API-Schlüssel. Danach "Als Standard" wählen. Das Formular legt nur an (ein zweiter Versuch mit demselben Namen scheitert), einen Schlüsselwechsel kennt es nicht.
    - **oder per Skript** (wiederholbar, auch für den Schlüsselwechsel):
 
      ```bash
@@ -902,7 +902,7 @@ If `db push` reports that local migrations are older than the latest remote migr
 
 1. Set `KI_ANBIETER_SCHLUESSEL` in Vercel and redeploy.
 2. Enter the API key, either
-   - **in the panel:** sign in as admin, "Ask AI", gear, create provider: type `anthropic`, base URL `https://api.anthropic.com` (without `/v1`), model `claude-haiku-4-5`, API key. Then choose "Set as default". The form only creates (a second attempt with the same name fails) and has no key rotation.
+   - **in the administration:** sign in as admin, open the page "AI providers" under "Administration" in the sidebar, create provider: type `anthropic`, base URL `https://api.anthropic.com` (without `/v1`), model `claude-haiku-4-5`, API key. Then choose "Set as default". The form only creates (a second attempt with the same name fails) and has no key rotation.
    - **or with the script** (repeatable, also for key rotation):
 
      ```bash

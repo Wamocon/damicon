@@ -23,6 +23,13 @@ export interface PdfTexte {
 }
 
 const esc = (s: string): string => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+/** Wie sich die zitierten Quellen verteilen: amtlich und Rechtsquelle (Stufe 1 bis 3), Fachquellen, ungesicherte Internetquellen (Notbehelf). */
+export function quellenlage(belege: Bericht["belege"]): { amtlich: number; fach: number; unsicher: number } {
+  const unsicher = belege.filter((q) => q.nutzung === "notfalls").length;
+  const amtlich = belege.filter((q) => q.nutzung !== "notfalls" && q.stufe !== null && q.stufe <= 3).length;
+  return { amtlich, fach: belege.length - unsicher - amtlich, unsicher };
+}
+
 const FRIST: Record<string, string> = { sofort: "sofort", "7 Tage": "tage7", "30 Tage": "tage30", "90 Tage": "tage90" };
 
 // Farben der Marke: dieselben Werte wie app/icon.svg. Das Dokument lebt in einem eigenen Rahmen ohne die Theme-Variablen der App.
@@ -166,7 +173,7 @@ function befundHtml(b: Befund, nr: number, belegeNachId: Map<string, Bericht["be
   const massnahmen = b.massnahmen.length
     ? `<ul class="massnahmen">${b.massnahmen.map((m) => `<li>${esc(m.schritt)} <span class="klein">(${esc(x.t(`rolle.${m.verantwortlich}`))}, ${esc(x.t(`frist.${FRIST[m.frist]}`))})</span></li>`).join("")}</ul>`
     : "";
-  const warn = [b.ohneRechtsbeleg ? x.t("bericht.ohneRechtsbeleg") : "", b.ohneDaten ? x.t("bericht.ohneDaten") : ""].filter(Boolean).join(" ");
+  const warn = [b.ohneRechtsbeleg ? x.t("bericht.ohneRechtsbeleg") : "", b.nurUnsichereQuellen ? x.t("bericht.nurUnsichereQuellen") : "", b.ohneDaten ? x.t("bericht.ohneDaten") : ""].filter(Boolean).join(" ");
   return `<article class="befund" data-status="${b.status}">
   <div class="befund__kopf"><span class="nr">${String(nr).padStart(2, "0")}</span><span class="marke2">${esc(x.t(`status.${b.status}`))}</span>${b.schwere !== "keine" ? `<span class="marke2 neutral">${esc(x.t(`schwere.${b.schwere}`))}</span>` : ""}<span class="marke2 neutral">${esc(x.t(`bereich.${b.bereich}.name`))}</span></div>
   <h3>${esc(b.titel)}</h3>
@@ -237,7 +244,14 @@ export function berichtAlsHtml(b: Bericht, x: PdfTexte, auszug?: BerichtAuszug):
       const stufe = q.stufe !== null ? `${esc(x.p("stufe"))} ${q.stufe}` : "";
       const stand = q.gueltigAb ? `${esc(x.p("stand"))} ${esc(q.gueltigAb)}` : q.abgerufenAm ? `${esc(x.p("abgerufen"))} ${esc(q.abgerufenAm)}` : "";
       const text = q.text.replace(/^#{1,6}\s+/gm, "").replace(/\s+/g, " ").trim();
-      return `<div class="quelle"><strong>${esc(q.fundstelle)}</strong><div class="klein">${[stufe, q.sprache ? q.sprache.toUpperCase() : "", stand].filter(Boolean).join(" &middot; ")}${q.url ? ` &middot; ${esc(q.url)}` : ""}</div><blockquote>${esc(text.length > 700 ? `${text.slice(0, 700)} ...` : text)}</blockquote></div>`;
+      // Wie belastbar die Quelle ist, steht an jeder Quelle: ungesicherte Internetquellen deutlich, Fachquellen als Hinweis.
+      const belastbarkeit =
+        q.nutzung === "notfalls"
+          ? `<div class="klein" style="color:#b23a3a"><strong>${esc(x.p("nutzungNotfalls"))}</strong></div>`
+          : q.nutzung === "hinweis"
+            ? `<div class="klein" style="color:#b06a10">${esc(x.p("nutzungHinweis"))}</div>`
+            : "";
+      return `<div class="quelle"><strong>${esc(q.fundstelle)}</strong><div class="klein">${[stufe, q.sprache ? q.sprache.toUpperCase() : "", stand].filter(Boolean).join(" &middot; ")}${q.url ? ` &middot; ${esc(q.url)}` : ""}</div>${belastbarkeit}<blockquote>${esc(text.length > 700 ? `${text.slice(0, 700)} ...` : text)}</blockquote></div>`;
     })
     .join("");
   const hinweise = [!b.vollstaendig ? x.t("bericht.unvollstaendig") : "", ...b.hinweise].filter(Boolean);
@@ -270,6 +284,7 @@ export function berichtAlsHtml(b: Bericht, x: PdfTexte, auszug?: BerichtAuszug):
       <tr><th>${esc(x.p("erstelltAm"))}</th><td>${esc(datum(b.erstelltAm, b.sprache))}</td></tr>
       <tr><th>${esc(x.p("ersteller"))}</th><td>${esc(b.ersteller.name)} (${esc(x.t(`rolle.${b.ersteller.rolle}`))})</td></tr>
       <tr><th>${esc(x.p("umfang"))}</th><td>${esc(x.p("umfangWert", { felder: befunde.length, quellen: belegeFuerAnhang.length, daten: datenquellen }))}</td></tr>
+      ${belegeFuerAnhang.length ? `<tr><th>${esc(x.p("quellenlage"))}</th><td>${esc(x.p("quellenlageWert", quellenlage(belegeFuerAnhang)))}</td></tr>` : ""}
       <tr><th>${esc(x.t("siegel.modell"))}</th><td>${esc(b.modell)}</td></tr>
     </tbody></table>
 

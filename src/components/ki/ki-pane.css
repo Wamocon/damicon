@@ -1321,6 +1321,8 @@ html[data-ki-zieht] body {
 .ki-zitat--fachquelle, .ki-quelle--fachquelle, .ki-quellen__punkt--fachquelle { --akzent: var(--warning); }
 .ki-zitat--presse, .ki-quelle--presse, .ki-quellen__punkt--presse { --akzent: var(--muted-foreground); }
 .ki-zitat--unbekannt, .ki-quelle--unbekannt, .ki-quellen__punkt--unbekannt { --akzent: var(--himbeere); }
+/* Ungesicherte Internetquelle als Notbehelf: die Karte traegt die Warnfarbe, auch wenn ihre Stufe (5) sonst grau waere. */
+.ki-quelle--notfalls { --akzent: var(--danger, var(--destructive)); }
 .ki-zitat[class*="ki-zitat--"]:not(.ki-zitat--unbelegt) {
   border-color: color-mix(in oklab, var(--akzent) 55%, var(--border));
   color: var(--akzent);
@@ -1442,6 +1444,9 @@ html[data-ki-zieht] body {
 .ki-quellen__lage--fach {
   --lage: var(--warning);
 }
+.ki-quellen__lage--unsicher {
+  --lage: var(--danger, var(--destructive));
+}
 .ki-quellen__urteil {
   font-size: 0.74rem;
   font-weight: 800;
@@ -1501,6 +1506,13 @@ html[data-ki-zieht] body {
   font-weight: 750;
   color: var(--akzent, var(--himbeere));
   background: color-mix(in oklab, var(--akzent, var(--himbeere)) 12%, transparent);
+}
+/* Quellenart (Fachliteratur, Forum ...): neben der Stufe, damit "woher" und "wie belastbar" getrennt zu lesen sind. */
+.ki-quelle__art {
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, currentColor 28%, transparent);
+  font-weight: 650;
 }
 .ki-quelle__stelle {
   margin: 0;

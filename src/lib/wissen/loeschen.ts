@@ -46,22 +46,30 @@ export async function loescheHochgeladenesDokument(
   }
   if (sparseTexte.length === 0) return { geloescht: 0, schonWeg: true, titel: info.titel, bereich: info.bereich };
 
-  // Gewichte: dieselbe Zaehlung wie beim Upload (ein Wort zaehlt je Textstelle einmal), nur rueckwaerts.
   try {
-    const zaehler = zaehleWoerter(sparseTexte.map(sparsevecIndizes));
-    const bisher = await d.speicher.leseDokumenthaeufigkeit([...zaehler.keys()]);
-    const n = await d.speicher.zaehleChunks();
-    const neu: { hash: number; df: number; idf: number }[] = [];
-    const weg: number[] = [];
-    for (const [idx, anzahl] of zaehler) {
-      const df = Math.min(Math.max((bisher.get(idx) ?? 0) - anzahl, 0), n);
-      if (df <= 0) weg.push(idx);
-      else neu.push({ hash: idx, df, idf: idf(n, df) });
-    }
-    await d.speicher.schreibeBegriffe(neu);
-    await d.speicher.loescheBegriffe(weg);
+    await rechneGewichteZurueck(sparseTexte, d.speicher);
   } catch (ursache) {
     throw new UploadFehler("gewichte", info.titel ?? undefined, ursache);
   }
   return { geloescht: sparseTexte.length, schonWeg: false, titel: info.titel, bereich: info.bereich };
+}
+
+/** Wortgewichte nach dem Loeschen zurueckrechnen: dieselbe Zaehlung wie beim Upload (ein Wort zaehlt je Textstelle einmal), nur rueckwaerts.
+ *  `sparseTexte` sind die sparsevec-Texte der tatsaechlich geloeschten Zeilen. Auch fuer das Entfernen von Bestandsdokumenten (bestandspflege-entfernen.ts). */
+export async function rechneGewichteZurueck(
+  sparseTexte: string[],
+  speicher: Pick<WissenSpeicher, "leseDokumenthaeufigkeit" | "zaehleChunks" | "schreibeBegriffe" | "loescheBegriffe">,
+): Promise<void> {
+  const zaehler = zaehleWoerter(sparseTexte.map(sparsevecIndizes));
+  const bisher = await speicher.leseDokumenthaeufigkeit([...zaehler.keys()]);
+  const n = await speicher.zaehleChunks();
+  const neu: { hash: number; df: number; idf: number }[] = [];
+  const weg: number[] = [];
+  for (const [idx, anzahl] of zaehler) {
+    const df = Math.min(Math.max((bisher.get(idx) ?? 0) - anzahl, 0), n);
+    if (df <= 0) weg.push(idx);
+    else neu.push({ hash: idx, df, idf: idf(n, df) });
+  }
+  await speicher.schreibeBegriffe(neu);
+  await speicher.loescheBegriffe(weg);
 }

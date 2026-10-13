@@ -257,6 +257,11 @@
       "name": "Market",
       "tagline": "Sales, AI, public",
       "description": "Variety and quota catalogue, B2B portal with pre-order, AI chat on a secured data basis, aggregator platform for neighbouring farms and multilingual training."
+    },
+    "administration": {
+      "name": "Administration",
+      "tagline": "AI assistant and knowledge base",
+      "description": "Manage AI providers, rate limit and knowledge documents. Visible to administration only."
     }
   },
   "footer": {
@@ -937,9 +942,17 @@
       "transkription": "Dictation accepted.",
       "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
       "dokumentGeaendert": "Document “{wert}” updated.",
-      "wissenHochgeladen": "Document “{wert}” uploaded and searchable.",
+      "wissenHochgeladen": "Document “{wert}” uploaded. It is waiting for approval by a second person.",
       "wissenGeloescht": "Document “{wert}” deleted.",
-      "wissenSchonGeloescht": "This document has already been deleted."
+      "wissenSchonGeloescht": "This document has already been deleted.",
+      "wissenFreigegeben": "Document “{wert}” approved and searchable.",
+      "wissenAbgelehnt": "Document “{wert}” rejected. It stays blocked and can be deleted.",
+      "wissenVerlaengert": "Document “{wert}” extended and searchable again.",
+      "wissenEingeordnet": "{wert} documents classified.",
+      "wissenSammelFreigegeben": "Approved and searchable: {wert} documents (details in the window).",
+      "wissenSammelAbgelehnt": "Rejected: {wert} documents. They stay blocked and can be deleted.",
+      "wissenUmgeordnet": "Classification of “{wert}” changed.",
+      "wissenNachgeladen": "Pages {wert} loaded and inserted into the book."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1005,7 +1018,24 @@
       "wissenNichtLoeschbar": "This document cannot be deleted here. Only documents uploaded through this administration can be deleted, never documents from the import script.",
       "wissenLoeschen": "The document could not be deleted. Nothing was changed.",
       "wissenGewichte": "The document was deleted, but the search word weights could not be updated. This is harmless and is corrected by the next ETL run.",
-      "wissenPdfDienst": "The PDF reader is not available on the server. This is not caused by your file, nothing was saved. Please inform technical support."
+      "wissenQuellenartGesperrt": "This source type is not permitted for the chosen area. Laws and regulations need an official or professional source, not an internet source.",
+      "wissenUrlFehlt": "The link to the source is required for this source type (proof of origin).",
+      "wissenUrlUngueltig": "The link to the source is not a valid http or https address.",
+      "wissenNichtGefunden": "This document does not exist (any more).",
+      "wissenNichtFreigebbar": "This document cannot be reviewed here. Only documents uploaded through this administration are approved.",
+      "wissenNichtPruefbar": "This document is not waiting for a review, or someone else has just decided.",
+      "wissenSelbstFreigabe": "Four-eyes principle: the person who uploaded a document does not approve it. Please ask a second person.",
+      "wissenFreigeben": "The decision could not be saved. Nothing was changed.",
+      "wissenPdfDienst": "The PDF reader is not available on the server. This is not caused by your file, nothing was saved. Please inform technical support.",
+      "wissenEinordnenLeer": "Nothing to classify: the selection is empty or invalid.",
+      "wissenEinordnen": "The classification could not be saved. Nothing or only part of it changed, please reload the list and check.",
+      "wissenClusterPasstNicht": "Internet source, forum and internet research always come from the web. Please choose the cluster Internet source.",
+      "wissenUnvollstaendig": "This book is incomplete: parts are missing because the upload was interrupted. Please delete it and upload again. It cannot be approved until then.",
+      "wissenSelbstUmordnen": "The classification of an approved document is not changed by the person who uploaded it. Please ask a second person.",
+      "wissenKeineAenderung": "Nothing was changed: the chosen values match the current classification.",
+      "wissenSeitenNichtBestaetigt": "This book has open missing pages. To approve it, enter the printed page numbers that are correctly missing. Please approve it individually in the review window, not in the bulk approval.",
+      "wissenSeitenNichtAbgedeckt": "The pages entered do not cover all missing pages. Open: {wert}. Real content is missing, so the book cannot be approved. Please load the pages later or delete the book and upload it again.",
+      "wissenNachtragUngueltig": "The loaded pages do not match any open gap of this book. Nothing was inserted."
     },
     "einladungen": {
       "erfolg": {
@@ -1973,7 +2003,10 @@
       "klicke": "Clicked: {absicht}",
       "fuelleFeld": "Filled in: {absicht}",
       "scrolleZu": "Scrolled",
-      "zeigeAuf": "Pointed at: {absicht}"
+      "zeigeAuf": "Pointed at: {absicht}",
+      "wissensbasisAbrufen": "Knowledge base checked",
+      "wissenDokumentAnalysieren": "Document analysed",
+      "wissenBestandAnalysieren": "Stock checked"
     },
     "agentDenkt": "Agent is picking the facts …",
     "agentPrueft": "Agent is checking: {werkzeug} …",
@@ -2025,7 +2058,31 @@
       "intern": "Internal research",
       "unbelegt": "There is no source for this citation.",
       "gestuetzt": "Backed by statute text",
-      "nurFach": "Expert sources only: check the primary source"
+      "nurFach": "Expert sources only: check the primary source",
+      "art": {
+        "rechtsnorm": "Legal norm",
+        "rechtsprechung": "Case law",
+        "verwaltungsanweisung": "Administrative directive",
+        "behoerdeninfo": "Official information",
+        "standard": "Standard or framework",
+        "fachliteratur": "Specialist literature",
+        "praxisbeitrag": "Practice paper",
+        "intern": "Internal document",
+        "nachschlagewerk": "Reference work",
+        "internetquelle": "Internet source",
+        "forum": "Forum or Q&A portal",
+        "internetrecherche": "Result of an internet search",
+        "ki_zusammenfassung": "AI summary"
+      },
+      "textgrundlage": {
+        "amtlich_uebersetzt": "Official translation",
+        "fachlich_uebersetzt": "Professional translation",
+        "maschinell_uebersetzt": "Machine translation"
+      },
+      "nurHinweis": "Only a hint from an unchecked source, not authoritative.",
+      "notfalls": "Unverified internet source, not an official government source. Cited only as a last resort, please verify.",
+      "nurHinweise": "Hints only, no reliable source",
+      "nurUnsichere": "Internet sources only, no official government source: unreliable"
     },
     "anbieterVerwaltung": {
       "titel": "Manage AI providers",
@@ -2106,7 +2163,10 @@
       "klicke": "Clicking: {absicht} …",
       "fuelleFeld": "Filling in: {absicht} …",
       "scrolleZu": "Scrolling …",
-      "zeigeAuf": "Pointing at: {absicht} …"
+      "zeigeAuf": "Pointing at: {absicht} …",
+      "wissensbasisAbrufen": "Reading the knowledge base …",
+      "wissenDokumentAnalysieren": "Analysing the document …",
+      "wissenBestandAnalysieren": "Checking the stock …"
     },
     "ziel": {
       "mwstStatusAbrufen": "VAT registration",
@@ -2127,7 +2187,12 @@
       "kuehlmessungErfassen": "Picking tasks",
       "reklamationAnlegen": "Complaints",
       "lohnPeriodeBerechnen": "Payroll",
-      "mitarbeiterEinschalten": "Chat"
+      "mitarbeiterEinschalten": "Chat",
+      "wissensbasisAbrufen": "Knowledge management",
+      "wissenDokumentAnalysieren": "Knowledge management",
+      "wissenEinordnungAendern": "Knowledge management",
+      "wissenBestandAnalysieren": "Knowledge management",
+      "wissenDokumenteEntfernen": "Knowledge management"
     },
     "bereichAllgemein": "the area",
     "zielExtra": {
@@ -2181,7 +2246,9 @@
         "kuehlmessungErfassen": "Record cooling measurement",
         "reklamationAnlegen": "File complaint",
         "lohnPeriodeBerechnen": "Calculate payroll",
-        "mitarbeiterEinschalten": "Hand over to a staff member"
+        "mitarbeiterEinschalten": "Hand over to a staff member",
+        "wissenEinordnungAendern": "Change classification",
+        "wissenDokumenteEntfernen": "Remove documents"
       },
       "felder": {
         "reihenblockCode": "Row block",
@@ -2198,7 +2265,13 @@
         "chargeCode": "Batch",
         "kundenName": "Customer",
         "periodeStart": "From",
-        "periodeEnde": "To"
+        "periodeEnde": "To",
+        "dokument": "Document",
+        "bereich": "Area",
+        "quellenart": "Source type",
+        "cluster": "Cluster",
+        "textgrundlage": "Text basis",
+        "dokumente": "Documents"
       },
       "werte": {
         "angenommen": "accepted",
@@ -2208,7 +2281,32 @@
         "verspaetung": "Delay",
         "verpackung": "Packaging",
         "temperatur": "Temperature",
-        "sonstiges": "Other"
+        "sonstiges": "Other",
+        "recht": "Law",
+        "steuer": "Tax",
+        "compliance": "Compliance",
+        "audit": "Audit",
+        "risiko": "Risk",
+        "rechtsnorm": "Legal norm",
+        "rechtsprechung": "Case law",
+        "verwaltungsanweisung": "Administrative directive",
+        "behoerdeninfo": "Official information",
+        "standard": "Standard or framework",
+        "fachliteratur": "Specialist literature",
+        "praxisbeitrag": "Practice paper",
+        "intern": "Internal document",
+        "nachschlagewerk": "Reference work",
+        "internetquelle": "Internet source",
+        "forum": "Forum or Q&A portal",
+        "internetrecherche": "Result of an internet search",
+        "ki_zusammenfassung": "AI summary",
+        "buecher": "Books",
+        "publikationen": "Publications",
+        "internet": "Internet source",
+        "original": "Original text",
+        "amtlich_uebersetzt": "Official translation",
+        "fachlich_uebersetzt": "Professional translation",
+        "maschinell_uebersetzt": "Machine translation"
       },
       "bestaetigen": "Confirm",
       "ablehnen": "Decline",
@@ -2260,7 +2358,7 @@
     "kleiner": "Shrink panel",
     "wissensVerwaltung": {
       "titel": "Knowledge documents",
-      "lead": "Visible to administrators only. Load documents into the knowledge base the assistant searches for law, tax, compliance, audit and risk questions. The file itself is not kept, only its text.",
+      "lead": "Visible to administrators only. Load documents into the knowledge base the assistant searches for law, tax, compliance, audit and risk questions. The file itself is not kept, only its text. Only for books as PDF is the original available for review until approval, and it is deleted afterwards.",
       "bereich": {
         "recht": "Law",
         "steuer": "Tax",
@@ -2277,6 +2375,7 @@
         "laedt": "Loading documents …",
         "leer": "No documents in the knowledge base yet.",
         "fehler": "The document list could not be loaded.",
+        "fehlerDetail": "Technical detail",
         "abgeschnitten": "The list is incomplete: the knowledge base has more passages than this view can read. Please report it.",
         "rollen": "Roles",
         "datum": "Loaded on",
@@ -2284,20 +2383,41 @@
         "vonSkript": "Import script",
         "abschnitte": "Sections",
         "keinDatum": "no date",
-        "keinBereich": "no area"
+        "keinBereich": "no area",
+        "quellenart": "Source type",
+        "stufe": "Level",
+        "link": "Source",
+        "pruefenBis": "Review due on",
+        "wartet": "Waiting for a second person: the uploader does not approve.",
+        "cluster": "Cluster",
+        "einordnung": "Classification",
+        "ohneEinordnung": "Not classified",
+        "ohneEinordnungHinweis": "Existing material from before typing: source type and cluster are missing. The assistant still treats it by its level.",
+        "filter": "Filter by cluster",
+        "filterAlle": "All",
+        "keineTreffer": "No document in this selection.",
+        "unvollstaendig": "Incomplete",
+        "unvollstaendigHinweis": "The book was not fully uploaded ({da} of {gesamt} packages). It cannot be approved. Please delete it and upload it again.",
+        "qualitaet": "Quality {prozent}%",
+        "seitenFehlen": "Missing pages according to the check",
+        "seitenFehlenWert": "{anzahl} ({stellen})",
+        "seitenVermerk": "Reason for the missing pages",
+        "seitenNachgeladen": "Pages loaded later",
+        "seitenBestaetigt": "Confirmed as correctly missing",
+        "seitenOffen": "Still open (blocks approval)"
       },
       "formular": {
-        "titel": "Upload document",
-        "lead": "PDF, Markdown or text up to 8 MB. The content is split, embedded and searchable immediately. The same file cannot be uploaded twice.",
-        "datei": "File",
-        "dateiHinweis": "Allowed: .pdf, .md, .txt. A PDF without a text layer (pure scan) is rejected.",
-        "titelFeld": "Title",
-        "titelPlatzhalter": "for example Tax Code, excerpt",
         "bereich": "Area",
+        "cluster": "Cluster",
         "bitteWaehlen": "Please choose",
         "rollen": "Who may see the document?",
         "adminImmer": "Administration is always included. Other roles do not use the knowledge search.",
-        "knopf": "Upload document"
+        "quellenart": "Source type",
+        "nutzungHinweis": "In this area only as a hint: the assistant labels the source as unchecked and never bases a binding statement on it alone.",
+        "nutzungNotfalls": "Unverified internet source: the assistant cites it only when it finds nothing more reliable, and states clearly that it is an internet source without official character.",
+        "textgrundlage": "Text basis",
+        "url": "Link to the source",
+        "freigabeHinweis": "After the upload the document waits for approval by a second person (four-eyes principle). Only then is it searchable."
       },
       "loeschen": {
         "knopf": "Delete",
@@ -2308,6 +2428,504 @@
         "warnung": "Warning: the document and all its sections are removed from the knowledge base for good. This cannot be undone. The assistant will no longer find it.",
         "abbrechen": "Cancel",
         "bestaetigen": "Delete permanently"
+      },
+      "quellenart": {
+        "rechtsnorm": "Legal norm",
+        "rechtsprechung": "Case law",
+        "verwaltungsanweisung": "Administrative directive",
+        "behoerdeninfo": "Official information",
+        "standard": "Standard or framework",
+        "fachliteratur": "Specialist literature",
+        "praxisbeitrag": "Practice paper",
+        "intern": "Internal document",
+        "nachschlagewerk": "Reference work",
+        "internetquelle": "Internet source",
+        "forum": "Forum or Q&A portal",
+        "internetrecherche": "Result of an internet search",
+        "ki_zusammenfassung": "AI summary"
+      },
+      "textgrundlage": {
+        "original": "Original text",
+        "amtlich_uebersetzt": "Official translation",
+        "fachlich_uebersetzt": "Professional translation",
+        "maschinell_uebersetzt": "Machine translation"
+      },
+      "status": {
+        "ungeprueft": "Awaiting approval",
+        "freigegeben": "Approved",
+        "abgelehnt": "Rejected",
+        "abgelaufen": "Review due"
+      },
+      "nutzung": {
+        "hinweis": "Hint only",
+        "notfalls": "Last resort only"
+      },
+      "pruefung": {
+        "knopf": "Review",
+        "knopfErneut": "Review again",
+        "titel": "Review and approve the document?",
+        "titelErneut": "Review due: keep using the document?",
+        "vorschau": "Start of the text",
+        "vorschauLaedt": "Loading …",
+        "vorschauFehler": "The preview could not be loaded.",
+        "hinweis": "Four-eyes principle: approving makes the document searchable for the chosen roles. Check origin, source type and content. The uploader may not approve.",
+        "hinweisErneut": "The review date has passed: the document is no longer found until a second person has checked and extended it. Methods change, so check whether the content still applies.",
+        "freigeben": "Approve",
+        "ablehnen": "Reject",
+        "verlaengern": "Extend",
+        "abbrechen": "Cancel",
+        "seiten": {
+          "titel": "Pages are missing from the scan",
+          "text": "The page sequence check at upload found missing printed pages. Still open: {anzahl}, locations: {stellen}.",
+          "erklaerung": "Notation: \"48-49 (47)\" means: printed pages 48 to 49 are missing after PDF page 47. \"2@105-107 (PDF 106-108)\" means: two pages are missing somewhere between printed pages 105 and 107, within PDF pages 106 to 108, because no page number was readable on at least one of them. Please look at these PDF pages in the original.",
+          "vermerk": "Reason (optional)",
+          "platzhalter": "for example: Blank pages in the book",
+          "vorschlag": "Blank pages in the book",
+          "nachgeladen": "Already loaded later: {seiten}.",
+          "regel": "Enter below the printed page numbers that are correctly missing from the book (for example blank or note pages). The entry must cover all open gaps. If real content is missing, the book will not be approved: load the missing pages as a PDF or delete the book and upload the whole PDF again.",
+          "unbekannt": "{anzahl, plural, one {# further missing page is} other {# further missing pages are}} not known individually (too many gaps or not readable). This cannot be confirmed. Please rescan and upload the whole PDF again.",
+          "bestaetigt": "Printed page numbers that are correctly missing (required for approval)",
+          "bestaetigtPlatzhalter": "for example: 48-49, 120",
+          "angabeUngueltig": "The entry is invalid. Page numbers and ranges separated by commas are allowed, for example 48-49, 120.",
+          "nochNichts": "No page number entered yet.",
+          "abgedeckt": "All open gaps are covered ({seiten, plural, one {# page} other {# pages}} confirmed as correctly missing).",
+          "nichtAbgedeckt": "Not covered: {anzahl, plural, one {# page} other {# pages}}, locations: {stellen}. Without these pages real content is missing and the book cannot be approved.",
+          "uebrig": "These page numbers do not belong to any open gap and do not count: {liste}.",
+          "gesperrt": "Approval is only possible once all gaps are covered. Rejecting is always possible."
+        },
+        "nachladen": {
+          "titel": "Real content missing? Load the pages later",
+          "erklaerung": "Upload the missing pages as a PDF with text recognition (OCR). The system reads the printed page numbers, inserts the pages into the book at the position of the gap and then offers the book for approval again. Alternatively delete the book and upload the whole PDF again.",
+          "manuell": "Printed page numbers of the file (only needed if they are not readable)",
+          "manuellPlatzhalter": "for example: 48-49 (in the order of the pages in the file)",
+          "waehlen": "Choose PDF with the missing pages",
+          "oeffnet": "Opening file ...",
+          "liest": "Reading page {seite} of {seiten} ...",
+          "sendet": "Inserting pages {seiten} into the book ...",
+          "fertig": "Loaded and inserted: {seiten}. The book is being rated again.",
+          "keinePdf": "Please choose a PDF file.",
+          "angabeUngueltig": "The page numbers are invalid. Numbers and ranges separated by commas are allowed.",
+          "angabeAnzahl": "{angegeben} page numbers were given, but the file has {seiten} pages. Both must match.",
+          "unklar": "No printed page number was readable on these pages of the file: {liste}. Please enter the page numbers by hand (in the order of the pages in the file) and choose the file again.",
+          "ausserhalb": "These pages of the file do not belong to any open gap: {liste}. Nothing was loaded.",
+          "keineZuordnung": "No page of the file matches an open gap. Nothing was loaded.",
+          "ohneText": "At least one page of the file has no text. Please create the file with text recognition (OCR).",
+          "lesenFehler": "The file could not be read or loaded. Is it a valid PDF with a text layer?"
+        }
+      },
+      "cluster": {
+        "buecher": "Books",
+        "publikationen": "Publications",
+        "internet": "Internet source"
+      },
+      "einordnen": {
+        "titel": "Classify existing documents",
+        "lead": "These documents were loaded before typing and have no source type and no cluster yet. For each one the page suggests a value from the link, the previous level and the legal reference. Nothing is saved on its own: you check, change, select and confirm after seeing the effect on search.",
+        "zaehler": "Not yet classified: {offen} of {gesamt}",
+        "alleErledigt": "All documents are classified.",
+        "filter": {
+          "titel": "Filter by suggestion",
+          "alle": "All"
+        },
+        "sicherheit": {
+          "hoch": "Reliable",
+          "mittel": "Plausible",
+          "niedrig": "Uncertain"
+        },
+        "grund": {
+          "rechtsstelle": "Legal reference present, official site",
+          "amtlicheSeite": "Official site",
+          "standardGremium": "Standards body",
+          "wikipedia": "Wikipedia",
+          "forum": "Forum or Q&A site",
+          "blog": "Blog or article platform",
+          "stufe": "from the previous level",
+          "keinLink": "no link",
+          "mehrereQuellen": "several sources in the link field, please check"
+        },
+        "spalte": {
+          "dokument": "Document",
+          "stufe": "Level",
+          "bereich": "Area",
+          "art": "Source type",
+          "cluster": "Cluster",
+          "vorschlag": "Suggestion"
+        },
+        "bitteWaehlen": "Please choose",
+        "waehlen": "Select document",
+        "schaltflaeche": {
+          "sichere": "Select reliable suggestions",
+          "alle": "Select all suggestions ({anzahl})",
+          "seite": "Select all on this page",
+          "aufheben": "Clear selection",
+          "pruefen": "Review classification ({anzahl})",
+          "zurueck": "Back",
+          "weiter": "Next"
+        },
+        "seite": "Page {seite} of {seiten}",
+        "gewaehlt": "{anzahl} selected",
+        "unvollstaendig": "Only documents with a source type and a cluster can be selected.",
+        "dialog": {
+          "titel": "Review and save classification",
+          "lead": "This changes for search:",
+          "dokumente": "Documents: {anzahl}, sections: {abschnitte}",
+          "gesperrt": "No longer findable in their area: {anzahl}",
+          "gesperrtKurz": "no longer findable",
+          "nurHinweis": "Only as a hint: {anzahl}",
+          "notfalls": "Last resort only (unverified internet source): {anzahl}",
+          "stufe": "Level changes: {anzahl}",
+          "verlassenPrimaer": "Lose the reserved slots for legal sources: {anzahl}",
+          "kommenInPrimaer": "Gain access to the reserved slots for legal sources: {anzahl}",
+          "nichtsBesonderes": "Search behaves unchanged for these documents.",
+          "liste": "Affected documents",
+          "stufeVonNach": "Level {alt} to {neu}",
+          "weitere": "and {anzahl} more",
+          "hinweisStufe": "The level follows the source type, as with an upload. The previous level is kept in the log.",
+          "hinweisProtokoll": "Every classification is logged (person, document, type, cluster, level before and after).",
+          "abbrechen": "Cancel",
+          "speichern": "Save classification",
+          "notfallsKurz": "last resort only"
+        }
+      },
+      "buecher": {
+        "titel": "Upload documents and books",
+        "lead": "For single documents and books as PDF with a text layer (for example after OCR), Markdown or text, any length, one file or several at once. You only choose the cluster. The analysis suggests area, source type and text basis for each book, you check and change what is wrong. Your browser reads the file itself and sends only the text in packages, a PDF is also saved as an original while the book waits for approval, so that the reviewer can open it. It is deleted after approval or rejection. Each book then waits for approval by a second person.",
+        "dateien": "Files (several possible)",
+        "dateienHinweis": "PDF, Markdown or text. The title is taken from the file name and can be changed per book, as can area, source type and text basis. Identical content is recognised as a duplicate.",
+        "titelFeld": "Title",
+        "entfernen": "Remove",
+        "seite": "Page {seite} of {seiten}",
+        "paket": "Package {nr} of {gesamt}",
+        "paketFehler": "Package {nr} of {gesamt} failed, the book was removed again.",
+        "zeichen": "{anzahl} characters",
+        "fortschritt": {
+          "lesen": "Reading and analysing files: {fertig} of {gesamt}",
+          "lesenBalken": "Reading progress",
+          "gesamtBalken": "Overall upload progress",
+          "buchBalken": "Progress of this book",
+          "hochladen": "Uploading book {buch} of {buecher}, {prozent} percent overall",
+          "pakete": "{erledigt} of {gesamt} packages transferred",
+          "aktuell": "now: {titel} (package {paket} of {pakete})",
+          "rest": "about {minuten} min left",
+          "nichtSchliessen": "Please keep this page open until all books are uploaded.",
+          "fertig": "Done: {ok} books uploaded. They wait for approval by a second person.",
+          "fertigMitFehlern": "Finished: {ok} books uploaded, {fehler} not. The errors are shown with the books."
+        },
+        "schlechtGesperrt": "The text is too poorly readable and will not be uploaded. Please create the file again with OCR.",
+        "seiten": {
+          "ok": "Page sequence complete ({seiten} pages, page number readable on {prozent} % of the pages).",
+          "eingeschraenkt": "No gap found, but only partly verifiable: the page number was readable on only {prozent} % of the pages.",
+          "luecken": "{anzahl, plural, one {# page is missing in the scan} other {# pages are missing in the scan}}: {stellen}. Please rescan the missing pages and create the file again.",
+          "trotzdem": "I know about the gaps, upload anyway (the book is marked as incomplete for the second person).",
+          "ohneText": "Pages without text in the middle of the book (PDF pages): {liste}.",
+          "artikel": "{anzahl, plural, one {# article number is missing} other {# article numbers are missing}} in the sequence {von} to {bis}: {stellen}. Repealed articles may be among them, please check a sample.",
+          "stelleEinzeln": "printed page {von} (after PDF page {pdf})",
+          "stelleMehrere": "printed pages {von} to {bis} (after PDF page {pdf})",
+          "stelleUngefaehr": "{anzahl, plural, one {# page} other {# pages}} between the printed pages {von} and {bis}, within PDF pages {pdf} to {pdfBis} (the page number was not readable on one of them)"
+        },
+        "fehlerLesen": "The file could not be read. Is it a valid PDF with a text layer?",
+        "start": "{anzahl, plural, one {Upload # book} other {Upload # books}}",
+        "stopp": "Cancel",
+        "schritt": {
+          "wartet": "Waiting",
+          "liest": "Reading",
+          "bereit": "Ready",
+          "laedt": "Uploading",
+          "fertig": "Uploaded",
+          "fehler": "Error",
+          "abgebrochen": "Cancelled"
+        },
+        "clusterHinweis": "The way the books came to the farm. Applies to all files of this selection.",
+        "kiAn": "Analyse with AI",
+        "kiHinweis": "The analysis rules always run, in the browser. In addition the AI is asked for a classification. For this an excerpt of about 6,000 characters per file (start, middle, end) and the file name go to the configured AI provider. Without a provider only the rules apply.",
+        "angabenFehlen": "Please check area, source type and text basis: the combination is not allowed or a link is missing.",
+        "qualitaet": "Quality {prozent}%",
+        "original": {
+          "abgelegt": "Original saved",
+          "laeuft": "Saving the original …",
+          "fehler": {
+            "speicher": "Original not saved (storage limit?)",
+            "ungueltig": "Original not saved (invalid file)",
+            "keinDokument": "Original not saved",
+            "keinUpload": "Original not saved",
+            "nichtDa": "Original not saved",
+            "zugriff": "Original not saved",
+            "unbekannt": "Original not saved",
+            "zuVoll": "Original not saved (storage full)"
+          },
+          "fortschritt": "Saving the original, {prozent} %"
+        },
+        "platz": {
+          "zuVoll": "The originals exceed {grenze} of storage (already waiting: {wartend}, new selection: {neu}). Please upload separately: upload and approve one part first, then the next."
+        },
+        "erneut": "Package {nr} of {gesamt}: new attempt {versuch} …",
+        "unerwartet": "An unexpected error occurred while uploading, the book was removed again. Please try again."
+      },
+      "guete": {
+        "note": {
+          "gut": "Text well readable",
+          "pruefen": "Check text",
+          "schlecht": "Text poor"
+        },
+        "hinweis": {
+          "kaumText": "Hardly any text found, probably a scan without a text layer.",
+          "vieleSonderzeichen": "Many special characters, typical of poor OCR.",
+          "zerhackteWoerter": "Chopped words (single letters).",
+          "ohneLeerzeichen": "Words stuck together without spaces.",
+          "vieleZiffern": "Very many digits, probably tables.",
+          "ohneVokale": "Many long words without vowels, indicating recognition errors.",
+          "wiederholteZeilen": "Headers and footers repeat on every page.",
+          "seitenLuecken": "Pages are missing in the scan (the printed page numbers jump). The book has gaps."
+        }
+      },
+      "einschaetzung": {
+        "titel": "Assessment",
+        "keineBefunde": "No findings in classification, readability or origin. You check the content in the preview.",
+        "empfehlung": {
+          "freigeben": "Recommendation: approve",
+          "pruefen": "Recommendation: review first",
+          "ablehnen": "Recommendation: reject"
+        },
+        "grund": {
+          "unvollstaendig": "The document was uploaded incompletely.",
+          "guteSchlecht": "The text is poorly readable (OCR errors). Search would hardly find it.",
+          "guetePruefen": "The text quality is conspicuous, please look at the preview.",
+          "ohneEinordnung": "Source type or cluster is missing.",
+          "ohneStufe": "No authority level is set.",
+          "ohneLink": "Internet source without a link, the origin cannot be verified.",
+          "linkUngueltig": "The link is not a valid web address.",
+          "sehrKurz": "Very few sections, perhaps only a table of contents or a read error.",
+          "notbehelf": "Unreliable internet source: used only as a last resort and labelled as such to the user.",
+          "hinweis": "Used only with a note (not as a primary source)."
+        }
+      },
+      "sammel": {
+        "waehlen": "Select {titel} for bulk review",
+        "titel": "{anzahl, plural, one {# document is waiting for your review} other {# documents are waiting for your review}}",
+        "lead": "Select several and decide in one step. Each document is checked and logged individually.",
+        "alle": "Select all",
+        "nurEmpfohlene": "Recommended only ({anzahl})",
+        "keine": "Clear selection",
+        "gewaehlt": "{anzahl} selected",
+        "freigeben": "Approve selection",
+        "ablehnen": "Reject selection",
+        "freigebenTitel": "Approve {anzahl} documents?",
+        "ablehnenTitel": "Reject {anzahl} documents?",
+        "empfehlung": {
+          "freigeben": "approve",
+          "pruefen": "review first",
+          "ablehnen": "reject"
+        },
+        "mitBefund": "Some documents have findings. Please look at them individually first.",
+        "hinweisFreigeben": "Approved documents become searchable immediately. The four-eyes principle applies: the database does not release your own uploads.",
+        "hinweisAblehnen": "Rejected documents stay blocked and can be deleted.",
+        "freigebenBestaetigen": "Approve now",
+        "ablehnenBestaetigen": "Reject now",
+        "laeuft": "Working …",
+        "abbrechen": "Cancel",
+        "schliessen": "Close",
+        "ergebnisTitel": "Result",
+        "erledigt": "done"
+      },
+      "analyse": {
+        "sicherheit": {
+          "hoch": "Confident suggestion",
+          "mittel": "Check suggestion",
+          "niedrig": "Uncertain, please look"
+        },
+        "kiLaeuft": "AI is analysing …",
+        "vonKi": "Classified by the AI",
+        "nurRegeln": "Classified by rules only (no AI provider reachable)",
+        "vonRegeln": "Classified by rules",
+        "grund": {
+          "bereichRecht": "many legal terms",
+          "bereichSteuer": "many tax terms",
+          "bereichCompliance": "many compliance terms",
+          "bereichAudit": "many audit and certification terms",
+          "bereichRisiko": "many risk terms",
+          "bereichUnklar": "area not recognisable",
+          "artRechtsnorm": "many articles as in a law",
+          "artRechtsprechung": "judgment or ruling",
+          "artStandard": "norm or standard",
+          "artBuch": "structure and size of a book",
+          "artNachschlagewerk": "encyclopedia or dictionary",
+          "artBehoerde": "information from an authority",
+          "artPraxis": "practice paper, study or guideline",
+          "artIntern": "internal instruction",
+          "artKurz": "short text",
+          "artUnklar": "type not clear",
+          "uebersetzungHinweis": "note of a translation",
+          "uebersetzungMaschinell": "note of machine translation",
+          "uebersetzungAmtlich": "note of official translation"
+        }
+      },
+      "umordnen": {
+        "knopf": "Change classification",
+        "titel": "Change classification",
+        "speichern": "Save",
+        "abbrechen": "Cancel",
+        "wirkung": "The level follows the source type: level {stufe}.",
+        "wiedervorlage": "The review date is reset: {monate} months from today.",
+        "urlFehlt": "A link is required for this source type, but the document has no valid link.",
+        "vierAugen": "This document is approved and was uploaded by you. A second person changes area, source type and text basis (four-eyes principle). The cluster can be changed."
+      },
+      "pflege": {
+        "titel": "Check and clean up the holdings",
+        "lead": "Checks the knowledge base for research working documents, documents explicitly marked as outdated, duplicates, documents covered by uploaded books, due review dates and missing origin. The check changes nothing. Documents are only removed once you have selected findings, entered the reason and confirmed. Similarity alone does not prove the same statement: for duplicates and covered documents the comparison shows the passages word for word.",
+        "mitVergleich": "Run the content comparison (duplicates, covered by books)",
+        "mitVergleichHinweis": "Compares a few passages of each document with all other documents. Depending on the size this takes a few minutes. Without the tick only the quick checks run.",
+        "start": "Start analysis",
+        "nochmal": "Repeat analysis",
+        "abbrechen": "Cancel",
+        "ladeListe": "Loading the document list",
+        "fortschritt": "Content comparison: {fertig} of {gesamt} documents",
+        "fortschrittBalken": "Analysis progress",
+        "fehler": "The analysis failed. Please try again later.",
+        "keineBefunde": "No findings among {anzahl} documents checked.",
+        "zusammenfassung": "{befunde} of {gesamt} documents have at least one finding.",
+        "umfang": "{abschnitte} passages",
+        "auswaehlen": "Select {titel}",
+        "herkunft": {
+          "bestand": "Existing",
+          "upload": "Uploaded"
+        },
+        "stufe": {
+          "entfernen": "Suggestion: remove",
+          "pruefen": "Review",
+          "hinweis": "Note"
+        },
+        "art": {
+          "arbeitsdokument": "Working document",
+          "veraltet": "Outdated",
+          "dublette": "Duplicate",
+          "abgedeckt": "Covered by a book",
+          "wiedervorlage": "Review date",
+          "herkunft": "Origin"
+        },
+        "grund": {
+          "arbeitsdokument": "Working document of the research (order, index, plan), no expert knowledge.",
+          "rohbefund": "Raw finding of the research, unchecked and unprocessed.",
+          "markiertVeraltet": "Explicitly marked as outdated (title or reference).",
+          "jahrAlt": "The most recent year in the title is {wert}. Check how current it is.",
+          "wiedervorlageFaellig": "The review date has been reached ({wert}). The document is no longer found until a second person extends it.",
+          "keinLink": "No usable link to the source: the origin cannot be verified.",
+          "dublette": "Almost the same text as \"{wert}\" ({prozent} % of the passages checked, at least {minimum} % similarity). One of the two can be removed.",
+          "abgedeckt": "The content is in \"{wert}\" ({prozent} % of the passages checked, at least {minimum} % similarity). Look at the comparison before removing.",
+          "teilweiseAbgedeckt": "Partly similar to \"{wert}\" ({prozent} % of the passages checked). The rest is probably only here."
+        },
+        "vergleich": {
+          "an": "Show comparison",
+          "zu": "Close comparison",
+          "laedt": "loading",
+          "keine": "No comparison available.",
+          "dieses": "This document",
+          "gegenueber": "\"{titel}\" ({prozent} % similarity)"
+        },
+        "filter": {
+          "alle": "All ({anzahl})"
+        },
+        "auswahl": {
+          "vorschlaege": "Select all suggestions for removal",
+          "keine": "Clear selection",
+          "gewaehlt": "{anzahl} selected",
+          "entfernen": "Remove selected ({anzahl})"
+        },
+        "bestaetigung": {
+          "titel": "Confirm removal",
+          "warnung": "{dokumente, plural, one {# document} other {# documents}} with {abschnitte} passages will be removed from the knowledge base. This cannot be undone. The synchronisation to production does not copy them back.",
+          "grund": "Reason (goes into the log)",
+          "grundBeispiel": "for example: duplicate, fully contained in the book ...",
+          "geprueft": "I have checked the documents and want to remove them.",
+          "zahl": "To confirm, type the number of documents ({anzahl})",
+          "los": "Remove now",
+          "laeuft": "Removing",
+          "zurueck": "Back"
+        },
+        "ergebnis": {
+          "zugriff": "You do not have permission for this.",
+          "bestaetigungFalsch": "The number you typed does not match the number of documents. Nothing was removed.",
+          "entfernt": "{anzahl, plural, one {# document} other {# documents}} removed ({abschnitte} passages).",
+          "schonWeg": "{anzahl, plural, one {# document was} other {# documents were}} already removed.",
+          "gewichteOffen": "For at least one document the word weights could not be recalculated. The document is gone, the search stays usable, the next import corrects it.",
+          "fehler": "{titel}: not removed ({grund})",
+          "code": {
+            "eingabe": "invalid input",
+            "umgebung": "blocked in this preview (schema public)",
+            "grabstein": "recording the removal failed, nothing deleted",
+            "loeschen": "deleting failed",
+            "gewichte": "word weights not recalculated",
+            "unbekannt": "unknown error"
+          }
+        },
+        "qualitaet": {
+          "hinweis": "The quality in percent shows how well the stored text can be read (text recognition, hyphenation; tables of contents and indexes are not counted) and whether pages are missing from the scan. Documents without a value: {anzahl}.",
+          "knopf": "Calculate quality",
+          "fortschritt": "Calculated: {fertig} of {gesamt} …",
+          "fertig": "Quality calculated, documents: {anzahl}.",
+          "balken": "Progress of the quality calculation"
+        }
+      },
+      "filter": {
+        "suche": "Search in title",
+        "suchePlatzhalter": "for example tax code",
+        "bereich": "Area",
+        "art": "Source type",
+        "verlaesslichkeit": "Reliability",
+        "status": "Status",
+        "herkunft": "Origin",
+        "rolle": "Visible to",
+        "alle": "All",
+        "verlaesslichkeitOption": {
+          "amtlich": "Official (law, ruling, decree, authority)",
+          "sicher": "Reliable (primary source)",
+          "hinweis": "Indicative only",
+          "unsicher": "Unreliable (internet source, last resort only)",
+          "ohne": "Not classified"
+        },
+        "statusOption": {
+          "wartet": "Waiting for approval",
+          "freigegeben": "Approved",
+          "abgelehnt": "Rejected",
+          "unvollstaendig": "Incompletely uploaded",
+          "abgelaufen": "Review due"
+        },
+        "ergebnis": "{anzahl} of {gesamt} documents",
+        "zuruecksetzen": "Reset filters ({anzahl})",
+        "hinweisVerlaesslichkeit": "Reliable includes official sources. The assistant uses unreliable sources only when nothing solid exists, and labels them."
+      },
+      "original": {
+        "titel": "Original PDF",
+        "da": "The original ({umfang}) is ready for review. It is deleted after approval or rejection.",
+        "keins": "No original is available for this book.",
+        "oeffnen": "Open original",
+        "oeffnet": "Opening …",
+        "nochmal": "If nothing opened: click here",
+        "nachtragen": "Add original",
+        "nachtragenHinweis": "Choose the PDF the book was uploaded from. It is read in the browser and compared with the stored text before it is saved. It stays only until approval.",
+        "liest": "Reading the file … page {seite} of {seiten}",
+        "laedt": "Saving the original … {prozent} %",
+        "fertig": "Original saved.",
+        "fehler": {
+          "passtNicht": "This file does not match the stored text. Please choose the PDF the book was uploaded from.",
+          "ungueltig": "This is not a PDF, or it is empty or too large (1 GB at most).",
+          "keinDokument": "The document is no longer waiting for approval.",
+          "keinUpload": "Only uploaded books have an original.",
+          "nichtDa": "The file did not arrive in storage.",
+          "speicher": "The original could not be saved. The file may be larger than the storage limit.",
+          "zugriff": "You do not have permission for this.",
+          "unbekannt": "The original could not be saved.",
+          "unlesbar": "The file could not be read. Is it a PDF?",
+          "zuVoll": "The storage for waiting originals is full. Please approve or reject books first."
+        }
+      },
+      "ansicht": {
+        "gruppe": "View",
+        "liste": "List",
+        "raster": "Grid",
+        "alleAuf": "Expand all",
+        "alleZu": "Collapse all",
+        "aufklappen": "Expand details of “{titel}”",
+        "zuklappen": "Collapse details of “{titel}”"
       }
     },
     "sprachmodus": {
@@ -3528,7 +4146,8 @@
       "hinweise": "Limitations",
       "unvollstaendig": "Not all audit fields could be assessed.",
       "export": "Save as JSON",
-      "drucken": "Print"
+      "drucken": "Print",
+      "nurUnsichereQuellen": "Only unreliable internet sources as evidence (no official source): no violation, gap or conformity established, only a note."
     },
     "siegel": {
       "titel": "Seal and evidence",
@@ -3695,7 +4314,11 @@
       "pruefer": "External auditor"
     },
     "verifikation": "The content of this report is sealed with a SHA-256 checksum. Anyone with the accompanying JSON file can recompute the seal in Damicon with \"Verify seal\"; any later change is detected.",
-    "tipp": "Tip for the print dialog: turn \"Headers and footers\" off, paper size A4. Colours and branding are applied automatically."
+    "tipp": "Tip for the print dialog: turn \"Headers and footers\" off, paper size A4. Colours and branding are applied automatically.",
+    "nutzungNotfalls": "Unreliable internet source, not an official source. Used only as a last resort, please verify against an official source.",
+    "nutzungHinweis": "Indicative only, not sufficient on its own (specialist source, not a primary source).",
+    "quellenlage": "Source situation",
+    "quellenlageWert": "{amtlich} official or legal sources (levels 1 to 3) · {fach} specialist sources · {unsicher} unreliable internet sources"
   },
   "complianceBericht": {
     "titel": "Compliance report",
@@ -3761,6 +4384,29 @@
       "naechster": "Next entry",
       "nichtGefunden": "This entry does not exist or is not visible for your role.",
       "ladefehler": "This entry cannot be loaded right now. Please try again in a moment."
+    }
+  },
+  "administration": {
+    "title": "Administration",
+    "description": "Management of the AI assistant and the knowledge base. Visible to administration only.",
+    "oeffnen": "Open",
+    "keineUmgebung": "There is nothing to manage in demo mode: providers, rate limit and knowledge base need the database.",
+    "seiten": {
+      "ki-anbieter": {
+        "navTitle": "AI providers",
+        "title": "AI providers and access keys",
+        "description": "Add providers for the AI assistant, mark one as the default and remove them. The key is stored encrypted and is never shown again."
+      },
+      "ratenlimit": {
+        "navTitle": "Rate limit",
+        "title": "Rate limit of the assistant",
+        "description": "Limits how often a role may trigger a paid AI request per minute. Without an entry there is no limit."
+      },
+      "wissensbasis": {
+        "navTitle": "Knowledge base",
+        "title": "Knowledge documents and sources",
+        "description": "Load documents into the knowledge base, classify them by cluster, source type and level, and have a second person approve them. The assistant searches them for legal, tax, compliance, audit and risk questions."
+      }
     }
   }
 }

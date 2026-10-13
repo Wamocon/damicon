@@ -1,0 +1,153 @@
+"use server";
+
+import { protokolliere } from "@/lib/actions/formular-helfer";
+import { wissenDokumenteLaden } from "@/lib/actions/wissen";
+import { dienstClient, verwaltungsProfil } from "@/lib/wissen/admin-zugriff";
+import { PFLEGE, type DokumentNaehe } from "@/lib/wissen/bestandspflege";
+import { entferneDokument, istQuelleId, MAX_GRUND, PflegeFehler, type PflegeFehlerCode } from "@/lib/wissen/bestandspflege-entfernen";
+import { bestandsSpeicher, berechneQualitaetFuer, ladeNaehe, ladeVergleich, type VergleichPaar } from "@/lib/wissen/speicher-bestandspflege";
+import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
+
+// Bestandspflege (Administration, Seite Wissensbasis): Analysen und Entfernen nach der Prüfung. Dieselbe Berechtigung wie die übrige
+// Verwaltung der Wissensbasis (requirePermission("ki_assistent", "manage"), laut rbac.ts nur admin). Alles auf dem Dienst-Client, nach der Rechteprüfung.
+//
+// Die Analyse ist in kleine Aufrufe geteilt (je höchstens PFLEGE.naeheJeAufruf Dokumente), die die Oberfläche nacheinander stellt und dabei einen Fortschritt zeigt:
+// Der Vektorvergleich je Dokument braucht Zeit, und eine Server Action hat auf Vercel höchstens 60 Sekunden (dashboard/layout.tsx, maxDuration).
+// Die Analyse verändert nichts. Entfernt wird nur in wissenBestandEntfernen, mit ausdrücklicher Bestätigung und mit Protokolleintrag je Dokument.
+
+
+export interface PflegeStart {
+  dokumente: WissenDokumentZeile[];
+  /** Heutiges Datum (JJJJ-MM-TT) auf dem Server: für Wiedervorlage und Jahr im Titel. */
+  heute: string;
+  /** Die Kennungen, deren inhaltliche Nähe die Oberfläche in Schritten abfragt (alle Dokumente mit quelle_id). */
+  fuerNaehe: string[];
+  fehler: boolean;
+}
+
+/** Schritt 1: die Dokumentliste. Die Heuristiken (Arbeitsdokument, veraltet, Herkunft, Wiedervorlage) rechnet die Oberfläche daraus selbst. */
+export async function wissenBestandspflegeStart(): Promise<PflegeStart> {
+  if (!(await verwaltungsProfil())) return { dokumente: [], heute: "", fuerNaehe: [], fehler: true };
+  const liste = await wissenDokumenteLaden();
+  if (liste.fehler) return { dokumente: [], heute: "", fuerNaehe: [], fehler: true };
+  const dokumente = liste.dokumente.filter((d) => d.chunks > 0);
+  return {
+    dokumente,
+    heute: new Date().toISOString().slice(0, 10),
+    fuerNaehe: dokumente.filter((d) => d.schluesselSpalte === "quelle_id").map((d) => d.schluessel),
+    fehler: false,
+  };
+}
+
+/** Schritt 2 (wiederholt): die inhaltliche Nähe einiger Dokumente zu allen anderen. */
+export async function wissenBestandspflegeNaehe(quelleIds: string[]): Promise<{ naehe: DokumentNaehe[]; fehler: boolean }> {
+  if (!(await verwaltungsProfil())) return { naehe: [], fehler: true };
+  if (!Array.isArray(quelleIds) || quelleIds.length === 0 || quelleIds.length > PFLEGE.naeheJeAufruf || !quelleIds.every(istQuelleId)) return { naehe: [], fehler: true };
+  try {
+    const db = dienstClient();
+    const naehe: DokumentNaehe[] = [];
+    for (const id of quelleIds) naehe.push((await ladeNaehe(db, id, PFLEGE.proben)).naehe);
+    return { naehe, fehler: false };
+  } catch (error) {
+    console.error("[damicon] Bestandspflege (Nähe) fehlgeschlagen:", error);
+    return { naehe: [], fehler: true };
+  }
+}
+
+export type { VergleichPaar };
+
+/** Die Vergleichsansicht: bis zu zwei Abschnitte des Dokuments mit dem ähnlichsten Abschnitt des anderen Dokuments, im Wortlaut. */
+export async function wissenBestandspflegeVergleich(quelleId: string, andere: string): Promise<{ paare: VergleichPaar[]; titel: string | null; fehler: boolean }> {
+  if (!(await verwaltungsProfil())) return { paare: [], titel: null, fehler: true };
+  if (!istQuelleId(quelleId) || !istQuelleId(andere)) return { paare: [], titel: null, fehler: true };
+  try {
+    return { ...(await ladeVergleich(dienstClient(), quelleId, andere, PFLEGE.proben)), fehler: false };
+  } catch (error) {
+    console.error("[damicon] Bestandspflege (Vergleich) fehlgeschlagen:", error);
+    return { paare: [], titel: null, fehler: true };
+  }
+}
+
+export interface EntferntStatus {
+  quelleId: string;
+  titel: string | null;
+  status: "entfernt" | "schonWeg" | "fehler";
+  abschnitte: number;
+  code?: PflegeFehlerCode | "unbekannt";
+  /** Die Wortgewichte ließen sich nicht zurückrechnen: das Dokument ist weg, die Suche bleibt brauchbar. */
+  gewichteOffen?: boolean;
+}
+
+export interface EntfernenAntwort {
+  zugriff: boolean;
+  /** Die Bestätigung stimmte nicht (sie muss die Zahl der Dokumente nennen). */
+  bestaetigungFalsch?: boolean;
+  ergebnisse: EntferntStatus[];
+}
+
+/**
+ * Entfernt Dokumente nach der Prüfung. `bestaetigung` muss die Zahl der Dokumente sein (die Oberfläche lässt sie eintippen): Ein falscher Aufruf
+ * ohne Bestätigung löscht nichts. Je Dokument ein Protokolleintrag (wer, was, warum, wie viele Abschnitte). Ein Fehler bei einem Dokument hält die übrigen nicht an.
+ */
+export async function wissenBestandEntfernen(quelleIds: string[], grund: string, bestaetigung: string): Promise<EntfernenAntwort> {
+  const profil = await verwaltungsProfil();
+  if (!profil) return { zugriff: false, ergebnisse: [] };
+  const ids = Array.isArray(quelleIds) ? [...new Set(quelleIds)] : [];
+  if (ids.length === 0 || ids.length > PFLEGE.maxEntfernen || !ids.every(istQuelleId) || typeof grund !== "string" || grund.trim().length === 0 || grund.length > MAX_GRUND) {
+    return { zugriff: true, ergebnisse: [{ quelleId: "", titel: null, status: "fehler", abschnitte: 0, code: "eingabe" }] };
+  }
+  if (String(bestaetigung).trim() !== String(ids.length)) return { zugriff: true, bestaetigungFalsch: true, ergebnisse: [] };
+
+  const speicher = bestandsSpeicher(dienstClient());
+  const ergebnisse: EntferntStatus[] = [];
+  for (const id of ids) {
+    try {
+      const e = await entferneDokument(id, grund, profil.id, { speicher });
+      ergebnisse.push({ quelleId: id, titel: e.titel, status: e.schonWeg ? "schonWeg" : "entfernt", abschnitte: e.geloescht, gewichteOffen: e.gewichteOffen || undefined });
+      if (!e.schonWeg) {
+        await protokolliere(profil, "wissen.entfernt", "wissen_chunks", null, {
+          titel: e.titel,
+          bereich: e.bereich,
+          quelle_id: id,
+          abschnitte: e.geloescht,
+          grund: grund.trim(),
+          upload: e.upload,
+          wortgewichte_aktualisiert: !e.gewichteOffen,
+        });
+      }
+    } catch (error) {
+      const code = error instanceof PflegeFehler ? error.code : "unbekannt";
+      console.error(`[damicon] Entfernen von "${id}" fehlgeschlagen (${code}):`, error);
+      ergebnisse.push({ quelleId: id, titel: null, status: "fehler", abschnitte: 0, code });
+    }
+  }
+  return { zugriff: true, ergebnisse };
+}
+
+export interface QualitaetErgebnis {
+  quelleId: string;
+  /** Berechnete Qualität in Prozent; null, wenn das Dokument keinen Text hat oder die Berechnung scheiterte. */
+  prozent: number | null;
+}
+
+/**
+ * Berechnet die Textqualität einiger Dokumente und legt sie ab (wissen_qualitaet), damit die Liste "Qualität 95 %" zeigen kann.
+ * Je Aufruf höchstens PFLEGE.qualitaetJeAufruf Dokumente (ein Buch hat über 2.000 Abschnitte); die Oberfläche ruft in Schritten auf. Verändert nur diesen
+ * abgeleiteten Wert, nie einen Text, eine Einordnung oder einen Prüfstatus.
+ */
+export async function wissenQualitaetBerechnen(quelleIds: string[]): Promise<{ ergebnisse: QualitaetErgebnis[]; zugriff: boolean }> {
+  if (!(await verwaltungsProfil())) return { ergebnisse: [], zugriff: false };
+  const ids = Array.isArray(quelleIds) ? [...new Set(quelleIds)] : [];
+  if (ids.length === 0 || ids.length > PFLEGE.qualitaetJeAufruf || !ids.every(istQuelleId)) return { ergebnisse: [], zugriff: true };
+  const db = dienstClient();
+  const ergebnisse: QualitaetErgebnis[] = [];
+  for (const id of ids) {
+    try {
+      ergebnisse.push({ quelleId: id, prozent: (await berechneQualitaetFuer(db, id))?.prozent ?? null });
+    } catch (error) {
+      console.error(`[damicon] Qualität von "${id}" nicht berechnet:`, error);
+      ergebnisse.push({ quelleId: id, prozent: null });
+    }
+  }
+  return { ergebnisse, zugriff: true };
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import {
@@ -106,22 +106,17 @@ const PruefungAnsicht = dynamic(() => import("@/components/pruefung/pruefung-ans
 export function KiPane({
   verlauf,
   agentFaehig,
-  einstellungen,
-  ratenlimitVerwaltung = null,
-  wissenVerwaltung = null,
+  einstellungenZeigen = false,
   pruefungBereiche = [],
 }: {
   verlauf: KiChatNachrichtZeile[];
   /** true nur bei einem Anbieter vom Typ 'anthropic' (Werkzeuge + Streaming);
    *  sonst der bisherige nicht-streamende Chat ohne Modi. */
   agentFaehig: boolean;
-  /** Anbieterverwaltung - nur fuer Admins, vom Layout als fertiges Element uebergeben. */
-  einstellungen: ReactNode | null;
-  /** Ratenlimit-Verwaltung (Vibecode-Cleanup Phase 2) - nur fuer Admins, vom
-   *  Layout als fertiges Element uebergeben, dasselbe Muster wie einstellungen. */
-  ratenlimitVerwaltung?: ReactNode | null;
-  /** Wissensverwaltung (Upload und Liste der Wissensdokumente), nur Admin; dasselbe Muster wie ratenlimitVerwaltung. */
-  wissenVerwaltung?: ReactNode | null;
+  /** Die Einstellungen (Haustier) zeigen, auch ohne Agent-Anbieter. Gilt fuer die Administration, wie bisher. Die
+   *  Verwaltung von Anbietern, Ratenlimit und Wissensdokumenten steht nicht mehr hier, sondern im Bereich Administration
+   *  der Seitenleiste (/dashboard/administration). */
+  einstellungenZeigen?: boolean;
   /** Bereiche der Compliance-Pruefung, die die Rolle ausloesen darf (leer = kein Knopf). Erzwungen wird es in /api/ki-pruefung. */
   pruefungBereiche?: readonly Pruefbereich[];
 }) {
@@ -199,7 +194,7 @@ export function KiPane({
   // bleibt unberuehrt und gilt am Schreibtisch weiter.
   const agentAktiv = agentFaehig && modus === "agent" && !handy;
   const aufBuehne = darstellung === "buehne";
-  const hatEinstellungen = agentFaehig || einstellungen !== null || ratenlimitVerwaltung !== null || wissenVerwaltung !== null;
+  const hatEinstellungen = agentFaehig || einstellungenZeigen;
   // Die Mehr-Ansicht gibt es nur auf dem Handy. Wer das Fenster breiter zieht,
   // waehrend sie offen ist, landet wieder im Gespraech, statt auf einer Seite
   // zu stehen, deren Knopf gerade verschwunden ist.
@@ -410,30 +405,6 @@ export function KiPane({
                     irrefuehrend. */}
                 {agentFaehig && !handy ? <ModusEinstellung /> : null}
                 <HaustierEinstellung />
-                {einstellungen ? (
-                  <div>
-                    <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                      {t("anbieterVerwaltung.titel")}
-                    </p>
-                    {einstellungen}
-                  </div>
-                ) : null}
-                {ratenlimitVerwaltung ? (
-                  <div>
-                    <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                      {t("ratenlimitVerwaltung.titel")}
-                    </p>
-                    {ratenlimitVerwaltung}
-                  </div>
-                ) : null}
-                {wissenVerwaltung ? (
-                  <div>
-                    <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                      {t("wissensVerwaltung.titel")}
-                    </p>
-                    {wissenVerwaltung}
-                  </div>
-                ) : null}
               </div>
             ) : null}
             {sichtbar === "hilfe" ? (
