@@ -18,6 +18,10 @@
 //      geloescht, bleibt public, wie es ist.
 //   6. GRABSTEINE: Was in public.wissen_entfernt steht (Bestandspflege, bewusst entfernte Dokumente), wird nie kopiert. Sonst kaeme ein in public
 //      entferntes Dokument beim naechsten Merge aus der Vorschau zurueck.
+//   7. NEBENZEILEN: Zu jedem neu kopierten Dokument kommen der Vermerk der pruefenden Person zu fehlenden Scanseiten (wissen_seiten_vermerk) und der
+//      berechnete Qualitaetswert (wissen_qualitaet) mit, je eine Zeile je Dokument, nur wenn es sie in public_preview gibt und in public noch nicht
+//      (on conflict do nothing). Ist die Person, die vermerkt hat, in public unbekannt, bleibt vermerkt_von leer; der Vermerk selbst kommt trotzdem mit.
+//      Die Original-PDF kommt nie mit: Sie lebt nur bis zur Freigabe (original.ts). Fehlt eine der Tabellen (aelterer Stand), wird sie uebergangen.
 //   5. Eine quelle_id, die in public schon vorkommt (zum Beispiel ein angefangenes Buch), und eine Freigabe durch eine Person, die in
 //      public.profiles nicht vorkommt (Fremdschluessel geprueft_von), werden nicht uebernommen, sondern gemeldet.
 //
@@ -152,6 +156,30 @@ begin
   on conflict (hash) do update set df = public.wissen_begriffe.df + excluded.df;
   select count(*) into n_gesamt from ${ZIEL};
   update public.wissen_begriffe set idf = ln(1 + (n_gesamt - df + 0.5) / (df + 0.5))::real;
+
+  -- Nebenzeilen der neuen Dokumente (Regel 7): Vermerk zu fehlenden Seiten und Qualitaetswert. Die Tabellen gibt es seit den Migrationen 20261203000000 und
+  -- 20261205000000; fehlen sie in einem Schema, wird der Teil uebergangen.
+  if to_regclass('public_preview.wissen_seiten_vermerk') is not null and to_regclass('public.wissen_seiten_vermerk') is not null then
+    insert into public.wissen_seiten_vermerk (quelle_id, vermerk, fehlende_seiten, vermerkt_von, vermerkt_am)
+    select v.quelle_id, v.vermerk, v.fehlende_seiten,
+           case when exists (select 1 from public.profiles pr where pr.id = v.vermerkt_von) then v.vermerkt_von end,
+           v.vermerkt_am
+      from public_preview.wissen_seiten_vermerk v
+     where v.quelle_id in (select c.quelle_id from ${ZIEL} c where c.id in (select id from _wissen_neu) and c.quelle_id is not null)
+    on conflict (quelle_id) do nothing;
+    if exists (select 1 from public_preview.wissen_seiten_vermerk v
+                where v.quelle_id in (select c.quelle_id from ${ZIEL} c where c.id in (select id from _wissen_neu) and c.quelle_id is not null)
+                  and not exists (select 1 from public.wissen_seiten_vermerk w where w.quelle_id = v.quelle_id)) then
+      raise exception 'Abgleich abgebrochen: ein Vermerk zu fehlenden Seiten ist nicht angekommen';
+    end if;
+  end if;
+  if to_regclass('public_preview.wissen_qualitaet') is not null and to_regclass('public.wissen_qualitaet') is not null then
+    insert into public.wissen_qualitaet (quelle_id, prozent, berechnet_am)
+    select q.quelle_id, q.prozent, q.berechnet_am
+      from public_preview.wissen_qualitaet q
+     where q.quelle_id in (select c.quelle_id from ${ZIEL} c where c.id in (select id from _wissen_neu) and c.quelle_id is not null)
+    on conflict (quelle_id) do nothing;
+  end if;
 
   -- Gegenprobe: alles Kopierte ist da, und jede Upload-Zeile ist freigegeben.
   if (select count(*) from ${ZIEL} c where c.id in (select id from _wissen_neu)) <> zeilen_neu then
