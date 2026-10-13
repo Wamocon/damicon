@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { entferneOriginal } from "@/lib/wissen/original";
+import { entferneNebenzeilen } from "@/lib/wissen/dokument-nebenzeilen";
 import { SCHREIB_BATCH, type FreigabeInfo, type WissenSpeicher } from "@/lib/wissen/hochladen";
 import { UPLOAD_QUELLE, UPLOAD_QUELLE_MUSTER } from "@/lib/wissen/upload-quelle";
 
@@ -99,13 +99,8 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
         sparse.push(...geloescht.map((z) => String(z.sparse)));
         if (geloescht.length === 0) break;
       }
-      // Der Qualitätswert (wissen_qualitaet) gehört zum Dokument und geht mit ihm; ein Fehler, zum Beispiel vor der Migration, ändert am Löschen nichts.
-      const { error: qualitaetFehler } = await db.from("wissen_qualitaet").delete().eq("quelle_id", quelleId);
-      if (qualitaetFehler) console.error("[damicon] Qualitätswert nicht entfernt:", qualitaetFehler.message);
-      // Ebenso die Original-PDF (nur bis zur Freigabe aufbewahrt, original.ts) und der Vermerk zu fehlenden Seiten
-      await entferneOriginal(db, quelleId);
-      const { error: vermerkFehler } = await db.from("wissen_seiten_vermerk").delete().eq("quelle_id", quelleId);
-      if (vermerkFehler) console.error("[damicon] Seiten-Vermerk nicht entfernt:", vermerkFehler.message);
+      // Qualitätswert, Seiten-Vermerk und Original-PDF gehören zum Dokument und gehen mit ihm (dokument-nebenzeilen.ts)
+      await entferneNebenzeilen(db, quelleId);
       return sparse;
     },
     async loescheBegriffe(indizes) {

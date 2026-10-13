@@ -39,6 +39,23 @@ export interface Befund {
   minimum?: number;
 }
 
+/**
+ * Wie viel eine Anfrage der Bestandspflege auf einmal tut. Oberfläche, Server Actions und Assistent lesen dieselben Werte: Vorher stand jede Zahl
+ * mehrfach, mit dem Kommentar "muss zur Action passen". Eine Server Action darf auf Vercel höchstens 60 Sekunden laufen (dashboard/layout.tsx).
+ */
+export const PFLEGE = {
+  /** Dokumente je Aufruf des Vektorvergleichs (Oberfläche). */
+  naeheJeAufruf: 5,
+  /** Dokumente je Aufruf des Vektorvergleichs beim Assistenten (kleinere Last je Schritt der Unterhaltung). */
+  naeheJeAufrufAssistent: 8,
+  /** Abschnitte je Dokument, die der Vergleich als Proben nimmt. */
+  proben: 6,
+  /** Dokumente je Aufruf der Qualitätsberechnung (ein Buch hat über 2.000 Abschnitte). */
+  qualitaetJeAufruf: 3,
+  /** Dokumente je Aufruf von "Entfernen". */
+  maxEntfernen: 50,
+} as const;
+
 /** Schwellen der Ähnlichkeit (Kosinus der Vektoren). Aus der Handprüfung vom 12.10.2026 abgeleitet, nicht aus der Luft gegriffen. */
 export const SCHWELLEN = {
   /** Nahezu derselbe Text. */

@@ -306,11 +306,11 @@ async function main() {
   }
   const aktion = lies("src/lib/actions/wissen.ts");
   const gate = aktion.indexOf('requirePermission("ki_assistent", "manage")');
-  const ersterZugriff = Math.min(...["formData.get(", "verarbeiteUpload(", "createServiceRoleClient()"].map((s) => { const i = aktion.indexOf(s, aktion.indexOf("export async function wissenDokumentHochladen")); return i < 0 ? Infinity : i; }));
+  const ersterZugriff = Math.min(...["formData.get(", "verarbeiteUpload(", "dienstClient()"].map((s) => { const i = aktion.indexOf(s, aktion.indexOf("export async function wissenDokumentHochladen")); return i < 0 ? Infinity : i; }));
   pruefe("Action: Rechtepruefung steht vor Formular, Dienst-Client und Verarbeitung", gate > 0 && gate < ersterZugriff);
   pruefe("Action: Pruefung wird bei Fehler zurueckgegeben (zugriffsFehler), nicht weitergemacht", /catch \(error\) \{\s*return zugriffsFehler\(error\);/.test(aktion));
   pruefe("Action: auch das Laden der Liste prueft das Recht", /wissenDokumenteLaden\(\)[\s\S]{0,200}requirePermission\("ki_assistent", "manage"\)/.test(aktion));
-  pruefe("Action: schreibt ausdruecklich nach Supabase (service_role), ohne wissenBackend()", aktion.includes("createServiceRoleClient()") && !/import[^;]*wissen\/suche"/.test(aktion) && !/wissenBackend\(\)\s*[=!(]/.test(aktion.replace(/\/\/.*$/gm, "")));
+  pruefe("Action: schreibt ausdruecklich nach Supabase (service_role), ohne wissenBackend()", aktion.includes("dienstClient()") && !aktion.includes("createServiceRoleClient") && /export function dienstClient\(\)[^{]*\{\s*return createServiceRoleClient\(\)/.test(lies("src/lib/wissen/admin-zugriff.ts")) && !/import[^;]*wissen\/suche"/.test(aktion) && !/wissenBackend\(\)\s*[=!(]/.test(aktion.replace(/\/\/.*$/gm, "")));
   const hochladenQuelle = lies("src/lib/wissen/hochladen.ts");
   pruefe("Upload-Modul haengt weder von der Suche noch von wissenBackend ab", !/wissen\/suche"/.test(hochladenQuelle) && !hochladenQuelle.includes("wissenBackend"));
   const oberflaeche = lies("src/components/db/wissen-verwaltung.tsx");
@@ -532,7 +532,7 @@ async function main() {
     const von = aktionQ.indexOf("export async function wissenDokumentLoeschen");
     const rumpf = aktionQ.slice(von);
     const gate = rumpf.indexOf('requirePermission("ki_assistent", "manage")');
-    const erster = Math.min(...["formData.get(", "text(formData", "loescheHochgeladenesDokument(", "createServiceRoleClient()"].map((x) => { const i = rumpf.indexOf(x); return i < 0 ? Infinity : i; }));
+    const erster = Math.min(...["formData.get(", "text(formData", "loescheHochgeladenesDokument(", "dienstClient()"].map((x) => { const i = rumpf.indexOf(x); return i < 0 ? Infinity : i; }));
     pruefe("Loeschen/Rechte: requirePermission(ki_assistent, manage) steht vor Formular, Dienst-Client und Loeschen", gate > 0 && gate < erster);
     pruefe("Loeschen/Rechte: bei fehlendem Recht wird zugriffsFehler zurueckgegeben, es geht nicht weiter", /catch \(error\) \{\s*return zugriffsFehler\(error\);/.test(rumpf));
     pruefe("Loeschen/Rechte: nur admin darf (rbac), CEO und alle anderen nicht", roles.filter((r) => hasPermission(r, "ki_assistent", "manage")).join() === "admin");
@@ -871,13 +871,13 @@ async function main() {
       const quelle = readFileSync("src/lib/actions/wissen.ts", "utf8");
       const rumpf = quelle.slice(quelle.indexOf("export async function wissenDokumentPruefen"));
       const gate = rumpf.indexOf('requirePermission("ki_assistent", "manage")');
-      const erster = Math.min(...["formData.get(", "text(formData", "entscheideUeberUpload(", "createServiceRoleClient()"].map((x) => { const i = rumpf.indexOf(x); return i < 0 ? Infinity : i; }));
+      const erster = Math.min(...["formData.get(", "text(formData", "entscheideUeberUpload(", "dienstClient()"].map((x) => { const i = rumpf.indexOf(x); return i < 0 ? Infinity : i; }));
       return gate > 0 && gate < erster && /catch \(error\) \{\s*return zugriffsFehler\(error\);/.test(rumpf);
     })());
     pruefe("Der Aktionspfad: Vorschau und Liste pruefen ebenfalls zuerst das Recht, die Vorschau nur fuer Upload-Kennungen", await (async () => {
       const quelle = readFileSync("src/lib/actions/wissen.ts", "utf8");
       const vorschau = quelle.slice(quelle.indexOf("export async function wissenDokumentVorschau"), quelle.indexOf("const PRUEF_PROTOKOLL"));
-      return vorschau.indexOf("requirePermission") > 0 && vorschau.indexOf("requirePermission") < vorschau.indexOf("createServiceRoleClient") && /istUploadQuelleId\(quelleId\)/.test(vorschau);
+      return vorschau.indexOf("requirePermission") > 0 && vorschau.indexOf("requirePermission") < vorschau.indexOf("dienstClient") && /istUploadQuelleId\(quelleId\)/.test(vorschau);
     })());
     pruefe("Der Aktionspfad: Freigabe, Ablehnung und Verlaengerung stehen im Protokoll (wer, was, wann)", /wissen\.freigegeben/.test(readFileSync("src/lib/actions/wissen.ts", "utf8")) && /wissen\.abgelehnt/.test(readFileSync("src/lib/actions/wissen.ts", "utf8")) && /wissen\.verlaengert/.test(readFileSync("src/lib/actions/wissen.ts", "utf8")));
 
@@ -1026,7 +1026,7 @@ async function main() {
     pruefe("Oberflaeche: nicht zulaessige Quellenarten sind im Bereich gesperrt (disabled), der Link ist bei Internetquelle und Forum Pflicht", /disabled: gesperrt/.test(ui) && /urlPflicht/.test(ui) && /nutzungFuer\(werte\.bereich, a\) === "nein"/.test(ui));
     pruefe("Oberflaeche: Pruefen erscheint nur fuer die ANDERE Person (nicht fuer die hochladende), die hochladende sieht den Wartehinweis", /!eigener && !dokument\.unvollstaendig && \(dokument\.pruefstatus === "ungeprueft" \|\| dokument\.abgelaufen\)/.test(ui) && /liste\.wartet/.test(ui));
     pruefe("Oberflaeche: der Pruefdialog zeigt Titel, Bereich, Quellenart, Link, Rollen und den Anfang des Textes und bietet Freigeben, Ablehnen, Verlaengern", /wissenDokumentVorschau\(dokument\.schluessel\)/.test(ui) && /value="freigeben"/.test(ui) && /value="ablehnen"/.test(ui) && /value="verlaengern"/.test(ui));
-    pruefe("Oberflaeche und Action: die Liste laeuft ueber den Dienst-Client (ungepruefte Zeilen sieht die Zeilensicherheit niemandem), nachdem das Recht geprueft ist", (() => { const a = lies("src/lib/actions/wissen.ts"); const l = a.slice(a.indexOf("export async function wissenDokumenteLaden"), a.indexOf("const VORSCHAU_ZEICHEN")); return l.indexOf("requirePermission") > 0 && l.indexOf("requirePermission") < l.indexOf("createServiceRoleClient") && !/createClient\(\)/.test(l); })());
+    pruefe("Oberflaeche und Action: die Liste laeuft ueber den Dienst-Client (ungepruefte Zeilen sieht die Zeilensicherheit niemandem), nachdem das Recht geprueft ist", (() => { const a = lies("src/lib/actions/wissen.ts"); const l = a.slice(a.indexOf("export async function wissenDokumenteLaden"), a.indexOf("const VORSCHAU_ZEICHEN")); return l.indexOf("requirePermission") > 0 && l.indexOf("requirePermission") < l.indexOf("dienstClient") && !/createClient\(\)/.test(l); })());
   }
 
 

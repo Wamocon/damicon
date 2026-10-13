@@ -9,12 +9,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { DB_OPTION } from "@/lib/supabase/schema";
 import { gruppiereWissenDokumente, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
-import type { Einbettung } from "@/lib/wissen/embed";
 import { entscheideUeberUpload } from "@/lib/wissen/freigabe";
 import { UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
-import { tokens } from "@/lib/wissen/sparse";
 import { supabaseSpeicher } from "@/lib/wissen/speicher-supabase";
+import { einbettung } from "./hilfe/synthetische-einbettung";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -38,27 +37,6 @@ function pruefe(name: string, ok: boolean, detail = "") {
 
 const dienst = createClient(url, serviceKey, { auth: { persistSession: false }, db: DB_OPTION });
 const anon = createClient(url, anonKey, { auth: { persistSession: false }, db: DB_OPTION });
-const DIM = 1024;
-function hash32(s: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
-}
-const einbettung: Einbettung = {
-  modell: "synthetisch-bge-m3",
-  dimension: DIM,
-  async einbetten(texte) {
-    return texte.map((t) => {
-      const v = new Array<number>(DIM).fill(0);
-      for (const w of tokens(t)) v[hash32(w) % DIM]! += 1;
-      const norm = Math.sqrt(v.reduce((s, x) => s + x * x, 0)) || 1;
-      return v.map((x) => x / norm);
-    });
-  },
-};
 const TEXT_A =
   "Qzvermerk Buch Seitenluecken Scan Nachpruefung Original Seitenzahl Kapitel Abschnitt Verzeichnis Anhang Fussnote Quellenangabe Kommentar Auslegung Rechtsprechung Gesetzgeber Begruendung Vorschrift Anwendungsbereich Ausnahme Voraussetzung Rechtsfolge";
 const TEXT_B = `${TEXT_A} ohne Luecken Gegenprobe Vollstaendig Lueckenlos`;

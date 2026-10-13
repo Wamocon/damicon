@@ -7,7 +7,7 @@ import { Auswahl, FormularKarte } from "@/components/db/formular-kit";
 import { wissenBuchAbbrechen, wissenBuchAbschliessen, wissenBuchPaket, wissenBuchStarten, wissenKiAnalyse } from "@/lib/actions/wissen";
 import { wissenQualitaetBerechnen } from "@/lib/actions/wissen-bestandspflege";
 import { wissenOriginalPlatz } from "@/lib/actions/wissen-original";
-import { GIB } from "@/lib/wissen/original";
+import { formatiereGroesse } from "@/lib/wissen/groesse";
 import { legeOriginalAb } from "@/lib/wissen/original-browser";
 import { qualitaetTon, vollstaendigkeitsFaktor } from "@/lib/wissen/qualitaet";
 import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
@@ -335,19 +335,13 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
 
   // Obergrenze für die Originale: wartende zusammen mit der neuen Auswahl. Wird sie überschritten, startet nichts (der Text der Bücher bliebe ohne
   // Original). Ist die Prüfung selbst nicht möglich, geht es weiter: Das Original scheitert dann je Buch mit eigener Meldung.
-  // Größe mit passender Einheit: ab 0,1 GB in GB (zwei Stellen), darunter in MB.
-  const einheit = locale === "ru" || locale === "kk" ? { gb: "ГБ", mb: "МБ" } : { gb: "GB", mb: "MB" };
-  const gb = (bytes: number) =>
-    bytes >= GIB / 10
-      ? `${(bytes / GIB).toLocaleString(locale, { maximumFractionDigits: 2 })} ${einheit.gb}`
-      : `${(bytes / 1_048_576).toLocaleString(locale, { maximumFractionDigits: 1 })} ${einheit.mb}`;
   const starte = async () => {
     setPlatzFehler(null);
     const pdfBytes = bereitZumLaden.filter((e) => !istTextDatei(e.datei)).reduce((summe, e) => summe + e.datei.size, 0);
     if (pdfBytes > 0) {
       const platz = await wissenOriginalPlatz(pdfBytes).catch(() => null);
       if (platz && platz.ok && !platz.passt) {
-        setPlatzFehler(t("platz.zuVoll", { grenze: gb(platz.grenze), wartend: gb(platz.wartend), neu: gb(platz.neu) }));
+        setPlatzFehler(t("platz.zuVoll", { grenze: formatiereGroesse(platz.grenze, locale), wartend: formatiereGroesse(platz.wartend, locale), neu: formatiereGroesse(platz.neu, locale) }));
         return;
       }
     }

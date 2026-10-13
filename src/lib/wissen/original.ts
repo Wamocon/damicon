@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { bucket } from "@/lib/supabase/buckets";
+import { GIB } from "@/lib/wissen/groesse";
 import { istUploadQuelleId, UPLOAD_PRAEFIX } from "@/lib/wissen/upload-quelle";
 
 // Original-PDF eines hochgeladenen Buchs, nur bis zur Freigabe (Migration 20261204000000).
@@ -15,7 +16,7 @@ import { istUploadQuelleId, UPLOAD_PRAEFIX } from "@/lib/wissen/upload-quelle";
 
 /** Der Bucket; in Preview-Umgebungen der eigene Zwilling mit der Endung -preview (buckets.ts, preview-umschreiben.mjs). */
 export const originalBucket = (): string => bucket("wissen-originale");
-export const GIB = 1_073_741_824;
+export { GIB };
 export const ORIGINAL_MAX_BYTES = GIB;
 export const ORIGINAL_GESAMT_MAX_BYTES = 50 * GIB;
 export const ORIGINAL_URL_SEKUNDEN = 600;

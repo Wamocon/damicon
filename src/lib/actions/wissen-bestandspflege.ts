@@ -1,11 +1,9 @@
 "use server";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { requirePermission, type SessionProfile } from "@/lib/auth";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { protokolliere } from "@/lib/actions/formular-helfer";
 import { wissenDokumenteLaden } from "@/lib/actions/wissen";
-import type { DokumentNaehe } from "@/lib/wissen/bestandspflege";
+import { dienstClient, verwaltungsProfil } from "@/lib/wissen/admin-zugriff";
+import { PFLEGE, type DokumentNaehe } from "@/lib/wissen/bestandspflege";
 import { entferneDokument, istQuelleId, MAX_GRUND, PflegeFehler, type PflegeFehlerCode } from "@/lib/wissen/bestandspflege-entfernen";
 import { bestandsSpeicher, berechneQualitaetFuer, ladeNaehe, ladeVergleich, type VergleichPaar } from "@/lib/wissen/speicher-bestandspflege";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
@@ -13,13 +11,10 @@ import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 // Bestandspflege (Administration, Seite Wissensbasis): Analysen und Entfernen nach der Prüfung. Dieselbe Berechtigung wie die übrige
 // Verwaltung der Wissensbasis (requirePermission("ki_assistent", "manage"), laut rbac.ts nur admin). Alles auf dem Dienst-Client, nach der Rechteprüfung.
 //
-// Die Analyse ist in kleine Aufrufe geteilt (je höchstens NAEHE_JE_AUFRUF Dokumente), die die Oberfläche nacheinander stellt und dabei einen Fortschritt zeigt:
+// Die Analyse ist in kleine Aufrufe geteilt (je höchstens PFLEGE.naeheJeAufruf Dokumente), die die Oberfläche nacheinander stellt und dabei einen Fortschritt zeigt:
 // Der Vektorvergleich je Dokument braucht Zeit, und eine Server Action hat auf Vercel höchstens 60 Sekunden (dashboard/layout.tsx, maxDuration).
 // Die Analyse verändert nichts. Entfernt wird nur in wissenBestandEntfernen, mit ausdrücklicher Bestätigung und mit Protokolleintrag je Dokument.
 
-const NAEHE_JE_AUFRUF = 5;
-const PROBEN = 6;
-const MAX_ENTFERNEN = 50;
 
 export interface PflegeStart {
   dokumente: WissenDokumentZeile[];
@@ -30,17 +25,9 @@ export interface PflegeStart {
   fehler: boolean;
 }
 
-async function adminProfil(): Promise<SessionProfile | null> {
-  try {
-    return await requirePermission("ki_assistent", "manage");
-  } catch {
-    return null;
-  }
-}
-
 /** Schritt 1: die Dokumentliste. Die Heuristiken (Arbeitsdokument, veraltet, Herkunft, Wiedervorlage) rechnet die Oberfläche daraus selbst. */
 export async function wissenBestandspflegeStart(): Promise<PflegeStart> {
-  if (!(await adminProfil())) return { dokumente: [], heute: "", fuerNaehe: [], fehler: true };
+  if (!(await verwaltungsProfil())) return { dokumente: [], heute: "", fuerNaehe: [], fehler: true };
   const liste = await wissenDokumenteLaden();
   if (liste.fehler) return { dokumente: [], heute: "", fuerNaehe: [], fehler: true };
   const dokumente = liste.dokumente.filter((d) => d.chunks > 0);
@@ -54,12 +41,12 @@ export async function wissenBestandspflegeStart(): Promise<PflegeStart> {
 
 /** Schritt 2 (wiederholt): die inhaltliche Nähe einiger Dokumente zu allen anderen. */
 export async function wissenBestandspflegeNaehe(quelleIds: string[]): Promise<{ naehe: DokumentNaehe[]; fehler: boolean }> {
-  if (!(await adminProfil())) return { naehe: [], fehler: true };
-  if (!Array.isArray(quelleIds) || quelleIds.length === 0 || quelleIds.length > NAEHE_JE_AUFRUF || !quelleIds.every(istQuelleId)) return { naehe: [], fehler: true };
+  if (!(await verwaltungsProfil())) return { naehe: [], fehler: true };
+  if (!Array.isArray(quelleIds) || quelleIds.length === 0 || quelleIds.length > PFLEGE.naeheJeAufruf || !quelleIds.every(istQuelleId)) return { naehe: [], fehler: true };
   try {
-    const db = createServiceRoleClient() as unknown as SupabaseClient;
+    const db = dienstClient();
     const naehe: DokumentNaehe[] = [];
-    for (const id of quelleIds) naehe.push((await ladeNaehe(db, id, PROBEN)).naehe);
+    for (const id of quelleIds) naehe.push((await ladeNaehe(db, id, PFLEGE.proben)).naehe);
     return { naehe, fehler: false };
   } catch (error) {
     console.error("[damicon] Bestandspflege (Nähe) fehlgeschlagen:", error);
@@ -71,10 +58,10 @@ export type { VergleichPaar };
 
 /** Die Vergleichsansicht: bis zu zwei Abschnitte des Dokuments mit dem ähnlichsten Abschnitt des anderen Dokuments, im Wortlaut. */
 export async function wissenBestandspflegeVergleich(quelleId: string, andere: string): Promise<{ paare: VergleichPaar[]; titel: string | null; fehler: boolean }> {
-  if (!(await adminProfil())) return { paare: [], titel: null, fehler: true };
+  if (!(await verwaltungsProfil())) return { paare: [], titel: null, fehler: true };
   if (!istQuelleId(quelleId) || !istQuelleId(andere)) return { paare: [], titel: null, fehler: true };
   try {
-    return { ...(await ladeVergleich(createServiceRoleClient() as unknown as SupabaseClient, quelleId, andere, PROBEN)), fehler: false };
+    return { ...(await ladeVergleich(dienstClient(), quelleId, andere, PFLEGE.proben)), fehler: false };
   } catch (error) {
     console.error("[damicon] Bestandspflege (Vergleich) fehlgeschlagen:", error);
     return { paare: [], titel: null, fehler: true };
@@ -103,15 +90,15 @@ export interface EntfernenAntwort {
  * ohne Bestätigung löscht nichts. Je Dokument ein Protokolleintrag (wer, was, warum, wie viele Abschnitte). Ein Fehler bei einem Dokument hält die übrigen nicht an.
  */
 export async function wissenBestandEntfernen(quelleIds: string[], grund: string, bestaetigung: string): Promise<EntfernenAntwort> {
-  const profil = await adminProfil();
+  const profil = await verwaltungsProfil();
   if (!profil) return { zugriff: false, ergebnisse: [] };
   const ids = Array.isArray(quelleIds) ? [...new Set(quelleIds)] : [];
-  if (ids.length === 0 || ids.length > MAX_ENTFERNEN || !ids.every(istQuelleId) || typeof grund !== "string" || grund.trim().length === 0 || grund.length > MAX_GRUND) {
+  if (ids.length === 0 || ids.length > PFLEGE.maxEntfernen || !ids.every(istQuelleId) || typeof grund !== "string" || grund.trim().length === 0 || grund.length > MAX_GRUND) {
     return { zugriff: true, ergebnisse: [{ quelleId: "", titel: null, status: "fehler", abschnitte: 0, code: "eingabe" }] };
   }
   if (String(bestaetigung).trim() !== String(ids.length)) return { zugriff: true, bestaetigungFalsch: true, ergebnisse: [] };
 
-  const speicher = bestandsSpeicher(createServiceRoleClient() as unknown as SupabaseClient);
+  const speicher = bestandsSpeicher(dienstClient());
   const ergebnisse: EntferntStatus[] = [];
   for (const id of ids) {
     try {
@@ -137,8 +124,6 @@ export async function wissenBestandEntfernen(quelleIds: string[], grund: string,
   return { zugriff: true, ergebnisse };
 }
 
-const QUALITAET_JE_AUFRUF = 3;
-
 export interface QualitaetErgebnis {
   quelleId: string;
   /** Berechnete Qualität in Prozent; null, wenn das Dokument keinen Text hat oder die Berechnung scheiterte. */
@@ -147,14 +132,14 @@ export interface QualitaetErgebnis {
 
 /**
  * Berechnet die Textqualität einiger Dokumente und legt sie ab (wissen_qualitaet), damit die Liste "Qualität 95 %" zeigen kann.
- * Je Aufruf höchstens QUALITAET_JE_AUFRUF Dokumente (ein Buch hat über 2.000 Abschnitte); die Oberfläche ruft in Schritten auf. Verändert nur diesen
+ * Je Aufruf höchstens PFLEGE.qualitaetJeAufruf Dokumente (ein Buch hat über 2.000 Abschnitte); die Oberfläche ruft in Schritten auf. Verändert nur diesen
  * abgeleiteten Wert, nie einen Text, eine Einordnung oder einen Prüfstatus.
  */
 export async function wissenQualitaetBerechnen(quelleIds: string[]): Promise<{ ergebnisse: QualitaetErgebnis[]; zugriff: boolean }> {
-  if (!(await adminProfil())) return { ergebnisse: [], zugriff: false };
+  if (!(await verwaltungsProfil())) return { ergebnisse: [], zugriff: false };
   const ids = Array.isArray(quelleIds) ? [...new Set(quelleIds)] : [];
-  if (ids.length === 0 || ids.length > QUALITAET_JE_AUFRUF || !ids.every(istQuelleId)) return { ergebnisse: [], zugriff: true };
-  const db = createServiceRoleClient() as unknown as SupabaseClient;
+  if (ids.length === 0 || ids.length > PFLEGE.qualitaetJeAufruf || !ids.every(istQuelleId)) return { ergebnisse: [], zugriff: true };
+  const db = dienstClient();
   const ergebnisse: QualitaetErgebnis[] = [];
   for (const id of ids) {
     try {

@@ -154,7 +154,7 @@ function ersatz(zeilen: Zeile[]) {
   const k = a.slice(a.indexOf("export async function wissenBestandEinordnen"));
   pruefe("Action: prueft zuerst das Recht (ki_assistent:manage), dann die Eingabe, dann die Umgebung, erst danach wird geschrieben", k.indexOf("requirePermission") > 0 && k.indexOf("requirePermission") < k.indexOf("pruefeZuordnungen") && k.indexOf("pruefeZuordnungen") < k.indexOf("pruefeUploadUmgebung") && k.indexOf("pruefeUploadUmgebung") < k.indexOf("ordneBestandEin"));
   pruefe("Action: protokolliert jede Einordnung (wissen.eingeordnet) mit Zahl der Dokumente und je Dokument Art, Cluster und Stufen", /protokolliere\(profil, "wissen\.eingeordnet"/.test(k) && /zuordnungen: ergebnis\.protokoll/.test(k));
-  pruefe("Action: laeuft ueber den Dienst-Client (wie die Liste) und nur nach der Rechtepruefung", /createServiceRoleClient\(\)/.test(k));
+  pruefe("Action: laeuft ueber den Dienst-Client (wie die Liste) und nur nach der Rechtepruefung", /dienstClient\(\)/.test(k) && !/createServiceRoleClient/.test(k));
   const schreiben = lies("src/lib/wissen/einordnen.ts");
   pruefe("Schreiben: die Bedingung \"nur ohne Quellenart\" steht in der Abfrage selbst, nicht nur in der Oberflaeche", /\.is\("quellenart", null\)/.test(schreiben) && (schreiben.match(/\.is\("quellenart", null\)/g) ?? []).length === 2);
   pruefe("Schreiben: es gibt keine Wiedervorlage fuer Bestand (kein pruefen_bis im Schreibzugriff)", !/pruefen_bis|pruefstatus/.test(schreiben.slice(schreiben.indexOf("export async function ordneBestandEin"))));

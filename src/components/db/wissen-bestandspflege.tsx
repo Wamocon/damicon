@@ -13,7 +13,7 @@ import {
   type EntfernenAntwort,
   type VergleichPaar,
 } from "@/lib/actions/wissen-bestandspflege";
-import { baueBefunde, ohneEntfernte, zaehleBefunde, type BefundArt, type BefundStufe, type DokumentBefunde, type DokumentNaehe } from "@/lib/wissen/bestandspflege";
+import { baueBefunde, ohneEntfernte, PFLEGE, zaehleBefunde, type BefundArt, type BefundStufe, type DokumentBefunde, type DokumentNaehe } from "@/lib/wissen/bestandspflege";
 
 // Bestandspflege: Analysen der Wissensbasis (Arbeitsdokumente, ausdrücklich veraltet, Dubletten, durch Bücher abgedeckt, Wiedervorlage, Herkunft) und das
 // Entfernen nach der Prüfung. Die Analyse verändert nichts und läuft in kleinen Schritten mit Fortschritt (die Server Action hat höchstens 60 Sekunden).
@@ -24,8 +24,6 @@ import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 type Phase = "bereit" | "laeuft" | "fertig" | "fehler";
 const ARTEN: BefundArt[] = ["arbeitsdokument", "veraltet", "dublette", "abgedeckt", "wiedervorlage", "herkunft"];
 const STUFEN_TON: Record<BefundStufe, "danger" | "warning" | "info"> = { entfernen: "danger", pruefen: "warning", hinweis: "info" };
-const SCHRITT = 5; // Dokumente je Aufruf des Vektorvergleichs (muss zu NAEHE_JE_AUFRUF in der Action passen)
-const QUALITAET_SCHRITT = 3; // Dokumente je Aufruf der Qualitätsberechnung (muss zu QUALITAET_JE_AUFRUF in der Action passen)
 
 interface Vergleich {
   laedt: boolean;
@@ -62,10 +60,10 @@ export function WissenBestandspflege({ dokumente, beiFertig }: { dokumente?: rea
     const ids = ohneQualitaet.map((d) => d.schluessel);
     setQualitaet({ fertig: 0, gesamt: ids.length, laeuft: true });
     try {
-      for (let i = 0; i < ids.length; i += QUALITAET_SCHRITT) {
-        const r = await wissenQualitaetBerechnen(ids.slice(i, i + QUALITAET_SCHRITT));
+      for (let i = 0; i < ids.length; i += PFLEGE.qualitaetJeAufruf) {
+        const r = await wissenQualitaetBerechnen(ids.slice(i, i + PFLEGE.qualitaetJeAufruf));
         if (!r.zugriff) break;
-        setQualitaet({ fertig: Math.min(i + QUALITAET_SCHRITT, ids.length), gesamt: ids.length, laeuft: true });
+        setQualitaet({ fertig: Math.min(i + PFLEGE.qualitaetJeAufruf, ids.length), gesamt: ids.length, laeuft: true });
       }
     } finally {
       setQualitaet((alt) => (alt ? { ...alt, laeuft: false } : alt));
@@ -95,16 +93,16 @@ export function WissenBestandspflege({ dokumente, beiFertig }: { dokumente?: rea
       const naehe = new Map<string, DokumentNaehe>();
       if (mitVergleich) {
         setFortschritt({ fertig: 0, gesamt: start.fuerNaehe.length });
-        for (let i = 0; i < start.fuerNaehe.length; i += SCHRITT) {
+        for (let i = 0; i < start.fuerNaehe.length; i += PFLEGE.naeheJeAufruf) {
           if (abbruch.current) break;
-          const teil = start.fuerNaehe.slice(i, i + SCHRITT);
+          const teil = start.fuerNaehe.slice(i, i + PFLEGE.naeheJeAufruf);
           const r = await wissenBestandspflegeNaehe(teil);
           if (r.fehler) {
             setPhase("fehler");
             return;
           }
           for (const n of r.naehe) naehe.set(n.schluessel, n);
-          setFortschritt({ fertig: Math.min(i + SCHRITT, start.fuerNaehe.length), gesamt: start.fuerNaehe.length });
+          setFortschritt({ fertig: Math.min(i + PFLEGE.naeheJeAufruf, start.fuerNaehe.length), gesamt: start.fuerNaehe.length });
         }
       }
       setAnzahlGeprueft(start.dokumente.length);

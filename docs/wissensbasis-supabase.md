@@ -144,6 +144,14 @@ Der normale Upload nimmt höchstens 8 MB und 400 Abschnitte. Ein Buch (zum Beisp
     - **Ablage:** eine Zeile je Dokument in `wissen_seiten_vermerk` (Vermerk, die Stellen, wer, wann), nicht in `extra`: Ein Wert in `extra` müsste in jede der tausenden Zeilen eines Buchs geschrieben werden. Er bleibt am Dokument und geht mit ihm (Löschen, Entfernen). `wissen_liste()` liefert `seiten_fehlend`, `seiten_stellen`, `seiten_vermerk`; die Karte zeigt "Fehlende Seiten laut Prüfung" und den Vermerk. Das Protokoll `wissen.freigegeben` trägt `seiten_fehlend` und `seiten_vermerk`.
     - **Assistent:** nennt fehlende Seiten mit Nummer (`fehlendeSeiten`, `fehlendeSeitenStellen`, `seitenVermerk`) und weist darauf hin, dass die Freigabe einen Vermerk braucht.
 
+14. **Gemeinsame Bausteine (Cleanup vom 13.10.2026)**. Was vorher mehrfach im Code stand, hat jetzt je eine Stelle. Wer Neues baut, nutzt sie, statt es ein weiteres Mal zu schreiben:
+    - **Zugriff:** `admin-zugriff.ts`: `verwaltungsProfil()` (Recht `ki_assistent:manage`, sonst `null`) und `dienstClient()` (service_role, erst nach der Rechteprüfung). Der Cast auf `SupabaseClient` steht nur dort. Quelltext-Prüfungen in `test:wissen-upload` und `test:wissen-einordnung` verlangen, dass `wissen.ts` den Dienst-Client nur darüber bezieht und erst nach `requirePermission`.
+    - **Mengen je Aufruf:** `PFLEGE` in `bestandspflege.ts` (Vergleich, Proben, Qualität, Entfernen). Oberfläche, Server Action und Assistent lesen dieselben Werte.
+    - **Nebenzeilen eines Dokuments:** `dokument-nebenzeilen.ts`: `NEBENTABELLEN` (Qualitätswert, Seiten-Vermerk) und `entferneNebenzeilen`, dazu die Original-PDF. **Eine neue Tabelle mit einer Zeile je Dokument (Schlüssel `quelle_id`) gehört in diese Liste**, sonst bleibt beim Löschen eine Leiche in der Datenbank.
+    - **Größenanzeige:** `groesse.ts`: `formatiereGroesse(bytes, locale)`.
+    - **Tests:** `supabase/tests/hilfe/synthetische-einbettung.ts` für die Datenbanktests, `test:wissen-hilfen` für die Bausteine.
+    - Gemessene Zeilenabdeckung der Wissensmodule dieses PR (Unit- und Datenbanktests zusammen, `c8`): 97 Prozent, schwächste Datei `freigabe.ts` mit 88 Prozent.
+
 Wie jedes Dokument bleibt auch ein Buch **ungeprüft**, bis eine zweite Person es freigibt. Getestet wird das gegen echtes Postgres mit einem Buch von 1500 Abschnitten (`supabase/tests/wissen-buch-db.ts`) und ohne Datenbank in `wissen-buch.ts`.
 
 ## Typisierung der Quellen

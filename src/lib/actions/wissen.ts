@@ -1,10 +1,9 @@
 "use server";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
-import { createServiceRoleClient } from "@/lib/supabase/server";
 import { DATENBANK_SCHEMA } from "@/lib/supabase/schema";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
+import { dienstClient } from "@/lib/wissen/admin-zugriff";
 import { fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { aktualisiere, protokolliere, text } from "@/lib/actions/formular-helfer";
 import { wissenEinbettung } from "@/lib/wissen/embed";
@@ -104,7 +103,7 @@ export async function wissenDokumentHochladen(
         url: text(formData, "quelle_url"),
       },
       {
-        speicher: supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient),
+        speicher: supabaseSpeicher(dienstClient()),
         einbettung: wissenEinbettung(),
       },
     );
@@ -157,7 +156,7 @@ export async function wissenDokumenteLaden(): Promise<WissenDokumenteAntwort> {
   }
   let ursache: string | null = null;
   try {
-    const db = createServiceRoleClient() as unknown as SupabaseClient;
+    const db = dienstClient();
     // Bevorzugt die Zusammenfassung in der Datenbank (Migration 20261127000000): ein Buch hat tausende Abschnitte, die Liste
     // soll nicht jeden einzeln lesen. Fehlt die Funktion noch (Code vor Migration), faellt es auf das seitenweise Lesen zurueck.
     const { data: gesamt, error: listeFehler } = await db.rpc("wissen_liste");
@@ -203,7 +202,7 @@ export async function wissenDokumentVorschau(quelleId: string): Promise<{ text: 
   // Nur Uploads haben eine Pruefung; fuer alles andere gibt es hier nichts zu lesen.
   if (typeof quelleId !== "string" || !istUploadQuelleId(quelleId)) return { text: "", fehler: true };
   try {
-    const speicher = supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient);
+    const speicher = supabaseSpeicher(dienstClient());
     return { text: await speicher.ladeVorschau(quelleId, VORSCHAU_ZEICHEN), fehler: false };
   } catch (error) {
     console.error("[damicon] Wissens-Vorschau fehlgeschlagen:", error);
@@ -242,12 +241,12 @@ export async function wissenDokumentPruefen(
 
   try {
     const ergebnis = await entscheideUeberUpload(aktion, quelleId, {
-      speicher: supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient),
+      speicher: supabaseSpeicher(dienstClient()),
       pruefer: { id: profil.id },
       seitenVermerk: text(formData, "seiten_vermerk"),
     });
     // Die Original-PDF wird nur bis zur Entscheidung gebraucht (Freigabe und Ablehnung); eine Verlängerung ändert daran nichts.
-    if (aktion !== "verlaengern") await entferneOriginal(createServiceRoleClient() as unknown as SupabaseClient, quelleId);
+    if (aktion !== "verlaengern") await entferneOriginal(dienstClient(), quelleId);
     await protokolliere(profil, PRUEF_PROTOKOLL[aktion], "wissen_chunks", null, {
       titel: ergebnis.titel,
       bereich: ergebnis.bereich,
@@ -289,7 +288,7 @@ export async function wissenDokumentLoeschen(
 
   try {
     const ergebnis = await loescheHochgeladenesDokument(quelleId, {
-      speicher: supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient),
+      speicher: supabaseSpeicher(dienstClient()),
     });
     if (ergebnis.schonWeg) {
       aktualisiere(formData);
@@ -346,7 +345,7 @@ export async function wissenBestandEinordnen(
   try {
     // Wie der Upload: in einer Vorschau gegen das Produktionsschema wird nichts geschrieben.
     pruefeUploadUmgebung();
-    const ergebnis = await ordneBestandEin(createServiceRoleClient() as unknown as SupabaseClient, gueltig);
+    const ergebnis = await ordneBestandEin(dienstClient(), gueltig);
     await protokolliere(profil, "wissen.eingeordnet", "wissen_chunks", null, {
       dokumente: ergebnis.dokumente,
       abschnitte: ergebnis.abschnitte,
@@ -389,7 +388,7 @@ function buchFehler(error: unknown, was: string): AktionsStatus {
 }
 
 const buchAbhaengigkeiten = () => ({
-  speicher: supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient),
+  speicher: supabaseSpeicher(dienstClient()),
   einbettung: wissenEinbettung(),
 });
 
@@ -451,7 +450,7 @@ export async function wissenBuchAbbrechen(hash: string): Promise<AktionsStatus> 
   if ("stand" in profil) return profil;
   if (typeof hash !== "string" || !/^[0-9a-f]{64}$/.test(hash)) return fehler("fehler.eingabe");
   try {
-    const erg = await loescheHochgeladenesDokument(uploadQuelleId(hash), { speicher: supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient) });
+    const erg = await loescheHochgeladenesDokument(uploadQuelleId(hash), { speicher: supabaseSpeicher(dienstClient()) });
     return { stand: "ok", wert: String(erg.geloescht) };
   } catch (error) {
     return buchFehler(error, "abbrechen");
@@ -479,12 +478,12 @@ export async function wissenDokumenteSammelPruefen(aktion: "freigeben" | "ablehn
   const ids = [...new Set(quelleIds.filter((i): i is string => typeof i === "string"))];
   if (ids.length === 0 || ids.length > SAMMEL_MAX) return { ...fehler("fehler.eingabe"), ergebnisse: [] };
 
-  const speicher = supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient);
+  const speicher = supabaseSpeicher(dienstClient());
   const ergebnisse: SammelErgebnis["ergebnisse"] = [];
   for (const quelleId of ids) {
     try {
       const erg = await entscheideUeberUpload(aktion, quelleId, { speicher, pruefer: { id: profil.id } });
-      await entferneOriginal(createServiceRoleClient() as unknown as SupabaseClient, quelleId);
+      await entferneOriginal(dienstClient(), quelleId);
       await protokolliere(profil, PRUEF_PROTOKOLL[aktion], "wissen_chunks", null, {
         titel: erg.titel,
         bereich: erg.bereich,
@@ -564,7 +563,7 @@ export async function wissenDokumentUmordnen(_status: AktionsStatus, formData: F
   try {
     pruefeUploadUmgebung();
     const erg = await ordneUm(
-      createServiceRoleClient() as unknown as SupabaseClient,
+      dienstClient(),
       { schluessel, schluesselSpalte: spalte as SchluesselSpalte },
       { bereich: text(formData, "bereich"), quellenart: text(formData, "quellenart"), cluster: text(formData, "cluster"), textgrundlage: text(formData, "textgrundlage") },
       { id: profil.id },

@@ -1,12 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FileText } from "lucide-react";
 import { wissenOriginalOeffnen } from "@/lib/actions/wissen-original";
 import { normalisiereText, sha256Hex } from "@/lib/wissen/buch-text";
 import { pdfLesenAusDatei } from "@/lib/wissen/buch-pdf";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
+import { formatiereGroesse } from "@/lib/wissen/groesse";
 import { legeOriginalAb } from "@/lib/wissen/original-browser";
 import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
 
@@ -16,12 +17,9 @@ import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
 
 type Phase = { art: "ruhe" } | { art: "oeffnet" } | { art: "liest"; seite: number; seiten: number } | { art: "laedt"; prozent: number } | { art: "fertig" } | { art: "fehler"; text: string };
 
-function groesseText(bytes: number): string {
-  return bytes >= 1_048_576 ? `${(bytes / 1_048_576).toFixed(1).replace(".", ",")} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
-}
-
 export function WissenOriginal({ dokument, beiGeaendert }: { dokument: WissenDokumentZeile; beiGeaendert: () => void }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.original");
+  const locale = useLocale();
   const [phase, setPhase] = useState<Phase>({ art: "ruhe" });
   const [adresse, setAdresse] = useState<string | null>(null);
   const eingabe = useRef<HTMLInputElement>(null);
@@ -83,7 +81,7 @@ export function WissenOriginal({ dokument, beiGeaendert }: { dokument: WissenDok
       <p className="text-[11px] font-semibold">{t("titel")}</p>
       {hatOriginal ? (
         <>
-          <p className="text-[11px] text-muted-foreground">{t("da", { umfang: groesseText(dokument.originalGroesse ?? 0) })}</p>
+          <p className="text-[11px] text-muted-foreground">{t("da", { umfang: formatiereGroesse(dokument.originalGroesse ?? 0, locale) })}</p>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" disabled={beschaeftigt} onClick={() => void oeffne()} className={knopf}>
               <FileText className="h-3.5 w-3.5" aria-hidden />

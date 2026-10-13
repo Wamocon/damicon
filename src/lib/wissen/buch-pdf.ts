@@ -59,7 +59,3 @@ export async function pdfLesenAusDatei(datei: File, beiSeite?: (f: PdfFortschrit
     await dokument.destroy().catch(() => undefined);
   }
 }
-
-export async function pdfTextAusDatei(datei: File, beiSeite?: (f: PdfFortschritt) => void, abbruch?: AbortSignal): Promise<string> {
-  return (await pdfLesenAusDatei(datei, beiSeite, abbruch)).text;
-}

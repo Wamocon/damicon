@@ -1,11 +1,11 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { tool } from "ai";
 import { z } from "zod";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { hasPermission, type Role } from "@/lib/rbac";
 import { analysiereDokument } from "@/lib/wissen/analyse";
 import { gruppiereWissenDokumente, ohneEinordnung, type WissenDokumentZeile, type WissenListeZeile } from "@/lib/wissen/dokumente-liste";
-import { baueBefunde, zaehleBefunde, type DokumentNaehe } from "@/lib/wissen/bestandspflege";
+import { dienstClient } from "@/lib/wissen/admin-zugriff";
+import { baueBefunde, PFLEGE, zaehleBefunde, type DokumentNaehe } from "@/lib/wissen/bestandspflege";
 import { istQuelleId } from "@/lib/wissen/bestandspflege-entfernen";
 import { schaetzeEin } from "@/lib/wissen/einschaetzung";
 import { filtere, HERKUENFTE, KEIN_FILTER, STATUS_FILTER, VERLAESSLICHKEITEN, verlaesslichkeitVon, type ListenFilter } from "@/lib/wissen/listen-filter";
@@ -19,14 +19,12 @@ import { bereichSchluessel } from "@/lib/wissen/upload-konstanten";
 // bestaetigt, und mit denselben Regeln wie die Oberflaeche (umordnen.ts, Vier-Augen-Pruefung in der Datenbank). Freigeben kann er nichts.
 
 const MAX_AUSZUG = 900;
-const NAEHE_JE_AUFRUF = 8; // Dokumente je Aufruf des Vektorvergleichs: ein Aufruf des Assistenten soll nicht an die Zeitgrenze der Route stoßen
-const NAEHE_PROBEN = 6;
 const BEFUND_ARTEN = ["arbeitsdokument", "veraltet", "dublette", "abgedeckt", "wiedervorlage", "herkunft"] as const;
 const BEFUND_STUFEN = ["entfernen", "pruefen", "hinweis"] as const;
 
 /** Die Dokumentliste, wie die Verwaltung sie sieht. Wirft bei einem Datenbankfehler. */
 export async function ladeDokumente(): Promise<WissenDokumentZeile[]> {
-  const { data, error } = await (createServiceRoleClient() as unknown as SupabaseClient).rpc("wissen_liste");
+  const { data, error } = await (dienstClient()).rpc("wissen_liste");
   if (error) throw new Error(error.message);
   return gruppiereWissenDokumente((Array.isArray(data) ? data : []) as unknown as WissenListeZeile[]);
 }
@@ -240,7 +238,7 @@ export function baueWissenVerwaltungWerkzeuge(rolle: Role | null | undefined) {
           const von = vergleich.dokument.trim();
           const mit = vergleich.mit.trim();
           if (!istQuelleId(von) || !istQuelleId(mit)) return { fehler: "vergleich-nicht-moeglich", hinweis: "Eine Kennung ist ungültig (nur Dokumente mit quelle_id, zum Beispiel upload:… oder ein Pfad aus wissensbasisAbrufen). Nimm die Kennungen aus dem Ergebnis." };
-          const paare = await ladeVergleich(createServiceRoleClient() as unknown as SupabaseClient, von, mit, NAEHE_PROBEN);
+          const paare = await ladeVergleich(dienstClient(), von, mit, PFLEGE.proben);
           return {
             dokument: von,
             mit,
@@ -256,9 +254,9 @@ export function baueWissenVerwaltungWerkzeuge(rolle: Role | null | undefined) {
         if (mitVergleich) {
           const kennungen = alle.filter((d) => d.schluesselSpalte === "quelle_id").map((d) => d.schluessel).sort();
           const von = Math.min(ab ?? 0, kennungen.length);
-          const gruppe = kennungen.slice(von, von + NAEHE_JE_AUFRUF);
-          const db = createServiceRoleClient() as unknown as SupabaseClient;
-          for (const id of gruppe) naehe.set(id, (await ladeNaehe(db, id, NAEHE_PROBEN)).naehe);
+          const gruppe = kennungen.slice(von, von + PFLEGE.naeheJeAufrufAssistent);
+          const db = dienstClient();
+          for (const id of gruppe) naehe.set(id, (await ladeNaehe(db, id, PFLEGE.proben)).naehe);
           const bis = von + gruppe.length;
           vergleichInfo = { von, bis, gesamt: kennungen.length, naechstesAb: bis < kennungen.length ? bis : null };
         }
