@@ -19,6 +19,7 @@ import { stufeSchluessel } from "@/lib/wissen/belege";
 import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN, typischerClusterVon } from "@/lib/wissen/quellenart";
 import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
 import { WissenBuecher } from "@/components/db/wissen-buecher";
+import { WissenBestandspflege } from "@/components/db/wissen-bestandspflege";
 import { WissenUmordnenKnopf } from "@/components/db/wissen-umordnen";
 import { WissenListenFilter } from "@/components/db/wissen-liste-filter";
 import { filtere, KEIN_FILTER, type ListenFilter } from "@/lib/wissen/listen-filter";
@@ -79,6 +80,7 @@ export function WissenVerwaltung() {
       <WissenHochladenFormular beiErfolg={lade} />
       <WissenBuecher beiFertig={lade} />
       {dokumente && !ladefehler && dokumente.some(ohneEinordnung) ? <WissenBestandEinordnen dokumente={dokumente} beiFertig={lade} /> : null}
+      {dokumente && !ladefehler && dokumente.length > 0 ? <WissenBestandspflege beiFertig={lade} /> : null}
       <div>
         <p className="mb-2 text-[11px] font-semibold text-card-foreground">{t("liste.titel")}</p>
         <AktionsMeldung status={aktionsMeldung} />

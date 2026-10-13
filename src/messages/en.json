@@ -2726,6 +2726,95 @@
         "urlFehlt": "A link is required for this source type, but the document has no valid link.",
         "vierAugen": "This document is approved and was uploaded by you. A second person changes area, source type and text basis (four-eyes principle). The cluster can be changed."
       },
+      "pflege": {
+        "titel": "Check and clean up the holdings",
+        "lead": "Checks the knowledge base for research working documents, documents explicitly marked as outdated, duplicates, documents covered by uploaded books, due review dates and missing origin. The check changes nothing. Documents are only removed once you have selected findings, entered the reason and confirmed. Similarity alone does not prove the same statement: for duplicates and covered documents the comparison shows the passages word for word.",
+        "mitVergleich": "Run the content comparison (duplicates, covered by books)",
+        "mitVergleichHinweis": "Compares a few passages of each document with all other documents. Depending on the size this takes a few minutes. Without the tick only the quick checks run.",
+        "start": "Start analysis",
+        "nochmal": "Repeat analysis",
+        "abbrechen": "Cancel",
+        "ladeListe": "Loading the document list",
+        "fortschritt": "Content comparison: {fertig} of {gesamt} documents",
+        "fortschrittBalken": "Analysis progress",
+        "fehler": "The analysis failed. Please try again later.",
+        "keineBefunde": "No findings among {anzahl} documents checked.",
+        "zusammenfassung": "{befunde} of {gesamt} documents have at least one finding.",
+        "umfang": "{abschnitte} passages",
+        "auswaehlen": "Select {titel}",
+        "herkunft": {
+          "bestand": "Existing",
+          "upload": "Uploaded"
+        },
+        "stufe": {
+          "entfernen": "Suggestion: remove",
+          "pruefen": "Review",
+          "hinweis": "Note"
+        },
+        "art": {
+          "arbeitsdokument": "Working document",
+          "veraltet": "Outdated",
+          "dublette": "Duplicate",
+          "abgedeckt": "Covered by a book",
+          "wiedervorlage": "Review date",
+          "herkunft": "Origin"
+        },
+        "grund": {
+          "arbeitsdokument": "Working document of the research (order, index, plan), no expert knowledge.",
+          "rohbefund": "Raw finding of the research, unchecked and unprocessed.",
+          "markiertVeraltet": "Explicitly marked as outdated (title or reference).",
+          "jahrAlt": "The most recent year in the title is {wert}. Check how current it is.",
+          "wiedervorlageFaellig": "The review date has been reached ({wert}). The document is no longer found until a second person extends it.",
+          "keinLink": "No usable link to the source: the origin cannot be verified.",
+          "dublette": "Almost the same text as \"{wert}\" ({prozent} % of the passages checked, at least {minimum} % similarity). One of the two can be removed.",
+          "abgedeckt": "The content is in \"{wert}\" ({prozent} % of the passages checked, at least {minimum} % similarity). Look at the comparison before removing.",
+          "teilweiseAbgedeckt": "Partly similar to \"{wert}\" ({prozent} % of the passages checked). The rest is probably only here."
+        },
+        "vergleich": {
+          "an": "Show comparison",
+          "zu": "Close comparison",
+          "laedt": "loading",
+          "keine": "No comparison available.",
+          "dieses": "This document",
+          "gegenueber": "\"{titel}\" ({prozent} % similarity)"
+        },
+        "filter": {
+          "alle": "All ({anzahl})"
+        },
+        "auswahl": {
+          "vorschlaege": "Select all suggestions for removal",
+          "keine": "Clear selection",
+          "gewaehlt": "{anzahl} selected",
+          "entfernen": "Remove selected ({anzahl})"
+        },
+        "bestaetigung": {
+          "titel": "Confirm removal",
+          "warnung": "{dokumente, plural, one {# document} other {# documents}} with {abschnitte} passages will be removed from the knowledge base. This cannot be undone. The synchronisation to production does not copy them back.",
+          "grund": "Reason (goes into the log)",
+          "grundBeispiel": "for example: duplicate, fully contained in the book ...",
+          "geprueft": "I have checked the documents and want to remove them.",
+          "zahl": "To confirm, type the number of documents ({anzahl})",
+          "los": "Remove now",
+          "laeuft": "Removing",
+          "zurueck": "Back"
+        },
+        "ergebnis": {
+          "zugriff": "You do not have permission for this.",
+          "bestaetigungFalsch": "The number you typed does not match the number of documents. Nothing was removed.",
+          "entfernt": "{anzahl, plural, one {# document} other {# documents}} removed ({abschnitte} passages).",
+          "schonWeg": "{anzahl, plural, one {# document was} other {# documents were}} already removed.",
+          "gewichteOffen": "For at least one document the word weights could not be recalculated. The document is gone, the search stays usable, the next import corrects it.",
+          "fehler": "{titel}: not removed ({grund})",
+          "code": {
+            "eingabe": "invalid input",
+            "umgebung": "blocked in this preview (schema public)",
+            "grabstein": "recording the removal failed, nothing deleted",
+            "loeschen": "deleting failed",
+            "gewichte": "word weights not recalculated",
+            "unbekannt": "unknown error"
+          }
+        }
+      },
       "filter": {
         "suche": "Search in title",
         "suchePlatzhalter": "for example tax code",

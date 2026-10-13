@@ -16,6 +16,8 @@
 //      mit der neuen Zahl der Textstellen neu gerechnet (Formel wie in sparse.ts).
 //   4. NICHTS wird geloescht oder geaendert, ausser der Einordnung nach Regel 2. Wurde ein Dokument in public_preview geaendert oder
 //      geloescht, bleibt public, wie es ist.
+//   6. GRABSTEINE: Was in public.wissen_entfernt steht (Bestandspflege, bewusst entfernte Dokumente), wird nie kopiert. Sonst kaeme ein in public
+//      entferntes Dokument beim naechsten Merge aus der Vorschau zurueck.
 //   5. Eine quelle_id, die in public schon vorkommt (zum Beispiel ein angefangenes Buch), und eine Freigabe durch eine Person, die in
 //      public.profiles nicht vorkommt (Fremdschluessel geprueft_von), werden nicht uebernommen, sondern gemeldet.
 //
@@ -28,11 +30,13 @@ import { abfrage, zielAus } from "./preview-cli.mjs";
 
 const QUELLE = "public_preview.wissen_chunks";
 const ZIEL = "public.wissen_chunks";
+const GRABSTEINE = "public.wissen_entfernt";
 
 /** Prueft, dass beide Schemas die Tabellen haben. */
 export const SQL_VORAUSSETZUNG = `
 select to_regclass('${QUELLE}') is not null as quelle, to_regclass('${ZIEL}') is not null as ziel,
-       to_regclass('public_preview.wissen_begriffe') is not null as quelle_b, to_regclass('public.wissen_begriffe') is not null as ziel_b`;
+       to_regclass('public_preview.wissen_begriffe') is not null as quelle_b, to_regclass('public.wissen_begriffe') is not null as ziel_b,
+       to_regclass('${GRABSTEINE}') is not null as grabsteine`;
 
 /** Was geschaehe: je Dokument (quelle_id) Titel, Zahl der Zeilen und ob es ein Upload ist; dazu die Zeilen, die uebersprungen werden. */
 export const SQL_PLAN = `
@@ -41,6 +45,7 @@ with kandidaten as (
   from ${QUELLE} p
   where p.pruefstatus = 'freigegeben'
     and not exists (select 1 from ${ZIEL} c where c.id = p.id)
+    and not exists (select 1 from ${GRABSTEINE} e where e.quelle_id = p.quelle_id)
 ), neu as (
   select k.* from kandidaten k
   where (k.quelle_id is null or not exists (select 1 from ${ZIEL} c where c.quelle_id = k.quelle_id))
@@ -111,6 +116,7 @@ begin
       from ${QUELLE} p
      where p.pruefstatus = 'freigegeben'
        and not exists (select 1 from ${ZIEL} c where c.id = p.id)
+       and not exists (select 1 from ${GRABSTEINE} e where e.quelle_id = p.quelle_id)
        and (p.quelle_id is null or not exists (select 1 from ${ZIEL} c where c.quelle_id = p.quelle_id))
        and (p.geprueft_von is null or exists (select 1 from public.profiles pr where pr.id = p.geprueft_von))
        and (p.quelle_id is null or p.quelle_id in (
@@ -118,6 +124,7 @@ begin
                select distinct p2.quelle_id from ${QUELLE} p2
                 where p2.pruefstatus = 'freigegeben' and p2.quelle_id is not null
                   and not exists (select 1 from ${ZIEL} c2 where c2.quelle_id = p2.quelle_id)
+                  and not exists (select 1 from ${GRABSTEINE} e2 where e2.quelle_id = p2.quelle_id)
                   and (p2.geprueft_von is null or exists (select 1 from public.profiles pr2 where pr2.id = p2.geprueft_von))
                 order by p2.quelle_id limit ${max}) q));
   select count(*) into zeilen_neu from _wissen_neu;
@@ -173,6 +180,7 @@ function hauptprogramm() {
   };
 
   const v = abfrage(ziel, SQL_VORAUSSETZUNG)[0];
+  if (!v?.grabsteine) throw new Error("public.wissen_entfernt fehlt (Migration 20261202000000 noch nicht angewendet). Abbruch.");
   if (!v?.quelle || !v?.ziel || !v?.quelle_b || !v?.ziel_b) {
     throw new Error("public_preview oder public hat keine Wissensbasis-Tabellen (wissen_chunks, wissen_begriffe). Abbruch.");
   }

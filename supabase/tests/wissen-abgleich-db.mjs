@@ -43,6 +43,7 @@ function aufraeumen() {
     q(`delete from ${s}.profiles where id::text like '${P}-%'`);
   }
   q(`delete from public.wissen_begriffe where hash in (${TEST_HASHES.join(",")})`);
+  q(`delete from public.wissen_entfernt where quelle_id like 'abtest%' or quelle_id like 'upload:abtest%'`);
 }
 
 function szenarioAufbauen() {
@@ -71,7 +72,9 @@ begin
       ('public_preview', '${id(6)}', 'upload:abtest-drei',   'Buch Drei',          '{"quelle":"upload","hochgeladen_von":"${A}"}', 'abgelehnt',   'fachliteratur', 'buecher', 4, null, '{880005:1}/1000000000'),
       ('public',         '${id(7)}', 'upload:abtest-vier',   'Buch Vier alt',      '{"quelle":"upload","hochgeladen_von":"${A}"}', 'ungeprueft',  'fachliteratur', 'buecher', 4, null, '{880006:1}/1000000000'),
       ('public_preview', '${id(8)}', 'upload:abtest-vier',   'Buch Vier neu',      '{"quelle":"upload","hochgeladen_von":"${A}"}', 'freigegeben', 'fachliteratur', 'buecher', 4, '${B}', '{880006:1,880005:1}/1000000000'),
-      ('public_preview', '${id(9)}', 'upload:abtest-fuenf',  'Buch Fuenf',         '{"quelle":"upload","hochgeladen_von":"${A}"}', 'freigegeben', 'fachliteratur', 'buecher', 4, '${C}', '{880005:1}/1000000000')
+      ('public_preview', '${id(9)}', 'upload:abtest-fuenf',  'Buch Fuenf',         '{"quelle":"upload","hochgeladen_von":"${A}"}', 'freigegeben', 'fachliteratur', 'buecher', 4, '${C}', '{880005:1}/1000000000'),
+      ('public_preview', '${id(10)}', 'abtest/bestand-grab.md', 'Bestand Grabstein', '{}', 'freigegeben', null, null, 4, null, '{880001:1}/1000000000'),
+      ('public_preview', '${id(11)}', 'upload:abtest-grab',   'Buch Grabstein',     '{"quelle":"upload","hochgeladen_von":"${A}"}', 'freigegeben', 'fachliteratur', 'buecher', 4, '${B}', '{880003:1}/1000000000')
     ) as v(schema_name, zid, quelle, titel, extra, status, art, clus, stufe, geprueft, sparse_text)
   loop
     eff := case when z.extra::jsonb ->> 'quelle' = 'upload' then 'ungeprueft' else z.status end;
@@ -88,6 +91,8 @@ begin
 end
 $t$`);
   q(`insert into public.wissen_begriffe (hash, df, idf) values (880001, 1, 0.5), (880002, 2, 0.4) on conflict (hash) do update set df = excluded.df, idf = excluded.idf`);
+  // Grabsteine der Bestandspflege: bewusst in public entfernt, in der Vorschau noch da. Der Abgleich darf sie nicht zurueckkopieren.
+  q(`insert into public.wissen_entfernt (quelle_id, titel, grund, abschnitte) values ('abtest/bestand-grab.md', 'Bestand Grabstein', 'Test', 1), ('upload:abtest-grab', 'Buch Grabstein', 'Test', 1) on conflict (quelle_id) do nothing`);
 }
 
 function abgleich(...args) {
@@ -108,6 +113,7 @@ try {
   pruefe("Trockenlauf: nennt das neue Buch", trocken.includes("Buch Eins"));
   pruefe("Trockenlauf: nennt uebersprungene Dokumente (angefangenes Buch, unbekannte pruefende Person)", trocken.includes("Buch Vier neu") && trocken.includes("Buch Fuenf"));
   pruefe("Trockenlauf: nennt weder ungepruefte noch abgelehnte Dokumente", !trocken.includes("Buch Zwei") && !trocken.includes("Buch Drei"));
+  pruefe("Trockenlauf: Dokumente mit Grabstein (in public bewusst entfernt) werden nicht genannt", !trocken.includes("Bestand Grabstein") && !trocken.includes("Buch Grabstein"));
   pruefe("Trockenlauf: schreibt nichts", zeilen("public").length === 3);
 
   const lauf = abgleich("--anwenden");
@@ -120,6 +126,7 @@ try {
   pruefe("Ungeprueftes und abgelehntes Buch bleiben in der Vorschau", !byId.has(id(5)) && !byId.has(id(6)));
   pruefe("Angefangenes Buch (quelle_id schon in public) und unbekannte pruefende Person werden nicht uebernommen", !byId.has(id(8)) && !byId.has(id(9)));
   pruefe("Angefangenes Buch in public bleibt unveraendert", byId.get(id(7))?.pruefstatus === "ungeprueft");
+  pruefe("Grabsteine: ein entferntes Bestandsdokument und ein entferntes Buch kommen nicht aus der Vorschau zurueck", !byId.has(id(10)) && !byId.has(id(11)));
   pruefe("Einordnung nachgezogen (Bestand A)", byId.get(id(1))?.quellenart === "rechtsnorm" && byId.get(id(1))?.cluster === "internet" && Number(byId.get(id(1))?.autoritaetsstufe) === 1);
   pruefe("Bestand B ohne Einordnung bleibt, wie er ist", byId.get(id(2))?.quellenart === null && byId.get(id(2))?.cluster === null);
   pruefe("Vorschau bleibt unveraendert", JSON.stringify(zeilen("public_preview")) === vorschauVorher);

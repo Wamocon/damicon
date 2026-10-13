@@ -2726,6 +2726,95 @@
         "urlFehlt": "Für diese Quellenart ist ein Link Pflicht, das Dokument hat aber keinen gültigen Link.",
         "vierAugen": "Dieses Dokument ist freigegeben und stammt von Ihnen. Bereich, Quellenart und Textgrundlage ändert eine zweite Person (Vier-Augen-Prinzip). Der Cluster lässt sich ändern."
       },
+      "pflege": {
+        "titel": "Bestand prüfen und bereinigen",
+        "lead": "Prüft die Wissensbasis auf Arbeitsdokumente der Recherche, ausdrücklich Veraltetes, Dubletten, durch hochgeladene Bücher abgedeckte Dokumente, fällige Wiedervorlagen und fehlende Herkunft. Die Prüfung verändert nichts. Entfernt wird erst, wenn Sie Befunde ausgewählt, den Grund eingetragen und bestätigt haben. Ähnlichkeit allein beweist keine gleiche Aussage: Bei Dubletten und abgedeckten Dokumenten zeigt der Vergleich die Abschnitte im Wortlaut.",
+        "mitVergleich": "Inhaltlichen Vergleich durchführen (Dubletten, durch Bücher abgedeckt)",
+        "mitVergleichHinweis": "Vergleicht je Dokument einige Abschnitte mit allen anderen Dokumenten. Das dauert je nach Bestand einige Minuten. Ohne Haken laufen nur die schnellen Prüfungen.",
+        "start": "Analyse starten",
+        "nochmal": "Analyse wiederholen",
+        "abbrechen": "Abbrechen",
+        "ladeListe": "Dokumentliste wird geladen",
+        "fortschritt": "Inhaltlicher Vergleich: {fertig} von {gesamt} Dokumenten",
+        "fortschrittBalken": "Fortschritt der Analyse",
+        "fehler": "Die Analyse ist fehlgeschlagen. Bitte später noch einmal versuchen.",
+        "keineBefunde": "Keine Befunde bei {anzahl} geprüften Dokumenten.",
+        "zusammenfassung": "{befunde} von {gesamt} Dokumenten haben mindestens einen Befund.",
+        "umfang": "{abschnitte} Abschnitte",
+        "auswaehlen": "{titel} auswählen",
+        "herkunft": {
+          "bestand": "Bestand",
+          "upload": "Hochgeladen"
+        },
+        "stufe": {
+          "entfernen": "Vorschlag: entfernen",
+          "pruefen": "Prüfen",
+          "hinweis": "Hinweis"
+        },
+        "art": {
+          "arbeitsdokument": "Arbeitsdokument",
+          "veraltet": "Veraltet",
+          "dublette": "Dublette",
+          "abgedeckt": "Durch Buch abgedeckt",
+          "wiedervorlage": "Wiedervorlage",
+          "herkunft": "Herkunft"
+        },
+        "grund": {
+          "arbeitsdokument": "Arbeitsdokument der Recherche (Auftrag, Index, Plan), kein Fachwissen.",
+          "rohbefund": "Rohbefund der Recherche, ungeprüft und unaufbereitet.",
+          "markiertVeraltet": "Ausdrücklich als veraltet gekennzeichnet (Titel oder Fundstelle).",
+          "jahrAlt": "Das jüngste Jahr im Titel ist {wert}. Stand prüfen.",
+          "wiedervorlageFaellig": "Die Wiedervorlage ist erreicht ({wert}). Das Dokument wird nicht mehr gefunden, bis eine zweite Person verlängert.",
+          "keinLink": "Kein brauchbarer Link zur Quelle: die Herkunft ist nicht prüfbar.",
+          "dublette": "Fast derselbe Text wie \"{wert}\" ({prozent} % der geprüften Abschnitte, mindestens {minimum} % Ähnlichkeit). Eines von beiden kann entfernt werden.",
+          "abgedeckt": "Steht inhaltlich in \"{wert}\" ({prozent} % der geprüften Abschnitte, mindestens {minimum} % Ähnlichkeit). Vor dem Entfernen den Vergleich ansehen.",
+          "teilweiseAbgedeckt": "Teilweise ähnlich zu \"{wert}\" ({prozent} % der geprüften Abschnitte). Der Rest steht vermutlich nur hier."
+        },
+        "vergleich": {
+          "an": "Vergleich ansehen",
+          "zu": "Vergleich schließen",
+          "laedt": "lädt",
+          "keine": "Kein Vergleich verfügbar.",
+          "dieses": "Dieses Dokument",
+          "gegenueber": "\"{titel}\" ({prozent} % Ähnlichkeit)"
+        },
+        "filter": {
+          "alle": "Alle ({anzahl})"
+        },
+        "auswahl": {
+          "vorschlaege": "Alle Vorschläge zum Entfernen auswählen",
+          "keine": "Auswahl aufheben",
+          "gewaehlt": "{anzahl} ausgewählt",
+          "entfernen": "Ausgewählte entfernen ({anzahl})"
+        },
+        "bestaetigung": {
+          "titel": "Entfernen bestätigen",
+          "warnung": "{dokumente, plural, one {# Dokument} other {# Dokumente}} mit {abschnitte} Abschnitten werden aus der Wissensbasis entfernt. Das lässt sich nicht rückgängig machen. Der Abgleich in die Produktion kopiert sie nicht zurück.",
+          "grund": "Grund (steht im Protokoll)",
+          "grundBeispiel": "zum Beispiel: Dublette, steht vollständig im Buch ...",
+          "geprueft": "Ich habe die Dokumente geprüft und will sie entfernen.",
+          "zahl": "Zur Bestätigung die Zahl der Dokumente eintippen ({anzahl})",
+          "los": "Jetzt entfernen",
+          "laeuft": "Wird entfernt",
+          "zurueck": "Zurück"
+        },
+        "ergebnis": {
+          "zugriff": "Dafür fehlt die Berechtigung.",
+          "bestaetigungFalsch": "Die eingetippte Zahl stimmt nicht mit der Zahl der Dokumente überein. Es wurde nichts entfernt.",
+          "entfernt": "{anzahl, plural, one {# Dokument} other {# Dokumente}} entfernt ({abschnitte} Abschnitte).",
+          "schonWeg": "{anzahl, plural, one {# Dokument war} other {# Dokumente waren}} schon entfernt.",
+          "gewichteOffen": "Bei mindestens einem Dokument ließen sich die Wortgewichte nicht zurückrechnen. Das Dokument ist weg, die Suche bleibt brauchbar, der nächste Import gleicht es aus.",
+          "fehler": "{titel}: nicht entfernt ({grund})",
+          "code": {
+            "eingabe": "ungültige Eingabe",
+            "umgebung": "in dieser Vorschau gesperrt (Schema public)",
+            "grabstein": "Eintrag der Entfernung misslungen, nichts gelöscht",
+            "loeschen": "Löschen misslungen",
+            "gewichte": "Wortgewichte nicht zurückgerechnet",
+            "unbekannt": "unbekannter Fehler"
+          }
+        }
+      },
       "filter": {
         "suche": "Suche im Titel",
         "suchePlatzhalter": "zum Beispiel Steuerkodex",
