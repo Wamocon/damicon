@@ -1,12 +1,11 @@
 "use client";
 
-import { startTransition, useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Card, StatusPill } from "@/components/ui/kit";
-import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
+import { AktionsMeldung, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import {
   wissenDokumenteLaden,
-  wissenDokumentHochladen,
   wissenDokumentLoeschen,
   wissenDokumentPruefen,
   wissenDokumentVorschau,
@@ -16,7 +15,7 @@ import {
 import { leer, type AktionsStatus } from "@/lib/actions/status";
 import { ohneEinordnung, type WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 import { stufeSchluessel } from "@/lib/wissen/belege";
-import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, QUELLENARTEN, TEXTGRUNDLAGEN, typischerClusterVon } from "@/lib/wissen/quellenart";
+import { istQuellenart } from "@/lib/wissen/quellenart";
 import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
 import { WissenBuecher } from "@/components/db/wissen-buecher";
 import { WissenBestandspflege } from "@/components/db/wissen-bestandspflege";
@@ -30,7 +29,7 @@ import { WissenUmordnenKnopf } from "@/components/db/wissen-umordnen";
 import { WissenListenFilter } from "@/components/db/wissen-liste-filter";
 import { filtere, KEIN_FILTER, type ListenFilter } from "@/lib/wissen/listen-filter";
 import { linkBrauchbar, schaetzeEin, type Einschaetzung } from "@/lib/wissen/einschaetzung";
-import { bereichSchluessel, MAX_DATEI_BYTES, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
+import { bereichSchluessel, UPLOAD_BEREICHE } from "@/lib/wissen/upload-konstanten";
 
 // Wissensverwaltung: Seite "Wissensbasis" im Bereich Administration (/dashboard/administration/wissensbasis). Admin-only:
 // Die Seite antwortet ohne ki_assistent:manage mit 404, und alle Server Actions pruefen die Berechtigung noch einmal selbst.
@@ -85,7 +84,6 @@ export function WissenVerwaltung() {
   return (
     <div className="space-y-3">
       <p className="text-[11px] leading-4 text-muted-foreground">{t("lead")}</p>
-      <WissenHochladenFormular beiErfolg={lade} />
       <WissenBuecher beiFertig={lade} />
       {dokumente && !ladefehler && dokumente.some(ohneEinordnung) ? <WissenBestandEinordnen dokumente={dokumente} beiFertig={lade} /> : null}
       {dokumente && !ladefehler && dokumente.length > 0 ? <WissenBestandspflege dokumente={dokumente} beiFertig={lade} /> : null}
@@ -377,190 +375,6 @@ function WissenDokumentKarte({
         ) : null}
       </Card>
     </li>
-  );
-}
-
-interface Eingaben {
-  titel: string;
-  bereich: string;
-  /** Nur zur Auswahl der Quellenart; gespeichert wird allein die Quellenart, der Cluster folgt aus ihr. */
-  cluster: string;
-  quellenart: string;
-  textgrundlage: string;
-  url: string;
-  rollen: string[];
-}
-const LEERE_EINGABEN: Eingaben = { titel: "", bereich: "", cluster: "", quellenart: "", textgrundlage: "original", url: "", rollen: [] };
-
-function WissenHochladenFormular({ beiErfolg }: { beiErfolg: () => void }) {
-  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.formular");
-  const tBereich = useTranslations("kiAssistentAnsicht.wissensVerwaltung.bereich");
-  const tArt = useTranslations("kiAssistentAnsicht.wissensVerwaltung.quellenart");
-  const tBeispiel = useTranslations("kiAssistentAnsicht.wissensVerwaltung.beispiel");
-  const tCluster = useTranslations("kiAssistentAnsicht.wissensVerwaltung.cluster");
-  const tClusterBeispiel = useTranslations("kiAssistentAnsicht.wissensVerwaltung.clusterBeispiel");
-  const tText = useTranslations("kiAssistentAnsicht.wissensVerwaltung.textgrundlage");
-  const tRolle = useTranslations("roles");
-  const tAktion = useTranslations("aktionen");
-  // Alle Eingaben (ausser der Datei) liegen im Zustand, nicht im Formular: React setzt ein Formular nach jeder Aktion
-  // zurueck, auch nach einem Fehler. So bleiben Titel, Bereich, Quellenart und Rollen stehen (nur die Datei muss neu
-  // gewaehlt werden) und werden nach einem Erfolg geleert.
-  const [werte, setWerte] = useState<Eingaben>(LEERE_EINGABEN);
-  const aendere = (teil: Partial<Eingaben>) => setWerte((alt) => ({ ...alt, ...teil }));
-  const [status, action] = useActionState(async (vorher: AktionsStatus, formData: FormData) => {
-    const antwort = await wissenDokumentHochladen(vorher, formData);
-    if (antwort.stand === "ok") startTransition(() => setWerte(LEERE_EINGABEN));
-    return antwort;
-  }, leer);
-  const zuletzt = useRef(status);
-
-  // Nach einem erfolgreichen Upload die Liste neu laden (einmal je Rueckmeldung).
-  useEffect(() => {
-    if (status !== zuletzt.current && status.stand === "ok") beiErfolg();
-    zuletzt.current = status;
-  }, [status, beiErfolg]);
-
-  const art = istQuellenart(werte.quellenart) ? werte.quellenart : null;
-  const nutzung = art && werte.bereich ? nutzungFuer(werte.bereich, art) : "ja";
-  const cluster = istCluster(werte.cluster) ? werte.cluster : null;
-
-  return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
-      <form action={action} className="grid gap-2.5 sm:grid-cols-2">
-        <PfadFeld />
-        <label className="block space-y-1 sm:col-span-2">
-          <span className="text-[11px] font-semibold text-card-foreground">{t("datei")}</span>
-          <input
-            type="file"
-            name="datei"
-            required
-            accept=".pdf,.md,.txt,application/pdf,text/markdown,text/plain"
-            // Eine zu grosse Datei wird schon hier gestoppt (Meldung des Browsers beim Absenden): Ueber dem Limit der Server
-            // Actions antwortet der Server nicht mit einer Meldung, sondern mit HTTP 500.
-            onChange={(e) => {
-              const datei = e.currentTarget.files?.[0];
-              e.currentTarget.setCustomValidity(datei && datei.size > MAX_DATEI_BYTES ? tAktion("fehler.zuGross") : "");
-            }}
-            className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs file:font-semibold file:text-foreground"
-          />
-          <span className="block text-[11px] text-muted-foreground">{t("dateiHinweis")}</span>
-        </label>
-        <Feld label={t("titelFeld")} name="titel" required placeholder={t("titelPlatzhalter")} value={werte.titel} onChange={(titel) => aendere({ titel })} />
-        <Auswahl
-          label={t("bereich")}
-          name="bereich"
-          required
-          value={werte.bereich}
-          // Wechselt der Bereich auf einen, in dem die gewaehlte Quellenart nicht zulaessig ist, wird die Art zurueckgesetzt.
-          onChange={(bereich) => aendere({ bereich, quellenart: nutzungFuer(bereich, werte.quellenart) === "nein" ? "" : werte.quellenart })}
-          options={[
-            { wert: "", text: t("bitteWaehlen") },
-            ...UPLOAD_BEREICHE.map((b) => ({ wert: b, text: tBereich(b) })),
-          ]}
-        />
-        {/* Cluster (der Weg) und Quellenart (die Art des Textes) sind zwei Achsen: Ein Gesetz von einer Regierungsseite ist eine
-            Rechtsnorm aus dem Internet. Nur eine Art, die schon ihrer Natur nach aus dem Netz stammt, schliesst die anderen
-            Cluster aus. Waehlt man zuerst die Art, bekommt der Cluster ihren typischen Wert vorgeschlagen. */}
-        <div className="space-y-1">
-          <Auswahl
-            label={t("cluster")}
-            name="cluster"
-            required
-            value={werte.cluster}
-            onChange={(neu) => aendere({ cluster: neu, quellenart: art && istCluster(neu) && !clusterPasst(art, neu) ? "" : werte.quellenart })}
-            options={[{ wert: "", text: t("bitteWaehlen") }, ...CLUSTER.map((c) => ({ wert: c, text: tCluster(c) }))]}
-          />
-          {cluster ? <span className="block text-[11px] text-muted-foreground">{tClusterBeispiel(cluster)}</span> : null}
-        </div>
-        <div className="space-y-1">
-          <Auswahl
-            label={t("quellenart")}
-            name="quellenart"
-            required
-            value={werte.quellenart}
-            onChange={(neu) => {
-              // Ohne Cluster oder mit einem, der zur Art nicht passt, bekommt der Cluster den typischen Wert der Art.
-              const typisch = typischerClusterVon(neu);
-              const passt = istQuellenart(neu) && istCluster(werte.cluster) && clusterPasst(neu, werte.cluster);
-              aendere({ quellenart: neu, cluster: passt ? werte.cluster : (typisch ?? werte.cluster) });
-            }}
-            options={[
-              { wert: "", text: t("bitteWaehlen") },
-              ...QUELLENARTEN.map((a) => {
-                const gesperrt = !!werte.bereich && nutzungFuer(werte.bereich, a) === "nein";
-                const passtNicht = !!cluster && !clusterPasst(a, cluster);
-                return {
-                  wert: a,
-                  text: `${tArt(a)} (${gesperrt ? t("nichtZulaessig") : tBeispiel(a)})`,
-                  disabled: gesperrt || passtNicht,
-                };
-              }),
-            ]}
-          />
-        </div>
-        <div className="space-y-1 sm:col-span-2">
-          <span className="block text-[11px] text-muted-foreground">
-            {t("clusterHinweis")} {t("clusterZwang")} {t("quellenartHinweis")}
-          </span>
-          {art ? (
-            <span className={`block text-[11px] ${nutzung === "hinweis" || nutzung === "notfalls" ? "font-semibold text-warning" : "text-muted-foreground"}`}>
-              {nutzung === "notfalls" ? t("nutzungNotfalls") : nutzung === "hinweis" ? t("nutzungHinweis") : t("stufeInfo", { stufe: QUELLENART_INFO[art].stufe })}
-            </span>
-          ) : null}
-        </div>
-        <Auswahl
-          label={t("textgrundlage")}
-          name="textgrundlage"
-          value={werte.textgrundlage}
-          onChange={(textgrundlage) => aendere({ textgrundlage })}
-          options={TEXTGRUNDLAGEN.map((g) => ({ wert: g, text: tText(g) }))}
-        />
-        <div className="space-y-1">
-          <Feld
-            label={t("url")}
-            name="quelle_url"
-            type="url"
-            required={!!art && QUELLENART_INFO[art].urlPflicht}
-            placeholder="https://"
-            value={werte.url}
-            onChange={(url) => aendere({ url })}
-          />
-          <span className="block text-[11px] text-muted-foreground">{t("urlHinweis")}</span>
-        </div>
-        <fieldset className="space-y-1 sm:col-span-2">
-          <legend className="text-[11px] font-semibold text-card-foreground">{t("rollen")}</legend>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            {UPLOAD_ROLLEN.map((rolle) => (
-              <label key={rolle} className="inline-flex items-center gap-1.5 text-xs text-card-foreground">
-                {rolle === "admin" ? (
-                  // Der Admin ist immer dabei: ein deaktiviertes Feld wird nicht gesendet, der Server ergaenzt ihn.
-                  <input type="checkbox" checked disabled aria-describedby="wissen-admin-immer" />
-                ) : (
-                  <input
-                    type="checkbox"
-                    name="rollen"
-                    value={rolle}
-                    checked={werte.rollen.includes(rolle)}
-                    onChange={(e) => aendere({ rollen: e.target.checked ? [...werte.rollen, rolle] : werte.rollen.filter((r) => r !== rolle) })}
-                  />
-                )}
-                {tRolle(rolle)}
-              </label>
-            ))}
-          </div>
-          <span id="wissen-admin-immer" className="block text-[11px] text-muted-foreground">
-            {t("adminImmer")}
-          </span>
-        </fieldset>
-        <p className="text-[11px] font-semibold text-muted-foreground sm:col-span-2">{t("freigabeHinweis")}</p>
-        <div className="flex items-end sm:col-span-2">
-          <SubmitKnopf label={t("knopf")} status={status} />
-        </div>
-        <div className="sm:col-span-2">
-          <AktionsMeldung status={status} />
-        </div>
-      </form>
-    </FormularKarte>
   );
 }
 

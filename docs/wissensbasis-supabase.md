@@ -53,6 +53,8 @@ Optionen: `--trocken` (nur zählen), `--bereinigen` (Zeilen löschen, die es in 
 
 In der Seitenleiste unter "Administration", Seite "Wissensbasis" (`/dashboard/administration/wissensbasis`). Früher stand die Verwaltung in den Einstellungen des KI-Panels, das für so viel Verwaltung zu schmal war. Nur mit dem Recht `ki_assistent:manage` (laut `rbac.ts` allein admin), geprüft in der Server Action und noch einmal in der Datenbank (Schreiben in `wissen_chunks` darf nur `service_role`).
 
+**Stand 13.10.2026: Es gibt nur noch eine Hochladen-Kachel, "Dokumente und Bücher hochladen"** (Buch-Upload, `wissen-buecher.tsx`, eine oder mehrere Dateien, PDF, Markdown oder Text, ohne Größengrenze; Punkt 4 ff. unten). Die frühere Kachel für einzelne Dokumente und ihre Server Action `wissenDokumentHochladen` (höchstens 8 MB und 400 Abschnitte, PDF auf dem Server gelesen) sind entfernt: Der Buch-Upload kann alles, was sie konnte, und mehr (Seitenverlauf, Original-PDF, Analyse, Fortschritt). Einziger Verlust: Bei einer Markdown-Datei wurden Zusatzangaben aus dem Kopf der Datei (zum Beispiel Gültigkeit, Rechtsstelle) übernommen, der Buch-Upload behandelt sie als Text. Der Baustein `verarbeiteUpload` (`hochladen.ts`) bleibt, die Tests und der Abgleich nutzen ihn. Die Tabelle beschreibt die Felder; die Angaben zu 8 MB und 400 Abschnitten gelten nur für `verarbeiteUpload`.
+
 | | |
 | --- | --- |
 | Dateien | `.pdf`, `.md`, `.txt`, höchstens 8 MB (genau 8 MiB minus 64 KiB: Die Server Actions nehmen 8 MiB je Anfrage an, Formularfelder und Multipart-Rahmen brauchen Platz; die Oberfläche stoppt größere Dateien vor dem Absenden), höchstens 400 Abschnitte je Dokument. Lesen und Einbetten dürfen zusammen 45 Sekunden dauern (das Dashboard erlaubt 60); danach bricht der Upload mit einer klaren Meldung ab, bevor irgendetwas geschrieben wurde |
@@ -100,7 +102,7 @@ Der Status unterscheidet "wartet auf Freigabe", "freigegeben", "abgelehnt", "unv
 
 ## Bücher und lange Dokumente (Buch-Upload)
 
-Der normale Upload nimmt höchstens 8 MB und 400 Abschnitte. Ein Buch (zum Beispiel ein PDF nach OCR) sprengt beides, und Vercel nimmt je Anfrage nur wenige Megabyte an. Deshalb gibt es auf der Seite Wissensbasis den Bereich "Bücher und lange Dokumente hochladen" (`src/components/db/wissen-buecher.tsx`):
+Der frühere Einzel-Upload (entfernt, siehe oben) nahm höchstens 8 MB und 400 Abschnitte. Ein Buch (zum Beispiel ein PDF nach OCR) sprengt beides, und Vercel nimmt je Anfrage nur wenige Megabyte an. Deshalb gibt es auf der Seite Wissensbasis den Bereich "Dokumente und Bücher hochladen" (`src/components/db/wissen-buecher.tsx`):
 
 1. **Der Browser liest die Datei selbst.** PDF.js (`pdfjs-dist`, `src/lib/wissen/buch-pdf.ts`) holt den Text Seite für Seite heraus, Markdown und Text werden direkt gelesen. Die Originaldatei verlässt den Rechner nie. Ein PDF braucht eine Textebene; ein reiner Bildscan ergibt keinen Text und wird als schlecht erkannt.
 2. **Bereinigen und teilen** (`buch-text.ts`): Silbentrennung am Zeilenende wird zusammengesetzt, Zeilenumbrüche im Absatz werden Leerzeichen, kurze Zeilen ohne Satzzeichen (Überschriften) bleiben getrennt. Der Text wird an Absatzgrenzen in Pakete von etwa 80.000 Zeichen geteilt. Der Hash des ganzen vereinheitlichten Textes (SHA-256, im Browser mit `crypto.subtle`) ergibt die Kennung `upload:<hash>` und erkennt Dubletten.

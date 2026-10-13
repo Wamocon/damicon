@@ -14,12 +14,11 @@ import type { Json } from "@/lib/database.types";
 import { entscheideUeberUpload, type FreigabeAktion } from "@/lib/wissen/freigabe";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
 import { entferneOriginal } from "@/lib/wissen/original";
-import { pruefeUploadUmgebung, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
+import { pruefeUploadUmgebung, UploadFehler } from "@/lib/wissen/hochladen";
 import { standardStufe } from "@/lib/wissen/quellenart";
 import { ladeAnbieterKette } from "@/lib/ai/anbieter-kette";
 import { kiAntworten } from "@/lib/wissen/analyse-ki-server";
 import type { KiAntwort } from "@/lib/wissen/analyse-ki";
-import { MAX_DATEI_BYTES } from "@/lib/wissen/upload-konstanten";
 import { istUploadQuelleId, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { supabaseSpeicher } from "@/lib/wissen/speicher-supabase";
 import { berechneQualitaetFuer } from "@/lib/wissen/speicher-bestandspflege";
@@ -74,65 +73,6 @@ const FEHLER_SCHLUESSEL: Record<UploadFehler["code"], string> = {
   selbstUmordnen: "fehler.wissenSelbstUmordnen",
   keineAenderung: "fehler.wissenKeineAenderung",
 };
-
-export async function wissenDokumentHochladen(
-  _status: AktionsStatus,
-  formData: FormData,
-): Promise<AktionsStatus> {
-  let profil: SessionProfile;
-  try {
-    profil = await requirePermission("ki_assistent", "manage");
-  } catch (error) {
-    return zugriffsFehler(error);
-  }
-
-  const datei = formData.get("datei");
-  if (!(datei instanceof File) || datei.size === 0) return fehler("fehler.eingabe");
-  // Die Groesse steht vor dem Einlesen der Datei in den Speicher fest.
-  if (datei.size > MAX_DATEI_BYTES) return fehler("fehler.zuGross");
-
-  try {
-    // Vor dem Einlesen der Datei: in einer Vorschau-Umgebung (gemeinsame Datenbank) wird nichts geschrieben.
-    pruefeUploadUmgebung();
-    const ergebnis = await verarbeiteUpload(
-      {
-        titel: text(formData, "titel"),
-        bereich: text(formData, "bereich"),
-        rollen: formData.getAll("rollen").map(String),
-        dateiname: datei.name,
-        bytes: new Uint8Array(await datei.arrayBuffer()),
-        hochgeladenVon: { id: profil.id, name: profil.fullName ?? null },
-        quellenart: text(formData, "quellenart"),
-        cluster: text(formData, "cluster"),
-        textgrundlage: text(formData, "textgrundlage"),
-        url: text(formData, "quelle_url"),
-      },
-      {
-        speicher: supabaseSpeicher(dienstClient()),
-        einbettung: wissenEinbettung(),
-      },
-    );
-    await protokolliere(profil, "wissen.hochgeladen", "wissen_chunks", null, {
-      titel: text(formData, "titel"),
-      bereich: text(formData, "bereich"),
-      quelle_id: ergebnis.quelleId,
-      abschnitte: ergebnis.chunks,
-      quellenart: ergebnis.quellenart,
-      cluster: ergebnis.cluster,
-      autoritaetsstufe: ergebnis.autoritaetsstufe,
-      pruefstatus: "ungeprueft",
-    });
-    aktualisiere(formData);
-    return ok("ok.wissenHochgeladen", text(formData, "titel"));
-  } catch (error) {
-    if (error instanceof UploadFehler) {
-      console.error("[damicon]", error.message);
-      return fehler(FEHLER_SCHLUESSEL[error.code], error.wert);
-    }
-    console.error("[damicon] Wissens-Upload unerwartet fehlgeschlagen:", error);
-    return fehler("fehler.unbekannt");
-  }
-}
 
 export interface WissenDokumenteAntwort {
   dokumente: WissenDokumentZeile[];

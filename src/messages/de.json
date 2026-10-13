@@ -2407,30 +2407,17 @@
         "seitenOffen": "Noch offen (verhindert die Freigabe)"
       },
       "formular": {
-        "titel": "Dokument hochladen",
-        "lead": "PDF, Markdown oder Text bis 8 MB. Der Inhalt wird zerlegt und eingebettet. Dieselbe Datei lässt sich nicht zweimal hochladen.",
-        "datei": "Datei",
-        "dateiHinweis": "Erlaubt: .pdf, .md, .txt. Ein PDF ohne Textebene (reiner Scan) wird abgelehnt.",
-        "titelFeld": "Titel",
-        "titelPlatzhalter": "zum Beispiel Steuergesetzbuch, Auszug",
         "bereich": "Bereich",
         "cluster": "Cluster",
         "bitteWaehlen": "Bitte wählen",
         "rollen": "Wer darf das Dokument sehen?",
         "adminImmer": "Administration ist immer eingeschlossen. Andere Rollen nutzen die Wissenssuche nicht.",
-        "knopf": "Dokument hochladen",
         "quellenart": "Quellenart",
-        "quellenartHinweis": "Nach der Herkunft des Textes, nicht nach dem Weg: Ein Gesetzestext von einer amtlichen Webseite ist eine Rechtsnorm, kein Internetbeitrag.",
-        "nichtZulaessig": "für diesen Bereich nicht zulässig",
         "nutzungHinweis": "In diesem Bereich nur als Hinweis: Der Assistent nennt die Quelle als ungeprüft und stützt nie eine verbindliche Aussage allein darauf.",
         "nutzungNotfalls": "Ungesicherte Internetquelle: Der Assistent nennt sie nur, wenn er sonst nichts Tragendes findet, und kennzeichnet sie ausdrücklich als Internetquelle ohne amtlichen Charakter.",
-        "stufeInfo": "Wird mit Stufe {stufe} angelegt.",
         "textgrundlage": "Textgrundlage",
         "url": "Link zur Quelle",
-        "urlHinweis": "Pflicht bei Internetquelle und Forum, sonst freiwillig. Der Link ist der Herkunftsnachweis für die Prüfung.",
-        "freigabeHinweis": "Nach dem Hochladen wartet das Dokument auf die Freigabe durch eine zweite Person (Vier-Augen-Prinzip). Erst dann ist es durchsuchbar.",
-        "clusterHinweis": "Der Weg, auf dem der Text zu uns kam, unabhängig von der Quellenart: Ein Gesetz von einer Regierungsseite bleibt eine Rechtsnorm, hat aber den Cluster Internet-Quelle.",
-        "clusterZwang": "Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz."
+        "freigabeHinweis": "Nach dem Hochladen wartet das Dokument auf die Freigabe durch eine zweite Person (Vier-Augen-Prinzip). Erst dann ist es durchsuchbar."
       },
       "loeschen": {
         "knopf": "Löschen",
@@ -2456,21 +2443,6 @@
         "forum": "Forum oder Frage-Antwort-Portal",
         "internetrecherche": "Ergebnis einer Internetrecherche",
         "ki_zusammenfassung": "KI-Zusammenfassung"
-      },
-      "beispiel": {
-        "rechtsnorm": "Gesetz, Verordnung, Kodex",
-        "rechtsprechung": "Urteil, Beschluss",
-        "verwaltungsanweisung": "Erlass, Schreiben einer Behörde",
-        "behoerdeninfo": "Merkblatt, amtliche Auskunft",
-        "standard": "ISO, COSO, Prüfungsstandard",
-        "fachliteratur": "Kommentar, Lehrbuch, Fachaufsatz",
-        "praxisbeitrag": "Whitepaper, Studie, Kanzlei- oder Verbandsinformation",
-        "intern": "Betriebsanweisung, eigene Analyse",
-        "nachschlagewerk": "Lexikon, Enzyklopädie, Wörterbuch",
-        "internetquelle": "Webseite, Artikel, Blog, Wikipedia",
-        "forum": "Forum, Q&A, soziale Netze",
-        "internetrecherche": "Zusammenstellung aus einer Websuche, von Mensch oder KI",
-        "ki_zusammenfassung": "von einer KI erzeugte Zusammenfassung"
       },
       "textgrundlage": {
         "original": "Originaltext",
@@ -2546,11 +2518,6 @@
         "publikationen": "Publikationen",
         "internet": "Internet-Quelle"
       },
-      "clusterBeispiel": {
-        "buecher": "Buch: Fachbuch, Kommentar, Lehrbuch, Lexikon (gedruckt oder E-Book)",
-        "publikationen": "Amtsblatt, Zeitschrift, Fachaufsatz, Studie, Whitepaper, interne Ausarbeitung",
-        "internet": "Webseite (auch amtliche), Forum, Blog, Rechercheergebnis"
-      },
       "einordnen": {
         "titel": "Bestand einordnen",
         "lead": "Diese Dokumente wurden vor der Typisierung eingelesen und haben noch keine Quellenart und keinen Cluster. Die Seite macht zu jedem einen Vorschlag aus Link, bisheriger Stufe und Rechtsstelle. Nichts wird von allein gespeichert: Sie prüfen, ändern, wählen aus und bestätigen, nachdem Sie die Wirkung auf die Suche gesehen haben.",
@@ -2621,8 +2588,8 @@
         }
       },
       "buecher": {
-        "titel": "Bücher und lange Dokumente hochladen",
-        "lead": "Für Bücher als PDF mit Textebene (zum Beispiel nach OCR), Markdown und Text, beliebig lang und mehrere auf einmal. Sie wählen nur den Cluster. Bereich, Quellenart und Textgrundlage schlägt die Analyse je Buch vor, Sie prüfen und ändern, was nicht stimmt. Der Browser liest die Datei selbst und schickt nur den Text in Paketen, eine PDF wird zusätzlich als Original abgelegt, solange das Buch auf die Freigabe wartet, damit die prüfende Person sie öffnen kann. Nach der Freigabe oder Ablehnung wird sie gelöscht. Jedes Buch wartet danach auf die Freigabe durch eine zweite Person.",
+        "titel": "Dokumente und Bücher hochladen",
+        "lead": "Für einzelne Dokumente und Bücher als PDF mit Textebene (zum Beispiel nach OCR), Markdown oder Text, beliebig lang, eine Datei oder mehrere auf einmal. Sie wählen nur den Cluster. Bereich, Quellenart und Textgrundlage schlägt die Analyse je Buch vor, Sie prüfen und ändern, was nicht stimmt. Der Browser liest die Datei selbst und schickt nur den Text in Paketen, eine PDF wird zusätzlich als Original abgelegt, solange das Buch auf die Freigabe wartet, damit die prüfende Person sie öffnen kann. Nach der Freigabe oder Ablehnung wird sie gelöscht. Jedes Buch wartet danach auf die Freigabe durch eine zweite Person.",
         "dateien": "Dateien (mehrere möglich)",
         "dateienHinweis": "PDF, Markdown oder Text. Der Titel entsteht aus dem Dateinamen und lässt sich je Buch ändern, ebenso Bereich, Quellenart und Textgrundlage. Gleiche Inhalte werden als Dublette erkannt.",
         "titelFeld": "Titel",

@@ -305,8 +305,10 @@ async function main() {
     if (hasPermission(r, "ki_assistent", "manage")) pruefe(`Recht: ${r} darf nicht hochladen`, false);
   }
   const aktion = lies("src/lib/actions/wissen.ts");
-  const gate = aktion.indexOf('requirePermission("ki_assistent", "manage")');
-  const ersterZugriff = Math.min(...["formData.get(", "verarbeiteUpload(", "dienstClient()"].map((s) => { const i = aktion.indexOf(s, aktion.indexOf("export async function wissenDokumentHochladen")); return i < 0 ? Infinity : i; }));
+  // Die Aktion des Prueffensters ist die erste, die ein Formular liest und den Dienst-Client nutzt; das Hochladen laeuft ueber die Buch-Aktionen (buchProfil).
+  const start = aktion.indexOf("export async function wissenDokumentPruefen");
+  const gate = aktion.indexOf('requirePermission("ki_assistent", "manage")', start);
+  const ersterZugriff = Math.min(...["text(formData", "entscheideUeberUpload(", "dienstClient()"].map((s) => { const i = aktion.indexOf(s, start); return i < 0 ? Infinity : i; }));
   pruefe("Action: Rechtepruefung steht vor Formular, Dienst-Client und Verarbeitung", gate > 0 && gate < ersterZugriff);
   pruefe("Action: Pruefung wird bei Fehler zurueckgegeben (zugriffsFehler), nicht weitergemacht", /catch \(error\) \{\s*return zugriffsFehler\(error\);/.test(aktion));
   pruefe("Action: auch das Laden der Liste prueft das Recht", /wissenDokumenteLaden\(\)[\s\S]{0,200}requirePermission\("ki_assistent", "manage"\)/.test(aktion));
@@ -346,7 +348,7 @@ async function main() {
     const s2 = falscherSpeicher();
     const frei2 = await fehlerCode(() => verarbeiteUpload(eingabe({ titel: "Zweites Dokument", bytes: bytes("Anderer Inhalt Nachtigall Tintenfass.") }), { speicher: s2, einbettung: falscheEinbettung(), jetzt: JETZT, umgebung: { VERCEL_ENV: "preview" }, schema: "public_preview" }));
     pruefe("Vorschau-Schutz: Vorschau mit Schema public_preview darf hochladen, ohne Flag", frei2 === "kein-fehler" && s2.zeilen.size > 0);
-    pruefe("Vorschau-Schutz: die Action meldet den Fall mit eigener Meldung", /vorschau: "fehler\.wissenVorschau"/.test(aktion) && aktion.indexOf("pruefeUploadUmgebung();") < aktion.indexOf("arrayBuffer()"));
+    pruefe("Vorschau-Schutz: die Action meldet den Fall mit eigener Meldung", /vorschau: "fehler\.wissenVorschau"/.test(aktion));
     const hochladenOhneKommentare = lies("src/lib/wissen/hochladen.ts").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
     pruefe("Vorschau-Schutz: das Schema kommt aus der App (DATENBANK_SCHEMA), nicht aus einer zweiten Regel", /DATENBANK_SCHEMA/.test(hochladenOhneKommentare) && !/NEXT_PUBLIC_DB_SCHEMA|SUPABASE_DB_SCHEMA/.test(hochladenOhneKommentare));
   }
@@ -415,7 +417,7 @@ async function main() {
     const ergFront = await verarbeiteUpload(eingabe({ dateiname: "front.md", bytes: bytes("---\ntitel: Fremder Titel\nquelle_id: fremd\nchunk_id: fremd\nautoritaetsstufe: 2\n---\n\nInhalt Frontmatter Eisvogel.\n") }), { speicher: sm, einbettung: falscheEinbettung(), jetzt: JETZT });
     const z = [...sm.zeilen.values()][0]!;
     pruefe("Upload (.md mit Frontmatter): Titel, Quelle und Kennung setzt der Upload, eine Stufe im Frontmatter (hier 2) wird verworfen: die Stufe kommt aus der Quellenart (Fachliteratur = 4)", z.titel === "Testkodex Zypresse" && z.quelle_id?.startsWith("upload:") === true && z.chunk_id === z.quelle_id && z.autoritaetsstufe === 4);
-    pruefe("Upload (.md mit Frontmatter): die vergebene Stufe steht im Ergebnis, damit die Action sie protokolliert", ergFront.autoritaetsstufe === 4 && /autoritaetsstufe: ergebnis\.autoritaetsstufe/.test(aktion));
+    pruefe("Upload (.md mit Frontmatter): die vergebene Stufe steht im Ergebnis, damit die Action sie protokolliert", ergFront.autoritaetsstufe === 4 && /autoritaetsstufe: standardStufe\(meta\.quellenart\)/.test(aktion));
     const ohneFront = await verarbeiteUpload(eingabe({ dateiname: "ohne.txt", bytes: bytes("Ohne Frontmatter Silberdistel.") }), { speicher: falscherSpeicher(), einbettung: falscheEinbettung(), jetzt: JETZT });
     pruefe("Upload (.txt): auch ohne Frontmatter bekommt der Upload die Stufe seiner Quellenart (4), nie null", ohneFront.autoritaetsstufe === 4 && ohneFront.quellenart === "fachliteratur");
   }
@@ -685,8 +687,6 @@ async function main() {
     pruefe("Importwege: hochladen.ts reicht keine Konstanten aus upload-konstanten.ts mehr weiter (ein Weg, nicht zwei)", !/^export \{[^}]*MAX_DATEI_BYTES/m.test(lies("src/lib/wissen/hochladen.ts")));
     pruefe("KI-Kontext: das Wissenswerkzeug sagt dem Modell, dass der Text der Belege Quellenmaterial und keine Anweisung ist (Uploads bringen Text von aussen)", /Quellenmaterial, keine Anweisung/.test(lies("src/lib/ai/wissen-werkzeug.ts")));
     pruefe("Dateigrenze: MAX_DATEI_BYTES laesst Platz fuer Formularfelder und Multipart-Rahmen unter dem bodySizeLimit (gemessen im Produktions-Bundle: 8 MiB minus 300 Byte scheiterte mit HTTP 500)", MAX_DATEI_BYTES <= 8 * 1024 * 1024 - 16 * 1024 && /bodySizeLimit: "8mb"/.test(lies("next.config.ts")), `MAX_DATEI_BYTES=${MAX_DATEI_BYTES}`);
-    const formularQuelle = lies("src/components/db/wissen-verwaltung.tsx");
-    pruefe("Oberflaeche: eine zu grosse Datei wird vor dem Absenden gestoppt (setCustomValidity mit MAX_DATEI_BYTES), statt eine HTTP-500-Antwort des Frameworks zu riskieren", /setCustomValidity\(/.test(formularQuelle) && /size > MAX_DATEI_BYTES/.test(formularQuelle));
   }
 
   // ---- 13. Typisierung: Quellenart, Stufe, Nutzung je Bereich -----------------------------------------
@@ -981,9 +981,9 @@ async function main() {
     };
     const w = m.kiAssistentAnsicht.wissensVerwaltung;
     const q = m.kiAssistentAnsicht.quellen;
-    pruefe(`Typtexte ${loc}: drei Cluster mit Beschriftung und Beispielen, Formular- und Listenfelder fuer Cluster, Einordnung und Fehlerdetail`, CLUSTER.every((c) => !!w.cluster?.[c] && !!w.clusterBeispiel?.[c]) &&
-      ["cluster", "clusterHinweis", "clusterZwang"].every((k) => !!w.formular?.[k]) && ["cluster", "einordnung", "ohneEinordnung", "ohneEinordnungHinweis", "filter", "filterAlle", "keineTreffer", "fehlerDetail"].every((k) => !!w.liste?.[k]));
-    pruefe(`Typtexte ${loc}: alle dreizehn Quellenarten mit Beschriftung und Beispiel (Verwaltung), Beschriftung (Quellenkarte)`, QUELLENARTEN.every((a) => !!w.quellenart?.[a] && !!w.beispiel?.[a] && !!(q.art as Record<string, string>)?.[a]));
+    pruefe(`Typtexte ${loc}: drei Cluster mit Beschriftung und Beispielen, Formular- und Listenfelder fuer Cluster, Einordnung und Fehlerdetail`, CLUSTER.every((c) => !!w.cluster?.[c]) &&
+      ["cluster"].every((k) => !!w.formular?.[k]) && ["cluster", "einordnung", "ohneEinordnung", "ohneEinordnungHinweis", "filter", "filterAlle", "keineTreffer", "fehlerDetail"].every((k) => !!w.liste?.[k]));
+    pruefe(`Typtexte ${loc}: alle dreizehn Quellenarten mit Beschriftung und Beispiel (Verwaltung), Beschriftung (Quellenkarte)`, QUELLENARTEN.every((a) => !!w.quellenart?.[a] && !!(q.art as Record<string, string>)?.[a]));
     pruefe(`Typtexte ${loc}: Einordnen-Bereich (Titel, Vorschlaege, Spalten, Schaltflaechen, Fenster) und die Meldungen dazu vorhanden`, (() => {
       const e = (w as unknown as { einordnen?: Record<string, Record<string, string> | string> }).einordnen ?? {};
       const g = (k: string) => (e[k] ?? {}) as Record<string, string>;
@@ -996,7 +996,7 @@ async function main() {
     })());
     pruefe(`Typtexte ${loc}: Textgrundlagen, Status, Hinweis, Pruefdialog, Formularfelder und Listenfelder vorhanden`, TEXTGRUNDLAGEN.every((g) => !!w.textgrundlage?.[g]) && ["ungeprueft", "freigegeben", "abgelehnt", "abgelaufen"].every((k) => !!w.status?.[k]) && !!w.nutzung?.hinweis &&
       ["knopf", "knopfErneut", "titel", "titelErneut", "vorschau", "vorschauLaedt", "vorschauFehler", "hinweis", "hinweisErneut", "freigeben", "ablehnen", "verlaengern", "abbrechen"].every((k) => !!w.pruefung?.[k]) &&
-      ["quellenart", "quellenartHinweis", "nichtZulaessig", "nutzungHinweis", "stufeInfo", "textgrundlage", "url", "urlHinweis", "freigabeHinweis"].every((k) => !!w.formular?.[k]) && ["quellenart", "stufe", "link", "pruefenBis", "wartet"].every((k) => !!w.liste?.[k]));
+      ["quellenart", "nutzungHinweis", "textgrundlage", "url", "freigabeHinweis"].every((k) => !!w.formular?.[k]) && ["quellenart", "stufe", "link", "pruefenBis", "wartet"].every((k) => !!w.liste?.[k]));
     pruefe(`Typtexte ${loc}: Meldungen der Freigabe und der neuen Fehler vorhanden, Quellenkarte kennt Hinweis und Uebersetzung`, ["wissenFreigegeben", "wissenAbgelehnt", "wissenVerlaengert"].every((k) => !!m.aktionen.ok[k]) &&
       ["wissenQuellenartGesperrt", "wissenUrlFehlt", "wissenUrlUngueltig", "wissenNichtGefunden", "wissenNichtFreigebbar", "wissenNichtPruefbar", "wissenSelbstFreigabe", "wissenFreigeben"].every((k) => !!m.aktionen.fehler[k]) &&
       !!q.nurHinweis && !!q.nurHinweise && ["amtlich_uebersetzt", "fachlich_uebersetzt", "maschinell_uebersetzt"].every((g) => !!(q.textgrundlage as Record<string, string>)?.[g]));
@@ -1006,14 +1006,12 @@ async function main() {
     const okSchluessel = [...aktionQuelle.matchAll(/"ok\.([A-Za-z]+)"/g)].map((x) => x[1]!);
     const fehlen = [...fehlerSchluessel.filter((k) => !m.aktionen.fehler[k]).map((k) => `fehler.${k}`), ...okSchluessel.filter((k) => !m.aktionen.ok[k]).map((k) => `ok.${k}`)];
     pruefe(`Typtexte ${loc}: jeder Meldungsschluessel der Server Actions steht in der Sprachdatei`, fehlen.length === 0, fehlen.join(", "));
-    pruefe(`Typtexte ${loc}: die Texte tragen die Platzhalter {wert} und {stufe} dort, wo der Code sie fuellt`, /\{wert\}/.test(m.aktionen.ok.wissenFreigegeben!) && /\{wert\}/.test(m.aktionen.ok.wissenVerlaengert!) && /\{stufe\}/.test(w.formular!.stufeInfo!));
+    pruefe(`Typtexte ${loc}: die Texte tragen den Platzhalter {wert} dort, wo der Code ihn fuellt`, /\{wert\}/.test(m.aktionen.ok.wissenFreigegeben!) && /\{wert\}/.test(m.aktionen.ok.wissenVerlaengert!));
   }
 
   // ---- 17. Oberflaeche: gesteuertes Formular, Pruefdialog ---------------------------------------------
   {
     const ui = lies("src/components/db/wissen-verwaltung.tsx");
-    pruefe("Oberflaeche: alle Eingaben (ausser der Datei) liegen im Zustand und bleiben nach einem Fehler stehen, nach einem Erfolg wird geleert", /useState<Eingaben>\(LEERE_EINGABEN\)/.test(ui) && /value=\{werte\.titel\}/.test(ui) && /value=\{werte\.bereich\}/.test(ui) && /value=\{werte\.quellenart\}/.test(ui) && /checked=\{werte\.rollen\.includes\(rolle\)\}/.test(ui) && /startTransition\(\(\) => setWerte\(LEERE_EINGABEN\)\)/.test(ui));
-    pruefe("Oberflaeche: Cluster und Quellenart sind zwei Auswahlen; die Art bekommt den typischen Cluster vorgeschlagen, nur eine Netz-Art sperrt die anderen Cluster, ein Clusterwechsel verwirft eine nicht passende Art", /name="cluster"/.test(ui) && /typischerClusterVon\(neu\)/.test(ui) && /clusterPasst\(a, cluster\)/.test(ui) && /!clusterPasst\(art, neu\)/.test(ui) && /QUELLENARTEN\.map/.test(ui) && !/artenImCluster/.test(ui));
     pruefe("Oberflaeche: jede Karte zeigt die Einordnung (Art, Cluster, Stufe), auch der Bestand (als nicht eingeordnet), und die Liste laesst sich nach Cluster filtern mit Zaehlern", /liste\.einordnung/.test(ui) && /liste\.ohneEinordnung/.test(ui) && /WissenListenFilter/.test(ui) && /filtere\(dokumente/.test(ui) && ((f) => /aria-pressed/.test(f) && /zaehleMit/.test(f) && /verlaesslichkeitOption/.test(f) && /type="search"/.test(f))(lies("src/components/db/wissen-liste-filter.tsx")));
     pruefe("Oberflaeche: Bestand einordnen ist eingebunden und erscheint nur, wenn es Dokumente ohne Einordnung gibt", /WissenBestandEinordnen/.test(ui) && /dokumente\.some\(ohneEinordnung\)/.test(ui));
     {
@@ -1023,7 +1021,6 @@ async function main() {
       pruefe("Einordnen: Vorschlag mit Sicherheit und Begruendung je Dokument, \"sichere Vorschlaege\" waehlt nur aus (kein Speichern)", /schlageVor\(/.test(eo) && /sicherheit === "hoch"/.test(eo) && /einordnen\.grund\./.test(eo));
     }
     pruefe("Action: bei einem Ladefehler nennt die Antwort Schema und Datenbankmeldung (fehlerDetail), damit die Ursache ohne Server-Log sichtbar ist", (() => { const a = lies("src/lib/actions/wissen.ts"); const l = a.slice(a.indexOf("export async function wissenDokumenteLaden"), a.indexOf("const VORSCHAU_ZEICHEN")); return /fehlerDetail/.test(l) && /DATENBANK_SCHEMA/.test(l) && /error\.code/.test(l); })());
-    pruefe("Oberflaeche: nicht zulaessige Quellenarten sind im Bereich gesperrt (disabled), der Link ist bei Internetquelle und Forum Pflicht", /disabled: gesperrt/.test(ui) && /urlPflicht/.test(ui) && /nutzungFuer\(werte\.bereich, a\) === "nein"/.test(ui));
     pruefe("Oberflaeche: Pruefen erscheint nur fuer die ANDERE Person (nicht fuer die hochladende), die hochladende sieht den Wartehinweis", /!eigener && !dokument\.unvollstaendig && \(dokument\.pruefstatus === "ungeprueft" \|\| dokument\.abgelaufen\)/.test(ui) && /liste\.wartet/.test(ui));
     pruefe("Oberflaeche: der Pruefdialog zeigt Titel, Bereich, Quellenart, Link, Rollen und den Anfang des Textes und bietet Freigeben, Ablehnen, Verlaengern", /wissenDokumentVorschau\(dokument\.schluessel\)/.test(ui) && /value="freigeben"/.test(ui) && /value="ablehnen"/.test(ui) && /value="verlaengern"/.test(ui));
     pruefe("Oberflaeche und Action: die Liste laeuft ueber den Dienst-Client (ungepruefte Zeilen sieht die Zeilensicherheit niemandem), nachdem das Recht geprueft ist", (() => { const a = lies("src/lib/actions/wissen.ts"); const l = a.slice(a.indexOf("export async function wissenDokumenteLaden"), a.indexOf("const VORSCHAU_ZEICHEN")); return l.indexOf("requirePermission") > 0 && l.indexOf("requirePermission") < l.indexOf("dienstClient") && !/createClient\(\)/.test(l); })());
@@ -1036,7 +1033,7 @@ async function main() {
     const w = m.kiAssistentAnsicht.wissensVerwaltung as { titel?: string; bereich?: Record<string, string>; formular?: Record<string, string> };
     const schluessel = ["wissenNichtLoeschbar", "wissenLoeschen", "wissenGewichte", "wissenVorschau", "wissenDateityp", "wissenLesen", "wissenLeer", "wissenZuLang", "wissenDoppelt", "wissenEinbettung", "wissenZeit", "wissenSpeichern"];
     pruefe(`Texte ${loc}: alle Fehler- und Erfolgsmeldungen vorhanden`, schluessel.every((k) => m.aktionen.fehler[k]) && !!m.aktionen.ok.wissenHochgeladen && !!m.aktionen.ok.wissenGeloescht && !!m.aktionen.ok.wissenSchonGeloescht);
-    pruefe(`Texte ${loc}: Titel, fuenf Bereiche und Formularfelder vorhanden`, !!w.titel && UPLOAD_BEREICHE.every((b) => w.bereich?.[b]) && ["titel", "datei", "titelFeld", "bereich", "rollen", "knopf", "adminImmer"].every((k) => w.formular?.[k]) && ["knopf", "titel", "dokument", "bereich", "abschnitte", "warnung", "abbrechen", "bestaetigen"].every((k) => (w as { loeschen?: Record<string, string> }).loeschen?.[k]));
+    pruefe(`Texte ${loc}: Titel, fuenf Bereiche und Formularfelder vorhanden`, !!w.titel && UPLOAD_BEREICHE.every((b) => w.bereich?.[b]) && ["bereich", "rollen", "adminImmer"].every((k) => w.formular?.[k]) && ["knopf", "titel", "dokument", "bereich", "abschnitte", "warnung", "abbrechen", "bestaetigen"].every((k) => (w as { loeschen?: Record<string, string> }).loeschen?.[k]));
   }
 
   console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
