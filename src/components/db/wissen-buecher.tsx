@@ -9,6 +9,7 @@ import { wissenQualitaetBerechnen } from "@/lib/actions/wissen-bestandspflege";
 import { wissenOriginalPlatz } from "@/lib/actions/wissen-original";
 import { formatiereGroesse } from "@/lib/wissen/groesse";
 import { legeOriginalAb } from "@/lib/wissen/original-browser";
+import { mitWiederholung } from "@/lib/wissen/paket-wiederholung";
 import { qualitaetTon, vollstaendigkeitsFaktor } from "@/lib/wissen/qualitaet";
 import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import type { AktionsStatus } from "@/lib/actions/status";
@@ -61,6 +62,8 @@ interface Eintrag {
   original: "ok" | string | null;
   /** Fortschritt des Originals in Prozent, solange es hochgeladen wird. */
   originalProzent: number | null;
+  /** Wie oft das aktuelle Paket erneut gesendet wird (0 = erster Versuch). */
+  versuch: number;
   fehler: string | null;
   text: string | null;
   hash: string | null;
@@ -209,6 +212,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       qualitaet: null,
       original: null,
       originalProzent: null,
+      versuch: 0,
       fehler: null,
       text: null,
       hash: null,
@@ -265,7 +269,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       ? l.vonGedruckt === l.bisGedruckt
         ? t("seiten.stelleEinzeln", { von: l.vonGedruckt, pdf: l.nachPdfSeite })
         : t("seiten.stelleMehrere", { von: l.vonGedruckt, bis: l.bisGedruckt, pdf: l.nachPdfSeite })
-      : t("seiten.stelleUngefaehr", { anzahl: l.anzahl, von: l.vonGedruckt, bis: l.bisGedruckt, pdf: l.nachPdfSeite });
+      : t("seiten.stelleUngefaehr", { anzahl: l.anzahl, von: l.vonGedruckt, bis: l.bisGedruckt, pdf: l.nachPdfSeite, pdfBis: l.bisPdfSeite ?? l.nachPdfSeite });
 
   const eintragOk = (e: Eintrag): boolean => {
     if (e.schritt !== "bereit" || !e.guete || e.guete.note === "schlecht" || !e.hash || !e.text) return false;
@@ -281,7 +285,18 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
   const kannStarten = !laeuft && istCluster(cluster) && bereitZumLaden.length > 0 && !eintraege.some((e) => e.ki === "laeuft");
 
   // Ein Buch hochladen. Bei einem Fehler wird alles Geschriebene wieder entfernt (wissenBuchAbbrechen).
+  // Ein Buch hochladen. Ein unerwarteter Fehler (zum Beispiel ein Netzabbruch) beendet nur dieses Buch: Es wird wieder entfernt, die übrigen laufen weiter.
   const lade = async (eintrag: Eintrag, signal: AbortSignal) => {
+    try {
+      await ladeBuch(eintrag, signal);
+    } catch (fehler) {
+      console.error("[damicon] Buch hochladen unerwartet fehlgeschlagen:", fehler);
+      if (eintrag.hash) await wissenBuchAbbrechen(eintrag.hash).catch(() => undefined);
+      setze(eintrag.id, { schritt: "fehler", fehler: t("unerwartet"), versuch: 0, originalProzent: null });
+    }
+  };
+
+  const ladeBuch = async (eintrag: Eintrag, signal: AbortSignal) => {
     if (!eintrag.text || !eintrag.hash || !istQuellenart(eintrag.quellenart)) return;
     const pakete = teileInPakete(eintrag.text);
     const kopf = {
@@ -311,7 +326,17 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
         setze(eintrag.id, { schritt: "abgebrochen" });
         return;
       }
-      const antwort = await wissenBuchPaket({ ...kopf, nr: i + 1, text: pakete[i]! });
+      // Bei einem vorübergehenden Fehler (Einbettungsdienst langsam, Verbindung weg) wird dasselbe Paket bis zu zweimal erneut gesendet: Das Schreiben ist wiederholbar.
+      const antwort = await mitWiederholung(() => wissenBuchPaket({ ...kopf, nr: i + 1, text: pakete[i]! }), {
+        abbruch: signal,
+        beiNeuemVersuch: (nr) => setze(eintrag.id, { versuch: nr }),
+      });
+      setze(eintrag.id, { versuch: 0 });
+      if (signal.aborted && antwort.stand !== "ok") {
+        await wissenBuchAbbrechen(eintrag.hash);
+        setze(eintrag.id, { schritt: "abgebrochen" });
+        return;
+      }
       if (antwort.stand !== "ok") {
         await wissenBuchAbbrechen(eintrag.hash);
         setze(eintrag.id, { schritt: "fehler", fehler: `${t("paketFehler", { nr: i + 1, gesamt: pakete.length })} ${meldung(antwort)}`.trim() });
@@ -494,7 +519,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                 <p className="mt-1 text-[11px] text-muted-foreground">
                   {e.datei.name} ({(e.datei.size / 1_048_576).toFixed(1)} MB)
                   {e.schritt === "liest" && e.seiten > 0 ? ` · ${t("seite", { seite: e.seite, seiten: e.seiten })}` : ""}
-                  {e.schritt === "laedt" ? ` · ${e.paket >= e.pakete && e.pakete > 0 ? t("original.fortschritt", { prozent: e.originalProzent ?? 0 }) : t("paket", { nr: e.paket, gesamt: e.pakete })}` : ""}
+                  {e.schritt === "laedt" ? ` · ${e.versuch > 0 ? t("erneut", { nr: e.paket + 1, gesamt: e.pakete, versuch: e.versuch + 1 }) : e.paket >= e.pakete && e.pakete > 0 ? t("original.fortschritt", { prozent: e.originalProzent ?? 0 }) : t("paket", { nr: e.paket, gesamt: e.pakete })}` : ""}
                   {e.text ? ` · ${t("zeichen", { anzahl: e.text.length.toLocaleString() })}` : ""}
                 </p>
 

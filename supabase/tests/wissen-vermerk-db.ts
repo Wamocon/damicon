@@ -40,7 +40,7 @@ const anon = createClient(url, anonKey, { auth: { persistSession: false }, db: D
 const TEXT_A =
   "Qzvermerk Buch Seitenluecken Scan Nachpruefung Original Seitenzahl Kapitel Abschnitt Verzeichnis Anhang Fussnote Quellenangabe Kommentar Auslegung Rechtsprechung Gesetzgeber Begruendung Vorschrift Anwendungsbereich Ausnahme Voraussetzung Rechtsfolge";
 const TEXT_B = `${TEXT_A} ohne Luecken Gegenprobe Vollstaendig Lueckenlos`;
-const STELLEN = "48-49 (47), 2@276-278 (271)";
+const STELLEN = "48-49 (47), 2@276-278 (PDF 271-273)";
 
 async function main() {
   const { data: profile } = await dienst.from("profiles").select("id, email").in("email", ["admin@damicon.demo", "ceo@damicon.demo"]);

@@ -35,6 +35,11 @@ export interface SeitenLuecke {
   anzahl: number;
   /** true: Die fehlenden Seiten sind einzeln bekannt (von bis bis sind alle weg). false: In von bis bis fehlen `anzahl` Seiten, die uebrigen sind da. */
   genau: boolean;
+  /**
+   * Nur bei genau=false: die erste PDF-Seite NACH der Luecke mit sicher gelesener Seitenzahl. Zwischen nachPdfSeite und bisPdfSeite liegen PDF-Seiten, auf denen die
+   * Texterkennung keine Seitenzahl gelesen hat; die Luecke kann vor, zwischen oder hinter ihnen liegen. Die Angabe "nach PDF-Seite" allein waere dann falsch genau.
+   */
+  bisPdfSeite?: number;
 }
 
 export interface SeitenPruefung {
@@ -207,7 +212,7 @@ export function pruefeSeitenverlauf(seiten: readonly SeitenRand[]): SeitenPruefu
       }
     } else {
       // Nicht eindeutig: von bis bis ist der Bereich zwischen den beiden sicher gelesenen Seiten, in dem `anzahl` Seiten fehlen.
-      luecken.push({ nachPdfSeite: e.letzte, vonGedruckt: gedrL + 1, bisGedruckt: gedrE - 1, anzahl, genau: false });
+      luecken.push({ nachPdfSeite: e.letzte, vonGedruckt: gedrL + 1, bisGedruckt: gedrE - 1, anzahl, genau: false, bisPdfSeite: e.erste });
     }
   }
 
@@ -236,7 +241,7 @@ export function beschreibeLuecken(luecken: readonly SeitenLuecke[], maxStellen =
   const teile = luecken.slice(0, maxStellen).map((l) =>
     l.genau
       ? `${l.vonGedruckt === l.bisGedruckt ? l.vonGedruckt : `${l.vonGedruckt}-${l.bisGedruckt}`} (${l.nachPdfSeite})`
-      : `${l.anzahl}@${l.vonGedruckt}-${l.bisGedruckt} (${l.nachPdfSeite})`,
+      : `${l.anzahl}@${l.vonGedruckt}-${l.bisGedruckt} (PDF ${l.nachPdfSeite}-${l.bisPdfSeite ?? l.nachPdfSeite})`,
   );
   return teile.join(", ") + (luecken.length > maxStellen ? ` +${luecken.length - maxStellen}` : "");
 }
@@ -249,7 +254,7 @@ export interface SeitenAngabe {
   seiten: number;
   /** Fehlende gedruckte Seiten (Summe). */
   fehlend: number;
-  /** Wo: beschreibeLuecken(), zum Beispiel "48-49 (47), 2@276-278 (271)". */
+  /** Wo: beschreibeLuecken(), zum Beispiel "48-49 (47), 2@276-278 (PDF 271-273)". */
   stellen: string;
   /** Anteil der Seiten mit lesbarer Seitenzahl in Prozent (0 bis 100). */
   abdeckung: number;

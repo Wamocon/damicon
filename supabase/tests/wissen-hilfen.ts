@@ -8,7 +8,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PFLEGE } from "@/lib/wissen/bestandspflege";
 import { entferneNebenzeilen, NEBENTABELLEN } from "@/lib/wissen/dokument-nebenzeilen";
+import type { AktionsStatus } from "@/lib/actions/status";
 import { formatiereGroesse, GIB, KIB, MIB } from "@/lib/wissen/groesse";
+import { istVoruebergehend, mitWiederholung, WIEDERHOLUNG_WARTEZEITEN_MS } from "@/lib/wissen/paket-wiederholung";
 import { GIB as GIB_AUS_ORIGINAL, ORIGINAL_GESAMT_MAX_BYTES, ORIGINAL_MAX_BYTES, originalPfad, pruefePlatz } from "@/lib/wissen/original";
 
 let gesamt = 0;
@@ -73,6 +75,66 @@ async function main() {
   geloescht.length = 0;
   await entferneNebenzeilen(baueClient(), "legal/Legal/x/y.md");
   pruefe("Nebenzeilen: für eine Skript-Quelle (kein Upload) gibt es kein Original, die Tabellen werden trotzdem bereinigt", geloescht.filter((g) => g.startsWith("wissen_original")).length === 0 || geloescht.length >= 2);
+
+  // ---- Wiederholung eines Pakets (paket-wiederholung.ts) -------------------------------------------------------------------------------
+  const ok: AktionsStatus = { stand: "ok", wert: "64" };
+  const fehlerStatus = (meldung: string): AktionsStatus => ({ stand: "fehler", meldung });
+  const sofort = async () => undefined; // keine echte Wartezeit im Test
+  const folge = (antworten: (AktionsStatus | Error)[]) => {
+    let n = 0;
+    return { aufrufe: () => n, versuch: async () => { const a = antworten[Math.min(n++, antworten.length - 1)]!; if (a instanceof Error) throw a; return a; } };
+  };
+  pruefe("Wiederholung: Einbettung, Zeit, Speichern und Unbekanntes sind vorübergehend, Eingabe, leer, zu groß, Dublette nicht", ["fehler.wissenEinbettung", "fehler.wissenZeit", "fehler.wissenSpeichern", "fehler.unbekannt"].every((m) => istVoruebergehend(fehlerStatus(m))) && ["fehler.eingabe", "fehler.wissenLeer", "fehler.zuGross", "fehler.wissenDoppelt", "fehler.berechtigung", "fehler.wissenVorschau"].every((m) => !istVoruebergehend(fehlerStatus(m))) && !istVoruebergehend(ok));
+  pruefe("Wiederholung: höchstens zwei erneute Versuche, die Wartezeiten wachsen", WIEDERHOLUNG_WARTEZEITEN_MS.length === 2 && WIEDERHOLUNG_WARTEZEITEN_MS[1]! > WIEDERHOLUNG_WARTEZEITEN_MS[0]!);
+  {
+    const f = folge([ok]);
+    const r = await mitWiederholung(f.versuch, { warte: sofort });
+    pruefe("Wiederholung: klappt es sofort, bleibt es bei einem Aufruf", r.stand === "ok" && f.aufrufe() === 1);
+  }
+  {
+    const f = folge([fehlerStatus("fehler.wissenEinbettung"), ok]);
+    const nummern: number[] = [];
+    const r = await mitWiederholung(f.versuch, { warte: sofort, beiNeuemVersuch: (n) => nummern.push(n) });
+    pruefe("Wiederholung: ein vorübergehender Fehler wird beim zweiten Versuch geheilt, die Oberfläche erfährt davon", r.stand === "ok" && r.wert === "64" && f.aufrufe() === 2 && nummern.join() === "1");
+  }
+  {
+    const f = folge([fehlerStatus("fehler.wissenZeit")]);
+    const nummern: number[] = [];
+    const r = await mitWiederholung(f.versuch, { warte: sofort, beiNeuemVersuch: (n) => nummern.push(n) });
+    pruefe("Wiederholung: bleibt der Fehler, gibt es genau drei Versuche und das letzte Ergebnis kommt zurück", r.stand === "fehler" && r.meldung === "fehler.wissenZeit" && f.aufrufe() === 3 && nummern.join() === "1,2");
+  }
+  {
+    const f = folge([fehlerStatus("fehler.eingabe"), ok]);
+    const r = await mitWiederholung(f.versuch, { warte: sofort });
+    pruefe("Wiederholung: ein dauerhafter Fehler wird nie wiederholt", r.stand === "fehler" && r.meldung === "fehler.eingabe" && f.aufrufe() === 1);
+  }
+  {
+    const f = folge([new Error("Failed to fetch"), ok]);
+    const r = await mitWiederholung(f.versuch, { warte: sofort });
+    pruefe("Wiederholung: eine Ausnahme (Netzabbruch) zählt als vorübergehend und wird wiederholt", r.stand === "ok" && f.aufrufe() === 2);
+  }
+  {
+    const f = folge([new Error("Failed to fetch")]);
+    const r = await mitWiederholung(f.versuch, { warte: sofort });
+    pruefe("Wiederholung: bleibt die Ausnahme, kommt ein Fehlerstatus statt einer Ausnahme zurück", r.stand === "fehler" && r.meldung === "fehler.unbekannt" && f.aufrufe() === 3);
+  }
+  {
+    const steuerung = new AbortController();
+    const f = folge([fehlerStatus("fehler.wissenEinbettung"), ok]);
+    const r = await mitWiederholung(f.versuch, { abbruch: steuerung.signal, warte: async () => { steuerung.abort(); } });
+    pruefe("Wiederholung: ein Abbruch während der Wartezeit beendet sofort, ohne weiteren Versuch", r.stand === "fehler" && f.aufrufe() === 1);
+    const schon = new AbortController();
+    schon.abort();
+    const g = folge([fehlerStatus("fehler.wissenEinbettung"), ok]);
+    const r2 = await mitWiederholung(g.versuch, { abbruch: schon.signal, warte: sofort });
+    pruefe("Wiederholung: ist schon abgebrochen, gibt es keinen erneuten Versuch", r2.stand === "fehler" && g.aufrufe() === 1);
+  }
+  {
+    const echt = Date.now();
+    const f = folge([fehlerStatus("fehler.wissenEinbettung"), ok]);
+    const r = await mitWiederholung(f.versuch, { wartezeiten: [30, 30] });
+    pruefe("Wiederholung: mit der echten Wartefunktion wird kurz gewartet und dann erneut gesendet", r.stand === "ok" && f.aufrufe() === 2 && Date.now() - echt >= 25);
+  }
 
   console.log(`\n${gesamt - fehler}/${gesamt} bestanden`);
   process.exit(fehler > 0 ? 1 : 0);

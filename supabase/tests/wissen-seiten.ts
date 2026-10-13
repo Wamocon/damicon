@@ -181,7 +181,32 @@ function ohne(n: number, fehlen: readonly number[]): number[] {
   const g = alsSeitenAngabe(p, { artikel: 100, kleinste: 1, groesste: 100, luecken: [[85, 89]], fehlend: 5 });
   pruefe("Angabe: Artikelhinweis nur, wenn mitgegeben", g.artikelFehlend === 5 && g.artikelStellen === "85-89");
   const lang = alsSeitenAngabe({ ...p, luecken: Array.from({ length: 200 }, (_, i) => ({ nachPdfSeite: i, vonGedruckt: i * 10, bisGedruckt: i * 10 + 1, anzahl: 2, genau: true })) }, null);
-  pruefe("Angabe: die Stellenangabe bleibt kurz (höchstens 400 Zeichen)", lang.stellen.length <= 400 && /^[0-9@(),+\-\s]*$/.test(lang.stellen), String(lang.stellen.length));
+  pruefe("Angabe: die Stellenangabe bleibt kurz (höchstens 400 Zeichen)", lang.stellen.length <= 400 && /^[0-9@(),+\-\sPDF]*$/.test(lang.stellen), String(lang.stellen.length));
+}
+
+// ---- Lücke mit einer Seite ohne lesbare Zahl (Buchhalter-Nachschlagewerk, 13.10.2026) ---------------------------
+// Die Texterkennung las auf einer Seite zwischen den sicheren Stellen keine Zahl (im Bild stand sie). Die Anzahl der fehlenden Seiten ist sicher, die Lage
+// nur ein Bereich: Die Angabe darf dann nicht "nach PDF-Seite X" behaupten, sondern nennt die PDF-Seiten, in denen die Lücke liegt.
+{
+  // PDF-Seite 1 bis 104 tragen 1 bis 104, PDF-Seite 105 hat keine lesbare Zahl, PDF-Seite 106 trägt 108: Zwei Seiten fehlen irgendwo zwischen 105 und 107.
+  const fortsetzung = Array.from({ length: 33 }, (_, i) => 108 + i);
+  const p = pruefeSeitenverlauf(buch([...ohne(104, []), null, ...fortsetzung]));
+  const l = p.luecken[0];
+  pruefe("Unscharfe Lücke: die Anzahl ist sicher (2), die Lage ein Bereich (genau false)", p.fehlend === 2 && p.luecken.length === 1 && l?.anzahl === 2 && l.genau === false, JSON.stringify(l));
+  pruefe("Unscharfe Lücke: gedruckter Bereich 105 bis 107", l?.vonGedruckt === 105 && l.bisGedruckt === 107, JSON.stringify(l));
+  pruefe("Unscharfe Lücke: die PDF-Seiten von der letzten sicheren bis zur nächsten sicheren (104 bis 106), nicht nur \"danach\"", l?.nachPdfSeite === 104 && l.bisPdfSeite === 106, JSON.stringify(l));
+  pruefe("Unscharfe Lücke: die Kurzform nennt den PDF-Bereich", beschreibeLuecken(p.luecken) === "2@105-107 (PDF 104-106)", beschreibeLuecken(p.luecken));
+  pruefe("Unscharfe Lücke: die Kurzform für den Server enthält denselben Text", alsSeitenAngabe(p, null).stellen === "2@105-107 (PDF 104-106)");
+
+  // Gegenprobe: Ist die Zahl auf der Seite dazwischen lesbar (105), ist die Lücke genau (106 und 107) und trägt kein bisPdfSeite
+  const genau = pruefeSeitenverlauf(buch([...ohne(104, []), 105, ...fortsetzung]));
+  pruefe("Gegenprobe: mit lesbarer Zahl auf der Seite dazwischen ist die Lücke genau (106 und 107)", genau.luecken.length === 1 && genau.luecken[0]?.genau === true && genau.luecken[0]?.vonGedruckt === 106 && genau.luecken[0]?.bisGedruckt === 107 && genau.luecken[0]?.bisPdfSeite === undefined, JSON.stringify(genau.luecken));
+
+  // Wie im echten Buch: eine unscharfe Stelle, später eine genaue; jede unscharfe trägt ihren Bereich, die genaue nicht
+  const gemischt = pruefeSeitenverlauf(buch([...ohne(104, []), null, ...Array.from({ length: 12 }, (_, i) => 108 + i), ...Array.from({ length: 30 }, (_, i) => 122 + i)]));
+  const unscharf = gemischt.luecken.filter((x) => !x.genau);
+  pruefe("Gemischt: die unscharfe Lücke trägt ihren PDF-Bereich", unscharf.length === 1 && unscharf[0]?.bisPdfSeite === 106, JSON.stringify(gemischt.luecken));
+  pruefe("Gemischt: ein späterer Sprung ohne Zwischenseite bleibt genau (120 und 121)", gemischt.luecken.some((x) => x.genau && x.vonGedruckt === 120 && x.bisGedruckt === 121 && x.bisPdfSeite === undefined), JSON.stringify(gemischt.luecken));
 }
 
 console.log(`\n${gesamt - fehler}/${gesamt} bestanden`);

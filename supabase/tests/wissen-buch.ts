@@ -355,7 +355,7 @@ async function rest() {
 
   // ---- Seitenverlauf: die Angabe aus dem Browser wird geprueft, abgelegt und als Hinweis gemeldet ----------------
   {
-    const angabe = { seiten: 681, fehlend: 18, stellen: "48-49 (47), 2@276-278 (271)", abdeckung: 72, artikelFehlend: 48, artikelStellen: "85-89, 100" };
+    const angabe = { seiten: 681, fehlend: 18, stellen: "48-49 (47), 2@276-278 (PDF 271-273)", abdeckung: 72, artikelFehlend: 48, artikelStellen: "85-89, 100" };
     const f = (teil: unknown) => fehlerCode(() => pruefeBuchKopf({ ...kopf, seiten: teil as never }, ich, JETZT()));
     pruefe("Seitenverlauf: eine gültige Angabe wird übernommen", pruefeBuchKopf({ ...kopf, seiten: angabe }, ich, JETZT()).meta.seiten?.fehlend === 18);
     pruefe("Seitenverlauf: ohne Angabe bleibt das Feld leer (Markdown, Text)", pruefeBuchKopf(kopf, ich, JETZT()).meta.seiten === undefined);
@@ -371,7 +371,15 @@ async function rest() {
     const z = [...s.zeilen.values()];
     pruefe("Seitenverlauf: fehlende Seiten stufen die Güte auf prüfen herauf und melden den Hinweis", z.length > 0 && z.every((r) => r.extra.guete === "pruefen" && String(r.extra.guete_hinweise).split(",").includes("seitenLuecken")));
     const sp = z[0]!.extra.seiten_pruefung as { fehlend: number; stellen: string; artikel_fehlend: number } | undefined;
-    pruefe("Seitenverlauf: die Angabe liegt an jeder Zeile", z.every((r) => (r.extra.seiten_pruefung as { fehlend?: number } | undefined)?.fehlend === 18) && sp?.stellen === "48-49 (47), 2@276-278 (271)" && sp?.artikel_fehlend === 48);
+    // Die Angabe der Stellen: das feste Wort PDF ist erlaubt (unscharfe Lücke), sonst keine Buchstaben und keine Zeichen für Markup
+    const stelle = async (stellen: string, artikelStellen?: string) => {
+      const k = { ...kopf, seiten: { seiten: 100, fehlend: 2, stellen, abdeckung: 90, ...(artikelStellen !== undefined ? { artikelFehlend: 1, artikelStellen } : {}) } };
+      return fehlerCode(() => Promise.resolve(pruefeBuchKopf(k, ich, new Date())));
+    };
+    pruefe("Stellen: die unscharfe Schreibweise mit PDF wird angenommen", (await stelle("2@105-107 (PDF 106-108)")) === null && (await stelle("48-49 (47), 2@105-107 (PDF 106-108), 120-121 (117)")) === null);
+    pruefe("Stellen: andere Buchstaben und Markup werden abgelehnt", (await stelle("2@105-107 (Seite 106)")) === "eingabe" && (await stelle("<b>1</b>")) === "eingabe" && (await stelle("PDFx 1")) === "eingabe" && (await stelle("pdf 106")) === "eingabe");
+    pruefe("Stellen: bei den Artikeln bleibt jedes Wort verboten, auch PDF", (await stelle("48-49 (47)", "85-89, 100")) === null && (await stelle("48-49 (47)", "PDF 85")) === "eingabe");
+    pruefe("Seitenverlauf: die Angabe liegt an jeder Zeile", z.every((r) => (r.extra.seiten_pruefung as { fehlend?: number } | undefined)?.fehlend === 18) && sp?.stellen === "48-49 (47), 2@276-278 (PDF 271-273)" && sp?.artikel_fehlend === 48);
     pruefe("Seitenverlauf: der Hinweis ist ein bekannter Güte-Hinweis (die Liste zeigt ihn an)", istGueteHinweis("seitenLuecken"));
 
     const s2 = speicherNeu();

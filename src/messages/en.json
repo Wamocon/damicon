@@ -2499,7 +2499,7 @@
         "seiten": {
           "titel": "Pages are missing from the scan",
           "text": "The page sequence check at upload found {anzahl} missing printed pages: {stellen}. Please check the original to see whether content is missing or the pages are blank.",
-          "erklaerung": "Notation: printed pages from to, the PDF page before the gap in brackets. \"2@276-278 (271)\" means: about two pages are missing between printed pages 276 and 278, after PDF page 271.",
+          "erklaerung": "Notation: \"48-49 (47)\" means: printed pages 48 to 49 are missing after PDF page 47. \"2@105-107 (PDF 106-108)\" means: two pages are missing somewhere between printed pages 105 and 107, within PDF pages 106 to 108, because no page number was readable on at least one of them. Please look at these PDF pages in the original.",
           "vermerk": "Note on the missing pages (required for approval)",
           "platzhalter": "for example: Blank pages in the book",
           "vorschlag": "Blank pages in the book",
@@ -2619,7 +2619,7 @@
           "artikel": "{anzahl, plural, one {# article number is missing} other {# article numbers are missing}} in the sequence {von} to {bis}: {stellen}. Repealed articles may be among them, please check a sample.",
           "stelleEinzeln": "printed page {von} (after PDF page {pdf})",
           "stelleMehrere": "printed pages {von} to {bis} (after PDF page {pdf})",
-          "stelleUngefaehr": "{anzahl, plural, one {# page} other {# pages}} between the printed pages {von} and {bis} (after PDF page {pdf})"
+          "stelleUngefaehr": "{anzahl, plural, one {# page} other {# pages}} between the printed pages {von} and {bis}, within PDF pages {pdf} to {pdfBis} (the page number was not readable on one of them)"
         },
         "fehlerLesen": "The file could not be read. Is it a valid PDF with a text layer?",
         "start": "{anzahl, plural, one {Upload # book} other {Upload # books}}",
@@ -2655,7 +2655,9 @@
         },
         "platz": {
           "zuVoll": "The originals exceed {grenze} of storage (already waiting: {wartend}, new selection: {neu}). Please upload separately: upload and approve one part first, then the next."
-        }
+        },
+        "erneut": "Package {nr} of {gesamt}: new attempt {versuch} …",
+        "unerwartet": "An unexpected error occurred while uploading, the book was removed again. Please try again."
       },
       "guete": {
         "note": {

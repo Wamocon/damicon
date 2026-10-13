@@ -2499,7 +2499,7 @@
         "seiten": {
           "titel": "Im Scan fehlen Seiten",
           "text": "Die Seitenverlauf-Prüfung beim Hochladen hat {anzahl} fehlende gedruckte Seiten gefunden: {stellen}. Bitte am Original prüfen, ob dort Inhalt fehlt oder die Seiten leer sind.",
-          "erklaerung": "Schreibweise: gedruckte Seiten von bis, in Klammern die PDF-Seite davor. \"2@276-278 (271)\" heißt: etwa zwei Seiten fehlen zwischen den gedruckten Seiten 276 und 278, nach PDF-Seite 271.",
+          "erklaerung": "Schreibweise: \"48-49 (47)\" heißt: gedruckte Seiten 48 bis 49 fehlen nach PDF-Seite 47. \"2@105-107 (PDF 106-108)\" heißt: zwei Seiten fehlen irgendwo zwischen den gedruckten Seiten 105 und 107, und zwar in den PDF-Seiten 106 bis 108, weil auf mindestens einer davon keine Seitenzahl lesbar war. Bitte diese PDF-Seiten am Original ansehen.",
           "vermerk": "Vermerk zu den fehlenden Seiten (Pflicht für die Freigabe)",
           "platzhalter": "zum Beispiel: Leere Seiten im Buch",
           "vorschlag": "Leere Seiten im Buch",
@@ -2619,7 +2619,7 @@
           "artikel": "{anzahl, plural, one {Es fehlt # Artikelnummer} other {Es fehlen # Artikelnummern}} in der Folge {von} bis {bis}: {stellen}. Aufgehobene Artikel können dabei sein, bitte stichprobenartig prüfen.",
           "stelleEinzeln": "gedruckte Seite {von} (nach PDF-Seite {pdf})",
           "stelleMehrere": "gedruckte Seiten {von} bis {bis} (nach PDF-Seite {pdf})",
-          "stelleUngefaehr": "{anzahl, plural, one {# Seite} other {# Seiten}} zwischen den gedruckten Seiten {von} und {bis} (nach PDF-Seite {pdf})"
+          "stelleUngefaehr": "{anzahl, plural, one {# Seite} other {# Seiten}} zwischen den gedruckten Seiten {von} und {bis}, in den PDF-Seiten {pdf} bis {pdfBis} (auf einer dieser Seiten war die Seitenzahl nicht lesbar)"
         },
         "fehlerLesen": "Die Datei konnte nicht gelesen werden. Ist es eine gültige PDF mit Textebene?",
         "start": "{anzahl, plural, one {# Buch hochladen} other {# Bücher hochladen}}",
@@ -2655,7 +2655,9 @@
         },
         "platz": {
           "zuVoll": "Die Originale überschreiten {grenze} Speicher (bereits wartend: {wartend}, neue Auswahl: {neu}). Bitte getrennt hochladen: erst einen Teil hochladen und freigeben, dann den nächsten."
-        }
+        },
+        "erneut": "Paket {nr} von {gesamt}: neuer Versuch {versuch} …",
+        "unerwartet": "Beim Hochladen ist ein unerwarteter Fehler aufgetreten, das Buch wurde wieder entfernt. Bitte erneut versuchen."
       },
       "guete": {
         "note": {

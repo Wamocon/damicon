@@ -78,14 +78,17 @@ export interface BuchBasis {
   quelleId: string;
 }
 
+// Stellen der fehlenden Seiten und Artikel: Ziffern und Trennzeichen. In der Angabe der SEITEN steht bei einer unscharfen Lücke zusätzlich das feste Wort PDF
+// ("2@105-107 (PDF 106-108)", seitenverlauf.ts), sonst kein Buchstabe. Die Angabe der Artikel bleibt streng.
 const STELLEN_ZEICHEN = /^[0-9@(),+\-\s]*$/;
+const SEITEN_STELLEN_ZEICHEN = /^(?:[0-9@(),+\-\s]|PDF)*$/;
 
 /** Prueft die Angabe zum Seitenverlauf aus dem Browser: nur Zahlen und kurze Zeichenketten aus Ziffern und Trennzeichen, nichts anderes wird gespeichert. */
 function pruefeSeitenAngabe(a: SeitenAngabe | undefined): SeitenAngabe | undefined {
   if (a === undefined || a === null) return undefined;
   const zahl = (x: unknown, max: number): x is number => typeof x === "number" && Number.isInteger(x) && x >= 0 && x <= max;
-  const text = (x: unknown): x is string => typeof x === "string" && x.length <= MAX_STELLEN && STELLEN_ZEICHEN.test(x);
-  if (typeof a !== "object" || !zahl(a.seiten, 100_000) || !zahl(a.fehlend, a.seiten) || !zahl(a.abdeckung, 100) || !text(a.stellen)) throw new UploadFehler("eingabe");
+  const text = (x: unknown, erlaubt: RegExp = STELLEN_ZEICHEN): x is string => typeof x === "string" && x.length <= MAX_STELLEN && erlaubt.test(x);
+  if (typeof a !== "object" || !zahl(a.seiten, 100_000) || !zahl(a.fehlend, a.seiten) || !zahl(a.abdeckung, 100) || !text(a.stellen, SEITEN_STELLEN_ZEICHEN)) throw new UploadFehler("eingabe");
   if (a.artikelFehlend !== undefined && (!zahl(a.artikelFehlend, 10_000) || !text(a.artikelStellen ?? ""))) throw new UploadFehler("eingabe");
   return {
     seiten: a.seiten,
