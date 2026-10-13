@@ -23,7 +23,8 @@
 //      (on conflict do nothing). Ist die Person, die vermerkt hat, in public unbekannt, bleibt vermerkt_von leer; der Vermerk selbst kommt trotzdem mit.
 //      Die Original-PDF kommt nie mit: Sie lebt nur bis zur Freigabe (original.ts). Fehlt eine der Tabellen (aelterer Stand), wird sie uebergangen.
 //   5. Eine quelle_id, die in public schon vorkommt (zum Beispiel ein angefangenes Buch), und eine Freigabe durch eine Person, die in
-//      public.profiles nicht vorkommt (Fremdschluessel geprueft_von), werden nicht uebernommen, sondern gemeldet.
+//      public.profiles nicht vorkommt (Fremdschluessel geprueft_von), werden nicht uebernommen, sondern gemeldet. Als "vorkommt" gilt dieselbe id oder ein Profil
+//      mit derselben E-Mail-Adresse (Konto mit je einem eigenen Profil in public und public_preview); die Pruefenden werden dann auf die id in public umgesetzt.
 //
 // Aufruf:  node scripts/wissen-abgleich.mjs --linked|--local|--db-url <url> [--anwenden] [--max <Dokumente je Schritt, 5>]
 // Ohne --anwenden wird nur gezeigt, was geschehen WUERDE (Trockenlauf). Lesender Zugriff genuegt dafuer.
@@ -37,6 +38,16 @@ const ZIEL = "public.wissen_chunks";
 const GRABSTEINE = "public.wissen_entfernt";
 
 /** Prueft, dass beide Schemas die Tabellen haben. */
+/**
+ * Die Person in public: dieselbe id, sonst das Profil mit derselben E-Mail-Adresse (null, wenn es keines gibt). Warum: Ein Konto kann in public und in
+ * public_preview je ein eigenes Profil mit verschiedener id haben (Fund 13.10.2026: admin2@damicon.demo, alle 20 Buecher waeren sonst uebersprungen
+ * worden). Dieselbe E-Mail-Adresse ist dieselbe Person; ohne Adresse (null) gibt es keine Zuordnung.
+ */
+const PROFIL_IN_PUBLIC = (ausdruck) =>
+  `(select coalesce((select pr.id from public.profiles pr where pr.id = ${ausdruck}), (select pr.id from public.profiles pr join public_preview.profiles pp on lower(pp.email) = lower(pr.email) where pp.id = ${ausdruck} order by pr.id limit 1)))`;
+/** Pruefende Person fehlt oder ist in public bekannt (auch ueber die E-Mail-Adresse). */
+const PRUEFER_BEKANNT = (alias) => `(${alias}.geprueft_von is null or ${PROFIL_IN_PUBLIC(`${alias}.geprueft_von`)} is not null)`;
+
 export const SQL_VORAUSSETZUNG = `
 select to_regclass('${QUELLE}') is not null as quelle, to_regclass('${ZIEL}') is not null as ziel,
        to_regclass('public_preview.wissen_begriffe') is not null as quelle_b, to_regclass('public.wissen_begriffe') is not null as ziel_b,
@@ -53,11 +64,11 @@ with kandidaten as (
 ), neu as (
   select k.* from kandidaten k
   where (k.quelle_id is null or not exists (select 1 from ${ZIEL} c where c.quelle_id = k.quelle_id))
-    and (k.geprueft_von is null or exists (select 1 from public.profiles pr where pr.id = k.geprueft_von))
+    and ${PRUEFER_BEKANNT("k")}
 ), uebersprungen as (
   select k.* from kandidaten k
   where (k.quelle_id is not null and exists (select 1 from ${ZIEL} c where c.quelle_id = k.quelle_id))
-     or (k.geprueft_von is not null and not exists (select 1 from public.profiles pr where pr.id = k.geprueft_von))
+     or (k.geprueft_von is not null and ${PROFIL_IN_PUBLIC("k.geprueft_von")} is null)
 )
 select 'neu' as art, coalesce(quelle_id, '(ohne quelle_id)') as quelle_id, max(titel) as titel, count(*)::int as zeilen,
        bool_or(extra ->> 'quelle' = 'upload') as upload
@@ -105,6 +116,7 @@ begin
   select string_agg(format('%I', a.attname), ', ' order by a.attnum),
          string_agg(case a.attname
                       when 'pruefstatus' then 'case when p.extra ->> ''quelle'' = ''upload'' then ''ungeprueft'' else p.pruefstatus end'
+                      when 'geprueft_von' then '${PROFIL_IN_PUBLIC("p.geprueft_von")}'
                       else format('p.%I', a.attname)
                     end, ', ' order by a.attnum)
     into spalten, auswahl
@@ -122,14 +134,14 @@ begin
        and not exists (select 1 from ${ZIEL} c where c.id = p.id)
        and not exists (select 1 from ${GRABSTEINE} e where e.quelle_id = p.quelle_id)
        and (p.quelle_id is null or not exists (select 1 from ${ZIEL} c where c.quelle_id = p.quelle_id))
-       and (p.geprueft_von is null or exists (select 1 from public.profiles pr where pr.id = p.geprueft_von))
+       and ${PRUEFER_BEKANNT("p")}
        and (p.quelle_id is null or p.quelle_id in (
              select q.quelle_id from (
                select distinct p2.quelle_id from ${QUELLE} p2
                 where p2.pruefstatus = 'freigegeben' and p2.quelle_id is not null
                   and not exists (select 1 from ${ZIEL} c2 where c2.quelle_id = p2.quelle_id)
                   and not exists (select 1 from ${GRABSTEINE} e2 where e2.quelle_id = p2.quelle_id)
-                  and (p2.geprueft_von is null or exists (select 1 from public.profiles pr2 where pr2.id = p2.geprueft_von))
+                  and ${PRUEFER_BEKANNT("p2")}
                 order by p2.quelle_id limit ${max}) q));
   select count(*) into zeilen_neu from _wissen_neu;
   if zeilen_neu = 0 then
@@ -162,7 +174,7 @@ begin
   if to_regclass('public_preview.wissen_seiten_vermerk') is not null and to_regclass('public.wissen_seiten_vermerk') is not null then
     insert into public.wissen_seiten_vermerk (quelle_id, vermerk, bestaetigte_seiten, fehlende_seiten, vermerkt_von, vermerkt_am)
     select v.quelle_id, v.vermerk, v.bestaetigte_seiten, v.fehlende_seiten,
-           case when exists (select 1 from public.profiles pr where pr.id = v.vermerkt_von) then v.vermerkt_von end,
+           ${PROFIL_IN_PUBLIC("v.vermerkt_von")},
            v.vermerkt_am
       from public_preview.wissen_seiten_vermerk v
      where v.quelle_id in (select c.quelle_id from ${ZIEL} c where c.id in (select id from _wissen_neu) and c.quelle_id is not null)
@@ -177,7 +189,7 @@ begin
   if to_regclass('public_preview.wissen_seiten_nachtrag') is not null and to_regclass('public.wissen_seiten_nachtrag') is not null then
     insert into public.wissen_seiten_nachtrag (quelle_id, nr, seiten, abschnitte, nachgeladen_von, nachgeladen_am)
     select t.quelle_id, t.nr, t.seiten, t.abschnitte,
-           case when exists (select 1 from public.profiles pr where pr.id = t.nachgeladen_von) then t.nachgeladen_von end,
+           ${PROFIL_IN_PUBLIC("t.nachgeladen_von")},
            t.nachgeladen_am
       from public_preview.wissen_seiten_nachtrag t
      where t.quelle_id in (select c.quelle_id from ${ZIEL} c where c.id in (select id from _wissen_neu) and c.quelle_id is not null)
