@@ -6,6 +6,7 @@ import { StatusPill } from "@/components/ui/kit";
 import { FormularKarte } from "@/components/db/formular-kit";
 import {
   wissenBestandEntfernen,
+  wissenQualitaetBerechnen,
   wissenBestandspflegeNaehe,
   wissenBestandspflegeStart,
   wissenBestandspflegeVergleich,
@@ -24,6 +25,7 @@ type Phase = "bereit" | "laeuft" | "fertig" | "fehler";
 const ARTEN: BefundArt[] = ["arbeitsdokument", "veraltet", "dublette", "abgedeckt", "wiedervorlage", "herkunft"];
 const STUFEN_TON: Record<BefundStufe, "danger" | "warning" | "info"> = { entfernen: "danger", pruefen: "warning", hinweis: "info" };
 const SCHRITT = 5; // Dokumente je Aufruf des Vektorvergleichs (muss zu NAEHE_JE_AUFRUF in der Action passen)
+const QUALITAET_SCHRITT = 3; // Dokumente je Aufruf der Qualitätsberechnung (muss zu QUALITAET_JE_AUFRUF in der Action passen)
 
 interface Vergleich {
   laedt: boolean;
@@ -32,7 +34,7 @@ interface Vergleich {
   fehler: boolean;
 }
 
-export function WissenBestandspflege({ beiFertig }: { dokumente?: readonly WissenDokumentZeile[] | null; beiFertig: () => void }) {
+export function WissenBestandspflege({ dokumente, beiFertig }: { dokumente?: readonly WissenDokumentZeile[] | null; beiFertig: () => void }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.pflege");
   // Schlüssel mit Platzhaltern, die erst zur Laufzeit feststehen (Art des Befunds): ohne die strenge Schlüsselprüfung der Übersetzung.
   const tt = t as unknown as (schluessel: string, werte?: Record<string, string | number>) => string;
@@ -51,6 +53,25 @@ export function WissenBestandspflege({ beiFertig }: { dokumente?: readonly Wisse
   const [laeuftEntfernen, setLaeuftEntfernen] = useState(false);
   const [antwort, setAntwort] = useState<EntfernenAntwort | null>(null);
   const abbruch = useRef(false);
+  // Qualität in Prozent: für Dokumente ohne Wert berechnen und ablegen (die Liste zeigt sie danach an)
+  const [qualitaet, setQualitaet] = useState<{ fertig: number; gesamt: number; laeuft: boolean } | null>(null);
+  const ohneQualitaet = (dokumente ?? []).filter((d) => d.gueteProzent === null && d.schluesselSpalte === "quelle_id" && d.chunks > 0);
+  const buttonKlasse = "inline-flex h-8 items-center rounded-lg border border-border px-3 text-xs font-semibold disabled:opacity-50";
+
+  const berechneQualitaet = async () => {
+    const ids = ohneQualitaet.map((d) => d.schluessel);
+    setQualitaet({ fertig: 0, gesamt: ids.length, laeuft: true });
+    try {
+      for (let i = 0; i < ids.length; i += QUALITAET_SCHRITT) {
+        const r = await wissenQualitaetBerechnen(ids.slice(i, i + QUALITAET_SCHRITT));
+        if (!r.zugriff) break;
+        setQualitaet({ fertig: Math.min(i + QUALITAET_SCHRITT, ids.length), gesamt: ids.length, laeuft: true });
+      }
+    } finally {
+      setQualitaet((alt) => (alt ? { ...alt, laeuft: false } : alt));
+      beiFertig();
+    }
+  };
 
   const zaehlung = zaehleBefunde(befunde);
   const sichtbar = artFilter ? befunde.filter((b) => b.befunde.some((x) => x.art === artFilter)) : befunde;
@@ -144,7 +165,6 @@ export function WissenBestandspflege({ beiFertig }: { dokumente?: readonly Wisse
   };
 
   const prozent = (x: number | undefined) => Math.round((x ?? 0) * 100);
-  const buttonKlasse = "inline-flex h-8 items-center rounded-lg border border-border px-3 text-xs font-semibold disabled:opacity-50";
 
   return (
     <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
@@ -165,6 +185,21 @@ export function WissenBestandspflege({ beiFertig }: { dokumente?: readonly Wisse
             {t("abbrechen")}
           </button>
         ) : null}
+      </div>
+
+      <div className="mt-3 space-y-1 border-t border-border pt-2">
+        <p className="text-[11px] text-muted-foreground">{t("qualitaet.hinweis", { anzahl: ohneQualitaet.length })}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" disabled={qualitaet?.laeuft === true || ohneQualitaet.length === 0} onClick={() => void berechneQualitaet()} className={buttonKlasse}>
+            {t("qualitaet.knopf")}
+          </button>
+          {qualitaet ? (
+            <span role="status" aria-live="polite" className="text-[11px] font-semibold text-card-foreground">
+              {qualitaet.laeuft ? t("qualitaet.fortschritt", { fertig: qualitaet.fertig, gesamt: qualitaet.gesamt }) : t("qualitaet.fertig", { anzahl: qualitaet.gesamt })}
+            </span>
+          ) : null}
+        </div>
+        {qualitaet?.laeuft ? <progress className="h-1.5 w-full" max={Math.max(1, qualitaet.gesamt)} value={qualitaet.fertig} aria-label={t("qualitaet.balken")} /> : null}
       </div>
 
       {phase === "laeuft" ? (

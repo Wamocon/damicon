@@ -346,7 +346,7 @@ async function rest() {
   // ---- Filter der Liste -------------------------------------------------------------------------------------
   {
     const z = (teil: Partial<WissenDokumentZeile>): WissenDokumentZeile =>
-      ({ schluessel: "k", schluesselSpalte: "quelle_id", titel: "Dokument", bereich: "legal", rollen: ["admin", "buchhaltung"], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 5, herkunft: "skript", loeschbar: false, quellenart: "fachliteratur", cluster: "buecher", textgrundlage: "original", stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], abgelaufen: false, url: null, ...teil }) as WissenDokumentZeile;
+      ({ schluessel: "k", schluesselSpalte: "quelle_id", titel: "Dokument", bereich: "legal", rollen: ["admin", "buchhaltung"], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 5, herkunft: "skript", loeschbar: false, quellenart: "fachliteratur", cluster: "buecher", textgrundlage: "original", stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], gueteProzent: null, abgelaufen: false, url: null, ...teil }) as WissenDokumentZeile;
     const gesetz = z({ schluessel: "g", titel: "Steuerkodex 2026", bereich: "steuer", quellenart: "rechtsnorm", cluster: "internet", stufe: 1 });
     const behoerde = z({ schluessel: "b", titel: "KGD Merkblatt", bereich: "amtlich", quellenart: "behoerdeninfo", cluster: "internet", stufe: 3 });
     const buch = z({ schluessel: "u", titel: "Umsatzsteuer Handbuch", bereich: "steuer", herkunft: "upload", pruefstatus: "ungeprueft" });
@@ -379,7 +379,7 @@ async function rest() {
       schluessel: "upload:abc", schluesselSpalte: "quelle_id", titel: "Buch", bereich: "steuer", rollen: ["admin"], datum: null,
       hochgeladenVon: "A", hochgeladenVonId: "a", chunks: 120, herkunft: "upload", loeschbar: true, quellenart: "fachliteratur", cluster: "buecher",
       stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "ungeprueft", pruefenBis: null, paketeGesamt: 3, paketeDa: 3, unvollstaendig: false,
-      guete: "gut", gueteHinweise: [], abgelaufen: false, url: null, textgrundlage: "original", ...teil,
+      guete: "gut", gueteHinweise: [], gueteProzent: null, abgelaufen: false, url: null, textgrundlage: "original", ...teil,
     });
     const codes = (teil: Partial<WissenDokumentZeile>) => schaetzeEin(zeile(teil)).gruende.map((g) => g.code);
     pruefe("Einschätzung: sauberes Buch wird zur Freigabe empfohlen", schaetzeEin(zeile()).empfehlung === "freigeben" && schaetzeEin(zeile()).gruende.length === 0);

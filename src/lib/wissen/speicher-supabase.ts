@@ -98,6 +98,9 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
         sparse.push(...geloescht.map((z) => String(z.sparse)));
         if (geloescht.length === 0) break;
       }
+      // Der Qualitätswert (wissen_qualitaet) gehört zum Dokument und geht mit ihm; ein Fehler, zum Beispiel vor der Migration, ändert am Löschen nichts.
+      const { error: qualitaetFehler } = await db.from("wissen_qualitaet").delete().eq("quelle_id", quelleId);
+      if (qualitaetFehler) console.error("[damicon] Qualitätswert nicht entfernt:", qualitaetFehler.message);
       return sparse;
     },
     async loescheBegriffe(indizes) {

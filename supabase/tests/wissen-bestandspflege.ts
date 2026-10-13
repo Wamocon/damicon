@@ -43,6 +43,7 @@ function dok(teil: Partial<WissenDokumentZeile> & { titel: string }): WissenDoku
     unvollstaendig: false,
     guete: null,
     gueteHinweise: [],
+    gueteProzent: null,
     abgelaufen: false,
     url: "https://example.org/quelle",
     ...teil,

@@ -13,9 +13,11 @@ import { entferneDokument, PflegeFehler } from "@/lib/wissen/bestandspflege-entf
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 import type { Einbettung } from "@/lib/wissen/embed";
 import { verarbeiteUpload } from "@/lib/wissen/hochladen";
-import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
+import { loescheHochgeladenesDokument, rechneGewichteZurueck } from "@/lib/wissen/loeschen";
 import { tokens } from "@/lib/wissen/sparse";
-import { bestandsSpeicher, ladeNaehe } from "@/lib/wissen/speicher-bestandspflege";
+import { dokumentQualitaet } from "@/lib/wissen/qualitaet";
+import { baueWissenVerwaltungWerkzeuge } from "@/lib/ai/wissen-verwaltung-werkzeug";
+import { bestandsSpeicher, berechneQualitaetFuer, ladeNaehe } from "@/lib/wissen/speicher-bestandspflege";
 import { supabaseSpeicher } from "@/lib/wissen/speicher-supabase";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -68,6 +70,8 @@ const T1 =
 const T1_VARIANTE = `${T1} Zusatz Seitenkopf Webseite`;
 const T2 =
   "Qzpflege Lebensmittelaudit Zertifizierung Lieferantenbewertung Hygiene Rueckverfolgbarkeit Schulungen Kontrollpunkte Dokumentenlenkung Korrekturmassnahmen Auditbericht Kennzahlen Schaedlingsbekaempfung Reinigungsplan Wareneingang Temperaturkontrolle Allergenmanagement Kalibrierung Wartungsplan Krisenmanagement Rueckrufverfahren Lieferantenaudit Managementbewertung interne Audits Nichtkonformitaeten Verbesserungsprozess Verantwortlichkeiten Notfallplan";
+// Eigener Text fuer das Buch mit Luecken: derselbe Inhalt wie B wuerde als Dublette auf B zeigen.
+const T_LUECKEN = `${T2} Seitenluecken Scan Fehlbestand Nachscan Kontrolle Vollstaendigkeit`;
 const T2_ZWEITE = `${T2} Nachtrag`;
 
 async function main() {
@@ -85,8 +89,13 @@ async function main() {
   const B = "test-pflege/bestand-b.md";
   const C = "test-pflege/bestand-c.md";
   const aufraeumen = async () => {
-    for (const q of [A, B, C]) await dienst.from("wissen_chunks").delete().eq("quelle_id", q);
+    // Mit Rueckrechnung der Wortgewichte (wie das Entfernen): ein blosses Loeschen liesse df und idf verschoben zurueck, und der naechste Lauf von wissen-upload-db.ts sah das als Abweichung.
+    for (const q of [A, B, C]) {
+      const sparse = await pflege.loescheDokument(q);
+      if (sparse.length > 0) await rechneGewichteZurueck(sparse, speicher);
+    }
     await dienst.from("wissen_entfernt").delete().like("quelle_id", "test-pflege/%");
+    await dienst.from("wissen_qualitaet").delete().like("quelle_id", "test-pflege/%");
     for (const q of Object.values(ids)) if (q.startsWith("upload:")) await loescheHochgeladenesDokument(q, { speicher, umgebung: {}, schema: "public" }).catch(() => undefined);
   };
   await aufraeumen();
@@ -135,6 +144,68 @@ async function main() {
     const anonGrab = await anon.from("wissen_entfernt").select("quelle_id").limit(1);
     pruefe("wissen_entfernt ist für anonyme Aufrufe gesperrt", anonGrab.error !== null || (anonGrab.data ?? []).length === 0, anonGrab.error?.message ?? "keine Daten");
 
+    // ---- Assistent: wissenBestandAnalysieren (nur lesend, gleiche Funde wie die Oberfläche) -----------------------------------------------
+    type Ausfuehren = (eingabe: unknown, optionen: unknown) => Promise<Record<string, unknown>>;
+    const werkzeug = baueWissenVerwaltungWerkzeuge("admin")!.wissenBestandAnalysieren.execute as unknown as Ausfuehren;
+    const aufruf = { toolCallId: "t", messages: [] };
+    type Funde = { dokumente: { schluessel: string; stufe: string; befunde: { art: string; mitKennung?: string }[] }[]; vergleich: { naechstesAb: number | null; gesamt: number } | null; zaehlung: { art: Record<string, number> } };
+    const schnell = (await werkzeug({}, aufruf)) as unknown as Funde;
+    pruefe("Assistent: ohne mitVergleich laufen nur die schnellen Prüfungen (kein Fund bei Dublette oder Abdeckung, vergleich ist null)", schnell.vergleich === null && !schnell.dokumente.some((x) => x.befunde.some((b) => b.art === "dublette" || b.art === "abgedeckt")));
+    let ab = 0;
+    const alleFunde = new Map<string, { art: string; mitKennung?: string }[]>();
+    for (let runde = 0; runde < 20; runde++) {
+      const r = (await werkzeug({ mitVergleich: true, ab, limit: 40 }, aufruf)) as unknown as Funde;
+      for (const x of r.dokumente) alleFunde.set(x.schluessel, [...(alleFunde.get(x.schluessel) ?? []), ...x.befunde]);
+      if (r.vergleich?.naechstesAb === null || r.vergleich === null) break;
+      ab = r.vergleich.naechstesAb;
+    }
+    pruefe("Assistent: mit mitVergleich und ab (Paging) findet er B als Dublette von C", (alleFunde.get(B) ?? []).some((b) => b.art === "dublette" && b.mitKennung === C), JSON.stringify(alleFunde.get(B)));
+    pruefe("Assistent: A ist durch das Buch abgedeckt", (alleFunde.get(A) ?? []).some((b) => b.art === "abgedeckt" && b.mitKennung === buch), JSON.stringify(alleFunde.get(A)));
+    const nurAbgedeckt = (await werkzeug({ mitVergleich: true, art: "abgedeckt", limit: 40 }, aufruf)) as unknown as Funde;
+    pruefe("Assistent: der Filter art zeigt nur diese Befundart", nurAbgedeckt.dokumente.every((x) => x.befunde.every((b) => b.art === "abgedeckt")));
+    const wortlaut = (await werkzeug({ vergleich: { dokument: A, mit: buch } }, aufruf)) as unknown as { paare?: { aehnlichkeit: number; bestand: string; gegenueber: string }[]; fehler?: string };
+    pruefe("Assistent: der Vergleich liefert Abschnittspaare im Wortlaut", (wortlaut.paare?.length ?? 0) >= 1 && (wortlaut.paare?.[0]?.bestand ?? "").includes("Mehrwertsteuer") && (wortlaut.paare?.[0]?.gegenueber ?? "").includes("Mehrwertsteuer"), JSON.stringify(wortlaut).slice(0, 200));
+    const schlecht = (await werkzeug({ vergleich: { dokument: "abcd", mit: buch } }, aufruf)) as unknown as { fehler?: string };
+    pruefe("Assistent: eine Kennung mit Steuerzeichen wird beim Vergleich abgelehnt", typeof schlecht.fehler === "string");
+    const vorherAnzahl = await speicher.zaehleChunks();
+    await werkzeug({ mitVergleich: true, limit: 40 }, aufruf);
+    pruefe("Assistent: die Prüfung verändert nichts (Zahl der Abschnitte gleich)", (await speicher.zaehleChunks()) === vorherAnzahl);
+
+    // ---- Qualität in Prozent (wissen_qualitaet, wissen_liste().guete_prozent) -------------------------------------------------------------
+    const qB = await berechneQualitaetFuer(dienst, B);
+    pruefe("Qualität: für ein Dokument mit Text wird ein Wert von 0 bis 100 berechnet", qB !== null && Number.isInteger(qB.prozent) && qB.prozent >= 0 && qB.prozent <= 100, JSON.stringify(qB));
+    const { data: qZeile } = await dienst.from("wissen_qualitaet").select("quelle_id, prozent").eq("quelle_id", B);
+    pruefe("Qualität: der Wert liegt in wissen_qualitaet", (qZeile ?? []).length === 1 && (qZeile as { prozent: number }[])[0]!.prozent === qB?.prozent);
+    await berechneQualitaetFuer(dienst, A); // wird unten mit dem Dokument entfernt
+    const qNochmal = await berechneQualitaetFuer(dienst, B);
+    const { data: qZeilen2 } = await dienst.from("wissen_qualitaet").select("quelle_id").eq("quelle_id", B);
+    pruefe("Qualität: erneutes Berechnen überschreibt (eine Zeile, gleicher Wert)", qNochmal?.prozent === qB?.prozent && (qZeilen2 ?? []).length === 1);
+    pruefe("Qualität: unbekanntes Dokument ergibt keinen Wert und schreibt nichts", (await berechneQualitaetFuer(dienst, "test-pflege/gibt-es-nicht.md")) === null && ((await dienst.from("wissen_qualitaet").select("quelle_id").eq("quelle_id", "test-pflege/gibt-es-nicht.md")).data ?? []).length === 0);
+    const liste = await dienst.rpc("wissen_liste");
+    const zeilenListe = (liste.data ?? []) as { quelle_id: string | null; guete_prozent: number | null }[];
+    pruefe("Liste: wissen_liste() liefert guete_prozent für das berechnete Dokument", zeilenListe.find((z) => z.quelle_id === B)?.guete_prozent === qB?.prozent, JSON.stringify(zeilenListe.find((z) => z.quelle_id === B)));
+    pruefe("Liste: ein Dokument ohne berechneten Wert hat null", zeilenListe.find((z) => z.quelle_id === C)?.guete_prozent === null);
+    const anonQualitaet = await anon.from("wissen_qualitaet").select("quelle_id").limit(1);
+    pruefe("wissen_qualitaet ist für anonyme Aufrufe gesperrt", anonQualitaet.error !== null || (anonQualitaet.data ?? []).length === 0, anonQualitaet.error?.message ?? "keine Daten");
+    // Buch mit fehlenden Scanseiten: der Wert sinkt um den Vollständigkeitsfaktor (extra.seiten_pruefung wird beim Hochladen mitgeschrieben)
+    const mitLuecken = await verarbeiteUpload(
+      { titel: "Pflege Buch mit Lücken", bereich: "recht", quellenart: "fachliteratur", rollen: ["admin"], dateiname: "pflege-luecken.txt", bytes: bytes(T_LUECKEN), hochgeladenVon: { id: ADMIN, name: "Test Admin" }, url: "https://beispiel.example/y" },
+      d,
+    );
+    // Die Seitenprüfung schreibt sonst der Buch-Upload in extra; hier wird sie nachgetragen (extra darf geändert werden, siehe alsBestand).
+    const { data: luckenZeilen } = await dienst.from("wissen_chunks").select("id, extra").eq("quelle_id", mitLuecken.quelleId);
+    for (const z of (luckenZeilen ?? []) as { id: string; extra: Record<string, unknown> }[]) {
+      const u = await dienst.from("wissen_chunks").update({ extra: { ...z.extra, seiten_pruefung: { seiten: 100, fehlend: 10, stellen: "1-10", abdeckung: 90 } } }).eq("id", z.id);
+      if (u.error) throw new Error(`Seitenprüfung nachtragen: ${u.error.message}`);
+    }
+    ids.luecken = mitLuecken.quelleId;
+    const qOhneLuecken = dokumentQualitaet([T_LUECKEN]);
+    const qLuecken = await berechneQualitaetFuer(dienst, mitLuecken.quelleId);
+    pruefe("Qualität: fehlende Scanseiten (10 von 100) mindern den Wert um den Faktor", qOhneLuecken !== null && qLuecken !== null && qLuecken.prozent < qOhneLuecken.prozent && Math.abs(qLuecken.prozent - qOhneLuecken.prozent * 0.5) <= 1, JSON.stringify({ qOhneLuecken, qLuecken }));
+    await loescheHochgeladenesDokument(mitLuecken.quelleId, { speicher, umgebung: {}, schema: "public" });
+    ids.luecken = "";
+    pruefe("Qualität: Löschen eines Uploads entfernt auch seinen Qualitätswert", ((await dienst.from("wissen_qualitaet").select("quelle_id").eq("quelle_id", mitLuecken.quelleId)).data ?? []).length === 0);
+
     // ---- Entfernen ------------------------------------------------------------------------------------------------------------------------
     const vorher = await speicher.zaehleChunks();
     const infoVorher = await speicher.ladeQuellenInfo(A);
@@ -146,6 +217,7 @@ async function main() {
     pruefe("Grabstein: Titel, Grund, Abschnitte und die entfernende Person stehen drin", g?.grund === "Durch Buch abgedeckt (Test)" && g?.abschnitte === infoVorher.anzahl && g?.entfernt_von === ADMIN && g?.titel === "Pflege Bestand A", JSON.stringify(g));
     const zweites = await entferneDokument(A, "noch einmal", ADMIN, dp);
     pruefe("Wiederholbar: zweites Entfernen meldet 'schon weg'", zweites.schonWeg && zweites.geloescht === 0);
+    pruefe("Entfernen: der Qualitätswert des Dokuments verschwindet mit ihm", ((await dienst.from("wissen_qualitaet").select("quelle_id").eq("quelle_id", A)).data ?? []).length === 0);
     pruefe("Andere Dokumente bleiben (B, C und das Buch)", (await speicher.ladeQuellenInfo(B)).anzahl > 0 && (await speicher.ladeQuellenInfo(C)).anzahl > 0 && (await speicher.ladeQuellenInfo(buch)).anzahl > 0);
 
     const naeheNachA = await ladeNaehe(dienst, B, 6);

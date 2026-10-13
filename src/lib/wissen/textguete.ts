@@ -23,6 +23,8 @@ export type GueteHinweis =
 export interface Guete {
   note: GueteNote;
   hinweise: GueteHinweis[];
+  /** Qualität des Textes in Prozent (0 bis 100): die Note, feiner aufgelöst. Siehe textProzent. */
+  prozent: number;
   kennzahlen: {
     zeichen: number;
     woerter: number;
@@ -36,6 +38,8 @@ export interface Guete {
     ohneVokale: number;
     /** Anteil der Zeilen, die mindestens dreimal vorkommen. */
     wiederholteZeilen: number;
+    /** Anteil der Woerter, die kyrillische UND lateinische Buchstaben mischen ("Koдекс"): typischer OCR-Fehler bei russischem Text. */
+    gemischteWoerter: number;
   };
 }
 
@@ -87,6 +91,7 @@ export function bewerteText(text: string, ganzesDokument = true): Guete {
   for (const z of zeilen) haeufigkeit.set(z, (haeufigkeit.get(z) ?? 0) + 1);
   const wiederholt = zeilen.filter((z) => (haeufigkeit.get(z) ?? 0) >= 3).length;
 
+  const gemischt = nurBuchstabenWoerter.filter((w) => /\p{Script=Cyrillic}/u.test(w) && /\p{Script=Latin}/u.test(w)).length;
   const k = {
     zeichen: sauber.length,
     woerter: woerter.length,
@@ -96,6 +101,7 @@ export function bewerteText(text: string, ganzesDokument = true): Guete {
     mittlereWortlaenge: nurBuchstabenWoerter.length ? nurBuchstabenWoerter.reduce((s, w) => s + w.length, 0) / nurBuchstabenWoerter.length : 0,
     ohneVokale: lang.length ? ohneVokal / lang.length : 0,
     wiederholteZeilen: zeilen.length ? wiederholt / zeilen.length : 0,
+    gemischteWoerter: nurBuchstabenWoerter.length ? gemischt / nurBuchstabenWoerter.length : 0,
   };
 
   const hinweise: GueteHinweis[] = [];
@@ -131,7 +137,33 @@ export function bewerteText(text: string, ganzesDokument = true): Guete {
   // "pruefen", sobald ein Hinweis da ist, der die Suche beeintraechtigen kann. Kopf- und Fusszeilen allein sind nur ein Rauschen.
   const beeintraechtigend = hinweise.filter((h) => h !== "wiederholteZeilen" && h !== "vieleZiffern");
   const note: GueteNote = schlecht ? "schlecht" : beeintraechtigend.length > 0 ? "pruefen" : "gut";
-  return { note, hinweise, kennzahlen: k };
+  return { note, hinweise, prozent: textProzent(k, note), kennzahlen: k };
+}
+
+const zwischen = (x: number): number => Math.min(1, Math.max(0, x));
+
+/**
+ * Textqualitaet in Prozent, aus denselben Kennzahlen wie die Note, aber fein aufgeloest (95 Prozent statt "gut"). Fuenf Teile mit Gewicht:
+ *   40  Buchstabenanteil (0,5 = 0 Punkte, 0,9 und mehr = alle): Zeichensalat
+ *   20  einzelne Buchstaben als Woerter (0,2 und mehr = 0 Punkte): zerhackte Woerter
+ *   15  lange Woerter ohne Vokal (0,25 und mehr = 0 Punkte): Erkennungsfehler
+ *   10  mittlere Wortlaenge (3,5 bis 12 ist normal): zusammengeklebte oder zerhackte Woerter
+ *   15  gemischte Woerter aus kyrillischen und lateinischen Buchstaben (0,02 und mehr = 0 Punkte): typischer OCR-Fehler bei russischem Text
+ * Eine saubere OCR liegt damit bei 95 bis 99, ein Text mit Zeichensalat unter 60. Die Note setzt eine Obergrenze: "schlecht" hoechstens 59,
+ * "pruefen" hoechstens 85, damit Prozent und Note nie gegeneinander stehen. Ein Text unter 100 Zeichen (nach Abzug von Verzeichnissen) laesst sich
+ * nicht beurteilen und zaehlt als 100.
+ */
+export function textProzent(k: Guete["kennzahlen"], note: GueteNote): number {
+  if (k.zeichen < 100) return note === "schlecht" ? 59 : 100;
+  const wortlaenge = k.mittlereWortlaenge === 0 ? 1 : k.mittlereWortlaenge < 3.5 ? zwischen((k.mittlereWortlaenge - 1.5) / 2) : k.mittlereWortlaenge > 12 ? zwischen((20 - k.mittlereWortlaenge) / 8) : 1;
+  const punkte =
+    40 * zwischen((k.buchstaben - 0.5) / 0.4) +
+    20 * zwischen(1 - k.einzelbuchstaben / 0.2) +
+    15 * zwischen(1 - k.ohneVokale / 0.25) +
+    10 * wortlaenge +
+    15 * zwischen(1 - k.gemischteWoerter / 0.02);
+  const roh = Math.round(punkte);
+  return note === "schlecht" ? Math.min(roh, 59) : note === "pruefen" ? Math.min(roh, 85) : roh;
 }
 
 const RANG: Record<GueteNote, number> = { gut: 0, pruefen: 1, schlecht: 2 };

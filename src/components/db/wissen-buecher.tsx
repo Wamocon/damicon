@@ -5,6 +5,9 @@ import { useTranslations } from "next-intl";
 import { StatusPill } from "@/components/ui/kit";
 import { Auswahl, FormularKarte } from "@/components/db/formular-kit";
 import { wissenBuchAbbrechen, wissenBuchAbschliessen, wissenBuchPaket, wissenBuchStarten, wissenKiAnalyse } from "@/lib/actions/wissen";
+import { wissenQualitaetBerechnen } from "@/lib/actions/wissen-bestandspflege";
+import { qualitaetTon, vollstaendigkeitsFaktor } from "@/lib/wissen/qualitaet";
+import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import type { AktionsStatus } from "@/lib/actions/status";
 import { analysiereDokument, type Analyse } from "@/lib/wissen/analyse";
 import { fuehreZusammen, kiAuszug, type KiAntwort } from "@/lib/wissen/analyse-ki";
@@ -49,6 +52,8 @@ interface Eintrag {
   artikel: ArtikelPruefung | null;
   /** Die Administration nimmt die Luecken im Scan bewusst in Kauf. */
   trotzdem: boolean;
+  /** Qualitaet in Prozent (Text und Vollstaendigkeit), vor dem Hochladen im Browser gerechnet; null vor dem Lesen. */
+  qualitaet: number | null;
   fehler: string | null;
   text: string | null;
   hash: string | null;
@@ -151,7 +156,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       const hash = text ? await sha256Hex(text) : null;
       const analyse = analysiereDokument(text, eintrag.datei.name);
       const pakete = text ? teileInPakete(text).length : 0;
-      setEintraege((alt) => alt.map((e) => (e.id === eintrag.id ? { ...uebernimm(e, analyse), schritt: "bereit", text, guete, verlauf: seitenPruefung, artikel: artikelPruefung, trotzdem: false, hash, pakete, ki: "aus" } : e)));
+      setEintraege((alt) => alt.map((e) => (e.id === eintrag.id ? { ...uebernimm(e, analyse), schritt: "bereit", text, guete, verlauf: seitenPruefung, artikel: artikelPruefung, trotzdem: false, qualitaet: Math.round(guete.prozent * vollstaendigkeitsFaktor(seitenPruefung?.geprueft ? { seiten: seitenPruefung.seiten, fehlend: seitenPruefung.fehlend } : null)), hash, pakete, ki: "aus" } : e)));
       return text ? { id: eintrag.id, dateiname: eintrag.datei.name, text } : null;
     } catch (fehler) {
       if (signal.aborted) {
@@ -192,6 +197,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       verlauf: null,
       artikel: null,
       trotzdem: false,
+      qualitaet: null,
       fehler: null,
       text: null,
       hash: null,
@@ -304,6 +310,8 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       setze(eintrag.id, { paket: i + 1 });
     }
     const ende = await wissenBuchAbschliessen(kopf, geschrieben);
+    // Die Qualitaet aus dem gespeicherten Text berechnen und ablegen: Die Liste zeigt sie danach an. Ein Fehler ist nicht schlimm, der Knopf "Qualitaet berechnen" holt es nach.
+    if (ende.stand === "ok") await wissenQualitaetBerechnen([uploadQuelleId(eintrag.hash)]).catch(() => undefined);
     setze(eintrag.id, ende.stand === "ok" ? { schritt: "fertig" } : { schritt: "fehler", fehler: meldung(ende) });
   };
 
@@ -442,6 +450,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                     {e.guete ? (
                       <StatusPill tone={e.guete.note === "gut" ? "success" : e.guete.note === "pruefen" ? "warning" : "danger"}>{tHinweis(`note.${e.guete.note}` as never)}</StatusPill>
                     ) : null}
+                    {e.qualitaet !== null ? <StatusPill tone={qualitaetTon(e.qualitaet)}>{t("qualitaet", { prozent: e.qualitaet })}</StatusPill> : null}
                     {e.schritt !== "laedt" ? (
                       <button type="button" onClick={() => entferne(e.id)} className="text-[11px] font-semibold underline">
                         {t("entfernen")}

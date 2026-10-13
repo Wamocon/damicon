@@ -44,6 +44,8 @@ export interface WissenListeZeile {
   /** Einschaetzung der Textqualitaet (gut, pruefen, schlecht) und ihre Hinweise, durch Komma getrennt. */
   guete?: string | null;
   guete_hinweise?: string | null;
+  /** Textqualität des Dokuments in Prozent (Tabelle wissen_qualitaet, qualitaet.ts); null, solange nichts berechnet wurde. Nur aus wissen_liste(). */
+  guete_prozent?: number | null;
   /** Aus wissen_liste(): so viele Textstellen mit gleichen Listenspalten stehen fuer diese Zeile (fehlt = 1). */
   anzahl?: number | null;
 }
@@ -87,6 +89,8 @@ export interface WissenDokumentZeile {
   /** Schlechteste Note der Textqualitaet ueber alle Zeilen (nur Uploads), und die Hinweise dazu. */
   guete: GueteNote | null;
   gueteHinweise: GueteHinweis[];
+  /** Qualität in Prozent (0 bis 100), null, solange nichts berechnet wurde. */
+  gueteProzent: number | null;
   /** Freigegeben, aber die Wiedervorlage ist erreicht: wird nicht mehr gefunden, bis eine zweite Person verlaengert. */
   abgelaufen: boolean;
   url: string | null;
@@ -147,12 +151,14 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
         unvollstaendig: false,
         guete: null,
         gueteHinweise: [],
+        gueteProzent: typeof z.guete_prozent === "number" ? z.guete_prozent : null,
         abgelaufen: false,
         url: z.url ?? null,
       });
       continue;
     }
     vorhanden.chunks += anzahl;
+    if (vorhanden.gueteProzent === null && typeof z.guete_prozent === "number") vorhanden.gueteProzent = z.guete_prozent;
     vorhanden.loeschbar &&= istUploadZeile(z);
     for (const r of z.rollen ?? []) if (!vorhanden.rollen.includes(r)) vorhanden.rollen.push(r);
     if (!vorhanden.rechtsstelle && z.rechtsstelle) vorhanden.rechtsstelle = z.rechtsstelle;

@@ -7,7 +7,7 @@ import { protokolliere } from "@/lib/actions/formular-helfer";
 import { wissenDokumenteLaden } from "@/lib/actions/wissen";
 import type { DokumentNaehe } from "@/lib/wissen/bestandspflege";
 import { entferneDokument, istQuelleId, MAX_GRUND, PflegeFehler, type PflegeFehlerCode } from "@/lib/wissen/bestandspflege-entfernen";
-import { bestandsSpeicher, ladeNaehe } from "@/lib/wissen/speicher-bestandspflege";
+import { bestandsSpeicher, berechneQualitaetFuer, ladeNaehe, ladeVergleich, type VergleichPaar } from "@/lib/wissen/speicher-bestandspflege";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 
 // Bestandspflege (Administration, Seite Wissensbasis): Analysen und Entfernen nach der Prüfung. Dieselbe Berechtigung wie die übrige
@@ -20,7 +20,6 @@ import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 const NAEHE_JE_AUFRUF = 5;
 const PROBEN = 6;
 const MAX_ENTFERNEN = 50;
-const VERGLEICH_ZEICHEN = 1200;
 
 export interface PflegeStart {
   dokumente: WissenDokumentZeile[];
@@ -68,34 +67,14 @@ export async function wissenBestandspflegeNaehe(quelleIds: string[]): Promise<{ 
   }
 }
 
-export interface VergleichPaar {
-  aehnlichkeit: number;
-  bestand: string;
-  gegenueber: string;
-}
+export type { VergleichPaar };
 
 /** Die Vergleichsansicht: bis zu zwei Abschnitte des Dokuments mit dem ähnlichsten Abschnitt des anderen Dokuments, im Wortlaut. */
 export async function wissenBestandspflegeVergleich(quelleId: string, andere: string): Promise<{ paare: VergleichPaar[]; titel: string | null; fehler: boolean }> {
   if (!(await adminProfil())) return { paare: [], titel: null, fehler: true };
   if (!istQuelleId(quelleId) || !istQuelleId(andere)) return { paare: [], titel: null, fehler: true };
   try {
-    const db = createServiceRoleClient() as unknown as SupabaseClient;
-    const { zeilen } = await ladeNaehe(db, quelleId, PROBEN);
-    const beste = zeilen
-      .filter((z) => z.naechste_quelle_id === andere)
-      .sort((a, b) => Number(b.aehnlichkeit) - Number(a.aehnlichkeit))
-      .slice(0, 2);
-    if (beste.length === 0) return { paare: [], titel: null, fehler: false };
-    const ids = beste.flatMap((z) => [z.probe, z.naechster_abschnitt]);
-    const { data, error } = await db.from("wissen_chunks").select("id, text").in("id", ids);
-    if (error) throw new Error(error.message);
-    const text = new Map(((data ?? []) as unknown as { id: string; text: string }[]).map((r) => [r.id, r.text]));
-    const kurz = (t: string | undefined) => (t ?? "").replace(/\s+/g, " ").trim().slice(0, VERGLEICH_ZEICHEN);
-    return {
-      paare: beste.map((z) => ({ aehnlichkeit: Number(z.aehnlichkeit), bestand: kurz(text.get(z.probe)), gegenueber: kurz(text.get(z.naechster_abschnitt)) })),
-      titel: beste[0]?.naechster_titel ?? null,
-      fehler: false,
-    };
+    return { ...(await ladeVergleich(createServiceRoleClient() as unknown as SupabaseClient, quelleId, andere, PROBEN)), fehler: false };
   } catch (error) {
     console.error("[damicon] Bestandspflege (Vergleich) fehlgeschlagen:", error);
     return { paare: [], titel: null, fehler: true };
@@ -156,4 +135,34 @@ export async function wissenBestandEntfernen(quelleIds: string[], grund: string,
     }
   }
   return { zugriff: true, ergebnisse };
+}
+
+const QUALITAET_JE_AUFRUF = 3;
+
+export interface QualitaetErgebnis {
+  quelleId: string;
+  /** Berechnete Qualität in Prozent; null, wenn das Dokument keinen Text hat oder die Berechnung scheiterte. */
+  prozent: number | null;
+}
+
+/**
+ * Berechnet die Textqualität einiger Dokumente und legt sie ab (wissen_qualitaet), damit die Liste "Qualität 95 %" zeigen kann.
+ * Je Aufruf höchstens QUALITAET_JE_AUFRUF Dokumente (ein Buch hat über 2.000 Abschnitte); die Oberfläche ruft in Schritten auf. Verändert nur diesen
+ * abgeleiteten Wert, nie einen Text, eine Einordnung oder einen Prüfstatus.
+ */
+export async function wissenQualitaetBerechnen(quelleIds: string[]): Promise<{ ergebnisse: QualitaetErgebnis[]; zugriff: boolean }> {
+  if (!(await adminProfil())) return { ergebnisse: [], zugriff: false };
+  const ids = Array.isArray(quelleIds) ? [...new Set(quelleIds)] : [];
+  if (ids.length === 0 || ids.length > QUALITAET_JE_AUFRUF || !ids.every(istQuelleId)) return { ergebnisse: [], zugriff: true };
+  const db = createServiceRoleClient() as unknown as SupabaseClient;
+  const ergebnisse: QualitaetErgebnis[] = [];
+  for (const id of ids) {
+    try {
+      ergebnisse.push({ quelleId: id, prozent: (await berechneQualitaetFuer(db, id))?.prozent ?? null });
+    } catch (error) {
+      console.error(`[damicon] Qualität von "${id}" nicht berechnet:`, error);
+      ergebnisse.push({ quelleId: id, prozent: null });
+    }
+  }
+  return { ergebnisse, zugriff: true };
 }
