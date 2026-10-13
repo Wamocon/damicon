@@ -35,6 +35,8 @@ const id = (n) => `${P}-0000-0000-0000-${String(n).padStart(12, "0")}`;
 const A = "ab000000-0000-0000-0000-0000000000a1";
 const B = "ab000000-0000-0000-0000-0000000000b2";
 const C = "ab000000-0000-0000-0000-0000000000c3";
+const D_VORSCHAU = "ab000000-0000-0000-0000-0000000000d4"; // Konto mit eigenem Profil je Schema (verschiedene id, dieselbe E-Mail)
+const D_PUBLIC = "ab000000-0000-0000-0000-0000000000d5";
 const TEST_HASHES = [880001, 880002, 880003, 880004, 880005, 880006];
 
 const q = (sql) => abfrage(ZIEL, sql, { leerErlaubt: true });
@@ -66,6 +68,8 @@ begin
     execute format('insert into %I.profiles (id, full_name, role) values (%L, %L, ''admin''), (%L, %L, ''admin'') on conflict (id) do nothing', s, '${A}', 'Test A', '${B}', 'Test B');
   end loop;
   insert into public_preview.profiles (id, full_name, role) values ('${C}', 'Test C nur Vorschau', 'admin') on conflict (id) do nothing;
+  insert into public_preview.profiles (id, full_name, email, role) values ('${D_VORSCHAU}', 'Test D', 'abtest-d@example.invalid', 'admin') on conflict (id) do nothing;
+  insert into public.profiles (id, full_name, email, role) values ('${D_PUBLIC}', 'Test D', 'abtest-d@example.invalid', 'admin') on conflict (id) do nothing;
 
   for z in
     select * from (values
@@ -81,6 +85,7 @@ begin
       ('public_preview', '${id(8)}', 'upload:abtest-vier',   'Buch Vier neu',      '{"quelle":"upload","hochgeladen_von":"${A}"}', 'freigegeben', 'fachliteratur', 'buecher', 4, '${B}', '{880006:1,880005:1}/1000000000'),
       ('public_preview', '${id(9)}', 'upload:abtest-fuenf',  'Buch Fuenf',         '{"quelle":"upload","hochgeladen_von":"${A}"}', 'freigegeben', 'fachliteratur', 'buecher', 4, '${C}', '{880005:1}/1000000000'),
       ('public_preview', '${id(10)}', 'abtest/bestand-grab.md', 'Bestand Grabstein', '{}', 'freigegeben', null, null, 4, null, '{880001:1}/1000000000'),
+      ('public_preview', '${id(13)}', 'upload:abtest-sieben', 'Buch Sieben',        '{"quelle":"upload","hochgeladen_von":"${A}"}', 'freigegeben', 'fachliteratur', 'buecher', 4, '${D_VORSCHAU}', '{880002:1}/1000000000'),
       ('public_preview', '${id(11)}', 'upload:abtest-grab',   'Buch Grabstein',     '{"quelle":"upload","hochgeladen_von":"${A}"}', 'freigegeben', 'fachliteratur', 'buecher', 4, '${B}', '{880003:1}/1000000000')
     ) as v(schema_name, zid, quelle, titel, extra, status, art, clus, stufe, geprueft, sparse_text)
   loop
@@ -152,6 +157,8 @@ try {
   pruefe("Buch Eins: Einordnung mitgekommen", byId.get(id(3))?.quellenart === "fachliteratur" && byId.get(id(3))?.cluster === "buecher");
   pruefe("Ungeprueftes und abgelehntes Buch bleiben in der Vorschau", !byId.has(id(5)) && !byId.has(id(6)));
   pruefe("Angefangenes Buch (quelle_id schon in public) und unbekannte pruefende Person werden nicht uebernommen", !byId.has(id(8)) && !byId.has(id(9)));
+  const sieben = q(`select geprueft_von::text as von, pruefstatus from public.wissen_chunks where id = '${id(13)}'`)[0];
+  pruefe("Pruefende Person mit anderer id, aber derselben E-Mail in public: Buch Sieben wird uebernommen, freigegeben, mit der id aus public", sieben?.von === D_PUBLIC && sieben?.pruefstatus === "freigegeben", JSON.stringify(sieben));
   pruefe("Angefangenes Buch in public bleibt unveraendert", byId.get(id(7))?.pruefstatus === "ungeprueft");
   pruefe("Grabsteine: ein entferntes Bestandsdokument und ein entferntes Buch kommen nicht aus der Vorschau zurueck", !byId.has(id(10)) && !byId.has(id(11)));
   pruefe("Einordnung nachgezogen (Bestand A)", byId.get(id(1))?.quellenart === "rechtsnorm" && byId.get(id(1))?.cluster === "internet" && Number(byId.get(id(1))?.autoritaetsstufe) === 1);
