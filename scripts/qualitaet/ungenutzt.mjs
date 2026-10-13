@@ -7,6 +7,8 @@ const R = process.cwd().split("\\").join("/") + "/";
 const alle = execSync("git ls-files src supabase/tests scripts e2e", { cwd: R, encoding: "utf8" }).split("\n").filter((f) => /\.(tsx?|mjs|js)$/.test(f));
 const quellen = alle.filter((f) => f.startsWith("src/"));
 const inhalt = new Map(alle.map((f) => [f, readFileSync(R + f, "utf8")]));
+/** Text wörtlich in einen regulären Ausdruck einsetzen (Punkt im Dateinamen, $ im Bezeichner). */
+const woertlich = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const NEXT = new Set(["default", "metadata", "generateMetadata", "generateStaticParams", "viewport", "dynamic", "revalidate", "runtime", "maxDuration", "GET", "POST", "PUT", "PATCH", "DELETE", "config", "middleware", "proxy", "alt", "size", "contentType", "fetchCache", "preferredRegion"]);
 
 // Index: Wort -> Dateien
@@ -24,7 +26,7 @@ for (const f of quellen) {
     if (NEXT.has(n)) continue;
     const anderswo = [...woerterJeDatei].some(([g, w]) => g !== f && w.has(n));
     if (anderswo) continue;
-    const intern = (t.match(new RegExp(`\\b${n.replace(/\$/g, "\\$")}\\b`, "g")) ?? []).length > 1;
+    const intern = (t.match(new RegExp(`\\b${woertlich(n)}\\b`, "g")) ?? []).length > 1;
     (intern ? nurIntern : ungenutzt).push(`${f}  ${n}`);
   }
 }
@@ -35,7 +37,7 @@ for (const f of quellen) {
   if (/\/(page|layout|route|loading|error|not-found|template|default|opengraph-image|icon|manifest|sitemap|robots|global-error)\.(tsx?|js)$/.test(f) || /src\/(middleware|proxy|instrumentation)\./.test(f)) continue;
   const basis = f.replace(/^src\//, "@/").replace(/\.(tsx?|mjs|js)$/, "").replace(/\/index$/, "");
   const name = f.split("/").pop().replace(/\.(tsx?|mjs|js)$/, "");
-  const benutzt = [...inhalt].some(([g, t]) => g !== f && (t.includes(`"${basis}"`) || t.includes(`'${basis}'`) || new RegExp(`from ["']\\.{1,2}/[^"']*\\b${name}["']`).test(t) || t.includes(`/${name}"`) || t.includes(`import("${basis}")`)));
+  const benutzt = [...inhalt].some(([g, t]) => g !== f && (t.includes(`"${basis}"`) || t.includes(`'${basis}'`) || new RegExp(`from ["']\\.{1,2}/[^"']*\\b${woertlich(name)}["']`).test(t) || t.includes(`/${name}"`) || t.includes(`import("${basis}")`)));
   if (!benutzt) unimportiert.push(f);
 }
 
