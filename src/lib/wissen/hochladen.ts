@@ -84,6 +84,7 @@ export type UploadFehlerCode =
   | "nichtPruefbar"
   | "selbstFreigabe"
   | "unvollstaendig"
+  | "vermerkFehlt"
   | "freigeben"
   // Einordnung nachtraeglich aendern (umordnen.ts)
   | "selbstUmordnen"
@@ -407,6 +408,8 @@ export interface WissenSpeicher {
   /** Entscheidet ueber ein UNGEPRUEFTES Upload-Dokument (freigegeben oder abgelehnt). Die Anweisung filtert selbst auf
    *  Upload-Marker und pruefstatus = ungeprueft. Liefert die Zahl der Zeilen, die dieser Aufruf wirklich geaendert hat. */
   entscheide(quelleId: string, a: { status: "freigegeben" | "abgelehnt"; pruefer: string; zeitpunkt: string; pruefenBis: string | null }): Promise<number>;
+  /** Legt den Vermerk der pruefenden Person zu fehlenden Scanseiten ab (eine Zeile je Dokument, ersetzt einen frueheren). Nur vor der Freigabe eines Buchs mit Seitenluecken. */
+  legeSeitenVermerkAb?(quelleId: string, a: { vermerk: string; stellen: string | null; von: string; zeitpunkt: string }): Promise<void>;
   /** Verschiebt die Wiedervorlage eines freigegebenen Upload-Dokuments. Liefert die Zahl geaenderter Zeilen. */
   verlaengere(quelleId: string, a: { pruefer: string; zeitpunkt: string; pruefenBis: string }): Promise<number>;
   /** Der Anfang des Textes fuer die Pruefung (hoechstens `maxZeichen`), auch fuer ungepruefte Dokumente. */
@@ -428,6 +431,9 @@ export interface FreigabeInfo {
   pruefenBis: string | null;
   /** Buch-Upload: Es fehlen Pakete (die Verbindung brach ab). Ein solches Dokument laesst sich nicht freigeben. */
   unvollstaendig: boolean;
+  /** Seitenverlauf-Pruefung beim Hochladen (extra.seiten_pruefung): Zahl der fehlenden gedruckten Seiten und ihre Stellen ("48-49 (47)"). Fehlt bei Dokumenten ohne Pruefung. */
+  seitenFehlend?: number;
+  seitenStellen?: string | null;
 }
 
 export interface UploadErgebnis {

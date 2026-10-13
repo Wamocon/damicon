@@ -242,6 +242,18 @@ function WissenDokumentKarte({
               <dd className="inline">{format.dateTime(new Date(dokument.pruefenBis), { dateStyle: "medium" })}</dd>
             </div>
           ) : null}
+          {dokument.seitenFehlend > 0 ? (
+            <div className="sm:col-span-2">
+              <dt className="inline font-semibold">{t("liste.seitenFehlen")}: </dt>
+              <dd className="inline">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenFehlend, stellen: dokument.seitenStellen ?? "-" })}</dd>
+            </div>
+          ) : null}
+          {dokument.seitenVermerk ? (
+            <div className="sm:col-span-2">
+              <dt className="inline font-semibold">{t("liste.seitenVermerk")}: </dt>
+              <dd className="inline break-words">{dokument.seitenVermerk}</dd>
+            </div>
+          ) : null}
           {dokument.url ? (
             <div className="sm:col-span-2">
               <dt className="inline font-semibold">{t("liste.link")}: </dt>
@@ -476,6 +488,10 @@ function WissenPruefenKnopf({
   const zuletzt = useRef(status);
   const [vorschau, setVorschau] = useState<"laedt" | { text: string; fehler: boolean } | null>(null);
   const erneut = dokument.pruefstatus === "freigegeben";
+  // Fehlen im Scan Seiten, bestätigt die prüfende Person sie mit einem Vermerk (Pflicht für die Freigabe, nicht für das Ablehnen).
+  const [vermerk, setVermerk] = useState("");
+  const luecken = !erneut && dokument.seitenFehlend > 0;
+  const vermerkOk = !luecken || vermerk.trim().length >= 3;
 
   // Nach der Antwort (Erfolg oder Fehler): Fenster zu, Meldung und Neuladen beim Eltern-Element.
   useEffect(() => {
@@ -487,6 +503,7 @@ function WissenPruefenKnopf({
   }, [status, beiErgebnis]);
 
   const oeffnen = () => {
+    setVermerk(dokument.seitenVermerk ?? "");
     dialog.current?.showModal();
     setVorschau("laedt");
     wissenDokumentVorschau(dokument.schluessel)
@@ -569,6 +586,38 @@ function WissenPruefenKnopf({
             </div>
           </div>
           {!erneut && dokument.herkunft === "upload" ? <WissenOriginal dokument={dokument} beiGeaendert={() => beiErgebnis(leer)} /> : null}
+          {luecken ? (
+            <div role="group" aria-labelledby={`${titelId}-seiten`} className="space-y-1.5 rounded-lg border border-warning/30 bg-warning/[0.08] p-2">
+              <p id={`${titelId}-seiten`} className="text-[11px] font-semibold text-warning">
+                {t("pruefung.seiten.titel")}
+              </p>
+              <p className="break-words text-[11px]">{t("pruefung.seiten.text", { anzahl: dokument.seitenFehlend, stellen: dokument.seitenStellen ?? "-" })}</p>
+              <p className="text-[11px] text-muted-foreground">{t("pruefung.seiten.erklaerung")}</p>
+              <label className="block space-y-1">
+                <span className="text-[11px] font-semibold">{t("pruefung.seiten.vermerk")}</span>
+                <input
+                  name="seiten_vermerk"
+                  value={vermerk}
+                  maxLength={300}
+                  required
+                  aria-required="true"
+                  placeholder={t("pruefung.seiten.platzhalter")}
+                  onChange={(e) => setVermerk(e.target.value)}
+                  // Enter darf das Formular nicht abschicken: Der erste Knopf im Fenster ist "Ablehnen".
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") e.preventDefault();
+                  }}
+                  className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                />
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                <button type="button" onClick={() => setVermerk(t("pruefung.seiten.vorschlag"))} className="inline-flex h-7 items-center rounded-lg border border-border px-2 text-[11px] font-semibold">
+                  {t("pruefung.seiten.vorschlag")}
+                </button>
+                {!vermerkOk ? <span className="text-[11px] text-muted-foreground">{t("pruefung.seiten.noetig")}</span> : null}
+              </div>
+            </div>
+          ) : null}
           <p role="note" className="rounded-lg border border-warning/30 bg-warning/[0.08] p-2 text-xs font-semibold text-warning">
             {erneut ? t("pruefung.hinweisErneut") : t("pruefung.hinweis")}
           </p>
@@ -585,7 +634,7 @@ function WissenPruefenKnopf({
                 <button type="submit" name="aktion" value="ablehnen" disabled={laeuft} className={`${knopfKlasse} border-destructive/40 text-destructive`}>
                   {t("pruefung.ablehnen")}
                 </button>
-                <button type="submit" name="aktion" value="freigeben" disabled={laeuft} className={`${knopfKlasse} border-primary bg-primary text-primary-foreground`}>
+                <button type="submit" name="aktion" value="freigeben" disabled={laeuft || !vermerkOk} className={`${knopfKlasse} border-primary bg-primary text-primary-foreground`}>
                   {t("pruefung.freigeben")}
                 </button>
               </>

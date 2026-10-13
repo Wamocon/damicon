@@ -22,6 +22,9 @@ export interface FreigabeErgebnis {
   abschnitte: number;
   /** Neue Wiedervorlage (JJJJ-MM-TT) oder null, wenn die Art nie ablaeuft. */
   pruefenBis: string | null;
+  /** Fehlende Scanseiten laut Seitenverlauf-Pruefung (0 = keine bekannt) und der Vermerk, mit dem die Freigabe sie bestaetigt hat. */
+  seitenFehlend: number;
+  seitenVermerk: string | null;
 }
 
 export interface FreigabeAbhaengigkeiten {
@@ -31,6 +34,22 @@ export interface FreigabeAbhaengigkeiten {
   jetzt?: () => Date;
   umgebung?: Record<string, string | undefined>;
   schema?: string;
+  /** Vermerk der pruefenden Person zu fehlenden Scanseiten, zum Beispiel "Leere Seiten im Buch". Pflicht, wenn ein Buch mit Seitenluecken freigegeben wird. */
+  seitenVermerk?: string | null;
+}
+
+export const VERMERK_MIN = 3;
+export const VERMERK_MAX = 300;
+
+/** Bereinigter Vermerk (ohne Steuerzeichen, einfache Leerzeichen, hoechstens 300 Zeichen); zu kurz oder leer ergibt "" (gilt als nicht angegeben). */
+export function saeubereVermerk(text: string | null | undefined): string {
+  const t = String(text ?? "")
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, VERMERK_MAX)
+    .trim();
+  return t.length >= VERMERK_MIN ? t : "";
 }
 
 const heute = (jetzt: Date) => jetzt.toISOString().slice(0, 10);
@@ -60,7 +79,7 @@ export async function entscheideUeberUpload(aktion: FreigabeAktion, quelleId: st
       throw new UploadFehler("freigeben", info.titel ?? undefined, u);
     });
     if (n !== info.anzahl) throw new UploadFehler("nichtPruefbar");
-    return { titel: info.titel, bereich: info.bereich, quellenart: info.quellenart, abschnitte: n, pruefenBis: neu };
+    return { titel: info.titel, bereich: info.bereich, quellenart: info.quellenart, abschnitte: n, pruefenBis: neu, seitenFehlend: info.seitenFehlend ?? 0, seitenVermerk: null };
   }
 
   // Freigeben und Ablehnen: nur, solange das Dokument wartet.
@@ -69,6 +88,19 @@ export async function entscheideUeberUpload(aktion: FreigabeAktion, quelleId: st
   if (aktion === "freigeben" && info.unvollstaendig) throw new UploadFehler("unvollstaendig");
   // Freigeben braucht die zweite Person. Ablehnen darf auch, wer hochgeladen hat: Das ist ein Zurueckziehen, keine Freigabe.
   if (aktion === "freigeben") sicherheitsPruefung(info, d.pruefer.id);
+  // Fehlen im Scan Seiten (Seitenverlauf-Pruefung beim Hochladen), bestaetigt die pruefende Person sie mit einem Vermerk, nachdem sie am Original
+  // nachgesehen hat ("Leere Seiten im Buch"). Ohne Vermerk keine Freigabe. Ablehnen braucht keinen. Der Vermerk wird VOR der Entscheidung abgelegt:
+  // Scheitert diese, bleibt ein Vermerk zu einem weiter wartenden Dokument, harmlos; umgekehrt gaebe es ein freigegebenes Buch ohne Vermerk.
+  const seitenFehlend = info.seitenFehlend ?? 0;
+  let vermerk: string | null = null;
+  if (aktion === "freigeben" && seitenFehlend > 0) {
+    vermerk = saeubereVermerk(d.seitenVermerk);
+    if (!vermerk) throw new UploadFehler("vermerkFehlt", info.titel ?? undefined);
+    if (!d.speicher.legeSeitenVermerkAb) throw new UploadFehler("freigeben", info.titel ?? undefined);
+    await d.speicher.legeSeitenVermerkAb(quelleId, { vermerk, stellen: info.seitenStellen ?? null, von: d.pruefer.id, zeitpunkt }).catch((u) => {
+      throw new UploadFehler("freigeben", info.titel ?? undefined, u);
+    });
+  }
   const neu = aktion === "freigeben" && art ? pruefenBis(art, jetzt) : null;
   const n = await d.speicher
     .entscheide(quelleId, { status: aktion === "freigeben" ? "freigegeben" : "abgelehnt", pruefer: d.pruefer.id, zeitpunkt, pruefenBis: neu })
@@ -77,7 +109,7 @@ export async function entscheideUeberUpload(aktion: FreigabeAktion, quelleId: st
     });
   // Eine Anweisung, alles oder nichts: weniger Zeilen heisst, jemand anderes war schneller.
   if (n !== info.anzahl) throw new UploadFehler("nichtPruefbar");
-  return { titel: info.titel, bereich: info.bereich, quellenart: info.quellenart, abschnitte: n, pruefenBis: neu };
+  return { titel: info.titel, bereich: info.bereich, quellenart: info.quellenart, abschnitte: n, pruefenBis: neu, seitenFehlend, seitenVermerk: vermerk };
 }
 
 /** Das Vier-Augen-Prinzip: Wer hochgeladen hat, gibt nicht frei. Ist der Hochladende unbekannt, wird nicht freigegeben. */

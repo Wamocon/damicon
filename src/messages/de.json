@@ -1031,7 +1031,8 @@
       "wissenClusterPasstNicht": "Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz. Bitte als Cluster Internet-Quelle wählen.",
       "wissenUnvollstaendig": "Dieses Buch ist unvollständig: Es fehlen Teile, weil das Hochladen abgebrochen wurde. Bitte löschen und neu hochladen. Freigeben ist erst dann möglich.",
       "wissenSelbstUmordnen": "Die Einordnung eines freigegebenen Dokuments ändert nicht die Person, die es hochgeladen hat. Bitte eine zweite Person bitten.",
-      "wissenKeineAenderung": "Es wurde nichts geändert: Die gewählten Angaben entsprechen der bisherigen Einordnung."
+      "wissenKeineAenderung": "Es wurde nichts geändert: Die gewählten Angaben entsprechen der bisherigen Einordnung.",
+      "wissenVermerkFehlt": "Dieses Buch hat laut Seitenverlauf-Prüfung fehlende Seiten. Zum Freigeben ist ein Vermerk nötig (zum Beispiel \"Leere Seiten im Buch\"). Bitte einzeln im Prüffenster freigeben, nicht in der Sammelfreigabe."
     },
     "einladungen": {
       "erfolg": {
@@ -2394,7 +2395,10 @@
         "keineTreffer": "Kein Dokument in dieser Auswahl.",
         "unvollstaendig": "Unvollständig",
         "unvollstaendigHinweis": "Das Buch ist nicht vollständig hochgeladen ({da} von {gesamt} Paketen). Es lässt sich nicht freigeben. Bitte löschen und neu hochladen.",
-        "qualitaet": "Qualität {prozent} %"
+        "qualitaet": "Qualität {prozent} %",
+        "seitenFehlen": "Fehlende Seiten laut Prüfung",
+        "seitenFehlenWert": "{anzahl} ({stellen})",
+        "seitenVermerk": "Vermerk zu den fehlenden Seiten"
       },
       "formular": {
         "titel": "Dokument hochladen",
@@ -2491,7 +2495,16 @@
         "freigeben": "Freigeben",
         "ablehnen": "Ablehnen",
         "verlaengern": "Verlängern",
-        "abbrechen": "Abbrechen"
+        "abbrechen": "Abbrechen",
+        "seiten": {
+          "titel": "Im Scan fehlen Seiten",
+          "text": "Die Seitenverlauf-Prüfung beim Hochladen hat {anzahl} fehlende gedruckte Seiten gefunden: {stellen}. Bitte am Original prüfen, ob dort Inhalt fehlt oder die Seiten leer sind.",
+          "erklaerung": "Schreibweise: gedruckte Seiten von bis, in Klammern die PDF-Seite davor. \"2@276-278 (271)\" heißt: etwa zwei Seiten fehlen zwischen den gedruckten Seiten 276 und 278, nach PDF-Seite 271.",
+          "vermerk": "Vermerk zu den fehlenden Seiten (Pflicht für die Freigabe)",
+          "platzhalter": "zum Beispiel: Leere Seiten im Buch",
+          "vorschlag": "Leere Seiten im Buch",
+          "noetig": "Zum Freigeben bitte einen Vermerk eintragen."
+        }
       },
       "cluster": {
         "buecher": "Bücher",

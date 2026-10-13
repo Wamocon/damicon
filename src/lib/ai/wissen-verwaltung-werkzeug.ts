@@ -73,6 +73,7 @@ function kurz(d: WissenDokumentZeile) {
     hochgeladenVon: d.hochgeladenVon,
     guete: d.guete,
     qualitaetProzent: d.gueteProzent,
+    ...(d.seitenFehlend > 0 ? { fehlendeSeiten: d.seitenFehlend, fehlendeSeitenStellen: d.seitenStellen, seitenVermerk: d.seitenVermerk } : {}),
     ...(e ? { empfehlung: e.empfehlung, gruende: e.gruende.map((g) => g.code) } : {}),
   };
 }

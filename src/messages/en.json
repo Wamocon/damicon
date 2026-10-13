@@ -1031,7 +1031,8 @@
       "wissenClusterPasstNicht": "Internet source, forum and internet research always come from the web. Please choose the cluster Internet source.",
       "wissenUnvollstaendig": "This book is incomplete: parts are missing because the upload was interrupted. Please delete it and upload again. It cannot be approved until then.",
       "wissenSelbstUmordnen": "The classification of an approved document is not changed by the person who uploaded it. Please ask a second person.",
-      "wissenKeineAenderung": "Nothing was changed: the chosen values match the current classification."
+      "wissenKeineAenderung": "Nothing was changed: the chosen values match the current classification.",
+      "wissenVermerkFehlt": "According to the page sequence check this book has missing pages. A note is required to approve it (for example \"Blank pages in the book\"). Please approve it individually in the review window, not in the bulk approval."
     },
     "einladungen": {
       "erfolg": {
@@ -2394,7 +2395,10 @@
         "keineTreffer": "No document in this selection.",
         "unvollstaendig": "Incomplete",
         "unvollstaendigHinweis": "The book was not fully uploaded ({da} of {gesamt} packages). It cannot be approved. Please delete it and upload it again.",
-        "qualitaet": "Quality {prozent}%"
+        "qualitaet": "Quality {prozent}%",
+        "seitenFehlen": "Missing pages according to the check",
+        "seitenFehlenWert": "{anzahl} ({stellen})",
+        "seitenVermerk": "Note on the missing pages"
       },
       "formular": {
         "titel": "Upload document",
@@ -2491,7 +2495,16 @@
         "freigeben": "Approve",
         "ablehnen": "Reject",
         "verlaengern": "Extend",
-        "abbrechen": "Cancel"
+        "abbrechen": "Cancel",
+        "seiten": {
+          "titel": "Pages are missing from the scan",
+          "text": "The page sequence check at upload found {anzahl} missing printed pages: {stellen}. Please check the original to see whether content is missing or the pages are blank.",
+          "erklaerung": "Notation: printed pages from to, the PDF page before the gap in brackets. \"2@276-278 (271)\" means: about two pages are missing between printed pages 276 and 278, after PDF page 271.",
+          "vermerk": "Note on the missing pages (required for approval)",
+          "platzhalter": "for example: Blank pages in the book",
+          "vorschlag": "Blank pages in the book",
+          "noetig": "Please enter a note to approve."
+        }
       },
       "cluster": {
         "buecher": "Books",

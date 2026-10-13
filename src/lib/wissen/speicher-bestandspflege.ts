@@ -35,6 +35,8 @@ export function bestandsSpeicher(db: SupabaseClient): BestandsSpeicher {
       const { error: qualitaetFehler } = await db.from("wissen_qualitaet").delete().eq("quelle_id", quelleId);
       if (qualitaetFehler) console.error("[damicon] Qualitätswert nicht entfernt:", qualitaetFehler.message);
       await entferneOriginal(db, quelleId);
+      const { error: vermerkFehler } = await db.from("wissen_seiten_vermerk").delete().eq("quelle_id", quelleId);
+      if (vermerkFehler) console.error("[damicon] Seiten-Vermerk nicht entfernt:", vermerkFehler.message);
       return sparse;
     },
     async merkeEntfernt(e) {

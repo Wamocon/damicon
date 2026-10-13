@@ -102,8 +102,10 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
       // Der Qualitätswert (wissen_qualitaet) gehört zum Dokument und geht mit ihm; ein Fehler, zum Beispiel vor der Migration, ändert am Löschen nichts.
       const { error: qualitaetFehler } = await db.from("wissen_qualitaet").delete().eq("quelle_id", quelleId);
       if (qualitaetFehler) console.error("[damicon] Qualitätswert nicht entfernt:", qualitaetFehler.message);
-      // Ebenso die Original-PDF (nur bis zur Freigabe aufbewahrt, original.ts)
+      // Ebenso die Original-PDF (nur bis zur Freigabe aufbewahrt, original.ts) und der Vermerk zu fehlenden Seiten
       await entferneOriginal(db, quelleId);
+      const { error: vermerkFehler } = await db.from("wissen_seiten_vermerk").delete().eq("quelle_id", quelleId);
+      if (vermerkFehler) console.error("[damicon] Seiten-Vermerk nicht entfernt:", vermerkFehler.message);
       return sparse;
     },
     async loescheBegriffe(indizes) {
@@ -132,11 +134,11 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
         anzahl === 0 ? null : ungeprueft === anzahl ? "ungeprueft" : freigegeben === anzahl ? "freigegeben" : abgelehnt === anzahl ? "abgelehnt" : "gemischt";
       const { data, error } = await db
         .from("wissen_chunks")
-        .select("titel, bereich, quellenart, pruefen_bis, hochgeladen_von:extra->>hochgeladen_von")
+        .select("titel, bereich, quellenart, pruefen_bis, hochgeladen_von:extra->>hochgeladen_von, seiten_fehlend:extra->seiten_pruefung->>fehlend, seiten_stellen:extra->seiten_pruefung->>stellen")
         .eq("quelle_id", quelleId)
         .limit(1);
       SCHREIB_FEHLER("Freigabe (lesen)", error);
-      const erste = ((data ?? []) as unknown as Array<{ titel: string | null; bereich: string | null; quellenart: string | null; pruefen_bis: string | null; hochgeladen_von: string | null }>)[0];
+      const erste = ((data ?? []) as unknown as Array<{ titel: string | null; bereich: string | null; quellenart: string | null; pruefen_bis: string | null; hochgeladen_von: string | null; seiten_fehlend: string | null; seiten_stellen: string | null }>)[0];
 
       // Vollstaendigkeit eines Buchs: Welche Paketnummern gibt es, und wie viele sollten es sein? In Seiten gelesen, nur die zwei kleinen Felder.
       const nummern = new Set<number>();
@@ -164,7 +166,15 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
         hochgeladenVon: erste?.hochgeladen_von ?? null,
         pruefenBis: erste?.pruefen_bis ?? null,
         unvollstaendig: gesamt > 0 && nummern.size < gesamt,
+        seitenFehlend: Number(erste?.seiten_fehlend ?? 0) || 0,
+        seitenStellen: erste?.seiten_stellen ?? null,
       };
+    },
+    async legeSeitenVermerkAb(quelleId, a) {
+      const { error } = await db
+        .from("wissen_seiten_vermerk")
+        .upsert({ quelle_id: quelleId, vermerk: a.vermerk, fehlende_seiten: a.stellen, vermerkt_von: a.von, vermerkt_am: a.zeitpunkt }, { onConflict: "quelle_id" });
+      SCHREIB_FEHLER("Vermerk zu fehlenden Seiten", error);
     },
     async entscheide(quelleId, a) {
       // Eine Anweisung: alle Zeilen des Dokuments oder keine. Marker und Status stehen noch einmal im Filter; der Waechter

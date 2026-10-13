@@ -9,7 +9,7 @@
 import { createHash } from "node:crypto";
 import { bereinigeSeitentext, normalisiereText, PAKET_ZEICHEN, sha256Hex, teileInPakete, titelAusDateiname } from "@/lib/wissen/buch-text";
 import { type BuchKopf, ladePaket, MAX_PAKET_ZEICHEN, pruefeBuchKopf, starteBuch } from "@/lib/wissen/buch-upload";
-import { entscheideUeberUpload } from "@/lib/wissen/freigabe";
+import { entscheideUeberUpload, saeubereVermerk } from "@/lib/wissen/freigabe";
 import { inhaltsHash, normalisiere, UploadFehler, type ChunkZeile, type WissenSpeicher } from "@/lib/wissen/hochladen";
 import type { Einbettung } from "@/lib/wissen/embed";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
@@ -58,8 +58,9 @@ function vektorVon(text: string): number[] {
 }
 const einbettung: Einbettung = { modell: "synthetisch-bge-m3", dimension: 1024, async einbetten(texte: string[]) { return texte.map(vektorVon); } };
 
-function speicherNeu(): WissenSpeicher & { zeilen: Map<string, ChunkZeile>; begriffe: Map<number, number> } {
+function speicherNeu(): WissenSpeicher & { zeilen: Map<string, ChunkZeile>; begriffe: Map<number, number>; vermerke: Map<string, { vermerk: string; stellen: string | null; von: string }> } {
   const zeilen = new Map<string, ChunkZeile>();
+  const vermerke = new Map<string, { vermerk: string; stellen: string | null; von: string }>();
   const begriffe = new Map<number, number>();
   const quelleVon = (r: ChunkZeile) => ({ quelle_id: r.quelle_id, upload_quelle: typeof r.extra.quelle === "string" ? r.extra.quelle : null });
   const unvollstaendig = (z: ChunkZeile[]) => {
@@ -69,6 +70,7 @@ function speicherNeu(): WissenSpeicher & { zeilen: Map<string, ChunkZeile>; begr
   return {
     zeilen,
     begriffe,
+    vermerke,
     async findeQuelle(id) {
       const z = [...zeilen.values()].find((r) => r.quelle_id === id);
       return z ? { titel: z.titel } : null;
@@ -102,8 +104,11 @@ function speicherNeu(): WissenSpeicher & { zeilen: Map<string, ChunkZeile>; begr
         hochgeladenVon: von ?? null,
         pruefenBis: z[0]?.pruefen_bis ?? null,
         unvollstaendig: unvollstaendig(z),
+        seitenFehlend: Number((z[0]?.extra.seiten_pruefung as { fehlend?: number } | undefined)?.fehlend ?? 0) || 0,
+        seitenStellen: ((z[0]?.extra.seiten_pruefung as { stellen?: string } | undefined)?.stellen ?? null) as string | null,
       };
     },
+    async legeSeitenVermerkAb(id, a) { vermerke.set(id, { vermerk: a.vermerk, stellen: a.stellen, von: a.von }); },
     async entscheide(id, a) {
       const z = [...zeilen.values()].filter((r) => r.quelle_id === id && r.pruefstatus === "ungeprueft");
       if (a.status === "freigegeben" && z.some((r) => r.extra.hochgeladen_von === a.pruefer)) throw new Error("Vier-Augen-Prinzip");
@@ -273,6 +278,56 @@ async function rest() {
     pruefe("Vier-Augen: eine zweite Person gibt das vollständige Buch frei", zweite.abschnitte === s.zeilen.size && [...s.zeilen.values()].every((z) => z.pruefstatus === "freigegeben"));
   }
 
+  // ---- Vermerk zu fehlenden Scanseiten bei der Freigabe -----------------------------------------------------------------
+  {
+    const MIT_LUECKEN = { ...kopf, seiten: { seiten: 100, fehlend: 2, stellen: "48-49 (47)", abdeckung: 90 } };
+    const hochladen = async (s: ReturnType<typeof speicherNeu>, k: BuchKopf) => {
+      for (let i = 0; i < pakete.length; i++) await ladePaket({ ...k, nr: i + 1, text: pakete[i]! }, ich, abh(s));
+      return uploadQuelleId(k.hash);
+    };
+    const frei = (s: ReturnType<typeof speicherNeu>, id: string, seitenVermerk?: string | null, aktion: "freigeben" | "ablehnen" = "freigeben") =>
+      entscheideUeberUpload(aktion, id, { speicher: s, pruefer: { id: "admin-b" }, jetzt: JETZT, umgebung: {}, schema: "public_preview", seitenVermerk });
+
+    {
+      const s = speicherNeu();
+      const id = await hochladen(s, MIT_LUECKEN);
+      const info = await s.ladeFreigabeInfo(id);
+      pruefe("Vermerk: die Seitenangabe des Hochladens kommt bei der Freigabe an (2 Seiten, Stelle 48-49)", info.seitenFehlend === 2 && info.seitenStellen === "48-49 (47)");
+      const ohne = await fehlerCode(() => frei(s, id));
+      pruefe("Vermerk: ein Buch mit Seitenlücken lässt sich ohne Vermerk nicht freigeben", ohne === "vermerkFehlt", String(ohne));
+      pruefe("Vermerk: ohne Vermerk ändert sich nichts (weiter ungeprüft, kein Vermerk abgelegt)", [...s.zeilen.values()].every((z) => z.pruefstatus === "ungeprueft") && s.vermerke.size === 0);
+      const leer = await fehlerCode(() => frei(s, id, "   "));
+      const kurz = await fehlerCode(() => frei(s, id, "ok"));
+      pruefe("Vermerk: leer oder zu kurz zählt nicht als Vermerk", leer === "vermerkFehlt" && kurz === "vermerkFehlt");
+      const erg = await frei(s, id, "  Leere Seiten   im Buch \n");
+      pruefe("Vermerk: mit Vermerk wird freigegeben", erg.abschnitte === s.zeilen.size && [...s.zeilen.values()].every((z) => z.pruefstatus === "freigegeben"));
+      const v = s.vermerke.get(id);
+      pruefe("Vermerk: bereinigt abgelegt, mit den fehlenden Seiten und der prüfenden Person", v?.vermerk === "Leere Seiten im Buch" && v?.stellen === "48-49 (47)" && v?.von === "admin-b", JSON.stringify(v));
+      pruefe("Vermerk: das Ergebnis nennt Zahl und Vermerk (für das Protokoll)", erg.seitenFehlend === 2 && erg.seitenVermerk === "Leere Seiten im Buch");
+    }
+    {
+      const s = speicherNeu();
+      const id = await hochladen(s, MIT_LUECKEN);
+      const abg = await frei(s, id, null, "ablehnen");
+      pruefe("Vermerk: Ablehnen braucht keinen Vermerk", abg.abschnitte === s.zeilen.size && [...s.zeilen.values()].every((z) => z.pruefstatus === "abgelehnt") && s.vermerke.size === 0);
+    }
+    {
+      const s = speicherNeu();
+      const id = await hochladen(s, { ...kopf, seiten: { seiten: 100, fehlend: 0, stellen: "", abdeckung: 95 } });
+      const erg = await frei(s, id);
+      pruefe("Vermerk: ein Buch ohne Seitenlücken braucht keinen und legt keinen ab", erg.seitenFehlend === 0 && erg.seitenVermerk === null && s.vermerke.size === 0);
+    }
+    {
+      const s = speicherNeu();
+      const id = await hochladen(s, kopf);
+      const erg = await frei(s, id, "Leere Seiten im Buch");
+      pruefe("Vermerk: ohne Seitenprüfung (Text, Markdown) wird ein mitgeschickter Vermerk nicht abgelegt", erg.seitenVermerk === null && s.vermerke.size === 0);
+    }
+    pruefe("saeubereVermerk: Leerraum und Steuerzeichen werden bereinigt", saeubereVermerk("  Leere\tSeiten\u0000 im   Buch  ") === "Leere Seiten im Buch");
+    pruefe("saeubereVermerk: zu kurz, leer und null ergeben leer", saeubereVermerk("ab") === "" && saeubereVermerk("   ") === "" && saeubereVermerk(null) === "" && saeubereVermerk(undefined) === "");
+    pruefe("saeubereVermerk: höchstens 300 Zeichen", saeubereVermerk("x".repeat(500)).length === 300);
+  }
+
   // ---- Fehler und Abbruch ---------------------------------------------------------------------------------
   {
     const s = speicherNeu();
@@ -346,7 +401,7 @@ async function rest() {
   // ---- Filter der Liste -------------------------------------------------------------------------------------
   {
     const z = (teil: Partial<WissenDokumentZeile>): WissenDokumentZeile =>
-      ({ schluessel: "k", schluesselSpalte: "quelle_id", titel: "Dokument", bereich: "legal", rollen: ["admin", "buchhaltung"], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 5, herkunft: "skript", loeschbar: false, quellenart: "fachliteratur", cluster: "buecher", textgrundlage: "original", stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], gueteProzent: null, originalGroesse: null, abgelaufen: false, url: null, ...teil }) as WissenDokumentZeile;
+      ({ schluessel: "k", schluesselSpalte: "quelle_id", titel: "Dokument", bereich: "legal", rollen: ["admin", "buchhaltung"], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 5, herkunft: "skript", loeschbar: false, quellenart: "fachliteratur", cluster: "buecher", textgrundlage: "original", stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, abgelaufen: false, url: null, ...teil }) as WissenDokumentZeile;
     const gesetz = z({ schluessel: "g", titel: "Steuerkodex 2026", bereich: "steuer", quellenart: "rechtsnorm", cluster: "internet", stufe: 1 });
     const behoerde = z({ schluessel: "b", titel: "KGD Merkblatt", bereich: "amtlich", quellenart: "behoerdeninfo", cluster: "internet", stufe: 3 });
     const buch = z({ schluessel: "u", titel: "Umsatzsteuer Handbuch", bereich: "steuer", herkunft: "upload", pruefstatus: "ungeprueft" });
@@ -379,7 +434,7 @@ async function rest() {
       schluessel: "upload:abc", schluesselSpalte: "quelle_id", titel: "Buch", bereich: "steuer", rollen: ["admin"], datum: null,
       hochgeladenVon: "A", hochgeladenVonId: "a", chunks: 120, herkunft: "upload", loeschbar: true, quellenart: "fachliteratur", cluster: "buecher",
       stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "ungeprueft", pruefenBis: null, paketeGesamt: 3, paketeDa: 3, unvollstaendig: false,
-      guete: "gut", gueteHinweise: [], gueteProzent: null, originalGroesse: null, abgelaufen: false, url: null, textgrundlage: "original", ...teil,
+      guete: "gut", gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, abgelaufen: false, url: null, textgrundlage: "original", ...teil,
     });
     const codes = (teil: Partial<WissenDokumentZeile>) => schaetzeEin(zeile(teil)).gruende.map((g) => g.code);
     pruefe("Einschätzung: sauberes Buch wird zur Freigabe empfohlen", schaetzeEin(zeile()).empfehlung === "freigeben" && schaetzeEin(zeile()).gruende.length === 0);

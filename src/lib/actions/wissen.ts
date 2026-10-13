@@ -65,6 +65,7 @@ const FEHLER_SCHLUESSEL: Record<UploadFehler["code"], string> = {
   nichtPruefbar: "fehler.wissenNichtPruefbar",
   selbstFreigabe: "fehler.wissenSelbstFreigabe",
   unvollstaendig: "fehler.wissenUnvollstaendig",
+  vermerkFehlt: "fehler.wissenVermerkFehlt",
   freigeben: "fehler.wissenFreigeben",
   selbstUmordnen: "fehler.wissenSelbstUmordnen",
   keineAenderung: "fehler.wissenKeineAenderung",
@@ -243,6 +244,7 @@ export async function wissenDokumentPruefen(
     const ergebnis = await entscheideUeberUpload(aktion, quelleId, {
       speicher: supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient),
       pruefer: { id: profil.id },
+      seitenVermerk: text(formData, "seiten_vermerk"),
     });
     // Die Original-PDF wird nur bis zur Entscheidung gebraucht (Freigabe und Ablehnung); eine Verlängerung ändert daran nichts.
     if (aktion !== "verlaengern") await entferneOriginal(createServiceRoleClient() as unknown as SupabaseClient, quelleId);
@@ -253,6 +255,7 @@ export async function wissenDokumentPruefen(
       abschnitte: ergebnis.abschnitte,
       quellenart: ergebnis.quellenart,
       pruefen_bis: ergebnis.pruefenBis,
+      ...(ergebnis.seitenFehlend > 0 ? { seiten_fehlend: ergebnis.seitenFehlend, seiten_vermerk: ergebnis.seitenVermerk } : {}),
     });
     aktualisiere(formData);
     return ok(PRUEF_MELDUNG[aktion], ergebnis.titel ?? "");
