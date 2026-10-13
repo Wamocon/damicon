@@ -199,3 +199,17 @@ export function zaehleBefunde(liste: readonly DokumentBefunde[]): { art: Record<
   }
   return { art, stufe };
 }
+
+/**
+ * Nach dem Entfernen: Die entfernten Dokumente verschwinden aus der Liste, und Befunde anderer Dokumente, die auf ein entferntes verweisen
+ * (Dublette von X, abgedeckt durch Buch X), fallen weg. Ein Dokument ohne Befund bleibt nicht stehen, die Stufe wird neu bestimmt.
+ */
+export function ohneEntfernte(liste: readonly DokumentBefunde[], entfernt: ReadonlySet<string>): DokumentBefunde[] {
+  const aus: DokumentBefunde[] = [];
+  for (const d of liste) {
+    if (entfernt.has(d.dokument.schluessel)) continue;
+    const befunde = d.befunde.filter((b) => !b.vergleichMit || !entfernt.has(b.vergleichMit));
+    if (befunde.length > 0) aus.push({ dokument: d.dokument, befunde, stufe: staerksteStufe(befunde) });
+  }
+  return aus;
+}

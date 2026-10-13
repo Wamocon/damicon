@@ -12,7 +12,7 @@ import {
   type EntfernenAntwort,
   type VergleichPaar,
 } from "@/lib/actions/wissen-bestandspflege";
-import { baueBefunde, zaehleBefunde, type BefundArt, type BefundStufe, type DokumentBefunde, type DokumentNaehe } from "@/lib/wissen/bestandspflege";
+import { baueBefunde, ohneEntfernte, zaehleBefunde, type BefundArt, type BefundStufe, type DokumentBefunde, type DokumentNaehe } from "@/lib/wissen/bestandspflege";
 
 // Bestandspflege: Analysen der Wissensbasis (Arbeitsdokumente, ausdrücklich veraltet, Dubletten, durch Bücher abgedeckt, Wiedervorlage, Herkunft) und das
 // Entfernen nach der Prüfung. Die Analyse verändert nichts und läuft in kleinen Schritten mit Fortschritt (die Server Action hat höchstens 60 Sekunden).
@@ -131,7 +131,7 @@ export function WissenBestandspflege({ beiFertig }: { dokumente?: readonly Wisse
       );
       setAntwort(r);
       const weg = new Set(r.ergebnisse.filter((e) => e.status !== "fehler").map((e) => e.quelleId));
-      setBefunde((alt) => alt.filter((b) => !weg.has(b.dokument.schluessel)));
+      setBefunde((alt) => ohneEntfernte(alt, weg));
       setGewaehlt(new Set());
       setBestaetigen(false);
       setGeprueft(false);

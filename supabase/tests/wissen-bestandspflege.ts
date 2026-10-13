@@ -4,7 +4,7 @@
 //   * bestandspflege-entfernen.ts: Grabstein vor dem Löschen, Wortgewichte zurückgerechnet, wiederholbar, Vorschau-Schutz, Eingabe, Fehlerwege
 // Aufruf: npm run test:wissen-bestandspflege (läuft über tsx, damit die @/-Pfade auflösen).
 
-import { baueBefunde, bewerteNaehe, heuristischeBefunde, SCHWELLEN, staerksteStufe, zaehleBefunde, type DokumentNaehe, type NaeheProbe } from "@/lib/wissen/bestandspflege";
+import { baueBefunde, bewerteNaehe, heuristischeBefunde, ohneEntfernte, SCHWELLEN, staerksteStufe, zaehleBefunde, type DokumentNaehe, type NaeheProbe } from "@/lib/wissen/bestandspflege";
 import { entferneDokument, istQuelleId, PflegeFehler, type BestandsSpeicher } from "@/lib/wissen/bestandspflege-entfernen";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 
@@ -120,6 +120,21 @@ const anderes = { quelleId: "bestand/anderes.md", titel: "Anderes Dokument", ist
   pruefe("Befunde: stärkste Stufe zuerst (entfernen, prüfen, Hinweis)", liste[0]!.dokument.titel === "Auftrag: Recherche" && liste[0]!.stufe === "entfernen" && liste[1]!.stufe === "pruefen" && liste[2]!.stufe === "hinweis", liste.map((x) => x.stufe).join(","));
   const z = zaehleBefunde(liste);
   pruefe("Zählung je Art und Stufe", z.art.arbeitsdokument === 1 && z.art.abgedeckt === 1 && z.art.herkunft >= 1 && z.stufe.entfernen === 1 && z.stufe.pruefen === 1);
+  // Nach dem Entfernen (in der Oberfläche gefunden: Der Hinweis "Dublette von X" blieb nach dem Entfernen von X stehen)
+  const x = dok({ titel: "Text X", schluessel: "bestand/x.md" });
+  const y = dok({ titel: "Text Y", schluessel: "bestand/y.md" });
+  const naeheXY = new Map<string, DokumentNaehe>([
+    [x.schluessel, naeheVon(x, proben([0.99, 0.99, 0.99, 0.99, 0.99, 0.99], { quelleId: y.schluessel, titel: "Text Y", istUpload: false }))],
+    [y.schluessel, naeheVon(y, proben([0.99, 0.99, 0.99, 0.99, 0.99, 0.99], { quelleId: x.schluessel, titel: "Text X", istUpload: false }))],
+  ]);
+  const paar = baueBefunde([x, y], naeheXY, HEUTE);
+  pruefe("Dublette zwischen zwei Dokumenten: beide haben den Befund", paar.length === 2 && paar.every((b) => b.befunde[0]?.grund === "dublette"));
+  const nach = ohneEntfernte(paar, new Set([x.schluessel]));
+  pruefe("Nach dem Entfernen von X: X ist weg und Y hat keinen Befund mehr (Dublette von X fällt weg)", nach.length === 0);
+  const mitMehr = baueBefunde([x, dok({ titel: "Text Y", schluessel: "bestand/y.md", url: null })], naeheXY, HEUTE);
+  const nach2 = ohneEntfernte(mitMehr, new Set([x.schluessel]));
+  pruefe("Ein anderer Befund bleibt bestehen, die Stufe wird neu bestimmt", nach2.length === 1 && nach2[0]!.befunde.length === 1 && nach2[0]!.befunde[0]!.grund === "keinLink" && nach2[0]!.stufe === "hinweis", JSON.stringify(nach2.map((b) => b.befunde)));
+  pruefe("Ohne Entfernte bleibt alles, wie es ist", ohneEntfernte(paar, new Set()).length === 2);
   pruefe("Stärkste Stufe", staerksteStufe([]) === "hinweis" && staerksteStufe([{ art: "herkunft", stufe: "hinweis", grund: "keinLink" }, { art: "dublette", stufe: "pruefen", grund: "dublette" }]) === "pruefen");
 }
 
