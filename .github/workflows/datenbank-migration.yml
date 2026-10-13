@@ -91,6 +91,21 @@ jobs:
             echo "scripts/pruefe-migrationen.mjs nicht vorhanden, uebersprungen."
           fi
 
+      # pgvector laden (nur in der Kopie der Migrationsdateien auf dem Runner, das Repository bleibt unveraendert):
+      # "supabase db push" oeffnet eine frische Datenbank-Sitzung, in der pgvector noch nicht geladen ist. Eine Funktion mit
+      # "set hnsw.iterative_scan" scheitert dort mit "permission denied to set parameter" (Fund vom 13.10.2026, Migration
+      # 20261124000000). Ist pgvector in der Sitzung geladen, geht es. Darum steht vor jeder Datei, die hnsw.* setzt, eine Zeile,
+      # die den Typ vector benutzt. Die Zeile steht in derselben Sitzung wie die Anweisung danach. Eine schon angewendete Datei
+      # prueft "db push" nicht erneut (es zaehlt nur die Version), und die Vorschau-Migration laeuft ueber ein eigenes Skript.
+      - name: pgvector fuer Migrationen mit hnsw-Einstellung laden (nur Runner-Kopie)
+        run: |
+          dateien=$(grep -l "set hnsw\." supabase/migrations/*.sql || true)
+          for f in $dateien; do
+            sed -i "1i select '[1]'::extensions.vector; -- CI: laedt pgvector in der Sitzung (set hnsw.* braucht das)" "$f"
+            echo "vorangestellt: $f"
+          done
+          [ -n "$dateien" ] || echo "keine Datei mit hnsw-Einstellung"
+
       - name: Mit dem Projekt verbinden
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
 
