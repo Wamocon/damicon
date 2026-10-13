@@ -20,6 +20,7 @@ import { CLUSTER, clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENA
 import { WissenBestandEinordnen } from "@/components/db/wissen-einordnen";
 import { WissenBuecher } from "@/components/db/wissen-buecher";
 import { WissenBestandspflege } from "@/components/db/wissen-bestandspflege";
+import { WissenOriginal } from "@/components/db/wissen-original";
 import { qualitaetTon } from "@/lib/wissen/qualitaet";
 import { WissenUmordnenKnopf } from "@/components/db/wissen-umordnen";
 import { WissenListenFilter } from "@/components/db/wissen-liste-filter";
@@ -567,6 +568,7 @@ function WissenPruefenKnopf({
                   : vorschau.text}
             </div>
           </div>
+          {!erneut && dokument.herkunft === "upload" ? <WissenOriginal dokument={dokument} beiGeaendert={() => beiErgebnis(leer)} /> : null}
           <p role="note" className="rounded-lg border border-warning/30 bg-warning/[0.08] p-2 text-xs font-semibold text-warning">
             {erneut ? t("pruefung.hinweisErneut") : t("pruefung.hinweis")}
           </p>

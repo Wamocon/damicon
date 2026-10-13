@@ -46,6 +46,8 @@ export interface WissenListeZeile {
   guete_hinweise?: string | null;
   /** Textqualität des Dokuments in Prozent (Tabelle wissen_qualitaet, qualitaet.ts); null, solange nichts berechnet wurde. Nur aus wissen_liste(). */
   guete_prozent?: number | null;
+  /** Größe der Original-PDF in Bytes (Tabelle wissen_original, original.ts), solange das Dokument auf die Freigabe wartet; sonst null. Nur aus wissen_liste(). */
+  original_groesse?: number | null;
   /** Aus wissen_liste(): so viele Textstellen mit gleichen Listenspalten stehen fuer diese Zeile (fehlt = 1). */
   anzahl?: number | null;
 }
@@ -91,6 +93,8 @@ export interface WissenDokumentZeile {
   gueteHinweise: GueteHinweis[];
   /** Qualität in Prozent (0 bis 100), null, solange nichts berechnet wurde. */
   gueteProzent: number | null;
+  /** Größe der Original-PDF in Bytes, wenn eine zum Prüfen bereitliegt (nur bis zur Freigabe); sonst null. */
+  originalGroesse: number | null;
   /** Freigegeben, aber die Wiedervorlage ist erreicht: wird nicht mehr gefunden, bis eine zweite Person verlaengert. */
   abgelaufen: boolean;
   url: string | null;
@@ -152,6 +156,7 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
         guete: null,
         gueteHinweise: [],
         gueteProzent: typeof z.guete_prozent === "number" ? z.guete_prozent : null,
+        originalGroesse: typeof z.original_groesse === "number" ? z.original_groesse : typeof z.original_groesse === "string" ? Number(z.original_groesse) || null : null,
         abgelaufen: false,
         url: z.url ?? null,
       });
@@ -159,6 +164,7 @@ export function gruppiereWissenDokumente(zeilen: readonly WissenListeZeile[], he
     }
     vorhanden.chunks += anzahl;
     if (vorhanden.gueteProzent === null && typeof z.guete_prozent === "number") vorhanden.gueteProzent = z.guete_prozent;
+    if (vorhanden.originalGroesse === null && z.original_groesse != null && Number(z.original_groesse) > 0) vorhanden.originalGroesse = Number(z.original_groesse);
     vorhanden.loeschbar &&= istUploadZeile(z);
     for (const r of z.rollen ?? []) if (!vorhanden.rollen.includes(r)) vorhanden.rollen.push(r);
     if (!vorhanden.rechtsstelle && z.rechtsstelle) vorhanden.rechtsstelle = z.rechtsstelle;

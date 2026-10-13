@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BestandsSpeicher } from "@/lib/wissen/bestandspflege-entfernen";
 import type { DokumentNaehe, NaeheProbe } from "@/lib/wissen/bestandspflege";
+import { entferneOriginal } from "@/lib/wissen/original";
 import { dokumentQualitaet, type DokumentQualitaet } from "@/lib/wissen/qualitaet";
 import { supabaseSpeicher } from "@/lib/wissen/speicher-supabase";
 
@@ -33,6 +34,7 @@ export function bestandsSpeicher(db: SupabaseClient): BestandsSpeicher {
       // Der Qualitätswert gehört zum Dokument: Er verschwindet mit ihm (ein Fehler, zum Beispiel vor der Migration, ändert am Entfernen nichts).
       const { error: qualitaetFehler } = await db.from("wissen_qualitaet").delete().eq("quelle_id", quelleId);
       if (qualitaetFehler) console.error("[damicon] Qualitätswert nicht entfernt:", qualitaetFehler.message);
+      await entferneOriginal(db, quelleId);
       return sparse;
     },
     async merkeEntfernt(e) {

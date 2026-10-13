@@ -14,6 +14,7 @@ import { ordneUm, type SchluesselSpalte } from "@/lib/wissen/umordnen";
 import type { Json } from "@/lib/database.types";
 import { entscheideUeberUpload, type FreigabeAktion } from "@/lib/wissen/freigabe";
 import { loescheHochgeladenesDokument } from "@/lib/wissen/loeschen";
+import { entferneOriginal } from "@/lib/wissen/original";
 import { pruefeUploadUmgebung, UploadFehler, verarbeiteUpload } from "@/lib/wissen/hochladen";
 import { standardStufe } from "@/lib/wissen/quellenart";
 import { ladeAnbieterKette } from "@/lib/ai/anbieter-kette";
@@ -243,6 +244,8 @@ export async function wissenDokumentPruefen(
       speicher: supabaseSpeicher(createServiceRoleClient() as unknown as SupabaseClient),
       pruefer: { id: profil.id },
     });
+    // Die Original-PDF wird nur bis zur Entscheidung gebraucht (Freigabe und Ablehnung); eine Verlängerung ändert daran nichts.
+    if (aktion !== "verlaengern") await entferneOriginal(createServiceRoleClient() as unknown as SupabaseClient, quelleId);
     await protokolliere(profil, PRUEF_PROTOKOLL[aktion], "wissen_chunks", null, {
       titel: ergebnis.titel,
       bereich: ergebnis.bereich,
@@ -478,6 +481,7 @@ export async function wissenDokumenteSammelPruefen(aktion: "freigeben" | "ablehn
   for (const quelleId of ids) {
     try {
       const erg = await entscheideUeberUpload(aktion, quelleId, { speicher, pruefer: { id: profil.id } });
+      await entferneOriginal(createServiceRoleClient() as unknown as SupabaseClient, quelleId);
       await protokolliere(profil, PRUEF_PROTOKOLL[aktion], "wissen_chunks", null, {
         titel: erg.titel,
         bereich: erg.bereich,

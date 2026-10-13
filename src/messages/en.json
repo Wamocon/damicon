@@ -2354,7 +2354,7 @@
     "kleiner": "Shrink panel",
     "wissensVerwaltung": {
       "titel": "Knowledge documents",
-      "lead": "Visible to administrators only. Load documents into the knowledge base the assistant searches for law, tax, compliance, audit and risk questions. The file itself is not kept, only its text.",
+      "lead": "Visible to administrators only. Load documents into the knowledge base the assistant searches for law, tax, compliance, audit and risk questions. The file itself is not kept, only its text. Only for books as PDF is the original available for review until approval, and it is deleted afterwards.",
       "bereich": {
         "recht": "Law",
         "steuer": "Tax",
@@ -2574,7 +2574,7 @@
       },
       "buecher": {
         "titel": "Upload books and long documents",
-        "lead": "For books as PDF with a text layer (for example after OCR), Markdown and text, any length and several at once. You only choose the cluster. The analysis suggests area, source type and text basis for each book, you check and change what is wrong. Your browser reads the file itself and sends only the text in packages, the file never leaves your computer. Each book then waits for approval by a second person.",
+        "lead": "For books as PDF with a text layer (for example after OCR), Markdown and text, any length and several at once. You only choose the cluster. The analysis suggests area, source type and text basis for each book, you check and change what is wrong. Your browser reads the file itself and sends only the text in packages, a PDF is also saved as an original while the book waits for approval, so that the reviewer can open it. It is deleted after approval or rejection. Each book then waits for approval by a second person.",
         "dateien": "Files (several possible)",
         "dateienHinweis": "PDF, Markdown or text. The title is taken from the file name and can be changed per book, as can area, source type and text basis. Identical content is recognised as a duplicate.",
         "titelFeld": "Title",
@@ -2624,7 +2624,20 @@
         "kiAn": "Analyse with AI",
         "kiHinweis": "The analysis rules always run, in the browser. In addition the AI is asked for a classification. For this an excerpt of about 6,000 characters per file (start, middle, end) and the file name go to the configured AI provider. Without a provider only the rules apply.",
         "angabenFehlen": "Please check area, source type and text basis: the combination is not allowed or a link is missing.",
-        "qualitaet": "Quality {prozent}%"
+        "qualitaet": "Quality {prozent}%",
+        "original": {
+          "abgelegt": "Original saved",
+          "laeuft": "Saving the original …",
+          "fehler": {
+            "speicher": "Original not saved (storage limit?)",
+            "ungueltig": "Original not saved (invalid file)",
+            "keinDokument": "Original not saved",
+            "keinUpload": "Original not saved",
+            "nichtDa": "Original not saved",
+            "zugriff": "Original not saved",
+            "unbekannt": "Original not saved"
+          }
+        }
       },
       "guete": {
         "note": {
@@ -2857,6 +2870,30 @@
         "ergebnis": "{anzahl} of {gesamt} documents",
         "zuruecksetzen": "Reset filters ({anzahl})",
         "hinweisVerlaesslichkeit": "Reliable includes official sources. The assistant uses unreliable sources only when nothing solid exists, and labels them."
+      },
+      "original": {
+        "titel": "Original PDF",
+        "da": "The original ({umfang}) is ready for review. It is deleted after approval or rejection.",
+        "keins": "No original is available for this book.",
+        "oeffnen": "Open original",
+        "oeffnet": "Opening …",
+        "nochmal": "If nothing opened: click here",
+        "nachtragen": "Add original",
+        "nachtragenHinweis": "Choose the PDF the book was uploaded from. It is read in the browser and compared with the stored text before it is saved. It stays only until approval.",
+        "liest": "Reading the file … page {seite} of {seiten}",
+        "laedt": "Saving the original …",
+        "fertig": "Original saved.",
+        "fehler": {
+          "passtNicht": "This file does not match the stored text. Please choose the PDF the book was uploaded from.",
+          "ungueltig": "This is not a PDF, or it is empty or too large (500 MB at most).",
+          "keinDokument": "The document is no longer waiting for approval.",
+          "keinUpload": "Only uploaded books have an original.",
+          "nichtDa": "The file did not arrive in storage.",
+          "speicher": "The original could not be saved. The file may be larger than the storage limit.",
+          "zugriff": "You do not have permission for this.",
+          "unbekannt": "The original could not be saved.",
+          "unlesbar": "The file could not be read. Is it a PDF?"
+        }
       }
     },
     "sprachmodus": {

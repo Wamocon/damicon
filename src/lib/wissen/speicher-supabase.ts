@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { entferneOriginal } from "@/lib/wissen/original";
 import { SCHREIB_BATCH, type FreigabeInfo, type WissenSpeicher } from "@/lib/wissen/hochladen";
 import { UPLOAD_QUELLE, UPLOAD_QUELLE_MUSTER } from "@/lib/wissen/upload-quelle";
 
@@ -101,6 +102,8 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
       // Der Qualitätswert (wissen_qualitaet) gehört zum Dokument und geht mit ihm; ein Fehler, zum Beispiel vor der Migration, ändert am Löschen nichts.
       const { error: qualitaetFehler } = await db.from("wissen_qualitaet").delete().eq("quelle_id", quelleId);
       if (qualitaetFehler) console.error("[damicon] Qualitätswert nicht entfernt:", qualitaetFehler.message);
+      // Ebenso die Original-PDF (nur bis zur Freigabe aufbewahrt, original.ts)
+      await entferneOriginal(db, quelleId);
       return sparse;
     },
     async loescheBegriffe(indizes) {

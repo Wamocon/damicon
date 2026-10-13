@@ -6,6 +6,7 @@ import { StatusPill } from "@/components/ui/kit";
 import { Auswahl, FormularKarte } from "@/components/db/formular-kit";
 import { wissenBuchAbbrechen, wissenBuchAbschliessen, wissenBuchPaket, wissenBuchStarten, wissenKiAnalyse } from "@/lib/actions/wissen";
 import { wissenQualitaetBerechnen } from "@/lib/actions/wissen-bestandspflege";
+import { legeOriginalAb } from "@/lib/wissen/original-browser";
 import { qualitaetTon, vollstaendigkeitsFaktor } from "@/lib/wissen/qualitaet";
 import { uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import type { AktionsStatus } from "@/lib/actions/status";
@@ -54,6 +55,8 @@ interface Eintrag {
   trotzdem: boolean;
   /** Qualitaet in Prozent (Text und Vollstaendigkeit), vor dem Hochladen im Browser gerechnet; null vor dem Lesen. */
   qualitaet: number | null;
+  /** Original-PDF zur Prüfung abgelegt (ok), nicht abgelegt (Code des Grundes) oder nicht versucht (null). */
+  original: "ok" | string | null;
   fehler: string | null;
   text: string | null;
   hash: string | null;
@@ -198,6 +201,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
       artikel: null,
       trotzdem: false,
       qualitaet: null,
+      original: null,
       fehler: null,
       text: null,
       hash: null,
@@ -312,7 +316,14 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
     const ende = await wissenBuchAbschliessen(kopf, geschrieben);
     // Die Qualitaet aus dem gespeicherten Text berechnen und ablegen: Die Liste zeigt sie danach an. Ein Fehler ist nicht schlimm, der Knopf "Qualitaet berechnen" holt es nach.
     if (ende.stand === "ok") await wissenQualitaetBerechnen([uploadQuelleId(eintrag.hash)]).catch(() => undefined);
-    setze(eintrag.id, ende.stand === "ok" ? { schritt: "fertig" } : { schritt: "fehler", fehler: meldung(ende) });
+    // Die Original-PDF bis zur Freigabe ablegen, damit die prüfende Person sie öffnen kann. Ein Fehler (zum Beispiel eine Datei über dem Limit des
+    // Speichers) lässt das Buch hochgeladen und wird nur gemeldet; "Original nachtragen" im Prüffenster holt es nach.
+    let original: Eintrag["original"] = null;
+    if (ende.stand === "ok" && !istTextDatei(eintrag.datei)) {
+      const abgelegt = await legeOriginalAb(eintrag.datei, uploadQuelleId(eintrag.hash));
+      original = abgelegt.ok ? "ok" : abgelegt.code;
+    }
+    setze(eintrag.id, ende.stand === "ok" ? { schritt: "fertig", original } : { schritt: "fehler", fehler: meldung(ende) });
   };
 
   const starte = async () => {
@@ -451,6 +462,10 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                       <StatusPill tone={e.guete.note === "gut" ? "success" : e.guete.note === "pruefen" ? "warning" : "danger"}>{tHinweis(`note.${e.guete.note}` as never)}</StatusPill>
                     ) : null}
                     {e.qualitaet !== null ? <StatusPill tone={qualitaetTon(e.qualitaet)}>{t("qualitaet", { prozent: e.qualitaet })}</StatusPill> : null}
+                    {e.schritt === "fertig" && e.original === "ok" ? <StatusPill tone="success">{t("original.abgelegt")}</StatusPill> : null}
+                    {e.schritt === "fertig" && e.original !== null && e.original !== "ok" ? (
+                      <StatusPill tone="warning">{t.has(`original.fehler.${e.original}` as never) ? t(`original.fehler.${e.original}` as never) : t("original.fehler.unbekannt")}</StatusPill>
+                    ) : null}
                     {e.schritt !== "laedt" ? (
                       <button type="button" onClick={() => entferne(e.id)} className="text-[11px] font-semibold underline">
                         {t("entfernen")}
@@ -461,7 +476,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
                 <p className="mt-1 text-[11px] text-muted-foreground">
                   {e.datei.name} ({(e.datei.size / 1_048_576).toFixed(1)} MB)
                   {e.schritt === "liest" && e.seiten > 0 ? ` · ${t("seite", { seite: e.seite, seiten: e.seiten })}` : ""}
-                  {e.schritt === "laedt" ? ` · ${t("paket", { nr: e.paket, gesamt: e.pakete })}` : ""}
+                  {e.schritt === "laedt" ? ` · ${e.paket >= e.pakete && e.pakete > 0 ? t("original.laeuft") : t("paket", { nr: e.paket, gesamt: e.pakete })}` : ""}
                   {e.text ? ` · ${t("zeichen", { anzahl: e.text.length.toLocaleString() })}` : ""}
                 </p>
 

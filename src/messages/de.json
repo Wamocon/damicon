@@ -2354,7 +2354,7 @@
     "kleiner": "Panel verkleinern",
     "wissensVerwaltung": {
       "titel": "Wissensdokumente",
-      "lead": "Nur für Administration sichtbar. Dokumente laden Sie hier in die Wissensbasis, die der Assistent bei Recht-, Steuer-, Compliance-, Audit- und Risikofragen durchsucht. Die Datei selbst wird nicht aufbewahrt, nur der Text.",
+      "lead": "Nur für Administration sichtbar. Dokumente laden Sie hier in die Wissensbasis, die der Assistent bei Recht-, Steuer-, Compliance-, Audit- und Risikofragen durchsucht. Die Datei selbst wird nicht aufbewahrt, nur der Text. Nur bei Büchern als PDF liegt das Original bis zur Freigabe zur Prüfung bereit und wird danach gelöscht.",
       "bereich": {
         "recht": "Recht",
         "steuer": "Steuern",
@@ -2574,7 +2574,7 @@
       },
       "buecher": {
         "titel": "Bücher und lange Dokumente hochladen",
-        "lead": "Für Bücher als PDF mit Textebene (zum Beispiel nach OCR), Markdown und Text, beliebig lang und mehrere auf einmal. Sie wählen nur den Cluster. Bereich, Quellenart und Textgrundlage schlägt die Analyse je Buch vor, Sie prüfen und ändern, was nicht stimmt. Der Browser liest die Datei selbst und schickt nur den Text in Paketen, die Datei verlässt Ihren Rechner nicht. Jedes Buch wartet danach auf die Freigabe durch eine zweite Person.",
+        "lead": "Für Bücher als PDF mit Textebene (zum Beispiel nach OCR), Markdown und Text, beliebig lang und mehrere auf einmal. Sie wählen nur den Cluster. Bereich, Quellenart und Textgrundlage schlägt die Analyse je Buch vor, Sie prüfen und ändern, was nicht stimmt. Der Browser liest die Datei selbst und schickt nur den Text in Paketen, eine PDF wird zusätzlich als Original abgelegt, solange das Buch auf die Freigabe wartet, damit die prüfende Person sie öffnen kann. Nach der Freigabe oder Ablehnung wird sie gelöscht. Jedes Buch wartet danach auf die Freigabe durch eine zweite Person.",
         "dateien": "Dateien (mehrere möglich)",
         "dateienHinweis": "PDF, Markdown oder Text. Der Titel entsteht aus dem Dateinamen und lässt sich je Buch ändern, ebenso Bereich, Quellenart und Textgrundlage. Gleiche Inhalte werden als Dublette erkannt.",
         "titelFeld": "Titel",
@@ -2624,7 +2624,20 @@
         "kiAn": "Mit KI analysieren",
         "kiHinweis": "Die Regeln der Analyse laufen immer, im Browser. Zusätzlich fragt die KI nach einer Einordnung. Dafür gehen je Datei ein Auszug von rund 6.000 Zeichen (Anfang, Mitte, Ende) und der Dateiname an den eingestellten KI-Anbieter. Ohne Anbieter bleibt es bei den Regeln.",
         "angabenFehlen": "Bitte Bereich, Quellenart und Textgrundlage prüfen: Die Kombination ist nicht zulässig oder ein Link fehlt.",
-        "qualitaet": "Qualität {prozent} %"
+        "qualitaet": "Qualität {prozent} %",
+        "original": {
+          "abgelegt": "Original abgelegt",
+          "laeuft": "Original wird abgelegt …",
+          "fehler": {
+            "speicher": "Original nicht abgelegt (Speicherlimit?)",
+            "ungueltig": "Original nicht abgelegt (Datei ungültig)",
+            "keinDokument": "Original nicht abgelegt",
+            "keinUpload": "Original nicht abgelegt",
+            "nichtDa": "Original nicht abgelegt",
+            "zugriff": "Original nicht abgelegt",
+            "unbekannt": "Original nicht abgelegt"
+          }
+        }
       },
       "guete": {
         "note": {
@@ -2857,6 +2870,30 @@
         "ergebnis": "{anzahl} von {gesamt} Dokumenten",
         "zuruecksetzen": "Filter zurücksetzen ({anzahl})",
         "hinweisVerlaesslichkeit": "Sicher schließt amtliche Quellen ein. Unsichere Quellen nutzt der Assistent nur, wenn es nichts Tragendes gibt, und kennzeichnet sie."
+      },
+      "original": {
+        "titel": "Original-PDF",
+        "da": "Das Original ({umfang}) liegt zur Prüfung bereit. Es wird nach der Freigabe oder Ablehnung gelöscht.",
+        "keins": "Zu diesem Buch liegt kein Original bereit.",
+        "oeffnen": "Original öffnen",
+        "oeffnet": "Öffne …",
+        "nochmal": "Falls sich nichts geöffnet hat: hier klicken",
+        "nachtragen": "Original nachtragen",
+        "nachtragenHinweis": "Wählen Sie die PDF, aus der das Buch hochgeladen wurde. Sie wird im Browser gelesen und mit dem gespeicherten Text verglichen, bevor sie abgelegt wird. Sie bleibt nur bis zur Freigabe.",
+        "liest": "Lese die Datei … Seite {seite} von {seiten}",
+        "laedt": "Lege das Original ab …",
+        "fertig": "Original abgelegt.",
+        "fehler": {
+          "passtNicht": "Diese Datei passt nicht zum gespeicherten Text. Bitte die PDF wählen, aus der das Buch hochgeladen wurde.",
+          "ungueltig": "Das ist keine PDF oder sie ist leer oder zu groß (höchstens 500 MB).",
+          "keinDokument": "Das Dokument wartet nicht mehr auf die Freigabe.",
+          "keinUpload": "Nur hochgeladene Bücher haben ein Original.",
+          "nichtDa": "Die Datei ist nicht im Speicher angekommen.",
+          "speicher": "Das Original konnte nicht gespeichert werden. Möglicherweise ist die Datei größer als das Limit des Speichers.",
+          "zugriff": "Dafür fehlt die Berechtigung.",
+          "unbekannt": "Das Original konnte nicht abgelegt werden.",
+          "unlesbar": "Die Datei ließ sich nicht lesen. Ist es eine PDF?"
+        }
       }
     },
     "sprachmodus": {

@@ -107,6 +107,8 @@ pruefe("Ton: ab 90 gut, ab 75 zu prüfen, darunter schlecht", qualitaetTon(95) =
   const nach = (k: string) => liste.find((d) => d.schluessel === k);
   pruefe("Liste: der Qualitätswert kommt am Dokument an", nach("upload:aaa")?.gueteProzent === 96);
   pruefe("Liste: ohne Wert (null oder fehlend) bleibt null", nach("upload:bbb")?.gueteProzent === null && nach("upload:ccc")?.gueteProzent === null);
+  const mitOriginal = gruppiereWissenDokumente([{ ...zeile("5", "upload:ddd", null), original_groesse: 8072 }, { ...zeile("6", "upload:eee", null), original_groesse: "123456" as unknown as number }, zeile("7", "upload:fff", null)]);
+  pruefe("Liste: die Größe des Originals kommt an (Zahl oder Text), sonst null", mitOriginal.find((d) => d.schluessel === "upload:ddd")?.originalGroesse === 8072 && mitOriginal.find((d) => d.schluessel === "upload:eee")?.originalGroesse === 123456 && mitOriginal.find((d) => d.schluessel === "upload:fff")?.originalGroesse === null);
   pruefe("Liste: ein Dokument mit mehreren Zeilen ergibt eine Zeile", liste.filter((d) => d.schluessel === "upload:aaa").length === 1);
 }
 
