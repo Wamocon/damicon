@@ -144,7 +144,7 @@ export function zaehlerServer(): number {
 // Chat gibt es keine Stelle, an der jemand eine Freigabe erteilen koennte". Jetzt
 // gibt es diese Stelle: der Chat meldet den Text der offenen Karte hier, der
 // Sprachmodus zeigt ihn UND nimmt "Ja"/"Nein" als naechste Aeusserung entgegen,
-// statt sie als neue Frage an den Chat weiterzureichen (sprachmodus.tsx,
+// statt sie als neue Frage an den Chat weiterzureichen (sprachmodus-erkennung.ts,
 // istZusageBefehl/istAbsageBefehl in domain/sprachmodus.ts).
 
 export interface FreigabeAnfrage {

@@ -36,15 +36,15 @@ import { cn } from "@/lib/utils";
 // steht alles dort zum Nachlesen, es gibt keinen zweiten, eigenen Weg.
 //
 // Seit dem 14.10.2026 steht der Ablauf in eigenen Hooks und Teilkomponenten; SprachmodusInhalt ruft sie in der Reihenfolge
-// auf, in der ihre Effekte laufen müssen (Mikrofon, Ohr, Wächter, Chat, Tagesbeginn, Abbau, Bedienung, Fokus, Platz,
-// Mitlesen):
+// auf, in der ihre Effekte laufen müssen (Mikrofon, Ohr, Wächter, Chat, Tagesbeginn, Abbau, Bedienung, Scroll-Sperre, Fokus,
+// Platz, Mitlesen, Leiste). Diese Reihenfolge hält supabase/tests/sprachmodus.tsx fest (Fall effekt-reihenfolge):
 //   - sprachmodus-gedaechtnis.ts: Phase, Meldung, mitlaufender Text und die gemeinsamen Refs des Gesprächs.
 //   - sprachmodus-fragen.ts, sprachmodus-verdacht.ts, sprachmodus-erkennung.ts: was aus dem Gehörten wird (Frage, Befehl,
 //     Freigabe, Nachsatz, Dazwischenreden).
 //   - sprachmodus-ohr.ts: Mikrofon, die eine Live-Sitzung, Neuversuche, Stille, Abbau.
 //   - sprachmodus-chat.ts: der Stand des Chats und Himbis Frage zum Tagesbeginn.
-//   - sprachmodus-bedienung.ts, sprachmodus-seite.ts, sprachmodus-anzeige.tsx: Knöpfe und Tasten, Fokus, Platz und
-//     Mitlesen auf der Seite, das gerenderte HTML.
+//   - sprachmodus-bedienung.ts, sprachmodus-seite.ts, sprachmodus-anzeige.tsx: Knöpfe und Tasten, Fokus, Platz,
+//     Mitlesen und die unscharfe Leiste auf der Seite, das gerenderte HTML. Die Scroll-Sperre kommt aus ui/scroll-sperre.ts.
 export function Sprachmodus() {
   const { sprachmodus } = useKiPane();
   if (!sprachmodus) return null;
@@ -69,7 +69,7 @@ function SprachmodusInhalt() {
   const verdacht = useVerdacht(ablauf, gedaechtnis, fragen.unterbrecheHimbi);
   const erkennung = useErkennung(ablauf, gedaechtnis, fragen, verdacht);
 
-  // Die Effekte in der bisherigen Reihenfolge.
+  // Die Effekte in der bisherigen Reihenfolge (siehe Kopf: der Fall effekt-reihenfolge prüft sie).
   useMikrofon(ablauf, gedaechtnis);
   useSprachOhr(ablauf, gedaechtnis, erkennung, verdacht.beendeVerdacht);
   useLautstaerkeWaechter(ablauf, gedaechtnis, verdacht);

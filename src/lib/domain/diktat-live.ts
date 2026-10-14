@@ -42,7 +42,7 @@ export const SCHLUESSEL_GUELTIG_S = 60;
  *  Abschliessen. */
 export const SITZUNG_HOECHSTENS_S = 120;
 
-/** Im Gespraech hoert EINE Verbindung durchgehend zu (sprachmodus.tsx), auch waehrend
+/** Im Gespraech hoert EINE Verbindung durchgehend zu (sprachmodus-ohr.ts), auch waehrend
  *  Himbi denkt und spricht: so geht kein Wort zwischen zwei Aeusserungen verloren, und
  *  es gibt keinen Verbindungsaufbau vor jeder Frage. Nach dieser Zeit wird neu verbunden;
  *  wer so lange schweigt, wird vorher schon stumm geschaltet. */
@@ -140,7 +140,7 @@ export type LiveZweck = "diktat" | "gespraech";
 // Seit dem 28.09.2026 wieder schneller, weil ein zu frueher Schnitt nichts mehr kostet:
 // die Verbindung hoert durchgehend weiter, und wer nach einem Endpunkt weiterspricht,
 // waehrend Himbi noch nachdenkt ("Ja." ... "und zeig mir die Lieferungen"), bekommt
-// seine Frage zusammengefuegt statt abgeschnitten (sprachmodus.tsx, Nachsatz). Gemessen
+// seine Frage zusammengefuegt statt abgeschnitten (sprachmodus-erkennung.ts, Nachsatz). Gemessen
 // mit der Voreinstellung (Empfindlichkeit 0, Stufe 1, 1500 ms): 2,2 s vom letzten Wort
 // bis zum Endpunkt - der groesste Einzelposten bis zur Antwort.
 export const GESPRAECH_ENDPUNKT = { endpoint_sensitivity: 0.2, endpoint_latency_adjustment_level: 2 } as const;

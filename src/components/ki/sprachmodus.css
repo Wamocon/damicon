@@ -33,7 +33,7 @@
 
 /* ---- Himbi: Mitte oder links ueber der Menueleiste --------------------------- */
 /* In der Mitte ist die Spalte nur Klammer fuer denselben Baum wie angedockt
-   (sprachmodus.tsx): Figur und Text stehen direkt im Flex von .ki-sprachmodus. */
+   (sprachmodus-anzeige.tsx): Figur und Text stehen direkt im Flex von .ki-sprachmodus. */
 .ki-sprachmodus__mitte {
   display: contents;
 }
@@ -135,7 +135,7 @@
   .ki-sprachmodus__leiste .ki-sprachmodus__knopf--untertitel {
     display: none;
   }
-  /* Ist ein Bereich gerahmt, weicht Himbi ihm aus (sprachmodus.tsx, ausweichPlatz):
+  /* Ist ein Bereich gerahmt, weicht Himbi ihm aus (sprachmodus-seite.ts, ausweichPlatz):
      mittig ueber oder unter den Rahmen statt in die Mitte darauf. */
   /* Zentriert ueber die volle Breite (left und right mit width: fit-content): mit
      left: 50 % bekam die Einheit nur die halbe Bildschirmbreite, eine Freigabekarte
@@ -398,9 +398,9 @@
  * backdrop-filter auf einer Flaeche darueber: im echten Chrome wirkte der
  * nicht (Rueckmeldung vom 25.09.2026: "die Seitenleiste ist nicht geblurt"),
  * ein normaler Filter auf dem Element selbst ist dagegen ueberall zuverlaessig.
- * sprachmodus.tsx setzt data-sprach-links am <html>, solange Himbi und Text
- * links stehen. Himbi und Text sind ein eigenes Element ausserhalb der Leiste
- * und bleiben scharf. */
+ * useLeisteUnscharf (sprachmodus-seite.ts) setzt data-sprach-links am <html>,
+ * solange Himbi und Text links stehen. Himbi und Text sind ein eigenes Element
+ * ausserhalb der Leiste und bleiben scharf. */
 [data-seitenleiste] {
   transition: filter 0.3s ease;
 }

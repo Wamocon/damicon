@@ -1,7 +1,7 @@
 "use client";
 
 // Markdown-Darstellung der Antworten im KI-Chat (ki-chat.tsx) und im Untertitel
-// des Sprachmodus (sprachmodus.tsx, über den Export in ki-chat.tsx). Fürs
+// des Sprachmodus (sprachmodus-anzeige.tsx, über den Export in ki-chat.tsx). Fürs
 // Streamen optimiert: siehe die zwei Ebenen von memo unten.
 
 import { memo, useState } from "react";
@@ -53,7 +53,7 @@ const MarkdownBlock = memo(function MarkdownBlock({ text }: { text: string }) {
   );
 });
 
-// Exportiert: der Sprachmodus (sprachmodus.tsx) zeigt seinen Untertitel damit
+// Exportiert: der Sprachmodus (sprachmodus-anzeige.tsx) zeigt seinen Untertitel damit
 // statt roh - "**fett**" und "1. 2. 3." standen sonst als Zeichen da, nicht
 // als Formatierung, bei laengeren Antworten kaum lesbar (Rueckmeldung vom
 // 25.09.2026). Dieselbe, fuers Streamen schon optimierte Komponente.

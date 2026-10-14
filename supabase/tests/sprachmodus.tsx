@@ -21,7 +21,7 @@ import {
   WebSocketAttrappe,
   type Uhr,
 } from "./hilfen/dom-umgebung";
-import { StrictMode, useSyncExternalStore } from "react";
+import React, { StrictMode, useSyncExternalStore, type DependencyList, type EffectCallback } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { texteVon } from "./hilfen/ansicht-probe";
 import {
@@ -50,6 +50,7 @@ import type { SprechStand } from "@/components/ki/sprachausgabe-strom";
 //   10. und 11. Abbau mitten im Gespräch (Verdacht, Zeitgeber, vor dem Mikrofon) und StrictMode an der Wurzel.
 //   12. bis 16. Platz von Himbi (Rahmen, Blick, Ausweichen auf dem Handy), Mitlesen, Sprechertrennung, Endpunkte beim Sprechen
 //       und Ränder (Sprechpause, Wörter ohne Zeitangaben, Fehler und Text im selben Takt).
+//   17. Reihenfolge der Effekte: wie SprachmodusInhalt sie beim ersten Rendern anmeldet und beim Einhängen ausführt.
 // Festgehalten werden die Aufruffolgen (Mikrofon, Aufnahme, WebSocket, fetch, Bus zum Chat, Ausgabepegel, Mitlesen), sichtbare Texte,
 // Klassen und Attribute sowie die offenen Zeitgeber. Ersetzt sind nur Nachbarn: KI-Pane- und Haustier-Kontext, Himbi (Figur),
 // Markdown, Mitlesen (Seitensuche), lib/hoeren und lib/ausgabe-pegel. Live-Sitzung (diktat-live.ts), Bus und Domäne laufen echt.
@@ -1340,6 +1341,100 @@ async function pruefeOhneZeitStopp(): Promise<void> {
   gleich("Ohne Zeitangabe: nach dem Stopp die Frage", folge(), ["bus frage {\"text\":\"zeig mir alles\",\"sprachen\":[\"de\",\"de\",\"de\",\"de\"],\"ersetzt\":false,\"unterbrochen\":null}","ausgabe daempfe(1)"]);
 }
 
+// ---- 17. Reihenfolge der Effekte ---------------------------------------------------------------------------------------------------
+// SprachmodusInhalt ruft seine Hooks in der Reihenfolge auf, in der ihre Effekte laufen müssen (Kopf von sprachmodus.tsx). Die Fälle
+// oben bemerken nicht jede Vertauschung: useAbbau vor useTagesbeginn blieb dort grün. Deshalb werden hier React.useEffect und
+// React.useLayoutEffect für das erste Einhängen umhüllt. Jede Anmeldung aus SprachmodusInhalt bekommt den Namen des Hooks, den
+// SprachmodusInhalt selbst gerufen hat (aus dem Aufrufstapel; so zählt der Effekt von useHervorhebungsRechteck zu usePlatzVonHimbi),
+// und jede Ausführung wird mitgeschrieben. Effekte der Teilkomponenten und aus Bibliotheken (node_modules) zählen nicht mit.
+type EffektArt = "useEffect" | "useLayoutEffect";
+type EffektHook = (anlegen: EffectCallback, abhaengig?: DependencyList) => void;
+
+/** Die Effekte aus SprachmodusInhalt beim ersten Rendern, in der Reihenfolge der Hook-Aufrufe. */
+const SOLL_ANMELDUNG = [
+  "useMikrofon useEffect",
+  "useSprachOhr useEffect",
+  "useSprachOhr useEffect",
+  "useSprachOhr useEffect",
+  "useSprachOhr useEffect",
+  "useLautstaerkeWaechter useEffect",
+  "useLautstaerkeWaechter useEffect",
+  "useChatKopplung useEffect",
+  "useTagesbeginn useEffect",
+  "useAbbau useEffect",
+  "useSprachBedienung useEffect",
+  "useSprachBedienung useEffect",
+  "useScrollSperre useEffect",
+  "useDialogFokus useLayoutEffect",
+  "useDialogFokus useEffect",
+  "usePlatzVonHimbi useEffect",
+  "usePlatzVonHimbi useLayoutEffect",
+  "useMitlesen useEffect",
+  "useLeisteUnscharf useEffect",
+];
+/** Beim Einhängen führt React erst alle Layout-Effekte aus, dann die übrigen, jeweils in der Reihenfolge der Anmeldung. */
+const SOLL_AUSFUEHRUNG = [...SOLL_ANMELDUNG.filter((e) => e.endsWith(" useLayoutEffect")), ...SOLL_ANMELDUNG.filter((e) => e.endsWith(" useEffect"))];
+
+/** Der Hook, den SprachmodusInhalt gerufen hat und in dem (selbst oder in einem Hook darunter) der Effekt angemeldet wird. null, wenn
+ *  SprachmodusInhalt nicht auf dem Stapel steht (Teilkomponenten, Provider) oder der Hook aus einer Bibliothek kommt. */
+function hookAusSprachmodus(): string | null {
+  const limit = Error.stackTraceLimit;
+  const bereiten = Error.prepareStackTrace;
+  try {
+    Error.stackTraceLimit = 50;
+    Error.prepareStackTrace = (_fehler, rahmen) => rahmen;
+    const halter: { stack?: unknown } = {};
+    Error.captureStackTrace(halter, hookAusSprachmodus);
+    const rahmen = halter.stack as NodeJS.CallSite[];
+    const inhalt = rahmen.findIndex((r) => r.getFunctionName() === "SprachmodusInhalt");
+    if (inhalt < 0) return null;
+    // rahmen[0] ist die Hülle um useEffect bzw. useLayoutEffect, rahmen[inhalt - 1] der Hook, den SprachmodusInhalt gerufen hat.
+    if (inhalt < 2) return "SprachmodusInhalt";
+    const hook = rahmen[inhalt - 1]!;
+    if ((hook.getFileName() ?? "").includes("node_modules")) return null;
+    return hook.getFunctionName() ?? "(ohne Namen)";
+  } finally {
+    Error.stackTraceLimit = limit;
+    Error.prepareStackTrace = bereiten;
+  }
+}
+
+async function pruefeEffektReihenfolge(): Promise<void> {
+  // Der Standardimport ist das Exportobjekt von react selbst; die Module lesen useEffect bei jedem Aufruf dort ab.
+  const react = React as unknown as Record<EffektArt, EffektHook>;
+  const echt: Record<EffektArt, EffektHook> = { useEffect: react.useEffect, useLayoutEffect: react.useLayoutEffect };
+  const anmeldungen: string[] = [];
+  const ausgefuehrt: number[] = [];
+  let ersteRunde = -1;
+  const huelle = (art: EffektArt): EffektHook =>
+    function effektHuelle(anlegen, abhaengig) {
+      const hook = hookAusSprachmodus();
+      if (hook === null) return echt[art](anlegen, abhaengig);
+      const nr = anmeldungen.push(`${hook} ${art}`) - 1;
+      echt[art](() => {
+        // Die erste Ausführung schließt das erste Rendern ab: alles bis hierher ist dessen Anmeldung.
+        if (ersteRunde < 0) ersteRunde = anmeldungen.length;
+        ausgefuehrt.push(nr);
+        return anlegen();
+      }, abhaengig);
+    };
+  react.useEffect = huelle("useEffect");
+  react.useLayoutEffect = huelle("useLayoutEffect");
+  try {
+    await starte();
+  } finally {
+    react.useEffect = echt.useEffect;
+    react.useLayoutEffect = echt.useLayoutEffect;
+  }
+  const angemeldet = anmeldungen.slice(0, ersteRunde < 0 ? anmeldungen.length : ersteRunde);
+  gleich("Effekte: SprachmodusInhalt meldet sie beim ersten Rendern in dieser Reihenfolge an", angemeldet, SOLL_ANMELDUNG);
+  gleich(
+    "Effekte: beim Einhängen laufen sie in dieser Reihenfolge (erst die Layout-Effekte)",
+    ausgefuehrt.filter((nr) => nr < angemeldet.length).map((nr) => anmeldungen[nr]),
+    SOLL_AUSFUEHRUNG,
+  );
+}
+
 async function main(): Promise<void> {
   const geladen = await import("@/components/ki/sprachmodus");
   Sprachmodus = geladen.Sprachmodus;
@@ -1385,6 +1480,7 @@ async function main(): Promise<void> {
     ["ohne-zeit-karte", pruefeOhneZeitKarte],
     ["ohne-zeit-ja", pruefeOhneZeitJa],
     ["ohne-zeit-stopp", pruefeOhneZeitStopp],
+    ["effekt-reihenfolge", pruefeEffektReihenfolge],
   ];
   for (const [name, fall] of faelle) {
     if (process.env.FALL && process.env.FALL !== name) continue;

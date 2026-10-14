@@ -173,8 +173,9 @@ export function useSprachGedaechtnis(): SprachGedaechtnis {
     }
   }, []);
 
-  // beenden() und starteOhr() stehen weiter unten bzw. brauchen die Rueckrufe, die sie
-  // selbst setzen - Ref-Umweg wie zuvor beim Wortbefehl.
+  // beenden() entsteht erst in useSprachBedienung (sprachmodus-bedienung.ts), nach den Hooks, die es rufen;
+  // starteOhr() in useSprachOhr (sprachmodus-ohr.ts) braucht die Rückrufe, die es selbst setzt. Deshalb der
+  // Ref-Umweg wie zuvor beim Wortbefehl: beide Hooks tragen ihre Fassung hier ein.
   const beendenRef = useRef<() => void>(() => {});
   const starteOhrRef = useRef<() => void>(() => {});
 

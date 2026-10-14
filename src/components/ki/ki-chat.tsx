@@ -24,7 +24,7 @@ import { useKiChatScroll } from "@/components/ki/ki-chat-scroll";
 import { useKiChatZug } from "@/components/ki/ki-chat-zug";
 import { KiChatFehler, KiChatKlickKarte, KiChatLeer, KiChatStatus } from "@/components/ki/ki-chat-zustaende";
 
-// Der Sprachmodus (sprachmodus.tsx) holt die Markdown-Darstellung seit jeher von hier.
+// Der Sprachmodus (sprachmodus-anzeige.tsx) holt die Markdown-Darstellung seit jeher von hier.
 export { Markdown } from "@/components/ki/ki-chat-markdown";
 
 // Werkzeugfaehiger Agentenchat im Seitenpanel (ki-pane.tsx) - Vercel AI SDK

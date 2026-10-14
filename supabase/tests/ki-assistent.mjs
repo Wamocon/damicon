@@ -2491,7 +2491,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Sprachmodus: antwortFertig nur ohne Beschaeftigung, Sprechen und Laden", antwortFertig({ beschaeftigt: false, spricht: false, laedt: false }) === true && antwortFertig({ beschaeftigt: false, spricht: false, laedt: true }) === false && antwortFertig({ beschaeftigt: true, spricht: false, laedt: false }) === false);
 
   // (b) Kugel-Platzierung: seit dem 25.09.2026 entfernt, Himbi dockt links an
-  //     (sprachmodus.tsx); die Platzsuche war ungenutzter Code.
+  //     (sprachmodus-seite.ts); die Platzsuche war ungenutzter Code.
   // Handy: Himbi weicht dem gerahmten Bereich aus (Rueckmeldung vom 26.09.2026). Fenster 390 x 844,
   // Kopfzeile bis 56 (+8), Bedienleiste ab 758 (-8), Einheit aus Himbi und Zustandszeile 110 hoch.
   {
@@ -4188,7 +4188,7 @@ for (const [name, kaputteAntwort] of [
     for (let t = 0; t < 12_000 && einsatzBeiUnterbrechung === null; t += 16) {
       const spitze = t < 8_000 && t % 800 === 0;
       const mikrofon = t >= 8_000 ? 0.2 : spitze ? 0.2 : 0.03;
-      // Wie sprachmodus.tsx: jedes Urteil geht an den Merker, beim Unterbrechen zaehlt sein Einsatz.
+      // Wie sprachmodus-verdacht.ts: jedes Urteil geht an den Merker, beim Unterbrechen zaehlt sein Einsatz.
       const urteil = waechter.melde(mikrofon, 0.1, t);
       const beginn = merker.melde(urteil, t);
       if (urteil === "unterbrechen") einsatzBeiUnterbrechung = beginn ?? t;
