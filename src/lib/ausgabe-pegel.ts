@@ -81,7 +81,7 @@ function ausgangKlingt(): boolean {
 }
 
 /** Wird regelmaessig aus einer Bildschleife aufgerufen (Himbi, sprach-himbi.tsx) und
- *  vom Waechter fuer das Dazwischenreden (sprachmodus.tsx) - dieses Modul haelt selbst
+ *  vom Waechter fuer das Dazwischenreden (sprachmodus-verdacht.ts) - dieses Modul haelt selbst
  *  keine Bildschleife, damit es nicht Bild fuer Bild laeuft, wenn gerade niemand
  *  hinsieht. Ohne Wiedergabe und bei angehaltenem Kontext 0. */
 export function leseAusgabePegel(): number {

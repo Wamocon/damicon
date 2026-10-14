@@ -131,6 +131,45 @@ export function meterSkala(ist: number, soll: number, einheit: string): number {
   return Math.ceil(roh / (stufe / 2)) * (stufe / 2);
 }
 
+/** Die Einzelwerte hinter einer Kennzahl, etwa je Charge oder je Person. */
+export type Einzelwerte = { name: string; wert: number }[];
+
+/**
+ * Was die Kachel unter ihrem Kopf zeichnet.
+ *
+ * kachelform() wählt die Form für die Kennzahl. Ob die einzelne Kachel sie
+ * mit ihren Daten auch füllen kann, entscheidet sich hier: Zähler und Punkte
+ * brauchen eine Grundgesamtheit in Prozent, das Meter (auch unter der
+ * Heldenzahl) einen gemessenen Istwert und eine Zielzahl, Rangliste und
+ * Streifen die Einzelwerte und eine Zielzahl als Schwelle. Fehlt etwas,
+ * bleibt nur die Zahl stehen ("wert").
+ */
+export type KachelInhalt =
+  | { art: "zaehler" | "punkte"; anteil: { erfuellt: number; gesamt: number } }
+  | { art: "meter"; ist: number; soll: number }
+  | { art: "rangliste" | "streifen"; werte: Einzelwerte; soll: number }
+  | { art: "wert" };
+
+export function kachelInhalt(
+  form: Kachelform,
+  kpi: Kpi,
+  verteilung?: Einzelwerte,
+): KachelInhalt {
+  const { ist, soll, platzhalter } = zielAuswerten(kpi);
+  const anteil = grundgesamtheit(kpi);
+  if ((form === "zaehler" || form === "punkte") && anteil) {
+    return { art: form, anteil };
+  }
+  // Ein Platzhalter ist keine Messung, also auch kein Balken gegen das Ziel.
+  if ((form === "meter" || form === "held") && ist !== null && soll !== null && !platzhalter) {
+    return { art: "meter", ist, soll };
+  }
+  if ((form === "rangliste" || form === "streifen") && verteilung && soll !== null) {
+    return { art: form, werte: verteilung, soll };
+  }
+  return { art: "wert" };
+}
+
 /**
  * Die Kartengroesse zu einer Form. Es gibt zwei, und das ist die Obergrenze.
  *

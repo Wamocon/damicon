@@ -6,9 +6,6 @@ export const CLIENT_WERKZEUG_NAMEN = ["seiteLesen", "klicke", "fuelleFeld", "scr
 
 export type ClientWerkzeugName = (typeof CLIENT_WERKZEUG_NAMEN)[number];
 
-/** Nur im Agent-Modus erlaubt - seiteLesen (rein lesend) gibt es in beiden Modi. */
-export const CLIENT_STEUERUNG_NAMEN: readonly ClientWerkzeugName[] = ["klicke", "fuelleFeld", "scrolleZu", "zeigeAuf"];
-
 export function istClientWerkzeug(name: string): name is ClientWerkzeugName {
   return (CLIENT_WERKZEUG_NAMEN as readonly string[]).includes(name);
 }

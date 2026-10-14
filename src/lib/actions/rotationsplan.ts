@@ -70,39 +70,23 @@ export async function rotationsplanUeberspringen(
   _status: AktionsStatus,
   formData: FormData,
 ): Promise<AktionsStatus> {
-  let profil: SessionProfile;
-  try {
-    profil = await requirePermission("rotationsplan", "update");
-  } catch (error) {
-    return zugriffsFehler(error);
-  }
-
-  const id = text(formData, "id");
-  if (!id) return fehler("fehler.eingabe");
-
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("rotationsplan_eintraege")
-    .update({ status: "uebersprungen" })
-    .eq("id", id)
-    .eq("status", "geplant")
-    .select("id, geplant_fuer, reihenbloecke ( code )")
-    .maybeSingle();
-
-  if (error) return dbFehler(error);
-  if (!data) return fehler("fehler.zustand");
-
-  const block = Array.isArray(data.reihenbloecke) ? data.reihenbloecke[0] : data.reihenbloecke;
-  await protokolliere(profil, "rotationsplan.uebersprungen", data.id, {
-    geplant_fuer: data.geplant_fuer,
-  });
-  aktualisiere(formData);
-  return ok("ok.rotationsplanStatus", block?.code ?? data.geplant_fuer);
+  return statusWechseln(formData, "geplant", "uebersprungen", "rotationsplan.uebersprungen");
 }
 
 export async function rotationsplanReaktivieren(
   _status: AktionsStatus,
   formData: FormData,
+): Promise<AktionsStatus> {
+  return statusWechseln(formData, "uebersprungen", "geplant", "rotationsplan.reaktiviert");
+}
+
+// Gemeinsamer Ablauf beider Aktionen (nicht exportiert, also keine eigene Server Action): Recht pruefen, den Eintrag nur aus dem
+// erwarteten Status in den neuen setzen (sonst "fehler.zustand"), protokollieren.
+async function statusWechseln(
+  formData: FormData,
+  von: "geplant" | "uebersprungen",
+  nach: "geplant" | "uebersprungen",
+  protokollAktion: string,
 ): Promise<AktionsStatus> {
   let profil: SessionProfile;
   try {
@@ -117,9 +101,9 @@ export async function rotationsplanReaktivieren(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("rotationsplan_eintraege")
-    .update({ status: "geplant" })
+    .update({ status: nach })
     .eq("id", id)
-    .eq("status", "uebersprungen")
+    .eq("status", von)
     .select("id, geplant_fuer, reihenbloecke ( code )")
     .maybeSingle();
 
@@ -127,7 +111,7 @@ export async function rotationsplanReaktivieren(
   if (!data) return fehler("fehler.zustand");
 
   const block = Array.isArray(data.reihenbloecke) ? data.reihenbloecke[0] : data.reihenbloecke;
-  await protokolliere(profil, "rotationsplan.reaktiviert", data.id, {
+  await protokolliere(profil, protokollAktion, data.id, {
     geplant_fuer: data.geplant_fuer,
   });
   aktualisiere(formData);

@@ -119,28 +119,52 @@ export async function ladeReklamationen(): Promise<ReklamationenListe> {
 
   if (error || !data) return demoListe("fehler");
 
-  const reklamationen: ReklamationListenEintrag[] = data.map((r) => {
-    const kunde = einsAus(r.b2b_kunden);
-    const charge = einsAus(r.chargen);
-    const block = charge ? einsAus(charge.reihenbloecke) : null;
-    return {
-      id: r.id,
-      code: r.code,
-      kunde: kunde?.name ?? "-",
-      kundeId: kunde?.id ?? "",
-      chargeCode: charge?.code ?? null,
-      reihenblock: block?.code ?? null,
-      grund: r.grund,
-      betreff: r.betreff,
-      status: r.status,
-      betroffeneMengeKg: r.betroffene_menge_kg === null ? null : Number(r.betroffene_menge_kg),
-      gemeldetAm: r.gemeldet_am,
-      fristAm: r.frist_am,
-      gutschriftTenge: r.gutschrift_tenge === null ? null : Number(r.gutschrift_tenge),
-    };
-  });
+  const reklamationen: ReklamationListenEintrag[] = data.map((r) =>
+    listenEintragAus(r, einsAus(r.b2b_kunden), einsAus(r.chargen)),
+  );
 
   return { quelle: "db", reklamationen };
+}
+
+/** Eine eingebettete Beziehung, wie PostgREST sie liefert: Objekt, Liste oder nichts (siehe einsAus). */
+type Eingebettet<T> = T | T[] | null | undefined;
+
+/** Die Spalten von reklamationen, die Liste und Detail gleich lesen. */
+interface ReklamationKopfZeile {
+  id: string;
+  code: string;
+  grund: ReklamationGrund;
+  betreff: string;
+  status: ReklamationStatus;
+  betroffene_menge_kg: number | null;
+  gemeldet_am: string;
+  frist_am: string | null;
+  gutschrift_tenge: number | null;
+}
+
+// Liste und Detail lesen Kunde, Charge und Reihenblock auf dieselbe Weise. Bis
+// Oktober 2026 stand diese Zuordnung zweimal wortgleich im Code, einmal je Lader.
+function listenEintragAus(
+  r: ReklamationKopfZeile,
+  kunde: { id: string; name: string } | null,
+  charge: { code: string; reihenbloecke: Eingebettet<{ code: string }> } | null,
+): ReklamationListenEintrag {
+  const block = charge ? einsAus(charge.reihenbloecke) : null;
+  return {
+    id: r.id,
+    code: r.code,
+    kunde: kunde?.name ?? "-",
+    kundeId: kunde?.id ?? "",
+    chargeCode: charge?.code ?? null,
+    reihenblock: block?.code ?? null,
+    grund: r.grund,
+    betreff: r.betreff,
+    status: r.status,
+    betroffeneMengeKg: r.betroffene_menge_kg === null ? null : Number(r.betroffene_menge_kg),
+    gemeldetAm: r.gemeldet_am,
+    fristAm: r.frist_am,
+    gutschriftTenge: r.gutschrift_tenge === null ? null : Number(r.gutschrift_tenge),
+  };
 }
 
 function demoDetail(id: string): ReklamationDetail | null {
@@ -205,50 +229,104 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
 
   if (error || !rekl) return null;
 
-  const kunde = einsAus(rekl.b2b_kunden);
   const charge = einsAus(rekl.chargen);
-  const block = charge ? einsAus(charge.reihenbloecke) : null;
-  const gemeldetVonProfil = einsAus(rekl.profiles);
+  return {
+    ...listenEintragAus(rekl, einsAus(rekl.b2b_kunden), charge),
+    beschreibung: rekl.beschreibung,
+    chargeId: rekl.charge_id,
+    gemeldetVon: einsAus(rekl.profiles)?.full_name ?? null,
+    erledigtAm: rekl.erledigt_am,
+    loesung: rekl.loesung,
+    ereignisse: ereignisseAus(ereignisRohdaten ?? []),
+    ...rueckverfolgungAus(charge),
+  };
+}
 
-  // Rueckverfolgung bis Person (ueber steigen, mehrere Pfluecker je Charge
-  // moeglich, ueber pfluecker_id dedupliziert) und Kuehlzeit (Anforderung
-  // 3.4). Kommt fuer eine Kunden-Anmeldung leer zurueck, weil RLS auf
-  // steigen/kuehlketten_messungen keine Zeilen liefert (siehe Interface-
-  // Kommentar), nicht weil hier gefiltert wuerde.
+/** Die Messspalten, die Kühl- und Transportmessung gemeinsam haben. */
+interface MessZeile {
+  id: string;
+  ergebnis: string;
+  gemessen_am: string;
+}
+
+/** Die Beziehungen einer Charge, aus denen die Rückverfolgung entsteht. */
+interface RueckverfolgungsZeile {
+  steigen?: { pfluecker_id: string | null; pfluecker: Eingebettet<{ name: string; ausweis: string }> }[] | null;
+  kuehlketten_messungen?: (MessZeile & { minuten_seit_pfluecken: number | null })[] | null;
+  zukauf_positionen?: Eingebettet<{ nachbarbetriebe: Eingebettet<{ name: string; ort: string | null }> }>;
+  lieferungen?: { transport_temperatur_messungen: (MessZeile & { temperatur_c: number })[] | null }[] | null;
+}
+
+type Rueckverfolgung = Pick<
+  ReklamationDetail,
+  "pflueckerListe" | "kuehlmessungen" | "nachbarbetrieb" | "transportMessungen"
+>;
+
+function rueckverfolgungAus(charge: RueckverfolgungsZeile | null): Rueckverfolgung {
+  return {
+    pflueckerListe: pflueckerAus(charge?.steigen ?? []),
+    kuehlmessungen: kuehlmessungenAus(charge?.kuehlketten_messungen ?? []),
+    nachbarbetrieb: nachbarbetriebAus(charge?.zukauf_positionen),
+    transportMessungen: transportMessungenAus(charge?.lieferungen ?? []),
+  };
+}
+
+const nachMesszeit = (a: { gemessenAm: string }, b: { gemessenAm: string }) =>
+  a.gemessenAm.localeCompare(b.gemessenAm);
+
+// Rueckverfolgung bis Person (ueber steigen, mehrere Pfluecker je Charge
+// moeglich, ueber pfluecker_id dedupliziert) und Kuehlzeit (Anforderung
+// 3.4). Kommt fuer eine Kunden-Anmeldung leer zurueck, weil RLS auf
+// steigen/kuehlketten_messungen keine Zeilen liefert (siehe Interface-
+// Kommentar), nicht weil hier gefiltert wuerde.
+function pflueckerAus(
+  steigen: NonNullable<RueckverfolgungsZeile["steigen"]>,
+): RueckverfolgungPfluecker[] {
   const pflueckerListe: RueckverfolgungPfluecker[] = [];
   const gesehenePflueckerIds = new Set<string>();
-  for (const s of charge?.steigen ?? []) {
+  for (const s of steigen) {
     const p = einsAus(s.pfluecker);
     if (p && s.pfluecker_id && !gesehenePflueckerIds.has(s.pfluecker_id)) {
       gesehenePflueckerIds.add(s.pfluecker_id);
       pflueckerListe.push({ name: p.name, ausweis: p.ausweis });
     }
   }
+  return pflueckerListe;
+}
 
-  const kuehlmessungen: RueckverfolgungKuehlmessung[] = (charge?.kuehlketten_messungen ?? [])
+function kuehlmessungenAus(
+  messungen: NonNullable<RueckverfolgungsZeile["kuehlketten_messungen"]>,
+): RueckverfolgungKuehlmessung[] {
+  return messungen
     .map((m) => ({
       id: m.id,
       minutenSeitPfluecken: m.minuten_seit_pfluecken,
       ergebnis: m.ergebnis,
       gemessenAm: m.gemessen_am,
     }))
-    .sort((a, b) => a.gemessenAm.localeCompare(b.gemessenAm));
+    .sort(nachMesszeit);
+}
 
-  // Rueckverfolgung bis zum liefernden Nachbarbetrieb bei Zukaufware
-  // (Anforderung 6.3). Bei eigener Ernte bleibt reihenblock_id gesetzt und es
-  // gibt keine zukauf_positionen-Zeile zur Charge - nachbarbetrieb bleibt
-  // dann bewusst null statt einer Fehlinterpretation.
-  const zukaufPosition = einsAus(charge?.zukauf_positionen);
+// Rueckverfolgung bis zum liefernden Nachbarbetrieb bei Zukaufware
+// (Anforderung 6.3). Bei eigener Ernte bleibt reihenblock_id gesetzt und es
+// gibt keine zukauf_positionen-Zeile zur Charge - nachbarbetrieb bleibt
+// dann bewusst null statt einer Fehlinterpretation.
+function nachbarbetriebAus(
+  zukauf: RueckverfolgungsZeile["zukauf_positionen"],
+): RueckverfolgungNachbarbetrieb | null {
+  const zukaufPosition = einsAus(zukauf);
   const nachbarbetriebRoh = zukaufPosition ? einsAus(zukaufPosition.nachbarbetriebe) : null;
-  const nachbarbetrieb: RueckverfolgungNachbarbetrieb | null = nachbarbetriebRoh
-    ? { name: nachbarbetriebRoh.name, ort: nachbarbetriebRoh.ort }
-    : null;
+  return nachbarbetriebRoh ? { name: nachbarbetriebRoh.name, ort: nachbarbetriebRoh.ort } : null;
+}
 
-  // Transportphase (Anforderung 3.2): eine Charge kann ueber mehrere
-  // Lieferungen verteilt sein (Teillieferungen) - alle zugehoerigen
-  // Transportmessungen zusammen, chronologisch, schliessen die Kette bis zum
-  // Kunden.
-  const transportMessungen: RueckverfolgungTransportmessung[] = (charge?.lieferungen ?? [])
+// Transportphase (Anforderung 3.2): eine Charge kann ueber mehrere
+// Lieferungen verteilt sein (Teillieferungen) - alle zugehoerigen
+// Transportmessungen zusammen, chronologisch, schliessen die Kette bis zum
+// Kunden.
+function transportMessungenAus(
+  lieferungen: NonNullable<RueckverfolgungsZeile["lieferungen"]>,
+): RueckverfolgungTransportmessung[] {
+  return lieferungen
     .flatMap((l) => l.transport_temperatur_messungen ?? [])
     .map((m) => ({
       id: m.id,
@@ -256,9 +334,20 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
       ergebnis: m.ergebnis,
       gemessenAm: m.gemessen_am,
     }))
-    .sort((a, b) => a.gemessenAm.localeCompare(b.gemessenAm));
+    .sort(nachMesszeit);
+}
 
-  const ereignisse: ReklamationEreignis[] = (ereignisRohdaten ?? []).map((e) => {
+function ereignisseAus(
+  zeilen: {
+    id: string;
+    neuer_status: ReklamationStatus | null;
+    text: string;
+    sichtbar_fuer_kunde: boolean;
+    created_at: string;
+    profiles: Eingebettet<{ full_name: string; role: string }>;
+  }[],
+): ReklamationEreignis[] {
+  return zeilen.map((e) => {
     const autor = einsAus(e.profiles);
     return {
       id: e.id,
@@ -269,32 +358,6 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
       erstelltAm: e.created_at,
     };
   });
-
-  return {
-    id: rekl.id,
-    code: rekl.code,
-    kunde: kunde?.name ?? "-",
-    kundeId: kunde?.id ?? "",
-    chargeCode: charge?.code ?? null,
-    reihenblock: block?.code ?? null,
-    grund: rekl.grund,
-    betreff: rekl.betreff,
-    status: rekl.status,
-    betroffeneMengeKg: rekl.betroffene_menge_kg === null ? null : Number(rekl.betroffene_menge_kg),
-    gemeldetAm: rekl.gemeldet_am,
-    fristAm: rekl.frist_am,
-    gutschriftTenge: rekl.gutschrift_tenge === null ? null : Number(rekl.gutschrift_tenge),
-    beschreibung: rekl.beschreibung,
-    chargeId: rekl.charge_id,
-    gemeldetVon: gemeldetVonProfil?.full_name ?? null,
-    erledigtAm: rekl.erledigt_am,
-    loesung: rekl.loesung,
-    ereignisse,
-    pflueckerListe,
-    kuehlmessungen,
-    nachbarbetrieb,
-    transportMessungen,
-  };
 }
 
 export interface AuswahlZeile {

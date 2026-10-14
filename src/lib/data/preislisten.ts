@@ -21,6 +21,38 @@ export interface PreislistenUebersicht {
   preislisten: PreislisteZeile[];
 }
 
+/** Eine Preisliste, wie PostgREST sie mit ihren Positionen und der Sorte liefert (dieselbe Auswahl hier und in data/vorbestellungen.ts). */
+interface PreislisteRoh {
+  id: string;
+  name: string;
+  gueltig_ab: string;
+  gueltig_bis: string | null;
+  aktiv: boolean;
+  kundengruppe: PreislisteZeile["kundengruppe"];
+  preislisten_positionen: { id: string; preis_tenge_kg: number | string; min_menge_kg: number | string; sorten: { name: string } | { name: string }[] | null }[] | null;
+}
+
+/** Datenbankzeile zur Anzeigezeile, eine Stelle für die Verwaltung (alle Listen) und das B2B-Portal (nur gültige). */
+export function preislisteAusZeile(p: PreislisteRoh): PreislisteZeile {
+  return {
+    id: p.id,
+    name: p.name,
+    gueltigAb: p.gueltig_ab,
+    gueltigBis: p.gueltig_bis,
+    aktiv: p.aktiv,
+    kundengruppe: p.kundengruppe,
+    positionen: (p.preislisten_positionen ?? []).map((pos) => {
+      const sorte = einsAus(pos.sorten);
+      return {
+        id: pos.id,
+        sorte: sorte?.name ?? "-",
+        preisTengeKg: Number(pos.preis_tenge_kg),
+        minMengeKg: Number(pos.min_menge_kg),
+      };
+    }),
+  };
+}
+
 function demoPreislistenUebersicht(quelle: PreislistenUebersicht["quelle"] = "demo"): PreislistenUebersicht {
   return { quelle, preislisten: demoPreislisten };
 }
@@ -41,23 +73,7 @@ export async function ladePreislistenVerwaltung(): Promise<PreislistenUebersicht
 
   return {
     quelle: "db",
-    preislisten: data.map((p) => ({
-      id: p.id,
-      name: p.name,
-      gueltigAb: p.gueltig_ab,
-      gueltigBis: p.gueltig_bis,
-      aktiv: p.aktiv,
-      kundengruppe: p.kundengruppe,
-      positionen: (p.preislisten_positionen ?? []).map((pos) => {
-        const sorte = einsAus(pos.sorten);
-        return {
-          id: pos.id,
-          sorte: sorte?.name ?? "-",
-          preisTengeKg: Number(pos.preis_tenge_kg),
-          minMengeKg: Number(pos.min_menge_kg),
-        };
-      }),
-    })),
+    preislisten: data.map(preislisteAusZeile),
   };
 }
 

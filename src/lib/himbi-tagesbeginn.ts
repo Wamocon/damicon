@@ -8,7 +8,7 @@ import type { Ablage } from "@/lib/browser-ablage";
 //
 // Zwei Wege, ein Merker:
 //   - "gespraech": im Sprachmodus stellt Himbi beim ersten Zuhoeren selbst die Frage nach der
-//     Tageslage (components/ki/sprachmodus.tsx) und antwortet darauf mit Rueckfrage.
+//     Tageslage (components/ki/sprachmodus-chat.ts, useTagesbeginn) und antwortet darauf mit Rueckfrage.
 //   - "blase": ausserhalb des Sprachmodus eine Sprechblase mit Gruss und dem Angebot, zu sagen,
 //     was heute dringend ist (components/haustier/haustier-dashboard.tsx). Kostet nichts, bis
 //     jemand "Ja" sagt.

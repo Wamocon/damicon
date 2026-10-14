@@ -170,6 +170,19 @@ export function segmentiere(nachricht: UIMessage): Segment[] {
   return segmente;
 }
 
+/** Waehrend eines laufenden Zugs: der zuletzt begonnene Werkzeugaufruf der letzten Antwort,
+ *  fuer die Statuszeile ("Agent prueft ..."); ohne laufendes Werkzeug null ("denkt nach"). */
+export function laufenderSchrittVon(nachrichten: UIMessage[]): Schritt | null {
+  const letzte = nachrichten.at(-1);
+  if (!letzte || letzte.role !== "assistant") return null;
+  return (
+    segmentiere(letzte)
+      .flatMap((s) => (s.art === "schritte" ? s.schritte : []))
+      .filter((s) => s.zustand === "laeuft")
+      .at(-1) ?? null
+  );
+}
+
 // Vorschlaege je Rolle und Modus: nur, was diese Rolle auch tatsaechlich
 // kann - ein Kunde sieht keine Lohn-Vorschlaege. Die Rechte kommen direkt aus
 // rbac.ts, dieselbe Quelle wie die Werkzeuge auf dem Server.

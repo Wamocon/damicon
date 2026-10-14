@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { zones } from "@/lib/modules";
 import { kpis, zielerreichung } from "@/lib/domain/kpis";
 import { abschlussBild, bereichsBilder } from "@/lib/site-medien";
+import { AbschnittKopf } from "@/components/site/abschnitt-kopf";
 
 // "Warum die Himbeere anders ist" steht als Bento in beere-bento.tsx, die
 // Nachweiskette als animierte Kette in belegkette.tsx.
@@ -37,15 +38,7 @@ export function PriceSpread() {
   return (
     <section className="container scroll-mt-20 py-16 md:py-24">
       <Reveal art="wisch">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-          {s("spreadEyebrow")}
-        </p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-          {s("spreadTitle")}
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          {s("spreadLead")}
-        </p>
+        <AbschnittKopf ueberzeile={s("spreadEyebrow")} titel={s("spreadTitle")} einleitung={s("spreadLead")} />
       </Reveal>
 
       <Reveal staffel className="mt-10 grid gap-4 md:grid-cols-3">
@@ -105,15 +98,7 @@ export function ZonesOverview() {
           rechte Haelfte dort sonst leer bleibt. */}
       <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <Reveal art="wisch">
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-            {s("zonesEyebrow")}
-          </p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-            {s("zonesTitle")}
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {s("zonesLead")}
-          </p>
+          <AbschnittKopf ueberzeile={s("zonesEyebrow")} titel={s("zonesTitle")} einleitung={s("zonesLead")} />
         </Reveal>
 
         <Reveal>
@@ -173,15 +158,7 @@ export function Levers() {
   return (
     <section className="container py-16 md:py-24">
       <Reveal art="wisch">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-          {s("leversEyebrow")}
-        </p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-          {s("leversTitle")}
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          {s("leversLead")}
-        </p>
+        <AbschnittKopf ueberzeile={s("leversEyebrow")} titel={s("leversTitle")} einleitung={s("leversLead")} />
       </Reveal>
 
       <Reveal staffel className="mt-10 grid gap-4 md:grid-cols-2">
@@ -310,15 +287,7 @@ export function ComplianceBlock() {
   return (
     <section id="compliance" className="container scroll-mt-20 py-16 md:py-24">
       <Reveal art="wisch">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-          {s("complianceEyebrow")}
-        </p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-          {s("complianceTitle")}
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          {s("complianceLead")}
-        </p>
+        <AbschnittKopf ueberzeile={s("complianceEyebrow")} titel={s("complianceTitle")} einleitung={s("complianceLead")} />
       </Reveal>
 
       <Reveal staffel className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

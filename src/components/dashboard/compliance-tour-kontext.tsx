@@ -47,11 +47,6 @@ export function ComplianceTourProvider({ children }: { children: ReactNode }) {
   return <ComplianceTourContext.Provider value={value}>{children}</ComplianceTourContext.Provider>;
 }
 
-/** Fuer die Bereichsuebersicht: die aktuellen Stationen, oder null - dann gibt es (noch) keine Tour. */
-export function useComplianceTourSchritte(): ComplianceTourSchritt[] | null {
-  return useContext(ComplianceTourContext)?.schritte ?? null;
-}
-
 /** Fuer die Bereichsuebersicht: ihre Stationen, den Berichtsbezug (fuer "Ergebnis besprechen" am
  *  Ende der Tour) UND die Steuerung ihrer Aufklappbaren anmelden, solange sie gemountet ist - beim
  *  Verlassen der Seite (Unmount) wieder abmelden, sonst zeigt Himbi anderswo ins Leere. */

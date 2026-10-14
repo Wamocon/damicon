@@ -433,8 +433,6 @@ export const TOUR_SCHRITTE = [
   { schluessel: "fragen", anker: "fragen" },
 ] as const;
 
-export type TourSchluessel = (typeof TOUR_SCHRITTE)[number]["schluessel"];
-
 /** Wie lange eine Tourstation im Autopilot stehen bleibt: grob die Lesezeit des Textes, mindestens
  *  gut lesbar, hoechstens nicht zaeh. */
 export function tourDauer(text: string): number {

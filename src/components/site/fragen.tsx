@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Reveal } from "@/components/site/reveal";
 import { modules } from "@/lib/modules";
+import { AbschnittKopf } from "@/components/site/abschnitt-kopf";
 
 // Häufige Fragen als aufklappbare Liste. Bewusst mit <details> und <summary>
 // statt einer eigenen Aufklapp-Logik: Das bringt Tastaturbedienung,
@@ -37,13 +38,7 @@ export function Fragen() {
   return (
     <section id="fragen" className="container scroll-mt-20 py-16 md:py-24">
       <Reveal art="wisch">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-          {s("faqEyebrow")}
-        </p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-          {s("faqTitle")}
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{s("faqLead")}</p>
+        <AbschnittKopf ueberzeile={s("faqEyebrow")} titel={s("faqTitle")} einleitung={s("faqLead")} />
       </Reveal>
 
       <Reveal staffel className="mt-10 grid max-w-3xl gap-3">

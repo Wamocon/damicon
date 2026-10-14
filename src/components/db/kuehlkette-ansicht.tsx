@@ -1,15 +1,10 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Card, Section, StatusPill, type Tone } from "@/components/ui/kit";
+import { Card, Section, StatusPill } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import { KuehlkettenAlarm } from "@/components/db/kuehlketten-alarm";
 import { ladeKuehlkettenUebersicht } from "@/lib/data/kuehlkette";
 import { LeererZustand } from "@/components/ui/liste";
-
-const ergebnisTon: Record<string, Tone> = {
-  ok: "success",
-  warnung: "warning",
-  verstoss: "danger",
-};
+import { kuehlErgebnisTon } from "@/components/db/toene";
 
 // Kuehlketten-Cockpit (Anforderung 3.1). Ersetzt die bisherige Mock-Ansicht
 // (drei fest verdrahtete Beispielchargen) durch die echte, betriebsweite
@@ -77,7 +72,7 @@ export async function KuehletteAnsicht() {
                   <span className="font-mono text-xs font-semibold text-foreground">
                     {format.number(m.temperaturC, { maximumFractionDigits: 1 })} °C
                   </span>
-                  <StatusPill tone={ergebnisTon[m.ergebnis] ?? "neutral"}>
+                  <StatusPill tone={kuehlErgebnisTon[m.ergebnis] ?? "neutral"}>
                     {kkT(`ergebnis.${m.ergebnis}`)}
                   </StatusPill>
                 </div>

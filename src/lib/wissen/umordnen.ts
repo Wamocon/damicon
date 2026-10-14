@@ -10,6 +10,7 @@ import {
   QUELLENART_INFO,
   standardStufe,
   type Quellenart,
+  type Textgrundlage,
 } from "@/lib/wissen/quellenart";
 import { BEREICH_WERT, bereichSchluessel, UPLOAD_BEREICHE, type UploadBereich } from "@/lib/wissen/upload-konstanten";
 import { UPLOAD_QUELLE, UPLOAD_QUELLE_MUSTER } from "@/lib/wissen/upload-quelle";
@@ -79,27 +80,7 @@ export async function ordneUm(db: SupabaseClient, ziel: UmordnungsZiel, aenderun
   if (!ziel.schluessel || !["quelle_id", "pfad", "id"].includes(ziel.schluesselSpalte)) throw new UploadFehler("eingabe");
   const spalte = ziel.schluesselSpalte;
 
-  // Das Dokument lesen: eine Zeile fuer die Angaben, dazu Zahl aller Zeilen und Zahl der Upload-Zeilen
-  const { data: kopfZeilen, error: kopfFehler } = await db
-    .from("wissen_chunks")
-    .select("titel, bereich, quellenart, cluster, textgrundlage, autoritaetsstufe, pruefstatus, pruefen_bis, url, extra")
-    .eq(spalte, ziel.schluessel)
-    .limit(1);
-  if (kopfFehler) throw new UploadFehler("speichern", undefined, new Error(kopfFehler.message));
-  const kopf = (kopfZeilen ?? [])[0] as ZeileKopf | undefined;
-  if (!kopf) throw new UploadFehler("nichtGefunden");
-  const { count: alle, error: zaehlFehler } = await db.from("wissen_chunks").select("id", { count: "exact", head: true }).eq(spalte, ziel.schluessel);
-  if (zaehlFehler) throw new UploadFehler("speichern", undefined, new Error(zaehlFehler.message));
-  const { count: uploads, error: uploadFehler } = await db
-    .from("wissen_chunks")
-    .select("id", { count: "exact", head: true })
-    .eq(spalte, ziel.schluessel)
-    .like("quelle_id", UPLOAD_QUELLE_MUSTER)
-    .eq("extra->>quelle", UPLOAD_QUELLE);
-  if (uploadFehler) throw new UploadFehler("speichern", undefined, new Error(uploadFehler.message));
-  const istUpload = (alle ?? 0) > 0 && uploads === alle;
-  // Gemischte Zeilen (ein Teil Upload, ein Teil nicht) gibt es nicht; kommt es vor, fasst dieser Weg das Dokument nicht an.
-  if ((uploads ?? 0) > 0 && !istUpload) throw new UploadFehler("eingabe");
+  const { kopf, istUpload } = await ladeDokument(db, spalte, ziel.schluessel);
 
   const vorher: Einordnung = {
     bereich: kopf.bereich,
@@ -110,26 +91,7 @@ export async function ordneUm(db: SupabaseClient, ziel: UmordnungsZiel, aenderun
     pruefenBis: kopf.pruefen_bis,
   };
 
-  // --- neue Werte: nur, was angegeben ist, aendert sich ---
-  let bereichNeu = kopf.bereich;
-  if (aenderung.bereich !== undefined && aenderung.bereich !== "") {
-    if ((UPLOAD_BEREICHE as readonly string[]).includes(aenderung.bereich)) bereichNeu = BEREICH_WERT[aenderung.bereich as UploadBereich];
-    else if (aenderung.bereich !== kopf.bereich) throw new UploadFehler("eingabe"); // ein Korpusbereich bleibt nur, wie er ist
-  }
-  const artRoh = aenderung.quellenart ?? kopf.quellenart ?? "";
-  if (artRoh !== "" && !istQuellenart(artRoh)) throw new UploadFehler("eingabe");
-  const art: Quellenart | null = artRoh === "" ? null : (artRoh as Quellenart);
-  const clusterNeu = aenderung.cluster !== undefined && aenderung.cluster !== "" ? aenderung.cluster : kopf.cluster;
-  if (clusterNeu !== null && !istCluster(clusterNeu)) throw new UploadFehler("eingabe");
-  const textNeu = aenderung.textgrundlage !== undefined && aenderung.textgrundlage !== "" ? aenderung.textgrundlage : (kopf.textgrundlage ?? "original");
-  if (!istTextgrundlage(textNeu)) throw new UploadFehler("eingabe");
-
-  // --- Regeln wie beim Hochladen ---
-  if (art) {
-    if (nutzungFuer(bereichSchluessel(bereichNeu), art) === "nein") throw new UploadFehler("quellenartGesperrt");
-    if (clusterNeu && !clusterPasst(art, clusterNeu)) throw new UploadFehler("clusterPasstNicht");
-    if (QUELLENART_INFO[art].urlPflicht && !/^https?:\/\//i.test((kopf.url ?? "").trim())) throw new UploadFehler("urlFehlt");
-  }
+  const { bereichNeu, art, clusterNeu, textNeu } = neueEinordnung(kopf, aenderung);
 
   const artGeaendert = art !== null && art !== kopf.quellenart;
   const stufeNeu = artGeaendert ? standardStufe(art) : kopf.autoritaetsstufe;
@@ -165,10 +127,64 @@ export async function ordneUm(db: SupabaseClient, ziel: UmordnungsZiel, aenderun
     set.geprueft_am = jetzt.toISOString();
   }
 
-  // --- Schreiben: in Stapeln nach Kennung (Adresslaenge) ---
+  const geschrieben = await schreibeInStapeln(db, spalte, ziel.schluessel, set);
+  return { titel: kopf.titel, upload: istUpload, pruefstatus: kopf.pruefstatus, vorher, nachher, abschnitte: geschrieben };
+}
+
+/** Das Dokument lesen: eine Zeile fuer die Angaben, dazu Zahl aller Zeilen und Zahl der Upload-Zeilen. Gemischte Dokumente fasst der Weg nicht an. */
+async function ladeDokument(db: SupabaseClient, spalte: UmordnungsZiel["schluesselSpalte"], schluessel: string): Promise<{ kopf: ZeileKopf; istUpload: boolean }> {
+  const { data: kopfZeilen, error: kopfFehler } = await db
+    .from("wissen_chunks")
+    .select("titel, bereich, quellenart, cluster, textgrundlage, autoritaetsstufe, pruefstatus, pruefen_bis, url, extra")
+    .eq(spalte, schluessel)
+    .limit(1);
+  if (kopfFehler) throw new UploadFehler("speichern", undefined, new Error(kopfFehler.message));
+  const kopf = (kopfZeilen ?? [])[0] as ZeileKopf | undefined;
+  if (!kopf) throw new UploadFehler("nichtGefunden");
+  const { count: alle, error: zaehlFehler } = await db.from("wissen_chunks").select("id", { count: "exact", head: true }).eq(spalte, schluessel);
+  if (zaehlFehler) throw new UploadFehler("speichern", undefined, new Error(zaehlFehler.message));
+  const { count: uploads, error: uploadFehler } = await db
+    .from("wissen_chunks")
+    .select("id", { count: "exact", head: true })
+    .eq(spalte, schluessel)
+    .like("quelle_id", UPLOAD_QUELLE_MUSTER)
+    .eq("extra->>quelle", UPLOAD_QUELLE);
+  if (uploadFehler) throw new UploadFehler("speichern", undefined, new Error(uploadFehler.message));
+  const istUpload = (alle ?? 0) > 0 && uploads === alle;
+  // Gemischte Zeilen (ein Teil Upload, ein Teil nicht) gibt es nicht; kommt es vor, fasst dieser Weg das Dokument nicht an.
+  if ((uploads ?? 0) > 0 && !istUpload) throw new UploadFehler("eingabe");
+  return { kopf, istUpload };
+}
+
+/** Die neuen Werte (nur, was angegeben ist, aendert sich) und die Regeln wie beim Hochladen. Wirft UploadFehler bei unzulaessiger Einordnung. */
+function neueEinordnung(kopf: ZeileKopf, aenderung: Umordnung): { bereichNeu: string; art: Quellenart | null; clusterNeu: string | null; textNeu: Textgrundlage } {
+  let bereichNeu = kopf.bereich;
+  if (aenderung.bereich !== undefined && aenderung.bereich !== "") {
+    if ((UPLOAD_BEREICHE as readonly string[]).includes(aenderung.bereich)) bereichNeu = BEREICH_WERT[aenderung.bereich as UploadBereich];
+    else if (aenderung.bereich !== kopf.bereich) throw new UploadFehler("eingabe"); // ein Korpusbereich bleibt nur, wie er ist
+  }
+  const artRoh = aenderung.quellenart ?? kopf.quellenart ?? "";
+  if (artRoh !== "" && !istQuellenart(artRoh)) throw new UploadFehler("eingabe");
+  const art: Quellenart | null = artRoh === "" ? null : (artRoh as Quellenart);
+  const clusterNeu = aenderung.cluster !== undefined && aenderung.cluster !== "" ? aenderung.cluster : kopf.cluster;
+  if (clusterNeu !== null && !istCluster(clusterNeu)) throw new UploadFehler("eingabe");
+  const textNeu = aenderung.textgrundlage !== undefined && aenderung.textgrundlage !== "" ? aenderung.textgrundlage : (kopf.textgrundlage ?? "original");
+  if (!istTextgrundlage(textNeu)) throw new UploadFehler("eingabe");
+
+  // --- Regeln wie beim Hochladen ---
+  if (art) {
+    if (nutzungFuer(bereichSchluessel(bereichNeu), art) === "nein") throw new UploadFehler("quellenartGesperrt");
+    if (clusterNeu && !clusterPasst(art, clusterNeu)) throw new UploadFehler("clusterPasstNicht");
+    if (QUELLENART_INFO[art].urlPflicht && !/^https?:\/\//i.test((kopf.url ?? "").trim())) throw new UploadFehler("urlFehlt");
+  }
+  return { bereichNeu, art, clusterNeu, textNeu };
+}
+
+/** Schreiben in Stapeln nach Kennung (Adresslaenge); liefert die Zahl der geaenderten Zeilen. */
+async function schreibeInStapeln(db: SupabaseClient, spalte: UmordnungsZiel["schluesselSpalte"], schluessel: string, set: Record<string, unknown>): Promise<number> {
   const ids: string[] = [];
   for (let von = 0; ; von += SEITE) {
-    const { data, error } = await db.from("wissen_chunks").select("id").eq(spalte, ziel.schluessel).order("id").range(von, von + SEITE - 1);
+    const { data, error } = await db.from("wissen_chunks").select("id").eq(spalte, schluessel).order("id").range(von, von + SEITE - 1);
     if (error) throw new UploadFehler("speichern", undefined, new Error(error.message));
     const seite = (data ?? []) as { id: string }[];
     ids.push(...seite.map((z) => z.id));
@@ -180,5 +196,5 @@ export async function ordneUm(db: SupabaseClient, ziel: UmordnungsZiel, aenderun
     if (error) throw new UploadFehler("speichern", undefined, new Error(error.message));
     geschrieben += count ?? 0;
   }
-  return { titel: kopf.titel, upload: istUpload, pruefstatus: kopf.pruefstatus, vorher, nachher, abschnitte: geschrieben };
+  return geschrieben;
 }

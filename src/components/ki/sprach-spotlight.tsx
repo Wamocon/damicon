@@ -17,7 +17,7 @@ import { behalteGleichesRechteck, type Rechteck } from "@/lib/domain/sprachmodus
 // verschachtelte Scrollcontainer haben (Ausnahme: Tabellen mit eigenem
 // Scrollbalken, dort scrollt der Anker ohnehin per scrollIntoView mit).
 
-/** Abstand des Rahmens um das Ziel; auch Himbi haelt ihn auf dem Handy frei (sprachmodus.tsx). */
+/** Abstand des Rahmens um das Ziel; auch Himbi haelt ihn auf dem Handy frei (sprachmodus-seite.ts). */
 export const RAHMEN_ABSTAND = 16;
 const ABSTAND = RAHMEN_ABSTAND;
 
@@ -26,7 +26,7 @@ function rechteckVon(element: Element): Rechteck {
   return { x: r.left, y: r.top, breite: r.width, hoehe: r.height };
 }
 
-/** Fuer das Spotlight und den Blick von Himbi (sprachmodus.tsx):
+/** Fuer das Spotlight und den Blick von Himbi (usePlatzVonHimbi in sprachmodus-seite.ts):
  *  liefert das aktuelle Zielrechteck oder null, wenn nichts hervorgehoben ist.
  *
  *  Springt der Assistent waehrend des Sprachmodus auf eine neue Seite

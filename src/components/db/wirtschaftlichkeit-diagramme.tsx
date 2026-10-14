@@ -189,29 +189,7 @@ export function TcoStapel({
   locale: string;
   texte: Diagrammtexte;
 }) {
-  const config = { wert: { label: texte.wert, color: "var(--chart-2)" } } satisfies ChartConfig;
-  return (
-    <div aria-hidden="true">
-      <ChartContainer config={config} className={HOEHE}>
-        <BarChart data={teile} margin={{ left: 4, right: 8, top: 8, bottom: 0 }}>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" />
-          <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={6} />
-          <YAxis
-            tickLine={false}
-            axisLine={false}
-            width={ACHSE_GELD}
-            tickFormatter={(w: number) => kompakt(locale, w)}
-          />
-          <ChartTooltip content={<ChartTooltipContent indicator="dashed" />} />
-          <Bar dataKey="wert" radius={4}>
-            {teile.map((teil, i) => (
-              <Cell key={`${teil.name}-${i}`} fill={teil.betont ? "var(--chart-1)" : "var(--chart-2)"} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ChartContainer>
-    </div>
-  );
+  return <BetonteBalken daten={teile} locale={locale} label={texte.wert} grund="var(--chart-2)" betont="var(--chart-1)" />;
 }
 
 /**
@@ -237,7 +215,24 @@ export function KostenJeKilogramm({
     { name: beschriftung.vorher, wert: vorher, betont: false },
     { name: beschriftung.nachher, wert: nachher, betont: true },
   ];
-  const config = { wert: { label: texte.wert, color: "var(--chart-5)" } } satisfies ChartConfig;
+  return <BetonteBalken daten={daten} locale={locale} label={texte.wert} grund="var(--chart-5)" betont="var(--chart-3)" />;
+}
+
+/** Balken mit einer Grund- und einer Betonungsfarbe je Teil; gemeinsamer Teil von TcoStapel und KostenJeKilogramm (WMC-Cleanup 13.10.2026). */
+function BetonteBalken({
+  daten,
+  locale,
+  label,
+  grund,
+  betont,
+}: {
+  daten: StapelTeil[];
+  locale: string;
+  label: string;
+  grund: string;
+  betont: string;
+}) {
+  const config = { wert: { label, color: grund } } satisfies ChartConfig;
   return (
     <div aria-hidden="true">
       <ChartContainer config={config} className={HOEHE}>
@@ -252,8 +247,8 @@ export function KostenJeKilogramm({
           />
           <ChartTooltip content={<ChartTooltipContent indicator="dashed" />} />
           <Bar dataKey="wert" radius={4}>
-            {daten.map((d) => (
-              <Cell key={d.name} fill={d.betont ? "var(--chart-3)" : "var(--chart-5)"} />
+            {daten.map((teil, i) => (
+              <Cell key={`${teil.name}-${i}`} fill={teil.betont ? betont : grund} />
             ))}
           </Bar>
         </BarChart>

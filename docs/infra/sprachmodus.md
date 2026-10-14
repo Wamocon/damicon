@@ -185,7 +185,7 @@ Die Werte der Schranken (`UNTERBRECHEN_STANDARD`) sind Ausgangswerte auf
 derselben Skala wie die Stilleerkennung des Diktats und am echten Gerät
 nachzuziehen.
 
-### Mikrofon (`src/components/ki/sprachmodus.tsx`)
+### Mikrofon (`src/components/ki/sprachmodus-ohr.ts`)
 
 Der **Mikrofonstrom** wird einmal geöffnet und bleibt für die ganze Sitzung
 offen. Ständiges Öffnen und Schließen lässt auf iOS die Audiosession wechseln,

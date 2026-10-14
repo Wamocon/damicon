@@ -4,6 +4,7 @@ import { Lupe } from "@/components/site/lupe";
 import { QualityCompare } from "@/components/site/quality-compare";
 import { Reveal } from "@/components/site/reveal";
 import { qualitaetsBeeren, qualitaetsSchale } from "@/lib/site-medien";
+import { AbschnittKopf } from "@/components/site/abschnitt-kopf";
 
 // Der Qualitätsmaßstab, der im Feld gilt, steht hier ein zweites Mal - kein
 // Schmuck: wer den Betrieb beliefert oder für ihn pflückt, sieht auf der
@@ -30,15 +31,7 @@ export function QualityStandard() {
     <section className="border-b border-border py-16 md:py-24">
       <div className="container">
         <Reveal art="wisch">
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-            {t("eyebrow")}
-          </p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-            {t("title")}
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {t("lead")}
-          </p>
+          <AbschnittKopf ueberzeile={t("eyebrow")} titel={t("title")} einleitung={t("lead")} />
         </Reveal>
 
         {/* Die Lupe ersetzt hier den Hover-Zoom der anderen Fotos: der

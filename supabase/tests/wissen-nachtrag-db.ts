@@ -129,7 +129,6 @@ async function main() {
     }
   };
   const liste = async (q: string) => gruppiereWissenDokumente(((await dienst.rpc("wissen_liste")).data ?? []) as WissenListeZeile[]).find((x) => x.schluessel === q);
-  const prozent = async (q: string) => (await dienst.from("wissen_qualitaet").select("prozent").eq("quelle_id", q).single()).data?.prozent as number | undefined;
   const textProzent = async (q: string) => dokumentQualitaet((await chunksVon(q)).map((c) => c.text), null)?.prozent;
 
   await aufraeumen();

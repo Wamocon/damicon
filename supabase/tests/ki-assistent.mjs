@@ -141,9 +141,22 @@ import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/dom
 import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, NUTZER_SCHLUESSEL, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
 import { agentSeitenansichtAn, diktatLiveAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
 import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { register } from "node:module";
 import { beobachteZeitgeber, erzeugeAudioKontext, erzeugeFakeWS, pcm, warte, wortweise as wortweiseZerlegt } from "./hilfen/attrappen.mjs";
+
+/** Alle Teile des KI-Chats (src/components/ki/ki-chat*.ts und .tsx): seit der Zerlegung vom 14.10.2026 über viele Dateien verteilt. */
+function kiChatTeile() {
+  const ordner = new URL("../../src/components/ki/", import.meta.url);
+  return readdirSync(ordner)
+    .filter((datei) => /^ki-chat.*\.tsx?$/.test(datei))
+    .map((datei) => ({ datei, text: readFileSync(new URL(datei, ordner), "utf8") }));
+}
+/** Der Aufruf, mit dem KiChat (ki-chat.tsx) einen Hook seiner Teile verdrahtet: genau dieser Text muss dort stehen. */
+const KI_CHAT_AUFRUFE = {
+  taktVerdrahtung: "useTaktVerdrahtung({ stimmeRef: takt.stimme, aktivRef: takt.aktiv, standRef: takt.stand, halteRef: takt.halte, live, vorlesen, sprachmodus });",
+  chatStand: "useChatStandMeldung({ live, beschaeftigt, vorlesen, messages, istErsteNachricht, einwilligung, error });",
+};
 
 // Seit 28.09.2026 holen domain/sprachausgabe.ts, domain/antwortsprache.ts und
 // wissen/chunker.ts die Spracherkennung ueber den Alias (@/lib/text/sprache-erkennen,
@@ -195,6 +208,13 @@ function pruefe(name, bedingung, info = "") {
     console.log(`  FEHL ${name}${info ? "  " + info : ""}`);
   }
 }
+
+// Der Sprachmodus steht seit dem 14.10.2026 in sprachmodus.tsx und den Hooks und Teilkomponenten daneben
+// (sprachmodus-*.ts, sprachmodus-anzeige.tsx). Die Quelltext-Pruefungen lesen alle zusammen; die geteilten Refs
+// heissen dort <name>Ref (grenzeMsRef statt grenzeMs), weil die Hooks sie als Argument bekommen.
+const SPRACHMODUS_DATEIEN = ["sprachmodus.tsx", "sprachmodus-gedaechtnis.ts", "sprachmodus-fragen.ts", "sprachmodus-verdacht.ts", "sprachmodus-erkennung.ts", "sprachmodus-ohr.ts", "sprachmodus-chat.ts", "sprachmodus-bedienung.ts", "sprachmodus-seite.ts", "sprachmodus-anzeige.tsx"];
+const sprachmodusQuelle = () =>
+  SPRACHMODUS_DATEIEN.map((datei) => readFileSync(new URL(`../../src/components/ki/${datei}`, import.meta.url), "utf8")).join("\n");
 
 // --- 1. schluessel.ts --------------------------------------------------------
 
@@ -1245,7 +1265,9 @@ for (const [name, kaputteAntwort] of [
     // Der Text geht ins Feld - inzwischen samt der gehoerten Sprache, die
     // ueber die Antwortsprache entscheidet (Block 16).
     pruefe("Kein Auto-Senden: der erkannte Text geht weiterhin ins Feld", knopf.includes("beiText(status.wert, status.sprachen)"));
-    pruefe("Diktat: der Cursor steht danach am Ende des Textes", chat.includes("setSelectionRange(text.length, text.length)"));
+    // Seit der Zerlegung von KiChat (14.10.2026) haelt ki-chat-eingabe.ts das Eingabefeld samt Diktat-Uebergabe.
+    const eingabe = readFileSync(new URL("../../src/components/ki/ki-chat-eingabe.ts", import.meta.url), "utf8");
+    pruefe("Diktat: der Cursor steht danach am Ende des Textes", eingabe.includes("setSelectionRange(text.length, text.length)"));
   }
 
   // (f) Groessengrenze passt zu next.config.ts, sonst greift sie nie.
@@ -1857,20 +1879,24 @@ for (const [name, kaputteAntwort] of [
     const aktion = readFileSync(new URL("../../src/lib/actions/ki-assistent.ts", import.meta.url), "utf8");
     const status = readFileSync(new URL("../../src/lib/actions/status.ts", import.meta.url), "utf8");
     const knopf = readFileSync(new URL("../../src/components/ki/mikrofon.tsx", import.meta.url), "utf8");
-    const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
     const chatSprache = readFileSync(new URL("../../src/components/ki/ki-chat-sprache.ts", import.meta.url), "utf8");
+    const chatZug = readFileSync(new URL("../../src/components/ki/ki-chat-zug.ts", import.meta.url), "utf8");
+    const chatAnfrage = readFileSync(new URL("../../src/components/ki/ki-chat-anfrage.ts", import.meta.url), "utf8");
     const route = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
 
     pruefe("Kette 1/5: die Aktion gibt die Sprachen zurueck", aktion.includes("ok(\"ok.transkription\", antwort.text, gehoerteSprachen)"));
     pruefe("Kette 2/5: der Status kann sie tragen", status.includes("sprachen?: string[]"));
     pruefe("Kette 3/5: der Mikrofonknopf reicht sie weiter", knopf.includes("beiText(status.wert, status.sprachen)"));
     // Seit der Zerlegung von ki-chat.tsx (wmc-vibecode-cleanup Phase 3) haelt
-    // ki-chat-sprache.ts den Diktat-Zustand; ki-chat.tsx reicht den fertigen
-    // Wert nur noch in die Anfrage durch (beginneZug()/merkeDiktatSprachen()).
+    // ki-chat-sprache.ts den Diktat-Zustand. Seit dem 14.10.2026 reicht sende()
+    // in ki-chat-zug.ts den fertigen Wert in die Anfrage durch, und
+    // ki-chat-anfrage.ts legt ihn zu dem, was mit der Anfrage mitgeht.
     pruefe(
       "Kette 4/5: das Chatfenster schickt sie mit der Frage",
       chatSprache.includes("diktatSprachen.current = sprachen") &&
-        chat.includes("anfrageDaten.current = { ...anfrageDaten.current, diktatSprachen, vorleseWeg:"),
+        chatZug.includes("const diktatSprachen = beginneZug(ausFeld, erzwingeVorlesen);") &&
+        chatZug.includes("ergaenzeAnfrage({ diktatSprachen, vorleseWeg:") &&
+        chatAnfrage.includes("anfrageDaten.current = { ...anfrageDaten.current, ...teil };"),
     );
     pruefe("Kette 5/5: die Route wertet sie aus", route.includes("body.diktatSprachen") && route.includes("bestimmeAntwortsprache("));
   }
@@ -1940,7 +1966,8 @@ for (const [name, kaputteAntwort] of [
   pruefe("Diktat: vorhandener Text bleibt stehen", haengeDiktatAn("Frage:", "wie viele Steigen?") === "Frage: wie viele Steigen?");
   pruefe("Diktat: kein doppeltes Leerzeichen", haengeDiktatAn("Frage: ", "Steigen") === "Frage: Steigen");
   pruefe("Diktat: leeres Diktat aendert nichts", haengeDiktatAn("abc", "   ") === "abc");
-  const chatQuelle = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
+  // Das Eingabefeld des Chatfensters steht seit dem 14.10.2026 in ki-chat-eingabe.ts.
+  const chatQuelle = readFileSync(new URL("../../src/components/ki/ki-chat-eingabe.ts", import.meta.url), "utf8");
   pruefe("Diktat: das Chatfenster haengt an (haengeDiktatAn)", chatQuelle.includes("haengeDiktatAn(diktatBasis.current"));
   const altQuelle = readFileSync(new URL("../../src/components/db/ki-assistent-formulare.tsx", import.meta.url), "utf8");
   pruefe("Diktat: das aeltere Fenster ebenso", altQuelle.includes("haengeDiktatAn(basis.current") && !altQuelle.includes("feld.value = text;"));
@@ -2389,8 +2416,14 @@ for (const [name, kaputteAntwort] of [
   {
     const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
     const sprache = readFileSync(new URL("../../src/components/ki/ki-chat-sprache.ts", import.meta.url), "utf8");
-    pruefe("Diktat-Sprachen: nur Senden-Knopf und Enter geben 'aus dem Feld' an", (chat.match(/sende\(eingabe, true\)/g) ?? []).length === 2);
-    pruefe("Diktat-Sprachen: Vorgabe und Vorschlag senden ohne 'aus dem Feld'", chat.includes("sende(vorgabe.text);") && chat.includes("sende(vorschlag)"));
+    // Seit dem 14.10.2026 ist KiChat auf Hooks verteilt: die Fragen von aussen stehen in ki-chat-fragen.ts.
+    // Gezaehlt wird ueber alle Teile des Chats, damit kein weiterer Aufruf "aus dem Feld" unbemerkt dazukommt.
+    const fragen = readFileSync(new URL("../../src/components/ki/ki-chat-fragen.ts", import.meta.url), "utf8");
+    const chatTeile = ["ki-chat.tsx", "ki-chat-zug.ts", "ki-chat-fragen.ts", "ki-chat-eingabe.ts", "ki-chat-meldungen.ts", "ki-chat-folgen.ts", "ki-chat-zustaende.tsx", "ki-chat-nachricht.tsx"]
+      .map((datei) => readFileSync(new URL(`../../src/components/ki/${datei}`, import.meta.url), "utf8"))
+      .join("\n");
+    pruefe("Diktat-Sprachen: nur Senden-Knopf und Enter geben 'aus dem Feld' an", (chatTeile.match(/sende\(eingabe, true\)/g) ?? []).length === 2 && (chat.match(/sende\(eingabe, true\)/g) ?? []).length === 2);
+    pruefe("Diktat-Sprachen: Vorgabe und Vorschlag senden ohne 'aus dem Feld'", fragen.includes("sende(vorgabe.text);") && chat.includes("sende(vorschlag)"));
     pruefe("Diktat-Sprachen: beginneZug gibt sie ohne ausFeld nicht heraus und verbraucht sie nicht", sprache.includes("function beginneZug(ausFeld = false, erzwingeVorlesen = false)") && /if \(!ausFeld\) \{[\s\S]*?return undefined;/.test(sprache));
   }
 
@@ -2400,12 +2433,14 @@ for (const [name, kaputteAntwort] of [
   //     nur zufaellig mit, wenn kurz zuvor diktiert worden war. Jetzt ein eigenes, verlaessliches
   //     Signal (erzwingeVorlesen), unabhaengig von Diktat und vom Schalter "Antworten vorlesen".
   {
-    const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
+    // Seit dem 14.10.2026 stehen der Anstoss in ki-chat-fragen.ts und sende() in ki-chat-zug.ts.
+    const chatFragen = readFileSync(new URL("../../src/components/ki/ki-chat-fragen.ts", import.meta.url), "utf8");
+    const zug = readFileSync(new URL("../../src/components/ki/ki-chat-zug.ts", import.meta.url), "utf8");
     const sprache = readFileSync(new URL("../../src/components/ki/ki-chat-sprache.ts", import.meta.url), "utf8");
     // Seit main (globale Suche) traegt der Anstoss zurPruefung: nur die Frage zum Pruefbericht
     // (starteGespraechZurPruefung) erzwingt das Vorlesen, "KI fragen" aus der Suche ist wie getippt.
-    pruefe("Vorlesen erzwingen: die Tour-/Pruefbericht-Frage sendet mit erzwingeVorlesen=true", chat.includes("sende(anstoss.frage, false, anstoss.zurPruefung);") && readFileSync(new URL("../../src/components/ki/ki-pane-kontext.tsx", import.meta.url), "utf8").includes("stosseAn(frage, true);"));
-    pruefe("Vorlesen erzwingen: sende() reicht den dritten Parameter an beginneZug weiter", chat.includes("beginneZug(ausFeld, erzwingeVorlesen)"));
+    pruefe("Vorlesen erzwingen: die Tour-/Pruefbericht-Frage sendet mit erzwingeVorlesen=true", chatFragen.includes("sende(anstoss.frage, false, anstoss.zurPruefung);") && readFileSync(new URL("../../src/components/ki/ki-pane-kontext.tsx", import.meta.url), "utf8").includes("stosseAn(frage, true);"));
+    pruefe("Vorlesen erzwingen: sende() reicht den dritten Parameter an beginneZug weiter", zug.includes("function sende(text: string, ausFeld = false, erzwingeVorlesen = false)") && zug.includes("beginneZug(ausFeld, erzwingeVorlesen)"));
     // Seit dem Umbau vom 24.09.2026 stehen die Regeln in domain/vorlesen-zustand.ts und
     // beginneZug() ruft sie auf - geprueft wird hier das echte Verhalten, nicht ein Nachbau.
     pruefe(
@@ -2469,7 +2504,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Sprachmodus: antwortFertig nur ohne Beschaeftigung, Sprechen und Laden", antwortFertig({ beschaeftigt: false, spricht: false, laedt: false }) === true && antwortFertig({ beschaeftigt: false, spricht: false, laedt: true }) === false && antwortFertig({ beschaeftigt: true, spricht: false, laedt: false }) === false);
 
   // (b) Kugel-Platzierung: seit dem 25.09.2026 entfernt, Himbi dockt links an
-  //     (sprachmodus.tsx); die Platzsuche war ungenutzter Code.
+  //     (sprachmodus-seite.ts); die Platzsuche war ungenutzter Code.
   // Handy: Himbi weicht dem gerahmten Bereich aus (Rueckmeldung vom 26.09.2026). Fenster 390 x 844,
   // Kopfzeile bis 56 (+8), Bedienleiste ab 758 (-8), Einheit aus Himbi und Zustandszeile 110 hoch.
   {
@@ -2516,7 +2551,7 @@ for (const [name, kaputteAntwort] of [
     pruefe("Ausweichen: 2000 Zufallslagen - nie unter die Leiste oder aus dem Bild, oben/unten nie auf einem sichtbaren Rahmen", verstoesse === 0, verstoesse);
     pruefe("Ausweichen: Grenzfall - genau passend ueber dem Rahmen zaehlt noch als oben", ausweichPlatz({ x: 0, y: 64 + 8 + h, breite: 10, hoehe: 10 }, h, frei).lage === "oben");
     pruefe("Ausweichen: ein Rahmen, der oben aus dem Bild ragt, schickt Himbi nicht darunter, wenn es dort nicht passt", ausweichPlatz({ x: 0, y: -300, breite: 10, hoehe: 1000 }, h, frei).lage === "rand");
-    const moduls = readFileSync(new URL("../../src/components/ki/sprachmodus.tsx", import.meta.url), "utf8");
+    const moduls = sprachmodusQuelle();
     pruefe("Ausweichen: nur auf dem Handy und nur mit sichtbarem Rahmen, Abstand des Rahmens eingerechnet", moduls.includes("if (!istHandy || !zielSichtbar || !zielRechteck) {") && moduls.includes("y: zielRechteck.y - RAHMEN_ABSTAND,") && moduls.includes('const HANDY = "(max-width: 767.98px)";'));
   }
   pruefe("Sprachmodus: die ungenutzte Platzsuche der frueheren Kugel ist entfernt", !readFileSync(new URL("../../src/lib/domain/sprachmodus.ts", import.meta.url), "utf8").includes("export function besterPlatz"));
@@ -2549,20 +2584,25 @@ for (const [name, kaputteAntwort] of [
     const lies3 = (pfad) => readFileSync(new URL(`../../src/${pfad}`, import.meta.url), "utf8");
     const bus = lies3("components/ki/sprachmodus-bus.ts");
     const chat = lies3("components/ki/ki-chat.tsx");
-    const modus = lies3("components/ki/sprachmodus.tsx");
+    // Seit dem 14.10.2026 ist KiChat auf Hooks verteilt: Meldungen an Takt, Bus und Himbi (ki-chat-meldungen.ts),
+    // Senden und Stoppen (ki-chat-zug.ts) und was aus Werkzeugergebnissen folgt (ki-chat-folgen.ts).
+    const chatMeldungen = lies3("components/ki/ki-chat-meldungen.ts");
+    const chatZug = lies3("components/ki/ki-chat-zug.ts");
+    const chatFolgen = lies3("components/ki/ki-chat-folgen.ts");
+    const modus = sprachmodusQuelle();
     pruefe("Freigabe-Bus: derselbe Text zaehlt nicht als neue Anfrage", /if \(text === \(freigabeAnfrage\?\.text \?\? null\)\) \{[\s\S]{0,120}return;/.test(bus));
     pruefe("Freigabe-Bus: Entscheidung geht an genau die gemeldete Karte", bus.includes("freigabeEntscheider?.(erlaubt)"));
-    pruefe("Freigabe: der Chat meldet Klick- UND Aktionskarte an den Bus", chat.includes("meldeFreigabeAnfrage(`${t(\"klick.titel\")}") && chat.includes("anstehendeAktion") && chat.includes("meldeFreigabeAnfrage(null, null)"));
+    pruefe("Freigabe: der Chat meldet Klick- UND Aktionskarte an den Bus", chatMeldungen.includes("meldeFreigabeAnfrage(`${t(\"klick.titel\")}") && chatMeldungen.includes("anstehendeAktion") && chatMeldungen.includes("meldeFreigabeAnfrage(null, null)") && chatMeldungen.includes("const t = useTranslations(\"kiAssistentAnsicht\");") && chat.includes("useFreigabeMeldung({ klickAnfrage, messages, freigabe });"));
     // Seit dem 28.09.2026 in JEDER Phase (Rueckmeldung: "wenn ich Ja sage, passiert nichts" - bei
     // offener Klickkarte blieb die Phase "spricht", und das Ja fiel als Echo weg), vor Echo und Frage.
-    pruefe("Freigabe: beiEndpunkt wertet Ja/Nein zu einer offenen Karte vor allem anderen aus, in jeder Phase", /const karte = leseFreigabeAnfrage\(\);\s*if \(karte && karte\.nr === freigabeNr\.current && freigabeAbMs\.current !== null\) \{[\s\S]{0,1200}const art = freigabeAntwortMitEcho\(antwort\.woerter\.map\(\(w\) => w\.text\), gesagt\);[\s\S]{0,400}entscheideFreigabe\(art === "zusage", karte\.nr\);[\s\S]{0,900}freigabeAbMs\.current = Math\.max\(freigabeAbMs\.current, \(antwort\.endeMs \?\? audioJetzt\(\)\) \+ 1 \+ FREIGABE_VORLAUF_MS\);\s*\}\s*if \(phase === "spricht"\) \{/.test(modus));
+    pruefe("Freigabe: beiEndpunkt wertet Ja/Nein zu einer offenen Karte vor allem anderen aus, in jeder Phase", /const karte = leseFreigabeAnfrage\(\);\s*if \(karte && karte\.nr === freigabeNrRef\.current && freigabeAbMsRef\.current !== null\) \{[\s\S]{0,1200}const art = freigabeAntwortMitEcho\(antwort\.woerter\.map\(\(w\) => w\.text\), gesagt\);[\s\S]{0,400}entscheideFreigabe\(art === "zusage", karte\.nr\);[\s\S]{0,900}freigabeAbMsRef\.current = Math\.max\(freigabeAbMsRef\.current, \(antwort\.endeMs \?\? audioJetzt\(\)\) \+ 1 \+ FREIGABE_VORLAUF_MS\);\s*\}\s*if \(phase === "spricht"\) \{/.test(modus));
     // Gegenpruefung vom 29.09.2026: nach einer Nicht-Antwort rueckt das Fenster hinter sie (sonst
     // blieb ein "Äh" vor jedem spaeteren "Ja"), und Echo gibt es nur, waehrend Himbi spricht.
     pruefe("Freigabe: Echo nur aus dem, was Himbi gerade sagt (still: keins)", modus.includes('const gesagt = gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : chat.spricht ? chat.antwort.slice(-200) : "";'));
-    pruefe("Freigabe: nur was nach dem Erscheinen der Karte gesagt wurde, zaehlt", modus.includes("const antwort = sitzung.textAb(Math.max(grenzeMs.current, freigabeAbMs.current - FREIGABE_VORLAUF_MS));") && /freigabeAbMs\.current = karte \? audioJetzt\(\) : null;/.test(modus));
-    pruefe("Freigabe: bei offener Karte lehnt 'Stopp' mitten in der Antwort nur die Karte ab, beendet nicht den Sprachmodus", /const karte = leseFreigabeAnfrage\(\);\s*if \(karte\) \{[\s\S]{0,300}if \(befehlBeiOffenerKarte\(woerter, b, istEcho\) === "ignorieren"\) return;\s*entscheideFreigabe\(false, karte\.nr\);\s*grenzeMs\.current = /.test(modus) && istAbsageBefehl("Stopp") && !istBeendenBefehl("Stopp"));
+    pruefe("Freigabe: nur was nach dem Erscheinen der Karte gesagt wurde, zaehlt", modus.includes("const antwort = sitzung.textAb(Math.max(grenzeMsRef.current, freigabeAbMsRef.current - FREIGABE_VORLAUF_MS));") && /freigabeAbMsRef\.current = karte \? audioJetzt\(\) : null;/.test(modus));
+    pruefe("Freigabe: bei offener Karte lehnt 'Stopp' mitten in der Antwort nur die Karte ab, beendet nicht den Sprachmodus", /const karte = leseFreigabeAnfrage\(\);\s*if \(karte\) \{[\s\S]{0,300}if \(befehlBeiOffenerKarte\(woerter, b, istEcho\) === "ignorieren"\) return;\s*entscheideFreigabe\(false, karte\.nr\);\s*grenzeMsRef\.current = /.test(modus) && istAbsageBefehl("Stopp") && !istBeendenBefehl("Stopp"));
     // Seit dem 05.10.2026 setzt derselbe Zweig auch waehrend des Verdachts (erste Stufe) aus.
-    pruefe("Freigabe: waehrend eine Karte wartet, unterbricht der Lautstaerke-Waechter nicht", /if \(phaseRef\.current !== "spricht"\) return;[\s\S]{0,800}if \(leseFreigabeAnfrage\(\) \|\| verdacht\.current\) \{\s*waechter = erzeugeUnterbrechungsWaechter\(\);\s*einsatz = erzeugeEinsatzMerker\(\);/.test(modus));
+    pruefe("Freigabe: waehrend eine Karte wartet, unterbricht der Lautstaerke-Waechter nicht", /if \(phaseRef\.current !== "spricht"\) return;[\s\S]{0,800}if \(leseFreigabeAnfrage\(\) \|\| verdachtRef\.current\) \{\s*waechter = erzeugeUnterbrechungsWaechter\(\);\s*einsatz = erzeugeEinsatzMerker\(\);/.test(modus));
     pruefe("Freigabe: die Anzeige sagt 'Ich warte auf Ihr Ja oder Nein', solange Himbi nicht spricht", modus.includes("wartetAufFreigabe ? t(\"status.freigabe\")") && ["de", "en", "ru", "kk"].every((sp) => typeof JSON.parse(readFileSync(new URL(`../../src/messages/${sp}.json`, import.meta.url), "utf8")).kiAssistentAnsicht.sprachmodus.status.freigabe === "string"));
     pruefe("Freigabe: die Karte im Sprachmodus geht ueber allem, auch ohne Untertitel", /const untertitel = freigabeAnfrage \? \(/.test(modus));
 
@@ -2609,11 +2649,11 @@ for (const [name, kaputteAntwort] of [
     // falscher Zeit ausgefuehrt; hier nur, dass die Komponente es benutzt.
     pruefe("Takt: die Komponente wartet ueber warteBisMarke aus domain/sprach-takt.ts", takt.includes('from "@/lib/domain/sprach-takt"') && takt.includes("await warteAufStimme("));
     pruefe("Takt: seiteLesen wartet nur auf die Reihe, nicht auf die Stimme", takt.includes('werkzeug !== "seiteLesen"'));
-    pruefe("Takt: neue Frage oder Stopp lassen alles Wartende verfallen", takt.includes("zug.current += 1") && chat.includes("takt.neuerZug();") && (chat.match(/takt\.neuerZug\(\)/g) ?? []).length === 2);
+    pruefe("Takt: neue Frage oder Stopp lassen alles Wartende verfallen", takt.includes("zug.current += 1") && chat.includes("taktNeuerZug: takt.neuerZug,") && !chat.includes("takt.neuerZug()") && chatZug.includes("taktNeuerZug();") && (chatZug.match(/taktNeuerZug\(\)/g) ?? []).length === 2);
     pruefe("Takt: jedes Client-Werkzeug ruft vorAusfuehrung, ein Abbruch verhindert die Ausfuehrung", werkz.includes("const nochGueltig = (await vorAusfuehrung?.(aufruf.toolName)) ?? true;") && werkz.includes("if (!nochGueltig || abgebrochen.current) {") && takt.includes("if (!gilt(meinZug)) return false;"));
-    pruefe("Takt: im Chat mit dem Sprachmodus verdrahtet", chat.includes("vorAusfuehrung: takt.vorAusfuehrung") && chat.includes("taktStimme.current = vorlesen.phase") && chat.includes("taktAktiv.current = sprachmodus"));
-    pruefe("Sprachmodus: nur oeffneBereich wechselt die Seite, Fachwerkzeuge mit Ziel tun es nicht", chat.includes('if (zugModus.current === "sprache" && name !== "oeffneBereich") continue;'));
-    pruefe("Sprachmodus: der Seitenwechsel laeuft im Takt der Stimme", chat.includes('if (zugModus.current === "sprache") {') && chat.includes("takt.oeffneImTakt(() => oeffneZiel(ziel, label), ziel, jetzt === null ? null : Math.max(0, jetzt - nachher))"));
+    pruefe("Takt: im Chat mit dem Sprachmodus verdrahtet", chat.includes("vorAusfuehrung: takt.vorAusfuehrung") && chat.includes("stimmeRef: takt.stimme") && chat.includes("aktivRef: takt.aktiv") && chatMeldungen.includes("stimmeRef.current = vorlesen.phase") && chatMeldungen.includes("aktivRef.current = sprachmodus"));
+    pruefe("Sprachmodus: nur oeffneBereich wechselt die Seite, Fachwerkzeuge mit Ziel tun es nicht", chatFolgen.includes('if (modus === "sprache" && name !== "oeffneBereich") return null;') && chatFolgen.includes("const folge = neuesZiel(teil, gefolgt.current, modus);") && chatFolgen.includes("const modus = zugModus.current;"));
+    pruefe("Sprachmodus: der Seitenwechsel laeuft im Takt der Stimme", chatFolgen.includes('if (modus === "sprache") {') && chatFolgen.includes("takt.oeffneImTakt(() => oeffneZiel(ziel, label), ziel, jetzt === null ? null : Math.max(0, jetzt - nachher))"));
     pruefe("Takt: eine Navigation wartet die neue Seite ab, bevor die naechste Handlung laeuft", takt.includes("await wartePfad(ziel, meinZug)") && takt.includes("!stehtAufZiel(ziel)") && takt.includes("${window.location.pathname}${window.location.search}"));
     pruefe("Takt/Fuehrung: ein Wechsel nur des Filters (?bereich=) zaehlt als Seitenwechsel", takt.includes("const wechsel = !stehtAufZiel(ziel);") && lies3("components/ki/ki-pane-kontext.tsx").includes("const angekommen = stehtAuf(ziel) && document.querySelector(\"#main h1\");"));
     pruefe("Scrollen: ein Element im Bild wird nicht gescrollt, in Leiste und Kopf nur das Noetigste", steuer.includes("function inSichtBringen") && steuer.includes('block: inRahmen ? "nearest" : "center"') && !/el\.scrollIntoView\(\{ behavior: "smooth", block: "center" \}\)/.test(steuer));
@@ -2623,7 +2663,7 @@ for (const [name, kaputteAntwort] of [
     const stromQuelle = lies3("components/ki/sprachausgabe-strom.ts");
     const liveQuelle = lies3("components/ki/sprachausgabe-live.ts");
     const mitlesen = lies3("components/ki/sprach-mitlesen.ts");
-    pruefe("Sprechmarke: der Seitenwechsel wartet nur auf die Saetze VOR dem Aufruf, nicht auf die ganze Antwort", chat.includes('.filter((p) => p.type === "data-satz").length') && chat.includes("Math.max(0, jetzt - nachher)") && takt.includes("stand.current?.()?.anzahl ?? null"));
+    pruefe("Sprechmarke: der Seitenwechsel wartet nur auf die Saetze VOR dem Aufruf, nicht auf die ganze Antwort", chatFolgen.includes('.filter((p) => p.type === "data-satz").length') && chatFolgen.includes("Math.max(0, jetzt - nachher)") && takt.includes("stand.current?.()?.anzahl ?? null"));
     {
       // Ohne Satzposition, die Stimme spricht ununterbrochen: nach 6 s laeuft die Handlung trotzdem.
       const taktDomain = await import("../../src/lib/domain/sprach-takt.ts");
@@ -2633,7 +2673,7 @@ for (const [name, kaputteAntwort] of [
     }
     pruefe("Sprecher: stand() schaetzt den klingenden Satz aus der gespielten Tondauer, kalibriert an fertigen Stroemen", stromQuelle.includes("stand()") && stromQuelle.includes("fertigSekunden += puffer.duration") && stromQuelle.includes("gemesseneRate") && stromQuelle.includes("satzBeiPosition("));
     pruefe("Sprecher: der angezeigte Satz geht mit (Mitlesen braucht die Woerter der Seite, nicht die Sprechfassung)", stromQuelle.includes("anzeige?: string") && liveQuelle.includes("sprich(zumSprechen(a.text, sprache), sprache, a.text, a.gebunden ?? null)"));
-    pruefe("Mitlesen: der Chat meldet die Stimme an den Bus, der Sprachmodus zeigt das Ziel der Sprechmarke", bus.includes("registriereGerade") && chat.includes("registriereGerade(geradeSprechend)") && modus.includes("const jetzt = leseGerade();") && modus.includes("loeseSprechZiel(jetzt.ziel)") && modus.includes("zeigeSprechStelle(stelle)"));
+    pruefe("Mitlesen: der Chat meldet die Stimme an den Bus, der Sprachmodus zeigt das Ziel der Sprechmarke", bus.includes("registriereGerade") && chatMeldungen.includes("const geradeSprechend = live.gerade;") && chatMeldungen.includes("registriereGerade(geradeSprechend)") && chat.includes(KI_CHAT_AUFRUFE.taktVerdrahtung) && modus.includes("const jetzt = leseGerade();") && modus.includes("loeseSprechZiel(jetzt.ziel)") && modus.includes("zeigeSprechStelle(stelle)"));
     pruefe("Mitlesen: kein Wortvergleich mehr, ohne Marke nur eine woertlich genannte Ueberschrift, und nur solange keine Marke kam", !mitlesen.includes("bestesZiel") && mitlesen.includes("export function ueberschriftImSatz") && modus.includes("if (markeGesehen || !jetzt.satz) return;"));
     pruefe("Mitlesen: Ziele werden beim Eintreffen des Satzes gebunden, nicht erst beim Sprechen", lies3("components/ki/ki-chat-sprache.ts").includes("gebunden: bindeSprechZiel(roh.ziele)") && mitlesen.includes("if (g.el && g.el.isConnected) return g.el;"));
     pruefe("Mitlesen: zugeklappte Stellen werden aufgeklappt (details, aria-expanded, data-offen), nur was ohne Rueckfrage klickbar ist", steuer.includes("export function klappeAuf") && steuer.includes('details:not([open])') && steuer.includes("aria-expanded='false'") && steuer.includes('klickStufe(knopf).stufe === "erlaubt"') && steuer.includes('stelle.getAttribute("data-offen") === "false"') && mitlesen.includes("const aufgeklappt = klappeAuf(stelle);"));
@@ -2778,8 +2818,18 @@ for (const [name, kaputteAntwort] of [
     const teile = gekuerzt[1].parts;
     pruefe("Gehoert: die unterbrochene Antwort endet mit der Marke, Text danach faellt weg, Werkzeuge bleiben", teile.length === 2 && teile[0].text === `Heute sind **drei Lieferungen** offen.\n\n${UNTERBROCHEN_MARKE}` && teile[1].type === "tool-zeigeAuf");
     pruefe("Gehoert: andere Nachrichten und das Original bleiben unveraendert", gekuerzt[0] === verlauf[0] && gekuerzt[2] === verlauf[2] && verlauf[1].parts.length === 3 && verlauf[1].parts[0].text === antwort);
+    // Seit dem 14.10.2026: die Anfrage samt gehoertBis in ki-chat-anfrage.ts, die Sprachmodus-Fragen in ki-chat-fragen.ts;
+    // KiChat reicht dieselbe Map weiter.
     const chatQ = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
-    pruefe("Gehoert: der Chat merkt sich die unterbrochene Antwort und schickt den Verlauf gekuerzt", chatQ.includes("messages: mitGehoertenAntworten(alle.slice(ab), gehoertBis.current),") && chatQ.includes("if (unterbrocheneAntwort) gehoertBis.current.set(unterbrocheneAntwort.id, f.unterbrochen);"));
+    const chatAnfrageQ = readFileSync(new URL("../../src/components/ki/ki-chat-anfrage.ts", import.meta.url), "utf8");
+    const chatFragenQ = readFileSync(new URL("../../src/components/ki/ki-chat-fragen.ts", import.meta.url), "utf8");
+    pruefe(
+      "Gehoert: der Chat merkt sich die unterbrochene Antwort und schickt den Verlauf gekuerzt",
+      chatAnfrageQ.includes("messages: mitGehoertenAntworten(alle.slice(ab), gehoertBis.current),") &&
+        chatFragenQ.includes("if (unterbrocheneAntwort) gehoertBis.current.set(unterbrocheneAntwort.id, f.unterbrochen);") &&
+        chatQ.includes("const { anfrageDaten, gehoertBis, sprachStart, transport, ergaenzeAnfrage } = useKiChatAnfrage(") &&
+        /useSprachmodusFragen\(\{[^}]*\bgehoertBis,/.test(chatQ),
+    );
     pruefe("Gehoert: ohne Eintrag oder ohne Fundstelle bleibt der Verlauf, wie er ist", mitGehoertenAntworten(verlauf, new Map()).every((n, i) => n === verlauf[i]) && mitGehoertenAntworten(verlauf, new Map([["a1", "Etwas ganz anderes."]]))[1] === verlauf[1] && mitGehoertenAntworten(verlauf, new Map([["f1", "Was ist offen?"]]))[0] === verlauf[0]);
   }
 
@@ -2796,7 +2846,7 @@ for (const [name, kaputteAntwort] of [
   }
 
   // (d) Verdrahtung im Browser (Quelltext, die Bausteine laufen nur im Browser).
-  const modus = readFileSync(new URL("../../src/components/ki/sprachmodus.tsx", import.meta.url), "utf8");
+  const modus = sprachmodusQuelle();
   const hoeren = readFileSync(new URL("../../src/lib/hoeren.ts", import.meta.url), "utf8");
   // Seit dem 28.09.2026 ein Recorder und eine Sitzung fuers ganze Gespraech (vorher je Aeusserung).
   pruefe("Aufnahme: ein MediaRecorder und eine Sitzung fuers ganze Gespraech (erstes Stueck = Dateikopf)", (modus.match(/new MediaRecorder\(/g) ?? []).length === 1 && modus.includes("recorder.start(AUFNAHME_STUECK_MS);") && modus.includes("ohrRef.current = { recorder, sitzung: diese, startPerf };"));
@@ -2807,12 +2857,12 @@ for (const [name, kaputteAntwort] of [
   // Seit dem 05.10.2026 "all" (Chrome ab 141: auch Ton anderer Programme), aeltere Browser lesen es als true.
   pruefe("Echo: im Gespraech mit Echounterdrueckung (\"all\"), sonst wie beim Diktat", modus.includes('const GESPRAECH_AUFNAHME = { ...AUFNAHME_VORGABEN, echoCancellation: "all" } as unknown as MediaTrackConstraints;') && modus.includes("getUserMedia({ audio: GESPRAECH_AUFNAHME })"));
   pruefe("Abbruch: der Sprachmodus hoert auf das Scheitern der Sitzung", modus.includes("beiScheitern: (grund) => {") && modus.includes("nachSitzungsAbbruch({"));
-  pruefe("Dazwischenreden: nur waehrend Himbi spricht, mit Mikrofon- und Ausgabepegel", /if \(phase !== "spricht"\) return;\s*sprichtSeit\.current = performance\.now\(\);\s*let waechter = erzeugeUnterbrechungsWaechter\(\);/.test(modus) && modus.includes("waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now())"));
+  pruefe("Dazwischenreden: nur waehrend Himbi spricht, mit Mikrofon- und Ausgabepegel", /if \(phase !== "spricht"\) return;\s*sprichtSeitRef\.current = performance\.now\(\);\s*let waechter = erzeugeUnterbrechungsWaechter\(\);/.test(modus) && modus.includes("waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now())"));
   // Seit dem 05.10.2026 zwei Stufen: der Waechter macht Himbi nur leiser (Verdacht ab dem Einsatz),
   // erst die Woerter setzen die Grenze der naechsten Frage (pruefeVerdacht).
-  pruefe("Dazwischenreden: was ab dem Einsatz der Stimme gesagt wurde, gehoert zur naechsten Frage", modus.includes("verdacht.current = { abMs: Math.max(grenzeMs.current, (beginn ?? audioJetzt()) - EINSATZ_VORLAUF_MS) };") && modus.includes("grenzeMs.current = Math.max(grenzeMs.current, v.abMs);") && modus.includes("const beginn = einsatz.melde(urteil, audioJetzt());") && modus.includes("if (sprachZuletzt.current && !sprichtJetzt && !grenzeSteht.current) {") && modus.includes("echoBisMs.current = Math.max(echoBisMs.current, audioJetzt() + 50);") && /const schritt = \(\) => \{[\s\S]{0,400}if \(phaseRef\.current !== "spricht"\) return;[\s\S]{0,1200}const urteil = waechter\.melde/.test(modus));
-  pruefe("Dazwischenreden: erste Stufe macht Himbi leiser statt still, die Woerter entscheiden (Rueckmeldung vom 05.10.2026)", modus.includes("daempfeAusgabe(AUSGABE_GEDAEMPFT);") && modus.includes("if (sitzung && pruefeVerdacht(sitzung, \"offen\") === \"unterbrechen\") return;") && modus.includes("if (phase === \"spricht\" && pruefeVerdacht(sitzung, \"offen\") === \"unterbrechen\") return;") && modus.includes("if (pruefeVerdacht(sitzung, \"endpunkt\") === \"unterbrechen\") {") && modus.includes("if (!sitzung || pruefeVerdacht(sitzung, \"frist\") === null) beendeVerdacht(true);") && modus.includes("const abgeschlossen = abschluss === \"frist\" || (abschluss === \"endpunkt\" && woerter.length > 0);") && /if \(leseFreigabeAnfrage\(\)\) \{\s*beendeVerdacht\(true\);\s*return null;/.test(modus) && !/if \(urteil === "unterbrechen"\) \{\s*grenzeMs\.current/.test(modus));
-  pruefe("Dazwischenreden: ein Fehlalarm macht Himbi wieder normal laut, die naechste Antwort beginnt immer normal laut, auch nach dem Ende des Sprachmodus", modus.includes("beendeVerdacht(urteil === \"rueckmeldung\");") && modus.includes("if (lauter) daempfeAusgabe(1);") && modus.includes("if (phase === \"denkt\" || (phase === \"spricht\" && !verdacht.current)) daempfeAusgabe(1);") && /beendeVerdacht\(false\);\s*daempfeAusgabe\(1\);\s*schliesseOhr\(\);/.test(modus));
+  pruefe("Dazwischenreden: was ab dem Einsatz der Stimme gesagt wurde, gehoert zur naechsten Frage", modus.includes("verdachtRef.current = { abMs: Math.max(grenzeMsRef.current, (beginn ?? audioJetzt()) - EINSATZ_VORLAUF_MS) };") && modus.includes("grenzeMsRef.current = Math.max(grenzeMsRef.current, v.abMs);") && modus.includes("const beginn = einsatz.melde(urteil, audioJetzt());") && modus.includes("if (sprachZuletzt.current && !sprichtJetzt && !grenzeStehtRef.current) {") && modus.includes("echoBisMsRef.current = Math.max(echoBisMsRef.current, audioJetzt() + 50);") && /const schritt = \(\) => \{[\s\S]{0,400}if \(phaseRef\.current !== "spricht"\) return;[\s\S]{0,1200}const urteil = waechter\.melde/.test(modus));
+  pruefe("Dazwischenreden: erste Stufe macht Himbi leiser statt still, die Woerter entscheiden (Rueckmeldung vom 05.10.2026)", modus.includes("daempfeAusgabe(AUSGABE_GEDAEMPFT);") && modus.includes("if (sitzung && pruefeVerdacht(sitzung, \"offen\") === \"unterbrechen\") return;") && modus.includes("if (phase === \"spricht\" && pruefeVerdacht(sitzung, \"offen\") === \"unterbrechen\") return;") && modus.includes("if (pruefeVerdacht(sitzung, \"endpunkt\") === \"unterbrechen\") {") && modus.includes("if (!sitzung || pruefeVerdacht(sitzung, \"frist\") === null) beendeVerdacht(true);") && modus.includes("const abgeschlossen = abschluss === \"frist\" || (abschluss === \"endpunkt\" && woerter.length > 0);") && /if \(leseFreigabeAnfrage\(\)\) \{\s*beendeVerdacht\(true\);\s*return null;/.test(modus) && !/if \(urteil === "unterbrechen"\) \{\s*grenzeMsRef\.current/.test(modus));
+  pruefe("Dazwischenreden: ein Fehlalarm macht Himbi wieder normal laut, die naechste Antwort beginnt immer normal laut, auch nach dem Ende des Sprachmodus", modus.includes("beendeVerdacht(urteil === \"rueckmeldung\");") && modus.includes("if (lauter) daempfeAusgabe(1);") && modus.includes("if (phase === \"denkt\" || (phase === \"spricht\" && !verdachtRef.current)) daempfeAusgabe(1);") && /beendeVerdacht\(false\);\s*daempfeAusgabe\(1\);\s*schliesseOhr\(\);/.test(modus));
   pruefe("Lautstaerke: RMS auf der Skala des Diktats (pegelAusZeitbereich)", hoeren.includes("lautstaerke = pegelAusZeitbereich(zeitRoh);") && hoeren.includes("export function leseLautstaerke(): number"));
   pruefe("Komponente: keine abgeschaltete Hook-Pruefung mehr", !modus.includes("eslint-disable"));
 
@@ -3105,15 +3155,17 @@ for (const [name, kaputteAntwort] of [
   pruefe("Knopf: aktiv, sobald DIESE Nachricht gelesen wird - egal ueber welchen Weg", knopf.includes("const aktiv = vorlesen.liest(id);") && knopf.includes("onClick={() => vorlesen.knopf(id, text, sprache)}"));
   pruefe("Schalter: zeigt den wirksamen Zustand und stoppt mit einem Klick", knopf.includes("const an = vorlesen.schalterAn;") && knopf.includes("aria-checked={an}") && knopf.includes("onClick={() => vorlesen.schalte()}"));
   pruefe("Datei-Rueckfall: nach einem Stopp setzt keine Stimme mehr ein (Generation)", knopf.includes("const nochDran = () => meine === generation.current;") && (knopf.match(/nochDran\(\)/g) ?? []).length >= 6);
-  const chat = lies("components/ki/ki-chat.tsx");
-  pruefe("Chat: Knopf auch an der Antwort, die gerade entsteht, wenn sie schon vorgelesen wird (dann Stopp)", chat.includes("(vorlesen.liest(nachricht.id) || !(beschaeftigt && nachricht.id === letzteId))"));
-  pruefe("Chat: Sprachmodus meldet Sprechen/Laden aus der einen Instanz", chat.includes('spricht: vorlesen.phase === "spricht",') && chat.includes('laedt: vorlesen.phase === "laedt",'));
+  // Seit dem 14.10.2026 zeichnet ki-chat-nachricht.tsx die Nachrichten, ki-chat-meldungen.ts meldet den Stand an den Sprachmodus.
+  const chatNachricht = lies("components/ki/ki-chat-nachricht.tsx");
+  const chatMeldungen = lies("components/ki/ki-chat-meldungen.ts");
+  pruefe("Chat: Knopf auch an der Antwort, die gerade entsteht, wenn sie schon vorgelesen wird (dann Stopp)", chatNachricht.includes("(vorlesen.liest(nachricht.id) || !(beschaeftigt && nachricht.id === letzteId))"));
+  pruefe("Chat: Sprachmodus meldet Sprechen/Laden aus der einen Instanz", chatMeldungen.includes('spricht: vorlesen.phase === "spricht",') && chatMeldungen.includes('laedt: vorlesen.phase === "laedt",') && lies("components/ki/ki-chat.tsx").includes(KI_CHAT_AUFRUFE.chatStand));
   const composer = lies("components/ki/ki-chat-composer.tsx");
   pruefe("Eingabefeld: leeres Feld -> Senden-Knopf ist der Sprachmodus (Punkt 2)", composer.includes(") : !eingabe.trim() && sprachmodusMoeglich ? (") && composer.includes('aria-label={t("sprachmodus.starten")}') && composer.includes("onClick={onSprachmodus}"));
   pruefe("Eingabefeld: Sprachmodus-Knopf gesperrt, solange die Zustimmung fehlt", /onClick=\{onSprachmodus\}\s*disabled=\{einwilligungFehlt\}/.test(composer));
   pruefe("Kopfzeile: Sprachmodus-Knopf ab lg sichtbar beschriftet", lies("components/dashboard/topbar.tsx").includes('<span className="hidden lg:inline">{t("kurz")}</span>'));
   pruefe("Start: ohne Zustimmung zum KI-Hinweis oeffnet sich der Chat statt des Sprachmodus", lies("components/ki/ki-pane-kontext.tsx").includes("if (leseChatStand().einwilligungFehlt) {"));
-  const modusQuelle = lies("components/ki/sprachmodus.tsx");
+  const modusQuelle = sprachmodusQuelle();
   // Dass der Bus gar keinen Einwilligungsweg mehr hat, prueft (g) an den Exporten des Moduls.
   pruefe("Sprachmodus: setzt keine Zustimmung, sondern meldet sie als fehlend", modusQuelle.includes('zeigeMeldung({ text: t("einwilligungZuerst"), fehlerzustand: true });'));
   for (const sprache of ["de", "en", "ru", "kk"]) {
@@ -3195,9 +3247,9 @@ for (const [name, kaputteAntwort] of [
   pruefe("Fassade: die Kennung der gelesenen Nachricht folgt Folgeanfragen", fassade.includes("folgeQuelle(letzte.id);"));
   pruefe("Fassade: Schalter und Regeln kennen 'nie eingestellt' und 'ausdruecklich aus'", fassade.includes("einstellung: sprachausgabe.einstellung") && lies2("components/ki/sprachausgabe.tsx").includes('setEinstellung(gespeichert === "an" ? true : gespeichert === "aus" ? false : null);'));
   pruefe("Sprachmodus-Start unterbricht eine laufende Antwort (auch aus der Kopfzeile)", /if \(leseChatStand\(\)\.einwilligungFehlt\) \{[\s\S]*?\}\s*[\s\S]*?unterbrichChat\(\);[\s\S]{0,300}entsperreTon\(\);\s*sprachmodusRef\.current = true;/.test(lies2("components/ki/ki-pane-kontext.tsx")));
-  pruefe("Chat: meldet den Vorlese-Weg des Browsers mit (Stil des Zerlegers)", lies2("components/ki/ki-chat.tsx").includes('vorleseWeg: stromMoeglich() ? "strom" : "abschnitte"'));
+  pruefe("Chat: meldet den Vorlese-Weg des Browsers mit (Stil des Zerlegers)", lies2("components/ki/ki-chat-zug.ts").includes('vorleseWeg: stromMoeglich() ? "strom" : "abschnitte"'));
   const strom = lies2("components/ki/sprachausgabe-strom.ts");
-  pruefe("Strom: immer nur ein Strom - der naechste wartet, bis der laufende fertig ist", strom.includes("if (!nimmt) beendeAktiv();") && !strom.includes("stroeme.set("));
+  pruefe("Strom: immer nur ein Strom - der naechste wartet, bis der laufende fertig ist", strom.includes("if (!nimmt) beendeAktiv(s);") && !strom.includes("stroeme.set("));
   pruefe("Strom: Nachrichten fremder Stroeme (auch Fehler) werden ignoriert", strom.includes("if (!aktiv || e.stream !== aktiv.id) return;") && strom.includes("if (!aktiv || e.stream !== aktiv.id) {"));
   pruefe("Strom: ein gescheiterter Verbindungsaufbau bleibt nicht zwischengespeichert", strom.includes("if (ws === socket) {\n          ws = null;\n          wsOeffnet = null;") || /if \(ws === socket\) \{\s*ws = null;\s*wsOeffnet = null;/.test(strom));
 
@@ -3214,12 +3266,12 @@ for (const [name, kaputteAntwort] of [
   pruefe("Beenden: 'Sprachmodus beenden', 'Tschuess Himbi' und die Gegenstuecke", ["Sprachmodus beenden", "Beende den Sprachmodus", "Gespräch beenden", "Tschüss Himbi", "Auf Wiedersehen", "End voice mode", "Bye", "Выключи голосовой режим", "Выйди из режима", "Пока", "Дауыс режимін аяқта", "Сау бол"].every(istBeendenBefehl));
   pruefe("Beenden: 'Stopp' beendet nicht mehr, 'Beende die Aufgabe' und 'Das sieht gut aus' bleiben Fragen", !istBeendenBefehl("Stopp") && !istBeendenBefehl("Beende die Aufgabe") && !istBeendenBefehl("Das sieht gut aus") && !istBeendenBefehl("Was ist aus dem Bericht geworden?") && !istBeendenBefehl(""));
   {
-    const modusQ = lies2("components/ki/sprachmodus.tsx");
-    pruefe("Sprachmodus: 'Sprachmodus beenden' beendet, 'Stopp' beim Zuhoeren stellt keine Frage", /if \(istBeendenBefehl\(text\)\) \{\s*beendenRef\.current\(\);\s*return;/.test(modusQ) && modusQ.includes("if (istNurAnhalten(text) && !vorsatz.current) return;"));
+    const modusQ = sprachmodusQuelle();
+    pruefe("Sprachmodus: 'Sprachmodus beenden' beendet, 'Stopp' beim Zuhoeren stellt keine Frage", /if \(istBeendenBefehl\(text\)\) \{\s*beendenRef\.current\(\);\s*return;/.test(modusQ) && modusQ.includes("if (istNurAnhalten(text) && !vorsatzRef.current) return;"));
     // Bis zum 29.09.2026 stand hier ein Pin auf befehlsBeginn(t.woerter.slice(0, 4)..., () => false):
     // er schrieb genau den Fehler fest, der "Wie sagt man Stopp auf Russisch?" zu "auf Russisch?"
     // machte. Das Verhalten pruefen jetzt die Szenarien in (g) an frageNachUnterbrechung.
-    pruefe("Sprachmodus: nach einer Unterbrechung entscheidet frageNachUnterbrechung (mit Himbis Echo), bei offener Karte nicht", modusQ.includes("const rest = leseFreigabeAnfrage() ? null : frageNachUnterbrechung(woerter.map((w) => w.text), echoBeimUnterbrechen.current);"));
+    pruefe("Sprachmodus: nach einer Unterbrechung entscheidet frageNachUnterbrechung (mit Himbis Echo), bei offener Karte nicht", modusQ.includes("const rest = leseFreigabeAnfrage() ? null : frageNachUnterbrechung(woerter.map((w) => w.text), echoBeimUnterbrechenRef.current);"));
     {
       const sm = await import("../../src/lib/domain/sprachmodus.ts");
       const m = sm.erzeugeEinsatzMerker();
@@ -3233,7 +3285,7 @@ for (const [name, kaputteAntwort] of [
       const nachLangerPause = bei(1_200, 2_400, "still");
       pruefe("Sprachmodus: der Einsatz der Stimme ueberdauert hoechstens 1 s Stille", erster === 0 && nachKurzerPause === 0 && nachLangerPause === null && sm.EINSATZ_HALTEN_MS === 1_000, JSON.stringify([erster, nachKurzerPause, nachLangerPause]));
     }
-    pruefe("Sprachmodus: Unterbrechen haelt nur Himbi an und merkt sich den Satz, bei dem er unterbrochen wurde", /const unterbrecheHimbi = useCallback\(\s*\(art: UnterbrechungsArt\) => \{\s*const gerade = leseGerade\(\);\s*unterbrochenBei\.current = gerade\?\.satz \?\? gerade\?\.vorher \?\? null;[\s\S]{0,400}nachUnterbrechung\.current = beginntMitBefehl\(art\);\s*unterbrichChat\(\);\s*dispatch\(\{ art: "unterbrechen" \}\);/.test(modusQ));
+    pruefe("Sprachmodus: Unterbrechen haelt nur Himbi an und merkt sich den Satz, bei dem er unterbrochen wurde", /const unterbrecheHimbi = useCallback\(\s*\(art: UnterbrechungsArt\) => \{\s*const gerade = leseGerade\(\);\s*unterbrochenBeiRef\.current = gerade\?\.satz \?\? gerade\?\.vorher \?\? null;[\s\S]{0,400}nachUnterbrechungRef\.current = beginntMitBefehl\(art\);\s*unterbrichChat\(\);\s*dispatch\(\{ art: "unterbrechen" \}\);/.test(modusQ));
   }
 
   // (g) Zusage/Absage bei einer offenen Freigabe (Rueckmeldung vom 25.09.2026:
@@ -3844,7 +3896,25 @@ for (const [name, kaputteAntwort] of [
   }
   pruefe("Sprechmarken: zielAusMarke erkennt e-, a-, Anker- und Textziele", marken.zielAusMarke("E12") === "e12" && marken.zielAusMarke(" a3 ") === "a3" && marken.zielAusMarke("#compliance-kachel-audit") === "#compliance-kachel-audit" && marken.zielAusMarke("Risiko-Radar") === "t:Risiko-Radar" && marken.zielAusMarke("<script>") === null);
   pruefe("Sprechmarken: erfundene Referenzen fallen weg, Anker und Texte bleiben", JSON.stringify(marken.nurBekannteZiele(["a3", "e99", "#x", "t:Y"], new Set(["a3"]))) === JSON.stringify(["a3", "#x", "t:Y"]) && marken.nurBekannteZiele(["e1"], null).length === 1);
-  pruefe("Sprechmarken: ausserhalb des Sprachmodus bleibt Text mit [[...]] unberuehrt (kein Filter in Anzeige und Speicher)", !lies4("components/ki/ki-chat.tsx").includes("ohneSprechmarken"));
+  {
+    // Alle Teile des Chats, nicht nur eine Auswahl: ein neuer Teil mit Filter fiele sonst nicht auf.
+    const teile = kiChatTeile();
+    const namen = teile.map((teil) => teil.datei);
+    const mitFilter = teile.filter((teil) => teil.text.includes("ohneSprechmarken")).map((teil) => teil.datei);
+    pruefe(
+      "Sprechmarken: ausserhalb des Sprachmodus bleibt Text mit [[...]] unberuehrt (kein Filter in Anzeige und Speicher)",
+      ["ki-chat.tsx", "ki-chat-nachricht.tsx", "ki-chat-markdown.tsx", "ki-chat-meldungen.ts", "ki-chat-anfrage.ts", "ki-chat-zug.ts"].every((datei) => namen.includes(datei)) && mitFilter.length === 0,
+      `${namen.length} Teile${mitFilter.length ? `, mit Filter: ${mitFilter.join(", ")}` : ""}`,
+    );
+    // Die Hooks der Teile wirken nur, wenn KiChat sie aufruft: jeder Hook, den ein Teil exportiert, steht als Aufruf in ki-chat.tsx.
+    const chat = teile.find((teil) => teil.datei === "ki-chat.tsx")?.text ?? "";
+    const hooks = teile
+      .filter((teil) => teil.datei !== "ki-chat.tsx")
+      .flatMap((teil) => [...teil.text.matchAll(/^export function (use[A-Z]\w*)\(/gm)].map((treffer) => treffer[1]));
+    const ohneAufruf = hooks.filter((hook) => !chat.includes(`${hook}(`));
+    pruefe("KI-Chat: ki-chat.tsx ruft jeden Hook seiner Teile auf", hooks.length >= 14 && ohneAufruf.length === 0, `${hooks.length} Hooks${ohneAufruf.length ? `, ohne Aufruf: ${ohneAufruf.join(", ")}` : ""}`);
+    pruefe("KI-Chat: Stimme, Takt und Stand des Sprachmodus sind mit derselben Vorlese-Instanz verdrahtet", chat.includes(KI_CHAT_AUFRUFE.taktVerdrahtung) && chat.includes(KI_CHAT_AUFRUFE.chatStand));
+  }
   pruefe("Sprechmarken: ohneSprechmarken fuer gespeicherte und angezeigte Texte", sa.ohneSprechmarken("[[a3]] Im Radar [[e2]]. Und hier [[a4]] weiter [[a5") === "Im Radar. Und hier weiter");
   pruefe("Sprechmarken: werden nie gesprochen (textFuerSprachausgabe, auch der Platzhalter)", sa.textFuerSprachausgabe("Im [[a3]] Radar.") === "Im Radar." && !sa.textFuerSprachausgabe("A \uE000 B.").includes("\uE000"));
 
@@ -3895,9 +3965,12 @@ for (const [name, kaputteAntwort] of [
     );
   }
   const chat2 = lies4("components/ki/ki-chat.tsx");
-  pruefe("Chat: im Sprachmodus nur das laufende Gespraech (plus eine Frage davor) ans Modell, beginnend mit einer Frage", chat2.includes("prepareSendMessagesRequest") && chat2.includes("const VOR_SPRACHMODUS = 2;") && chat2.includes('while (ab > 0 && alle[ab]?.role !== "user") ab -= 1;'));
-  pruefe("Chat: jede Anfrage im Sprachmodus traegt die Seitenkarte der aktuellen Seite", chat2.includes("...(imSprachmodus ? { seitenkarte: seitenKarte() } : {})"));
-  pruefe("Chat: neue Frage und Stopp raeumen die Fuehrung der vorigen Anfrage ab (Warteschlange, Rahmen)", chat2.includes('if (modus === "sprache") fuehrungAufraeumen();') && chat2.includes("if (sprachmodus) fuehrungAufraeumen();") && /fuehrungBeenden\(\);\s*setzeHervorhebung\(null\);/.test(chat2));
+  // Seit dem 14.10.2026 stehen die Anfrage in ki-chat-anfrage.ts und Senden und Stoppen in ki-chat-zug.ts.
+  const anfrage2 = lies4("components/ki/ki-chat-anfrage.ts");
+  const zug2 = lies4("components/ki/ki-chat-zug.ts");
+  pruefe("Chat: im Sprachmodus nur das laufende Gespraech (plus eine Frage davor) ans Modell, beginnend mit einer Frage", anfrage2.includes("prepareSendMessagesRequest") && anfrage2.includes("const VOR_SPRACHMODUS = 2;") && anfrage2.includes('while (ab > 0 && alle[ab]?.role !== "user") ab -= 1;') && anfrage2.includes("const ab = verlaufAb(alle, imSprachmodus, sprachStart.current);"));
+  pruefe("Chat: jede Anfrage im Sprachmodus traegt die Seitenkarte der aktuellen Seite", anfrage2.includes("...(imSprachmodus ? { seitenkarte: seitenKarte() } : {})"));
+  pruefe("Chat: neue Frage und Stopp raeumen die Fuehrung der vorigen Anfrage ab (Warteschlange, Rahmen)", zug2.includes('if (modus === "sprache") fuehrungAufraeumen();') && zug2.includes("if (sprachmodus) fuehrungAufraeumen();") && /fuehrungBeenden\(\);\s*setzeHervorhebung\(null\);/.test(zug2));
   pruefe("Chat: kein Pruefbezug im Sprachmodus", chat2.includes("const pruefkontext = sprachmodus ? undefined : pruefBezug?.kontext;"));
   const pane = lies4("components/ki/ki-pane-kontext.tsx");
   pruefe("Fuehrung: Beenden des Sprachmodus beendet auch Warteschlange, Suchlaeufe und Zeiger", /const beendeSprachmodus = useCallback\(\(\) => \{[\s\S]{0,500}fuehrungBeenden\(\);[\s\S]{0,120}setZeiger\(null\);/.test(pane));
@@ -3926,13 +3999,13 @@ for (const [name, kaputteAntwort] of [
   // Stille nicht als gesprochen gilt, pruefen die Durchlaeufe Fall 11 und Fall 12 im Strom-Sprecher.
   pruefe("Sprecher: in der Stille zaehlt, was gehoert sein kann (saetzeBeiStille, vorsichtig nochNichtBegonnen)", strom2.includes("const fertig = Math.min(saetzeBeiStille, anzahl);") && strom2.includes("nochNichtBegonnen(aktiv.texte, aktiv.audioSekunden, rate)"));
   pruefe("Sprecher: die Schaetzung setzt an jeder Sprechpause neu auf (kein aufsummierter Fehler)", strom2.includes("anker = { index: fertig, sekunden: fertigSekunden };") && strom2.includes("const position = vorAnker + Math.max(0, gespielt - anker.sekunden)"));
-  pruefe("Mitlesen: nach einer Pause zeigt der Sprachmodus die Marke, wenn der Satz wirklich klingt", lies4("components/ki/sprachmodus.tsx").includes("const schluessel = jetzt ? `${jetzt.index}:${jetzt.satz === null ? 0 : 1}` : \"\";"));
+  pruefe("Mitlesen: nach einer Pause zeigt der Sprachmodus die Marke, wenn der Satz wirklich klingt", sprachmodusQuelle().includes("const schluessel = jetzt ? `${jetzt.index}:${jetzt.satz === null ? 0 : 1}` : \"\";"));
   pruefe("Sprecher: eine Werkzeugpause oder ein neuer Strom zaehlt nicht als Aussetzer, eine lange Luecke mitten im Text schon", strom2.includes("strom === letzterStrom && (luecke < 0.8 || nochText)") && strom2.includes("const nochText = ungesprocheneTexte(aktiv.texte, aktiv.audioSekunden, aktiv.tempo) > 0;"));
   pruefe("Sprecher: nach einer Runde mit Aussetzer bleibt der Vorpuffer, sonst schrumpft er", strom2.includes("vorlauf = aussetzerInRunde ? vorlauf : Math.max(STROM_VORLAUF_S, vorlauf / 2);"));
   const takt2 = lies4("components/ki/sprach-takt.ts");
   pruefe("Takt: waehrend des Seitenwechsels haelt die Stimme an, mit Notbremse", takt2.includes("if (wechsel) halte.current?.(true);") && takt2.includes("const HALTEN_MAX_MS = 3_500;") && takt2.includes("window.setTimeout(() => halte.current?.(false), HALTEN_MAX_MS)"));
   pruefe("Takt: ein neuer Strom setzt eine angehaltene Stimme nicht von selbst fort", strom2.includes('if (ctx.state === "suspended" && !rueck.gehalten?.())') && lies4("components/ki/sprachausgabe-live.ts").includes('if (kontext.current.state === "suspended" && !gehaltenRef.current)'));
-  const modus2 = lies4("components/ki/sprachmodus.tsx");
+  const modus2 = sprachmodusQuelle();
   // Seit dem 28.09.2026 ein durchgehendes Ohr statt eines eigenen Stopp-Waechters.
   pruefe("Ohr: eine Live-Sitzung fuers ganze Gespraech, die Grenze im Audio trennt die Aeusserungen", modus2.includes("const t = sitzung.textAb(frageAb());") && modus2.includes("if (ohrOffen(phase)) starteOhr();") && !modus2.includes("stoppBefehlAmEnde"));
   // Zwei Grenzen (Messung vom 28.09.2026): wer "Stopp, zeig mir ..." genau in Himbis Sprechpause sagt, verlor sonst den Anfang.
@@ -3940,13 +4013,13 @@ for (const [name, kaputteAntwort] of [
   // (befehlGeprueftMs); das Verhalten pruefen die Echo-Szenarien in (g).
   // Seit 29.09.2026 beginnt die Frage bei den eigenen Worten vor dem Befehl (aeusserungsBeginn,
   // Verhalten in (g) geprueft), nicht mehr immer am Befehlswort.
-  pruefe("Ohr: Befehle werden bis 3 s vor Himbis Verstummen gesucht, die Frage beginnt bei den eigenen Worten davor", /const befehlAb = useCallback\(\s*\(\) => Math\.max\(grenzeMs\.current, echoBisMs\.current - BEFEHL_RUECKBLICK_MS, befehlGeprueftMs\.current\),/.test(modus2) && modus2.includes("const BEFEHL_RUECKBLICK_MS = 3_000;") && modus2.includes("const suche = sitzung.textAb(befehlAb());") && modus2.includes("const jetzt = sitzung.textAb(befehlAb());") && /const ab = aeusserungsBeginn\(woerter, b, gesagt\);\s*grenzeMs\.current = Math\.max\(grenzeMs\.current, jetzt\.woerter\[ab\]!\.startMs \?\? jetzt\.woerter\[b\]!\.startMs \?\? grenzeMs\.current\);\s*echoBisMs\.current = grenzeMs\.current;/.test(modus2) && modus2.includes("if (beendetWirklich(woerter, b, gesagt)) return beendenRef.current();"));
-  pruefe("Ohr: Verstummen und Echo-Endpunkt setzen nur die weiche Grenze", modus2.includes("echoBisMs.current = Math.max(echoBisMs.current, (t.endeMs ?? 0) + 1);") && !modus2.includes("grenzeMs.current = Math.max(grenzeMs.current, (t.endeMs ?? 0) + 1);"));
-  pruefe("Ohr: am Endpunkt wird die Frage sofort gestellt, ohne auf das Ende der Sitzung zu warten", modus2.includes('if (phase === "hoert") nimmAeusserung(t);') && modus2.includes("stelleFrage(frage, sprachen, { ersetztLetzte: ersetzt, unterbrochen: unterbrochenBei.current });") && /const stelleFrage = useCallback\([\s\S]{0,300}stelleSprachFrage\(frage, sprachen, optionen\);\s*dispatch\(\{ art: "frage-gestellt" \}\);/.test(modus2));
+  pruefe("Ohr: Befehle werden bis 3 s vor Himbis Verstummen gesucht, die Frage beginnt bei den eigenen Worten davor", /const befehlAb = useCallback\(\s*\(\) => Math\.max\(grenzeMsRef\.current, echoBisMsRef\.current - BEFEHL_RUECKBLICK_MS, befehlGeprueftMsRef\.current\),/.test(modus2) && modus2.includes("const BEFEHL_RUECKBLICK_MS = 3_000;") && modus2.includes("const suche = sitzung.textAb(befehlAb());") && modus2.includes("const jetzt = sitzung.textAb(befehlAb());") && /const ab = aeusserungsBeginn\(woerter, b, gesagt\);\s*grenzeMsRef\.current = Math\.max\(grenzeMsRef\.current, jetzt\.woerter\[ab\]!\.startMs \?\? jetzt\.woerter\[b\]!\.startMs \?\? grenzeMsRef\.current\);\s*echoBisMsRef\.current = grenzeMsRef\.current;/.test(modus2) && modus2.includes("if (beendetWirklich(woerter, b, gesagt)) return beendenRef.current();"));
+  pruefe("Ohr: Verstummen und Echo-Endpunkt setzen nur die weiche Grenze", modus2.includes("echoBisMsRef.current = Math.max(echoBisMsRef.current, (t.endeMs ?? 0) + 1);") && !modus2.includes("grenzeMsRef.current = Math.max(grenzeMsRef.current, (t.endeMs ?? 0) + 1);"));
+  pruefe("Ohr: am Endpunkt wird die Frage sofort gestellt, ohne auf das Ende der Sitzung zu warten", modus2.includes('if (phase === "hoert") nimmAeusserung(t);') && modus2.includes("stelleFrage(frage, sprachen, { ersetztLetzte: ersetzt, unterbrochen: unterbrochenBeiRef.current });") && /const stelleFrage = useCallback\([\s\S]{0,300}stelleSprachFrage\(frage, sprachen, optionen\);\s*dispatch\(\{ art: "frage-gestellt" \}\);/.test(modus2));
   pruefe("Ohr: ein Befehl mitten in der Antwort zaehlt nur, wenn Himbi ihn nicht gerade selbst sagt", modus2.includes('const gesagt = phase === "spricht" ? (gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort) : "";') && modus2.includes("const istEcho = (wort: string) => phase === \"spricht\" && befehlsWortIn(gesagt, wort) !== null;"));
-  pruefe("Ohr: schon der vorlaeufige Text loest aus, wenn er 350 ms stabil bleibt, endgueltiger sofort", modus2.includes("const STOPP_STABIL_MS = 350;") && modus2.includes("if (beginn < endgueltigeWoerter) loeseAus();") && modus2.includes("else kandidatTimer.current = window.setTimeout(loeseAus, STOPP_STABIL_MS);"));
+  pruefe("Ohr: schon der vorlaeufige Text loest aus, wenn er 350 ms stabil bleibt, endgueltiger sofort", modus2.includes("const STOPP_STABIL_MS = 350;") && modus2.includes("if (beginn < endgueltigeWoerter) loeseAus();") && modus2.includes("else kandidatTimerRef.current = window.setTimeout(loeseAus, STOPP_STABIL_MS);"));
   // Seit dem 29.09.2026 mit istNachsatz statt istGesprochen: ein Fuellaut bricht nicht ab ((g)).
-  pruefe("Ohr: Nachsatz beim Nachdenken bricht die Anfrage ab und haengt die Worte an die Frage", /if \(phase === "denkt" && !leseFreigabeAnfrage\(\) && offeneFrage\.current && istNachsatz\(t\.anzeige\)\) \{[\s\S]{0,300}vorsatz\.current = offeneFrage\.current;[\s\S]{0,80}unterbrichChat\(\);/.test(modus2) && modus2.includes("const frage = vorsatz.current ? fuegeZusammen(vorsatz.current.text, text) : text;"));
+  pruefe("Ohr: Nachsatz beim Nachdenken bricht die Anfrage ab und haengt die Worte an die Frage", /if \(phase === "denkt" && !leseFreigabeAnfrage\(\) && offeneFrageRef\.current && istNachsatz\(t\.anzeige\)\) \{[\s\S]{0,300}vorsatzRef\.current = offeneFrageRef\.current;[\s\S]{0,80}unterbrichChat\(\);/.test(modus2) && modus2.includes("const frage = vorsatzRef.current ? fuegeZusammen(vorsatzRef.current.text, text) : text;"));
   // Rueckmeldung vom 25.09.2026 (zweiter Teil): Figur weg, "Sprachmodus beenden", Endpunkt, Titel in der richtigen Sprache.
   pruefe("Sprachmodus: die Himbi-Figur ist ausgeblendet, solange er laeuft (nicht abgebaut)", lies4("components/haustier/haustier-dashboard.tsx").includes("verborgen={sprachmodus}") && lies4("components/haustier/haustier-huelle.tsx").includes("hidden={verborgen}") && lies4("components/haustier/haustier.css").includes(".haustier[hidden]"));
   pruefe("Beenden: 'Sprachmodus beenden' bei offener Karte lehnt ab und beendet", sm.freigabeAntwort("Sprachmodus beenden.") === "beenden" && /entscheideFreigabe\(art === "zusage", karte\.nr\);\s*\/\/ [^\n]*\n\s*if \(art === "beenden"\) return beendenRef\.current\(\);/.test(modus2));
@@ -4146,7 +4219,7 @@ for (const [name, kaputteAntwort] of [
     for (let t = 0; t < 12_000 && einsatzBeiUnterbrechung === null; t += 16) {
       const spitze = t < 8_000 && t % 800 === 0;
       const mikrofon = t >= 8_000 ? 0.2 : spitze ? 0.2 : 0.03;
-      // Wie sprachmodus.tsx: jedes Urteil geht an den Merker, beim Unterbrechen zaehlt sein Einsatz.
+      // Wie sprachmodus-verdacht.ts: jedes Urteil geht an den Merker, beim Unterbrechen zaehlt sein Einsatz.
       const urteil = waechter.melde(mikrofon, 0.1, t);
       const beginn = merker.melde(urteil, t);
       if (urteil === "unterbrechen") einsatzBeiUnterbrechung = beginn ?? t;

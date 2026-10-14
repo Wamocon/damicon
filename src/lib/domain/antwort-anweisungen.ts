@@ -196,7 +196,7 @@ export function quellenAnweisung(sprache: AntwortSprache): string {
 // Chat, auch was eintragen, aber vorher muss der Nutzer das sehen und per
 // Sprachbefehl freigeben"): Klicken, Ausfuellen und Aktionen mit Freigabekarte
 // entfallen NICHT mehr. Die Freigabekarte selbst zeigt der Sprachmodus jetzt
-// links ueber der Navigationsleiste (sprachmodus.tsx, sprachmodus-bus.ts) und
+// links ueber der Navigationsleiste (sprachmodus-anzeige.tsx, sprachmodus-bus.ts) und
 // nimmt "Ja"/"Nein" als naechste Aeusserung entgegen - das Modell muss dafuer
 // nichts Besonderes tun, siehe SPRACHMODUS_OBERFLAECHE und AKTIONS_ANWEISUNG.
 

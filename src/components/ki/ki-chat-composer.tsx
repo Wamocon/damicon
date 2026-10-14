@@ -7,7 +7,7 @@
 // Client-Werkzeuge, Sprache) haelt.
 
 import type { FormEvent, KeyboardEvent, RefObject } from "react";
-import type { useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { ArrowUp, AudioLines, Scale, Square, X } from "lucide-react";
 import { MikrofonKnopf } from "@/components/ki/mikrofon";
 import { DiktatWelle } from "@/components/ki/diktat-welle";
@@ -24,7 +24,6 @@ import { PRUEFBEREICHE } from "@/lib/pruefung/rollen";
 const PRUEF_BEZUG_KACHELN = [...PRUEFBEREICHE, "massnahmen", "einschraenkungen"] as const;
 
 export function KiChatComposer({
-  t,
   onSubmit,
   pruefBezug,
   onBezugEntfernen,
@@ -49,7 +48,6 @@ export function KiChatComposer({
   sprachmodusMoeglich,
   onSprachmodus,
 }: {
-  t: ReturnType<typeof useTranslations>;
   onSubmit: (e: FormEvent) => void;
   pruefBezug: PruefBezug | null;
   onBezugEntfernen: () => void;
@@ -75,6 +73,7 @@ export function KiChatComposer({
   sprachmodusMoeglich: boolean;
   onSprachmodus: () => void;
 }) {
+  const t = useTranslations("kiAssistentAnsicht");
   return (
     <form onSubmit={onSubmit} className="ki-composer">
       {pruefBezug ? (

@@ -19,7 +19,7 @@
 //
 // Entweder hoert Himbi zu, oder der Assistent ist dran (denkt, spricht). Das Ohr bleibt
 // seit dem 28.09.2026 dabei durchgehend offen (ohrOffen): was von Himbis eigener Stimme
-// kommt, sortiert sprachmodus.tsx aus (Grenze im Audio, Echo-Pruefung). Unterbrochen wird
+// kommt, sortiert sprachmodus-erkennung.ts aus (Grenze im Audio, Echo-Pruefung). Unterbrochen wird
 // per Befehlswort (Abschnitt 1b), durch Sprechen (Abschnitt 4: nur, was deutlich lauter ist
 // als Echo und Grundrauschen) oder per Tipp auf Himbi bzw. die Leertaste - der sichere Weg
 // in lauter Umgebung (Hof, Halle).
@@ -86,10 +86,10 @@ export function naechstePhase(phase: Phase, e: Ereignis): Phase {
 }
 
 /** Hoert die Erkennung in dieser Phase mit? Seit dem 28.09.2026 durchgehend, auch waehrend
- *  Himbi denkt und spricht (EINE Verbindung fuers ganze Gespraech, sprachmodus.tsx): nur so
+ *  Himbi denkt und spricht (EINE Verbindung fuers ganze Gespraech, sprachmodus-ohr.ts): nur so
  *  gehen weder ein Nachsatz ("Ja." ... "und zeig mir die Lieferungen") noch ein "Stopp"
  *  mitten in seiner Antwort verloren. Was dabei von Himbis eigener Stimme kommt, sortiert
- *  sprachmodus.tsx aus (Grenze im Audio, Echo-Pruefung). Nie im Stumm- oder Fehlerzustand. */
+ *  sprachmodus-erkennung.ts aus (Grenze im Audio, Echo-Pruefung). Nie im Stumm- oder Fehlerzustand. */
 export function ohrOffen(phase: Phase): boolean {
   return phase === "hoert" || phase === "denkt" || phase === "spricht";
 }
@@ -552,7 +552,7 @@ export function freigabeAntwortMitEcho(woerter: readonly string[], gesagt: strin
 //
 // Bis zum 25.09.2026 stand hier, wohin die Kugel rueckt, wenn ein Bereich
 // hervorgehoben ist (besterPlatz). Seit Himbi das Gespraech fuehrt, dockt er links
-// ueber der Navigationsleiste an (sprachmodus.tsx); die Platzsuche war ungenutzt
+// ueber der Navigationsleiste an (sprachmodus-seite.ts); die Platzsuche war ungenutzt
 // und ist entfernt. Das Rechteck braucht weiter der Rahmen um das Ziel
 // (sprach-spotlight.tsx) und der Blick von Himbi.
 
@@ -719,7 +719,7 @@ export const UNTERBRECHEN_STANDARD: UnterbrechenEinstellungen = {
 };
 
 /** "vielleicht": es klingt nach Sprache, aber noch nicht lange genug. Daraus merkt sich
- *  sprachmodus.tsx den Einsatz der Stimme (erzeugeEinsatzMerker), damit der Anfang des Satzes
+ *  sprachmodus-verdacht.ts den Einsatz der Stimme (erzeugeEinsatzMerker), damit der Anfang des Satzes
  *  zur naechsten Frage gehoert. Eine eigene Aufnahme laeuft dafuer seit dem 28.09.2026 nicht
  *  mehr mit (EIN Ohr fuers ganze Gespraech). */
 export type UnterbrechenUrteil = "still" | "vielleicht" | "unterbrechen";

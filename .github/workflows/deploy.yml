@@ -39,6 +39,11 @@ on:
         type: string
         default: ""
 
+# Mindestrechte: Der aufgerufene Workflow checkt nur aus. Vercel und GitHub-API laufen über eigene Geheimnisse (VERCEL_TOKEN, ORG_PAT),
+# nicht über das GITHUB_TOKEN.
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy - ${{ inputs.environment }}

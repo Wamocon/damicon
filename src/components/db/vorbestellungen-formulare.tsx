@@ -9,14 +9,7 @@ import {
   vorbestellungStornieren,
 } from "@/lib/actions/vorbestellungen";
 import { leer } from "@/lib/actions/status";
-import {
-  AktionsMeldung,
-  Auswahl,
-  Feld,
-  FormularKarte,
-  PfadFeld,
-  SubmitKnopf,
-} from "@/components/db/formular-kit";
+import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, StornoKnopf, SubmitKnopf } from "@/components/db/formular-kit";
 import type { AuswahlZeile } from "@/lib/domain/vorbestellungen";
 import { formularZiel } from "@/lib/formular-ziele";
 
@@ -109,21 +102,6 @@ export function VorbestellungStatusFormular({ vorbestellungId }: { vorbestellung
 }
 
 export function VorbestellungStornierenKnopf({ vorbestellungId }: { vorbestellungId: string }) {
-  const [status, action] = useActionState(vorbestellungStornieren, leer);
   const t = useTranslations("b2bPortalAnsicht");
-
-  return (
-    <form action={action} className="mt-2">
-      <PfadFeld />
-      <input type="hidden" name="id" value={vorbestellungId} />
-      <button
-        type="submit"
-        className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive"
-      >
-        <Ban className="h-3.5 w-3.5" />
-        {t("stornieren")}
-      </button>
-      <AktionsMeldung status={status} />
-    </form>
-  );
+  return <StornoKnopf id={vorbestellungId} aktion={vorbestellungStornieren} label={t("stornieren")} />;
 }

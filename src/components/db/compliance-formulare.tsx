@@ -159,55 +159,24 @@ export function VorfallErfassenFormular({ profile }: { profile: AuswahlOption[] 
 // Anforderung 4.8: verantwortliche Person nachtragen bzw. neu zuweisen -
 // dieselbe kompakte Inline-Form fuer Zweck und Vorfall, nur die Server
 // Action unterscheidet sich.
-export function ZweckVerantwortlichenFormular({
-  id,
-  profile,
-}: {
-  id: string;
-  profile: AuswahlOption[];
-}) {
-  const [status, action] = useActionState(zweckVerantwortlichenSetzen, leer);
-  const t = useTranslations("complianceAnsicht.formular.verantwortlich");
-
-  return (
-    <form action={action} className="flex flex-wrap items-center gap-1.5">
-      <PfadFeld />
-      <input type="hidden" name="id" value={id} />
-      <select
-        name="verantwortlich_profil_id"
-        required
-        aria-label={t("label")}
-        defaultValue=""
-        className="h-7 rounded-md border border-border bg-background px-2 text-[11px] text-foreground outline-none focus:border-primary"
-      >
-        <option value="" disabled>
-          {t("platzhalter")}
-        </option>
-        {profile.map((p) => (
-          <option key={p.wert} value={p.wert}>
-            {p.text}
-          </option>
-        ))}
-      </select>
-      <button
-        type="submit"
-        className="inline-flex h-7 items-center gap-1 rounded-md border border-border px-2 text-[11px] font-semibold text-foreground transition hover:border-primary"
-      >
-        {t("knopf")}
-      </button>
-      <AktionsMeldung status={status} />
-    </form>
-  );
+export function ZweckVerantwortlichenFormular({ id, profile }: { id: string; profile: AuswahlOption[] }) {
+  return <VerantwortlichenFormular id={id} profile={profile} aktion={zweckVerantwortlichenSetzen} />;
 }
 
-export function VorfallVerantwortlichenFormular({
+export function VorfallVerantwortlichenFormular({ id, profile }: { id: string; profile: AuswahlOption[] }) {
+  return <VerantwortlichenFormular id={id} profile={profile} aktion={vorfallVerantwortlichenSetzen} />;
+}
+
+function VerantwortlichenFormular({
   id,
   profile,
+  aktion,
 }: {
   id: string;
   profile: AuswahlOption[];
+  aktion: typeof zweckVerantwortlichenSetzen;
 }) {
-  const [status, action] = useActionState(vorfallVerantwortlichenSetzen, leer);
+  const [status, action] = useActionState(aktion, leer);
   const t = useTranslations("complianceAnsicht.formular.verantwortlich");
 
   return (

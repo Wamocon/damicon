@@ -1,6 +1,6 @@
 import { pruefeUploadUmgebung, UploadFehler, type FreigabeInfo, type WissenSpeicher } from "@/lib/wissen/hochladen";
 import { istQuellenart, pruefenBis, type Quellenart } from "@/lib/wissen/quellenart";
-import { alsBereichsText, leseSeitenzahlen, offenerStand, pruefeAbdeckung } from "@/lib/wissen/seiten-bestaetigung";
+import { alsBereichsText, leseSeitenzahlen, offenerStand, pruefeAbdeckung, type OffenerStand } from "@/lib/wissen/seiten-bestaetigung";
 import { beschreibeLuecken } from "@/lib/wissen/seitenverlauf";
 import { istUploadQuelleId } from "@/lib/wissen/upload-quelle";
 
@@ -61,76 +61,124 @@ export function saeubereVermerk(text: string | null | undefined): string {
 
 const heute = (jetzt: Date) => jetzt.toISOString().slice(0, 10);
 
+/** Was jeder Schritt einer Entscheidung braucht: das geladene Dokument, die Uhrzeit der Entscheidung und die Quellenart (null, wenn unbekannt). */
+interface Entscheidung {
+  d: FreigabeAbhaengigkeiten;
+  quelleId: string;
+  info: FreigabeInfo;
+  jetzt: Date;
+  zeitpunkt: string;
+  art: Quellenart | null;
+}
+
+/** Die Seitenangaben im Ergebnis: offene fehlende Seiten bei der Entscheidung, die bestätigten Seitenzahlen und der Grund dazu. */
+interface SeitenAngaben {
+  fehlend: number;
+  bestaetigt: string | null;
+  vermerk: string | null;
+}
+
+/** Scheitert der Speicher, heisst der Fehler "freigeben", mit dem Titel des Dokuments, wenn er bekannt ist, und der Ursache.
+ *  Der Titel wird erst beim Scheitern gelesen, wie vor dem Zerlegen. */
+const speicherFehler =
+  (titel?: () => string | null | undefined) =>
+  (ursache: unknown): never => {
+    throw new UploadFehler("freigeben", titel?.() ?? undefined, ursache);
+  };
+
 export async function entscheideUeberUpload(aktion: FreigabeAktion, quelleId: string, d: FreigabeAbhaengigkeiten): Promise<FreigabeErgebnis> {
+  const info = await ladePruefbaresDokument(quelleId, d);
+  const jetzt = d.jetzt?.() ?? new Date();
+  const art = istQuellenart(info.quellenart) ? (info.quellenart as Quellenart) : null;
+  const e: Entscheidung = { d, quelleId, info, jetzt, zeitpunkt: jetzt.toISOString(), art };
+  return aktion === "verlaengern" ? verlaengereWiedervorlage(e) : entscheideUeberWartendes(aktion, e);
+}
+
+/** Vorschau-Schutz und Form der quelle_id, dann das Dokument: Es muss Zeilen haben, und alle muessen aus dem Upload stammen. */
+async function ladePruefbaresDokument(quelleId: string, d: FreigabeAbhaengigkeiten): Promise<FreigabeInfo> {
   pruefeUploadUmgebung(d.umgebung ?? process.env, d.schema);
   // Skript-Quellen haben Pfade als quelle_id: hier endet es, ohne dass die Datenbank gefragt wird.
   if (!istUploadQuelleId(quelleId)) throw new UploadFehler("nichtFreigebbar");
 
-  const info: FreigabeInfo = await d.speicher.ladeFreigabeInfo(quelleId).catch((u) => {
-    throw new UploadFehler("freigeben", undefined, u);
-  });
+  const info: FreigabeInfo = await d.speicher.ladeFreigabeInfo(quelleId).catch(speicherFehler());
   if (info.anzahl === 0) throw new UploadFehler("nichtGefunden");
   if (info.fremd > 0) throw new UploadFehler("nichtFreigebbar");
+  return info;
+}
 
-  const jetzt = d.jetzt?.() ?? new Date();
-  const zeitpunkt = jetzt.toISOString();
-  const art = istQuellenart(info.quellenart) ? (info.quellenart as Quellenart) : null;
+async function verlaengereWiedervorlage({ d, quelleId, info, jetzt, zeitpunkt, art }: Entscheidung): Promise<FreigabeErgebnis> {
+  // Nur ein freigegebenes Dokument, dessen Wiedervorlage erreicht ist, und nur durch eine zweite Person.
+  if (info.pruefstatus !== "freigegeben" || !info.pruefenBis || info.pruefenBis >= heute(jetzt)) throw new UploadFehler("nichtPruefbar");
+  sicherheitsPruefung(info, d.pruefer.id);
+  const neu = art ? pruefenBis(art, jetzt) : null;
+  if (!neu) throw new UploadFehler("nichtPruefbar");
+  const n = await d.speicher.verlaengere(quelleId, { pruefer: d.pruefer.id, zeitpunkt, pruefenBis: neu }).catch(speicherFehler(() => info.titel));
+  if (n !== info.anzahl) throw new UploadFehler("nichtPruefbar");
+  return ergebnis(info, n, neu, { fehlend: 0, bestaetigt: null, vermerk: null });
+}
 
-  if (aktion === "verlaengern") {
-    // Nur ein freigegebenes Dokument, dessen Wiedervorlage erreicht ist, und nur durch eine zweite Person.
-    if (info.pruefstatus !== "freigegeben" || !info.pruefenBis || info.pruefenBis >= heute(jetzt)) throw new UploadFehler("nichtPruefbar");
-    sicherheitsPruefung(info, d.pruefer.id);
-    const neu = art ? pruefenBis(art, jetzt) : null;
-    if (!neu) throw new UploadFehler("nichtPruefbar");
-    const n = await d.speicher.verlaengere(quelleId, { pruefer: d.pruefer.id, zeitpunkt, pruefenBis: neu }).catch((u) => {
-      throw new UploadFehler("freigeben", info.titel ?? undefined, u);
-    });
-    if (n !== info.anzahl) throw new UploadFehler("nichtPruefbar");
-    return { titel: info.titel, bereich: info.bereich, quellenart: info.quellenart, abschnitte: n, pruefenBis: neu, seitenFehlend: 0, seitenBestaetigt: null, seitenVermerk: null };
-  }
-
+async function entscheideUeberWartendes(aktion: FreigabeAktion, e: Entscheidung): Promise<FreigabeErgebnis> {
+  const { d, quelleId, info, jetzt, zeitpunkt, art } = e;
+  const freigeben = aktion === "freigeben";
   // Freigeben und Ablehnen: nur, solange das Dokument wartet.
   if (info.pruefstatus !== "ungeprueft") throw new UploadFehler("nichtPruefbar");
   // Ein Buch, dem Pakete fehlen, wird nicht freigegeben: Es ginge als halbes Buch in die Suche. Ablehnen und Loeschen gehen.
-  if (aktion === "freigeben" && info.unvollstaendig) throw new UploadFehler("unvollstaendig");
+  if (freigeben && info.unvollstaendig) throw new UploadFehler("unvollstaendig");
   // Freigeben braucht die zweite Person. Ablehnen darf auch, wer hochgeladen hat: Das ist ein Zurueckziehen, keine Freigabe.
-  if (aktion === "freigeben") sicherheitsPruefung(info, d.pruefer.id);
-  // Fehlen im Scan Seiten (Seitenverlauf-Pruefung beim Hochladen) und sind sie nicht nachgeladen, sieht die pruefende Person am Original nach und gibt die
-  // gedruckten Seitenzahlen an, die KORREKT fehlen (Leerseiten, Notizseiten). Die Angabe muss ALLE offenen Luecken abdecken: Sonst fehlt echter Inhalt, und das
-  // Buch wird nicht freigegeben (die Seiten werden nachgeladen oder das Buch wird neu hochgeladen). Ablehnen braucht nichts davon. Die Bestaetigung wird VOR der
-  // Entscheidung abgelegt: Scheitert diese, bleibt sie zu einem weiter wartenden Dokument, harmlos; umgekehrt gaebe es ein freigegebenes Buch ohne Bestaetigung.
-  const stand = offenerStand({
+  if (freigeben) sicherheitsPruefung(info, d.pruefer.id);
+  const stand = offeneSeiten(info);
+  const seiten = freigeben && stand.fehlend > 0 ? await bestaetigeFehlendeSeiten(e, stand) : { bestaetigt: null, vermerk: null };
+  const neu = freigeben && art ? pruefenBis(art, jetzt) : null;
+  const n = await d.speicher
+    .entscheide(quelleId, { status: freigeben ? "freigegeben" : "abgelehnt", pruefer: d.pruefer.id, zeitpunkt, pruefenBis: neu })
+    .catch(speicherFehler(() => info.titel));
+  // Eine Anweisung, alles oder nichts: weniger Zeilen heisst, jemand anderes war schneller.
+  if (n !== info.anzahl) throw new UploadFehler("nichtPruefbar");
+  return ergebnis(info, n, neu, { fehlend: stand.fehlend, ...seiten });
+}
+
+/** Fehlende Scanseiten laut Pruefung beim Hochladen, abzueglich der nachgeladenen. Bestaetigt ist hier noch nichts: Das geschieht erst mit der Freigabe. */
+function offeneSeiten(info: FreigabeInfo): OffenerStand {
+  return offenerStand({
     fehlendBeimHochladen: info.seitenFehlend ?? 0,
     stellen: info.seitenStellen ?? null,
     orte: info.seitenOrte ?? null,
     nachgeladen: leseSeitenzahlen(info.seitenNachgeladen).seiten,
     bestaetigt: false,
   });
-  let bestaetigt: string | null = null;
-  let vermerk: string | null = null;
-  if (aktion === "freigeben" && stand.fehlend > 0) {
-    // Lücken, die nicht einzeln bekannt sind (zu viele, nicht lesbar), lassen sich nicht bestätigen: Das Buch gehört neu gescannt.
-    if (stand.unbekannt > 0) throw new UploadFehler("seitenNichtAbgedeckt", beschreibeLuecken(stand.luecken) || "-");
-    const angabe = leseSeitenzahlen(d.seitenBestaetigt);
-    if (angabe.fehler || angabe.seiten.length === 0) throw new UploadFehler("seitenNichtBestaetigt", info.titel ?? undefined);
-    const abdeckung = pruefeAbdeckung({ luecken: stand.luecken, weitere: 0 }, angabe.seiten);
-    if (!abdeckung.ok) throw new UploadFehler("seitenNichtAbgedeckt", beschreibeLuecken(abdeckung.offen));
-    if (!d.speicher.legeSeitenVermerkAb) throw new UploadFehler("freigeben", info.titel ?? undefined);
-    bestaetigt = alsBereichsText(abdeckung.bestaetigt);
-    vermerk = saeubereVermerk(d.seitenVermerk) || null;
-    await d.speicher.legeSeitenVermerkAb(quelleId, { vermerk, bestaetigt, stellen: info.seitenStellen ?? null, von: d.pruefer.id, zeitpunkt }).catch((u) => {
-      throw new UploadFehler("freigeben", info.titel ?? undefined, u);
-    });
-  }
-  const neu = aktion === "freigeben" && art ? pruefenBis(art, jetzt) : null;
-  const n = await d.speicher
-    .entscheide(quelleId, { status: aktion === "freigeben" ? "freigegeben" : "abgelehnt", pruefer: d.pruefer.id, zeitpunkt, pruefenBis: neu })
-    .catch((u) => {
-      throw new UploadFehler("freigeben", info.titel ?? undefined, u);
-    });
-  // Eine Anweisung, alles oder nichts: weniger Zeilen heisst, jemand anderes war schneller.
-  if (n !== info.anzahl) throw new UploadFehler("nichtPruefbar");
-  return { titel: info.titel, bereich: info.bereich, quellenart: info.quellenart, abschnitte: n, pruefenBis: neu, seitenFehlend: stand.fehlend, seitenBestaetigt: bestaetigt, seitenVermerk: vermerk };
+}
+
+/**
+ * Fehlen im Scan Seiten (Seitenverlauf-Pruefung beim Hochladen) und sind sie nicht nachgeladen, sieht die pruefende Person am Original nach und gibt die
+ * gedruckten Seitenzahlen an, die KORREKT fehlen (Leerseiten, Notizseiten). Die Angabe muss ALLE offenen Luecken abdecken: Sonst fehlt echter Inhalt, und das
+ * Buch wird nicht freigegeben (die Seiten werden nachgeladen oder das Buch wird neu hochgeladen). Ablehnen braucht nichts davon. Die Bestaetigung wird VOR der
+ * Entscheidung abgelegt: Scheitert diese, bleibt sie zu einem weiter wartenden Dokument, harmlos; umgekehrt gaebe es ein freigegebenes Buch ohne Bestaetigung.
+ */
+async function bestaetigeFehlendeSeiten({ d, quelleId, info, zeitpunkt }: Entscheidung, stand: OffenerStand): Promise<Omit<SeitenAngaben, "fehlend">> {
+  // Lücken, die nicht einzeln bekannt sind (zu viele, nicht lesbar), lassen sich nicht bestätigen: Das Buch gehört neu gescannt.
+  if (stand.unbekannt > 0) throw new UploadFehler("seitenNichtAbgedeckt", beschreibeLuecken(stand.luecken) || "-");
+  const angabe = leseSeitenzahlen(d.seitenBestaetigt);
+  if (angabe.fehler || angabe.seiten.length === 0) throw new UploadFehler("seitenNichtBestaetigt", info.titel ?? undefined);
+  const abdeckung = pruefeAbdeckung({ luecken: stand.luecken, weitere: 0 }, angabe.seiten);
+  if (!abdeckung.ok) throw new UploadFehler("seitenNichtAbgedeckt", beschreibeLuecken(abdeckung.offen));
+  if (!d.speicher.legeSeitenVermerkAb) throw new UploadFehler("freigeben", info.titel ?? undefined);
+  const bestaetigt = alsBereichsText(abdeckung.bestaetigt);
+  const vermerk = saeubereVermerk(d.seitenVermerk) || null;
+  await d.speicher.legeSeitenVermerkAb(quelleId, { vermerk, bestaetigt, stellen: info.seitenStellen ?? null, von: d.pruefer.id, zeitpunkt }).catch(speicherFehler(() => info.titel));
+  return { bestaetigt, vermerk };
+}
+
+function ergebnis(info: FreigabeInfo, abschnitte: number, neu: string | null, seiten: SeitenAngaben): FreigabeErgebnis {
+  return {
+    titel: info.titel,
+    bereich: info.bereich,
+    quellenart: info.quellenart,
+    abschnitte,
+    pruefenBis: neu,
+    seitenFehlend: seiten.fehlend,
+    seitenBestaetigt: seiten.bestaetigt,
+    seitenVermerk: seiten.vermerk,
+  };
 }
 
 /** Das Vier-Augen-Prinzip: Wer hochgeladen hat, gibt nicht frei. Ist der Hochladende unbekannt, wird nicht freigegeben. */

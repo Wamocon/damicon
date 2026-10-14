@@ -13,7 +13,7 @@ import {
 import { useFormStatus } from "react-dom";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Ban, CheckCircle2 } from "lucide-react";
 import { leer, type AktionsStatus } from "@/lib/actions/status";
 import { Button, feldKlassen } from "@/components/ui/kit";
 import { haptikEreignis, haptikTipp } from "@/lib/haptik";
@@ -323,6 +323,36 @@ export function SubmitKnopf({
       {symbol}
       {text}
     </Button>
+  );
+}
+
+/**
+ * Ein Knopf, der einen Datensatz storniert: ein Formular mit versteckter id und der Rückmeldung darunter. Vorher stand er wortgleich
+ * in lieferungen-formulare.tsx und vorbestellungen-formulare.tsx (WMC-Cleanup 13.10.2026).
+ */
+export function StornoKnopf({
+  id,
+  aktion,
+  label,
+}: {
+  id: string;
+  aktion: (status: AktionsStatus, formData: FormData) => Promise<AktionsStatus>;
+  label: string;
+}) {
+  const [status, action] = useActionState(aktion, leer);
+  return (
+    <form action={action} className="mt-2">
+      <PfadFeld />
+      <input type="hidden" name="id" value={id} />
+      <button
+        type="submit"
+        className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive"
+      >
+        <Ban className="h-3.5 w-3.5" />
+        {label}
+      </button>
+      <AktionsMeldung status={status} />
+    </form>
   );
 }
 

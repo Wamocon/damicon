@@ -1,3 +1,5 @@
+import { hasPermission, type Role } from "@/lib/rbac";
+
 // Reklamationsmanagement (WMCNL-1455). [NEU-BAUEN] - im Schwesterprojekt
 // Digitalisierung-Himbeerenbetrieb als public.complaints/complaint_events
 // umgesetzt, hier auf Damicons Nachweiskette uebersetzt: eine Reklamation
@@ -38,6 +40,56 @@ export const reklamationStatusMeta: Record<
   abgelehnt: { tone: "danger" },
   erledigt: { tone: "success" },
 };
+
+/** Noch in Bearbeitung: gemeldet oder in Prüfung. Nur dann zählt die Frist. */
+export function istOffen(status: ReklamationStatus): boolean {
+  return status === "offen" || status === "in_pruefung";
+}
+
+/**
+ * Noch zu entscheiden oder abzuschließen. "angenommen" ist keine Endlage wie
+ * "abgelehnt" oder "erledigt": Eine angenommene Reklamation braucht noch den
+ * Abschluss durch "Als erledigt abschließen" (WMCNL-2374). Für Frist und
+ * Überfälligkeit zählt sie trotzdem nicht mehr als offen (istOffen).
+ */
+export function istAbschliessbar(status: ReklamationStatus): boolean {
+  return istOffen(status) || status === "angenommen";
+}
+
+/** Offen und die Frist liegt vor heute (heuteIso als YYYY-MM-DD, wie fristAm). */
+export function istUeberfaellig(
+  r: { status: ReklamationStatus; fristAm: string | null },
+  heuteIso: string,
+): boolean {
+  return istOffen(r.status) && !!r.fristAm && r.fristAm < heuteIso;
+}
+
+/** Was eine Anmeldung in der Reklamationsansicht sieht und tun darf. */
+export interface ReklamationsRechte {
+  /** Büro statt Kunde: Kundenname in der Liste, Rückverfolgung, Intern-Schalter, Kundenauswahl. */
+  istBuero: boolean;
+  /** Reklamation erfassen und Nachrichten schreiben. */
+  darfAnlegen: boolean;
+  darfInPruefungNehmen: boolean;
+  /** Annehmen, ablehnen und als erledigt abschließen. */
+  darfEntscheiden: boolean;
+}
+
+/**
+ * Die Rechte der Ansicht. Geschrieben wird nur mit echter Datenbank (live):
+ * Bei Beispieldaten oder nach einem Lesefehler entfallen alle Formulare.
+ * "approve" ist in rbac.ts ausschließlich den Büro-Rollen vorbehalten. Damit
+ * lässt sich zuverlässig zwischen Kunde und Büro unterscheiden, ohne die Rolle
+ * selbst abzufragen.
+ */
+export function reklamationsRechte(rolle: Role | null | undefined, live: boolean): ReklamationsRechte {
+  return {
+    istBuero: hasPermission(rolle, "reklamationen", "approve"),
+    darfAnlegen: live && hasPermission(rolle, "reklamationen", "create"),
+    darfInPruefungNehmen: live && hasPermission(rolle, "reklamationen", "update"),
+    darfEntscheiden: live && hasPermission(rolle, "reklamationen", "approve"),
+  };
+}
 
 export interface ReklamationEreignis {
   id: string;

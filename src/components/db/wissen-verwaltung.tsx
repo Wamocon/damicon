@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useActionState, useCallback, useEffect, useRef, useState, useTransition, type KeyboardEvent } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Card, StatusPill } from "@/components/ui/kit";
 import { AktionsMeldung, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
@@ -22,7 +22,7 @@ import { WissenBestandspflege } from "@/components/db/wissen-bestandspflege";
 import { WissenOriginal } from "@/components/db/wissen-original";
 import { AnsichtSchalter, AufklappPfeil, useAnsicht, useAufgeklappt, type Ansicht } from "@/components/db/ansicht-schalter";
 import { WissenSeitenNachladen } from "@/components/db/wissen-nachladen";
-import { leseSeitenzahlen, lueckenAusStellen, pruefeAbdeckung, zaehleFehlend } from "@/lib/wissen/seiten-bestaetigung";
+import { bewerteSeitenAngabe } from "@/lib/wissen/seiten-bestaetigung";
 import { beschreibeLuecken } from "@/lib/wissen/seitenverlauf";
 import { qualitaetTon } from "@/lib/wissen/qualitaet";
 import { WissenUmordnenKnopf } from "@/components/db/wissen-umordnen";
@@ -179,21 +179,12 @@ function WissenDokumentKarte({
   beiErgebnis: (status: AktionsStatus) => void;
 }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
-  const tRolle = useTranslations("roles");
-  const tStufe = useTranslations("kiAssistentAnsicht.quellen.stufe");
-  const format = useFormatter();
-  const datum = dokument.datum && !Number.isNaN(Date.parse(dokument.datum))
-    ? format.dateTime(new Date(dokument.datum), { dateStyle: "medium" })
-    : t("liste.keinDatum");
   // Gespeichert ist "legal", angezeigt wird die Bezeichnung "Recht".
   const bereichKey = bereichSchluessel(dokument.bereich);
   const bereichName = (UPLOAD_BEREICHE as readonly string[]).includes(bereichKey)
     ? t(`bereich.${bereichKey}` as never)
     : dokument.bereich || t("liste.keinBereich");
   const artName = istQuellenart(dokument.quellenart) ? t(`quellenart.${dokument.quellenart}` as never) : null;
-  const cluster = dokument.cluster;
-  const clusterName = cluster ? t(`cluster.${cluster}` as never) : null;
-  const stufeName = dokument.stufe !== null ? tStufe(stufeSchluessel(dokument.stufe)) : null;
   const ersterEintrag = dokument.herkunft === "upload";
   const eigener = !!ichId && dokument.hochgeladenVonId === ichId;
   const wartetAufMich = !eigener && !dokument.unvollstaendig && (dokument.pruefstatus === "ungeprueft" || dokument.abgelaufen);
@@ -205,109 +196,12 @@ function WissenDokumentKarte({
 
   const detailId = `dok-${dokument.schluessel}`;
   // Alle Angaben als Kennzeichen (Raster und aufgeklappte Liste); die zugeklappte Zeile zeigt nur die wichtigsten
-  const allePills = (
-    <>
-            <StatusPill tone="info">{bereichName}</StatusPill>
-            <StatusPill tone={dokument.herkunft === "upload" ? "success" : "neutral"}>{t(`herkunft.${dokument.herkunft}`)}</StatusPill>
-            {ohneEinordnung(dokument) ? <StatusPill tone="warning">{t("liste.ohneEinordnung")}</StatusPill> : null}
-            {clusterName ? <StatusPill tone="neutral">{clusterName}</StatusPill> : null}
-            {artName ? <StatusPill tone="neutral">{artName}</StatusPill> : null}
-            {dokument.nutzung === "hinweis" ? <StatusPill tone="warning">{t("nutzung.hinweis")}</StatusPill> : null}
-            {dokument.nutzung === "notfalls" ? <StatusPill tone="danger">{t("nutzung.notfalls")}</StatusPill> : null}
-            {dokument.unvollstaendig ? <StatusPill tone="danger">{t("liste.unvollstaendig")}</StatusPill> : null}
-            {dokument.guete ? (
-              <StatusPill tone={dokument.guete === "gut" ? "success" : dokument.guete === "pruefen" ? "warning" : "danger"}>{tGuete(`note.${dokument.guete}` as never)}</StatusPill>
-            ) : null}
-            {dokument.gueteProzent !== null ? <StatusPill tone={qualitaetTon(dokument.gueteProzent)}>{t("liste.qualitaet", { prozent: dokument.gueteProzent })}</StatusPill> : null}
-            {einschaetzung ? <StatusPill tone={EMPFEHLUNG_TON[einschaetzung.empfehlung]}>{t(`einschaetzung.empfehlung.${einschaetzung.empfehlung}` as never)}</StatusPill> : null}
-            {ersterEintrag ? (
-              <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
-            ) : null}
-    </>
-  );
-  const kurzePills = (
-    <>
-      <StatusPill tone="info">{bereichName}</StatusPill>
-      {dokument.unvollstaendig ? <StatusPill tone="danger">{t("liste.unvollstaendig")}</StatusPill> : null}
-      {dokument.gueteProzent !== null ? <StatusPill tone={qualitaetTon(dokument.gueteProzent)}>{t("liste.qualitaet", { prozent: dokument.gueteProzent })}</StatusPill> : null}
-      {einschaetzung ? <StatusPill tone={EMPFEHLUNG_TON[einschaetzung.empfehlung]}>{t(`einschaetzung.empfehlung.${einschaetzung.empfehlung}` as never)}</StatusPill> : null}
-      {ersterEintrag ? (
-        <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
-      ) : null}
-    </>
-  );
+  const kennzeichen = { dokument, bereichName, einschaetzung, status } as const;
+  const allePills = <DokumentKennzeichen {...kennzeichen} kurz={false} />;
+  const kurzePills = <DokumentKennzeichen {...kennzeichen} kurz />;
   const koerper = (
     <>
-        <dl className={`mt-2 grid gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground ${ansicht === "raster" ? "" : "sm:grid-cols-2"}`}>
-          {/* Die Einordnung steht immer da, auch beim Bestand ohne Typisierung: dort als "nicht eingeordnet", mit der Stufe, die er hat. */}
-          <div className="sm:col-span-2">
-            <dt className="inline font-semibold">{t("liste.einordnung")}: </dt>
-            <dd className="inline">
-              {artName && clusterName ? `${artName}, ${clusterName}` : artName ? artName : t("liste.ohneEinordnung")}
-              {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe} (${stufeName})` : ""}
-            </dd>
-          </div>
-          <div>
-            <dt className="inline font-semibold">{t("liste.rollen")}: </dt>
-            <dd className="inline">{dokument.rollen.map((r) => tRolle(r as never)).join(", ") || "-"}</dd>
-          </div>
-          <div>
-            <dt className="inline font-semibold">{t("liste.datum")}: </dt>
-            <dd className="inline">{datum}</dd>
-          </div>
-          <div>
-            <dt className="inline font-semibold">{t("liste.von")}: </dt>
-            <dd className="inline">{dokument.hochgeladenVon ?? t("liste.vonSkript")}</dd>
-          </div>
-          <div>
-            <dt className="inline font-semibold">{t("liste.abschnitte")}: </dt>
-            <dd className="inline">{dokument.chunks}</dd>
-          </div>
-          {dokument.pruefenBis ? (
-            <div>
-              <dt className="inline font-semibold">{t("liste.pruefenBis")}: </dt>
-              <dd className="inline">{format.dateTime(new Date(dokument.pruefenBis), { dateStyle: "medium" })}</dd>
-            </div>
-          ) : null}
-          {dokument.seitenFehlend > 0 ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold">{t("liste.seitenFehlen")}: </dt>
-              <dd className="inline">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenFehlend, stellen: dokument.seitenStellen ?? "-" })}</dd>
-            </div>
-          ) : null}
-          {dokument.seitenNachgeladen ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold">{t("liste.seitenNachgeladen")}: </dt>
-              <dd className="inline break-words">{dokument.seitenNachgeladen}</dd>
-            </div>
-          ) : null}
-          {dokument.seitenBestaetigt ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold">{t("liste.seitenBestaetigt")}: </dt>
-              <dd className="inline break-words">{dokument.seitenBestaetigt}</dd>
-            </div>
-          ) : null}
-          {dokument.seitenOffen > 0 && dokument.pruefstatus === "ungeprueft" ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold text-destructive">{t("liste.seitenOffen")}: </dt>
-              <dd className="inline break-words">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenOffen, stellen: dokument.seitenOffenStellen ?? dokument.seitenStellen ?? "-" })}</dd>
-            </div>
-          ) : null}
-          {dokument.seitenVermerk ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold">{t("liste.seitenVermerk")}: </dt>
-              <dd className="inline break-words">{dokument.seitenVermerk}</dd>
-            </div>
-          ) : null}
-          {dokument.url ? (
-            <div className="sm:col-span-2">
-              <dt className="inline font-semibold">{t("liste.link")}: </dt>
-              <dd className="inline break-all">
-                <QuellenLink url={dokument.url} />
-              </dd>
-            </div>
-          ) : null}
-        </dl>
+        <DokumentAngaben dokument={dokument} ansicht={ansicht} />
         {dokument.unvollstaendig ? (
           <p role="alert" className="mt-2 text-[11px] font-semibold text-destructive">
             {t("liste.unvollstaendigHinweis", { da: dokument.paketeDa, gesamt: dokument.paketeGesamt ?? 0 })}
@@ -378,9 +272,139 @@ function WissenDokumentKarte({
   );
 }
 
+/**
+ * Die Kennzeichen eines Dokuments (Bereich, Herkunft, Einordnung, Nutzung, Güte, Qualität, Empfehlung, Status). `kurz` zeigt nur die wichtigsten
+ * für die zugeklappte Zeile, in derselben Reihenfolge; vorher standen beide Listen getrennt in der Karte.
+ */
+function DokumentKennzeichen({
+  dokument,
+  bereichName,
+  einschaetzung,
+  status,
+  kurz,
+}: {
+  dokument: WissenDokumentZeile;
+  bereichName: string;
+  einschaetzung: Einschaetzung | null;
+  status: "ungeprueft" | "abgelehnt" | "abgelaufen" | "freigegeben";
+  kurz: boolean;
+}) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  const tGuete = useTranslations("kiAssistentAnsicht.wissensVerwaltung.guete");
+  const artName = istQuellenart(dokument.quellenart) ? t(`quellenart.${dokument.quellenart}` as never) : null;
+  const clusterName = dokument.cluster ? t(`cluster.${dokument.cluster}` as never) : null;
+  const lang = !kurz;
+  return (
+    <>
+      <StatusPill tone="info">{bereichName}</StatusPill>
+      {lang ? <StatusPill tone={dokument.herkunft === "upload" ? "success" : "neutral"}>{t(`herkunft.${dokument.herkunft}`)}</StatusPill> : null}
+      {lang && ohneEinordnung(dokument) ? <StatusPill tone="warning">{t("liste.ohneEinordnung")}</StatusPill> : null}
+      {lang && clusterName ? <StatusPill tone="neutral">{clusterName}</StatusPill> : null}
+      {lang && artName ? <StatusPill tone="neutral">{artName}</StatusPill> : null}
+      {lang && dokument.nutzung === "hinweis" ? <StatusPill tone="warning">{t("nutzung.hinweis")}</StatusPill> : null}
+      {lang && dokument.nutzung === "notfalls" ? <StatusPill tone="danger">{t("nutzung.notfalls")}</StatusPill> : null}
+      {dokument.unvollstaendig ? <StatusPill tone="danger">{t("liste.unvollstaendig")}</StatusPill> : null}
+      {lang && dokument.guete ? (
+        <StatusPill tone={dokument.guete === "gut" ? "success" : dokument.guete === "pruefen" ? "warning" : "danger"}>{tGuete(`note.${dokument.guete}` as never)}</StatusPill>
+      ) : null}
+      {dokument.gueteProzent !== null ? <StatusPill tone={qualitaetTon(dokument.gueteProzent)}>{t("liste.qualitaet", { prozent: dokument.gueteProzent })}</StatusPill> : null}
+      {einschaetzung ? <StatusPill tone={EMPFEHLUNG_TON[einschaetzung.empfehlung]}>{t(`einschaetzung.empfehlung.${einschaetzung.empfehlung}` as never)}</StatusPill> : null}
+      {dokument.herkunft === "upload" ? (
+        <StatusPill tone={status === "freigegeben" ? "success" : status === "abgelehnt" ? "danger" : "warning"}>{t(`status.${status}`)}</StatusPill>
+      ) : null}
+    </>
+  );
+}
+
+/** Die Angaben eines Dokuments als Liste (Einordnung, Rollen, Datum, Herkunft, Seiten, Link): in der Kachel und in der aufgeklappten Zeile. */
+function DokumentAngaben({ dokument, ansicht }: { dokument: WissenDokumentZeile; ansicht: Ansicht }) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  const tRolle = useTranslations("roles");
+  const tStufe = useTranslations("kiAssistentAnsicht.quellen.stufe");
+  const format = useFormatter();
+  const datum = dokument.datum && !Number.isNaN(Date.parse(dokument.datum))
+    ? format.dateTime(new Date(dokument.datum), { dateStyle: "medium" })
+    : t("liste.keinDatum");
+  const artName = istQuellenart(dokument.quellenart) ? t(`quellenart.${dokument.quellenart}` as never) : null;
+  const clusterName = dokument.cluster ? t(`cluster.${dokument.cluster}` as never) : null;
+  const stufeName = dokument.stufe !== null ? tStufe(stufeSchluessel(dokument.stufe)) : null;
+  return (
+    <dl className={`mt-2 grid gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground ${ansicht === "raster" ? "" : "sm:grid-cols-2"}`}>
+      {/* Die Einordnung steht immer da, auch beim Bestand ohne Typisierung: dort als "nicht eingeordnet", mit der Stufe, die er hat. */}
+      <div className="sm:col-span-2">
+        <dt className="inline font-semibold">{t("liste.einordnung")}: </dt>
+        <dd className="inline">
+          {artName && clusterName ? `${artName}, ${clusterName}` : artName ? artName : t("liste.ohneEinordnung")}
+          {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe} (${stufeName})` : ""}
+        </dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("liste.rollen")}: </dt>
+        <dd className="inline">{dokument.rollen.map((r) => tRolle(r as never)).join(", ") || "-"}</dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("liste.datum")}: </dt>
+        <dd className="inline">{datum}</dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("liste.von")}: </dt>
+        <dd className="inline">{dokument.hochgeladenVon ?? t("liste.vonSkript")}</dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("liste.abschnitte")}: </dt>
+        <dd className="inline">{dokument.chunks}</dd>
+      </div>
+      {dokument.pruefenBis ? (
+        <div>
+          <dt className="inline font-semibold">{t("liste.pruefenBis")}: </dt>
+          <dd className="inline">{format.dateTime(new Date(dokument.pruefenBis), { dateStyle: "medium" })}</dd>
+        </div>
+      ) : null}
+      {dokument.seitenFehlend > 0 ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold">{t("liste.seitenFehlen")}: </dt>
+          <dd className="inline">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenFehlend, stellen: dokument.seitenStellen ?? "-" })}</dd>
+        </div>
+      ) : null}
+      {dokument.seitenNachgeladen ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold">{t("liste.seitenNachgeladen")}: </dt>
+          <dd className="inline break-words">{dokument.seitenNachgeladen}</dd>
+        </div>
+      ) : null}
+      {dokument.seitenBestaetigt ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold">{t("liste.seitenBestaetigt")}: </dt>
+          <dd className="inline break-words">{dokument.seitenBestaetigt}</dd>
+        </div>
+      ) : null}
+      {dokument.seitenOffen > 0 && dokument.pruefstatus === "ungeprueft" ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold text-destructive">{t("liste.seitenOffen")}: </dt>
+          <dd className="inline break-words">{t("liste.seitenFehlenWert", { anzahl: dokument.seitenOffen, stellen: dokument.seitenOffenStellen ?? dokument.seitenStellen ?? "-" })}</dd>
+        </div>
+      ) : null}
+      {dokument.seitenVermerk ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold">{t("liste.seitenVermerk")}: </dt>
+          <dd className="inline break-words">{dokument.seitenVermerk}</dd>
+        </div>
+      ) : null}
+      {dokument.url ? (
+        <div className="sm:col-span-2">
+          <dt className="inline font-semibold">{t("liste.link")}: </dt>
+          <dd className="inline break-all">
+            <QuellenLink url={dokument.url} />
+          </dd>
+        </div>
+      ) : null}
+    </dl>
+  );
+}
+
 // Pruefen mit Bestaetigungsfenster (natives <dialog>, modal). Zeigt, was freigegeben wird: Titel, Bereich, Quellenart,
 // Link, Rollen und den Anfang des Textes. Dafuer ist die Vorschau da: Wer freigibt, soll gelesen haben, was er freigibt.
-function WissenPruefenKnopf({
+export function WissenPruefenKnopf({
   dokument,
   bereichName,
   artName,
@@ -392,22 +416,15 @@ function WissenPruefenKnopf({
   beiErgebnis: (status: AktionsStatus) => void;
 }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
-  const tRolle = useTranslations("roles");
   const [status, action, laeuft] = useActionState(wissenDokumentPruefen, leer);
   const dialog = useRef<HTMLDialogElement>(null);
   const zuletzt = useRef(status);
-  const [vorschau, setVorschau] = useState<"laedt" | { text: string; fehler: boolean } | null>(null);
+  const [vorschau, setVorschau] = useState<Vorschau>(null);
   const erneut = dokument.pruefstatus === "freigegeben";
-  // Fehlen im Scan Seiten, gibt die prüfende Person die gedruckten Seitenzahlen an, die KORREKT fehlen (Leerseiten). Sie müssen ALLE offenen Lücken abdecken,
-  // sonst fehlt echter Inhalt: keine Freigabe, die Seiten werden nachgeladen oder das Buch wird neu hochgeladen. Ablehnen geht immer. Der Server prüft dasselbe.
+  // Fehlen im Scan Seiten, gibt die prüfende Person die gedruckten Seitenzahlen an, die KORREKT fehlen (Leerseiten): siehe bewerteSeitenAngabe.
   const [bestaetigt, setBestaetigt] = useState("");
   const [vermerk, setVermerk] = useState("");
-  const luecken = !erneut && dokument.seitenOffen > 0;
-  const gelesen = lueckenAusStellen(dokument.seitenOffenStellen ?? dokument.seitenStellen);
-  const unbekannt = Math.max(0, dokument.seitenOffen - zaehleFehlend(gelesen.luecken));
-  const angabe = leseSeitenzahlen(bestaetigt);
-  const abdeckung = pruefeAbdeckung({ luecken: gelesen.luecken, weitere: unbekannt }, angabe.seiten);
-  const seitenOk = !luecken || (!angabe.fehler && angabe.seiten.length > 0 && abdeckung.ok);
+  const seiten = bewerteSeitenAngabe(dokument, erneut, bestaetigt);
 
   // Nach der Antwort (Erfolg oder Fehler): Fenster zu, Meldung und Neuladen beim Eltern-Element.
   useEffect(() => {
@@ -428,7 +445,6 @@ function WissenPruefenKnopf({
       .catch(() => setVorschau({ text: "", fehler: true }));
   };
   const titelId = `pruefen-titel-${dokument.schluessel}`;
-  const knopfKlasse = "inline-flex h-8 items-center rounded-lg border px-3 text-xs font-semibold disabled:opacity-60";
 
   return (
     <>
@@ -450,153 +466,212 @@ function WissenPruefenKnopf({
           <h3 id={titelId} className="text-sm font-black">
             {erneut ? t("pruefung.titelErneut") : t("pruefung.titel")}
           </h3>
-          <dl className="space-y-0.5 text-xs">
-            <div>
-              <dt className="inline font-semibold">{t("loeschen.dokument")}: </dt>
-              <dd className="inline break-words">{dokument.titel}</dd>
-            </div>
-            <div>
-              <dt className="inline font-semibold">{t("loeschen.bereich")}: </dt>
-              <dd className="inline">{bereichName}</dd>
-            </div>
-            {artName ? (
-              <div>
-                <dt className="inline font-semibold">{t("liste.quellenart")}: </dt>
-                <dd className="inline">
-                  {artName}
-                  {dokument.cluster ? `, ${t(`cluster.${dokument.cluster}` as never)}` : ""}
-                  {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe}` : ""}
-                  {dokument.nutzung === "hinweis" ? `, ${t("nutzung.hinweis")}` : dokument.nutzung === "notfalls" ? `, ${t("nutzung.notfalls")}` : ""}
-                </dd>
-              </div>
-            ) : null}
-            <div>
-              <dt className="inline font-semibold">{t("liste.rollen")}: </dt>
-              <dd className="inline">{dokument.rollen.map((r) => tRolle(r as never)).join(", ") || "-"}</dd>
-            </div>
-            <div>
-              <dt className="inline font-semibold">{t("liste.von")}: </dt>
-              <dd className="inline">{dokument.hochgeladenVon ?? t("liste.vonSkript")}</dd>
-            </div>
-            <div>
-              <dt className="inline font-semibold">{t("loeschen.abschnitte")}: </dt>
-              <dd className="inline">{dokument.chunks}</dd>
-            </div>
-            {dokument.url ? (
-              <div>
-                <dt className="inline font-semibold">{t("liste.link")}: </dt>
-                <dd className="inline break-all">
-                  <QuellenLink url={dokument.url} />
-                </dd>
-              </div>
-            ) : null}
-          </dl>
+          <PruefAngaben dokument={dokument} bereichName={bereichName} artName={artName} />
           {!erneut ? <EinschaetzungGruende einschaetzung={schaetzeEin(dokument)} mitUeberschrift /> : null}
-          <div>
-            <p className="mb-1 text-[11px] font-semibold">{t("pruefung.vorschau")}</p>
-            <div className="max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/40 p-2 text-[11px] leading-4">
-              {vorschau === "laedt" || vorschau === null
-                ? t("pruefung.vorschauLaedt")
-                : vorschau.fehler
-                  ? t("pruefung.vorschauFehler")
-                  : vorschau.text}
-            </div>
-          </div>
+          <PruefVorschau vorschau={vorschau} />
           {!erneut && dokument.herkunft === "upload" ? <WissenOriginal dokument={dokument} beiGeaendert={() => beiErgebnis(leer)} /> : null}
-          {luecken ? (
-            <div className="space-y-2">
-              <div role="group" aria-labelledby={`${titelId}-seiten`} className="space-y-1.5 rounded-lg border border-warning/30 bg-warning/[0.08] p-2">
-                <p id={`${titelId}-seiten`} className="text-[11px] font-semibold text-warning">
-                  {t("pruefung.seiten.titel")}
-                </p>
-                <p className="break-words text-[11px]">{t("pruefung.seiten.text", { anzahl: dokument.seitenOffen, stellen: dokument.seitenOffenStellen ?? dokument.seitenStellen ?? "-" })}</p>
-                {dokument.seitenNachgeladen ? <p className="break-words text-[11px]">{t("pruefung.seiten.nachgeladen", { seiten: dokument.seitenNachgeladen })}</p> : null}
-                <p className="text-[11px]">{t("pruefung.seiten.regel")}</p>
-                <p className="text-[11px] text-muted-foreground">{t("pruefung.seiten.erklaerung")}</p>
-                {unbekannt > 0 ? <p className="text-[11px] font-semibold text-destructive">{t("pruefung.seiten.unbekannt", { anzahl: unbekannt })}</p> : null}
-                <label className="block space-y-1">
-                  <span className="text-[11px] font-semibold">{t("pruefung.seiten.bestaetigt")}</span>
-                  <input
-                    name="seiten_bestaetigt"
-                    value={bestaetigt}
-                    maxLength={400}
-                    inputMode="text"
-                    autoComplete="off"
-                    aria-describedby={`${titelId}-abdeckung`}
-                    placeholder={t("pruefung.seiten.bestaetigtPlatzhalter")}
-                    onChange={(e) => setBestaetigt(e.target.value)}
-                    // Enter darf das Formular nicht abschicken: Der erste Knopf im Fenster ist "Ablehnen".
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") e.preventDefault();
-                    }}
-                    className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
-                  />
-                </label>
-                <div id={`${titelId}-abdeckung`} role="status" aria-live="polite" className="space-y-0.5 text-[11px]">
-                  {angabe.fehler ? (
-                    <p className="font-semibold text-destructive">{t("pruefung.seiten.angabeUngueltig")}</p>
-                  ) : angabe.seiten.length === 0 ? (
-                    <p className="text-muted-foreground">{t("pruefung.seiten.nochNichts")}</p>
-                  ) : abdeckung.ok ? (
-                    <p className="font-semibold">{t("pruefung.seiten.abgedeckt", { seiten: abdeckung.bestaetigt.length })}</p>
-                  ) : (
-                    <p className="break-words font-semibold text-destructive">
-                      {t("pruefung.seiten.nichtAbgedeckt", { anzahl: abdeckung.fehlendOffen, stellen: beschreibeLuecken(abdeckung.offen) || "-" })}
-                    </p>
-                  )}
-                  {!angabe.fehler && abdeckung.uebrig.length > 0 ? (
-                    <p className="break-words text-muted-foreground">{t("pruefung.seiten.uebrig", { liste: abdeckung.uebrig.slice(0, 12).join(", ") + (abdeckung.uebrig.length > 12 ? " ..." : "") })}</p>
-                  ) : null}
-                </div>
-                <label className="block space-y-1">
-                  <span className="text-[11px] font-semibold">{t("pruefung.seiten.vermerk")}</span>
-                  <input
-                    name="seiten_vermerk"
-                    value={vermerk}
-                    maxLength={300}
-                    placeholder={t("pruefung.seiten.platzhalter")}
-                    onChange={(e) => setVermerk(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") e.preventDefault();
-                    }}
-                    className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
-                  />
-                </label>
-                <div className="flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => setVermerk(t("pruefung.seiten.vorschlag"))} className="inline-flex h-7 items-center rounded-lg border border-border px-2 text-[11px] font-semibold">
-                    {t("pruefung.seiten.vorschlag")}
-                  </button>
-                </div>
-                {!seitenOk ? <p className="text-[11px] font-semibold text-destructive">{t("pruefung.seiten.gesperrt")}</p> : null}
-              </div>
-              <WissenSeitenNachladen quelleId={dokument.schluessel} offen={gelesen.luecken} beiGeaendert={() => beiErgebnis(leer)} />
-            </div>
+          {seiten.luecken ? (
+            <SeitenBestaetigung dokument={dokument} titelId={titelId} seiten={seiten} eingabe={{ bestaetigt, setBestaetigt, vermerk, setVermerk }} beiErgebnis={beiErgebnis} />
           ) : null}
           <p role="note" className="rounded-lg border border-warning/30 bg-warning/[0.08] p-2 text-xs font-semibold text-warning">
             {erneut ? t("pruefung.hinweisErneut") : t("pruefung.hinweis")}
           </p>
-          <div className="flex flex-wrap justify-end gap-2">
-            <button type="button" onClick={() => dialog.current?.close()} className={`${knopfKlasse} border-border`}>
-              {t("pruefung.abbrechen")}
-            </button>
-            {erneut ? (
-              <button type="submit" name="aktion" value="verlaengern" disabled={laeuft} className={`${knopfKlasse} border-primary bg-primary text-primary-foreground`}>
-                {t("pruefung.verlaengern")}
-              </button>
-            ) : (
-              <>
-                <button type="submit" name="aktion" value="ablehnen" disabled={laeuft} className={`${knopfKlasse} border-destructive/40 text-destructive`}>
-                  {t("pruefung.ablehnen")}
-                </button>
-                <button type="submit" name="aktion" value="freigeben" disabled={laeuft || !seitenOk} className={`${knopfKlasse} border-primary bg-primary text-primary-foreground`}>
-                  {t("pruefung.freigeben")}
-                </button>
-              </>
-            )}
-          </div>
+          <PruefKnoepfe erneut={erneut} laeuft={laeuft} seitenOk={seiten.seitenOk} beiAbbrechen={() => dialog.current?.close()} />
         </form>
       </dialog>
     </>
+  );
+}
+
+/** Die Vorschau im Prüffenster: null vor dem Öffnen, "laedt" bis zur Antwort, danach der Anfang des Textes oder ein Fehler. */
+type Vorschau = "laedt" | { text: string; fehler: boolean } | null;
+
+type SeitenBewertung = ReturnType<typeof bewerteSeitenAngabe>;
+
+/** Was freigegeben wird: Titel, Bereich, Quellenart (mit Cluster, Stufe und Nutzung), Rollen, Herkunft, Umfang und Link. */
+function PruefAngaben({ dokument, bereichName, artName }: { dokument: WissenDokumentZeile; bereichName: string; artName: string | null }) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  const tRolle = useTranslations("roles");
+  return (
+    <dl className="space-y-0.5 text-xs">
+      <div>
+        <dt className="inline font-semibold">{t("loeschen.dokument")}: </dt>
+        <dd className="inline break-words">{dokument.titel}</dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("loeschen.bereich")}: </dt>
+        <dd className="inline">{bereichName}</dd>
+      </div>
+      {artName ? (
+        <div>
+          <dt className="inline font-semibold">{t("liste.quellenart")}: </dt>
+          <dd className="inline">
+            {artName}
+            {dokument.cluster ? `, ${t(`cluster.${dokument.cluster}` as never)}` : ""}
+            {dokument.stufe !== null ? `, ${t("liste.stufe")} ${dokument.stufe}` : ""}
+            {dokument.nutzung === "hinweis" ? `, ${t("nutzung.hinweis")}` : dokument.nutzung === "notfalls" ? `, ${t("nutzung.notfalls")}` : ""}
+          </dd>
+        </div>
+      ) : null}
+      <div>
+        <dt className="inline font-semibold">{t("liste.rollen")}: </dt>
+        <dd className="inline">{dokument.rollen.map((r) => tRolle(r as never)).join(", ") || "-"}</dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("liste.von")}: </dt>
+        <dd className="inline">{dokument.hochgeladenVon ?? t("liste.vonSkript")}</dd>
+      </div>
+      <div>
+        <dt className="inline font-semibold">{t("loeschen.abschnitte")}: </dt>
+        <dd className="inline">{dokument.chunks}</dd>
+      </div>
+      {dokument.url ? (
+        <div>
+          <dt className="inline font-semibold">{t("liste.link")}: </dt>
+          <dd className="inline break-all">
+            <QuellenLink url={dokument.url} />
+          </dd>
+        </div>
+      ) : null}
+    </dl>
+  );
+}
+
+/** Der Anfang des Textes, sobald die Vorschau geladen ist. */
+export function PruefVorschau({ vorschau }: { vorschau: Vorschau }) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  return (
+    <div>
+      <p className="mb-1 text-[11px] font-semibold">{t("pruefung.vorschau")}</p>
+      <div className="max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/40 p-2 text-[11px] leading-4">
+        {vorschau === "laedt" || vorschau === null
+          ? t("pruefung.vorschauLaedt")
+          : vorschau.fehler
+            ? t("pruefung.vorschauFehler")
+            : vorschau.text}
+      </div>
+    </div>
+  );
+}
+
+// Enter darf das Formular nicht abschicken: Der erste Knopf im Fenster ist "Ablehnen".
+const ohneEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+  if (e.key === "Enter") e.preventDefault();
+};
+
+/** Die offenen Lücken im Scan mit der Angabe der korrekt fehlenden Seiten, dem Grund dazu und dem Nachladen fehlender Seiten. */
+function SeitenBestaetigung({
+  dokument,
+  titelId,
+  seiten,
+  eingabe,
+  beiErgebnis,
+}: {
+  dokument: WissenDokumentZeile;
+  titelId: string;
+  seiten: SeitenBewertung;
+  eingabe: { bestaetigt: string; setBestaetigt: (wert: string) => void; vermerk: string; setVermerk: (wert: string) => void };
+  beiErgebnis: (status: AktionsStatus) => void;
+}) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  return (
+    <div className="space-y-2">
+      <div role="group" aria-labelledby={`${titelId}-seiten`} className="space-y-1.5 rounded-lg border border-warning/30 bg-warning/[0.08] p-2">
+        <p id={`${titelId}-seiten`} className="text-[11px] font-semibold text-warning">
+          {t("pruefung.seiten.titel")}
+        </p>
+        <p className="break-words text-[11px]">{t("pruefung.seiten.text", { anzahl: dokument.seitenOffen, stellen: dokument.seitenOffenStellen ?? dokument.seitenStellen ?? "-" })}</p>
+        {dokument.seitenNachgeladen ? <p className="break-words text-[11px]">{t("pruefung.seiten.nachgeladen", { seiten: dokument.seitenNachgeladen })}</p> : null}
+        <p className="text-[11px]">{t("pruefung.seiten.regel")}</p>
+        <p className="text-[11px] text-muted-foreground">{t("pruefung.seiten.erklaerung")}</p>
+        {seiten.unbekannt > 0 ? <p className="text-[11px] font-semibold text-destructive">{t("pruefung.seiten.unbekannt", { anzahl: seiten.unbekannt })}</p> : null}
+        <label className="block space-y-1">
+          <span className="text-[11px] font-semibold">{t("pruefung.seiten.bestaetigt")}</span>
+          <input
+            name="seiten_bestaetigt"
+            value={eingabe.bestaetigt}
+            maxLength={400}
+            inputMode="text"
+            autoComplete="off"
+            aria-describedby={`${titelId}-abdeckung`}
+            placeholder={t("pruefung.seiten.bestaetigtPlatzhalter")}
+            onChange={(e) => eingabe.setBestaetigt(e.target.value)}
+            onKeyDown={ohneEnter}
+            className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+          />
+        </label>
+        <SeitenAbdeckung id={`${titelId}-abdeckung`} angabe={seiten.angabe} abdeckung={seiten.abdeckung} />
+        <label className="block space-y-1">
+          <span className="text-[11px] font-semibold">{t("pruefung.seiten.vermerk")}</span>
+          <input
+            name="seiten_vermerk"
+            value={eingabe.vermerk}
+            maxLength={300}
+            placeholder={t("pruefung.seiten.platzhalter")}
+            onChange={(e) => eingabe.setVermerk(e.target.value)}
+            onKeyDown={ohneEnter}
+            className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+          />
+        </label>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => eingabe.setVermerk(t("pruefung.seiten.vorschlag"))} className="inline-flex h-7 items-center rounded-lg border border-border px-2 text-[11px] font-semibold">
+            {t("pruefung.seiten.vorschlag")}
+          </button>
+        </div>
+        {!seiten.seitenOk ? <p className="text-[11px] font-semibold text-destructive">{t("pruefung.seiten.gesperrt")}</p> : null}
+      </div>
+      <WissenSeitenNachladen quelleId={dokument.schluessel} offen={seiten.gelesen.luecken} beiGeaendert={() => beiErgebnis(leer)} />
+    </div>
+  );
+}
+
+/** Deckt die Angabe alle offenen Lücken ab? Dazu die angegebenen Seiten, die zu keiner Lücke gehören. */
+export function SeitenAbdeckung({ id, angabe, abdeckung }: { id: string; angabe: SeitenBewertung["angabe"]; abdeckung: SeitenBewertung["abdeckung"] }) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  return (
+    <div id={id} role="status" aria-live="polite" className="space-y-0.5 text-[11px]">
+      {angabe.fehler ? (
+        <p className="font-semibold text-destructive">{t("pruefung.seiten.angabeUngueltig")}</p>
+      ) : angabe.seiten.length === 0 ? (
+        <p className="text-muted-foreground">{t("pruefung.seiten.nochNichts")}</p>
+      ) : abdeckung.ok ? (
+        <p className="font-semibold">{t("pruefung.seiten.abgedeckt", { seiten: abdeckung.bestaetigt.length })}</p>
+      ) : (
+        <p className="break-words font-semibold text-destructive">
+          {t("pruefung.seiten.nichtAbgedeckt", { anzahl: abdeckung.fehlendOffen, stellen: beschreibeLuecken(abdeckung.offen) || "-" })}
+        </p>
+      )}
+      {!angabe.fehler && abdeckung.uebrig.length > 0 ? (
+        <p className="break-words text-muted-foreground">{t("pruefung.seiten.uebrig", { liste: abdeckung.uebrig.slice(0, 12).join(", ") + (abdeckung.uebrig.length > 12 ? " ..." : "") })}</p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Abbrechen und die Entscheidung: bei der Wiedervorlage Verlängern, sonst Ablehnen und Freigeben (gesperrt, solange Lücken offen sind). */
+function PruefKnoepfe({ erneut, laeuft, seitenOk, beiAbbrechen }: { erneut: boolean; laeuft: boolean; seitenOk: boolean; beiAbbrechen: () => void }) {
+  const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  const knopfKlasse = "inline-flex h-8 items-center rounded-lg border px-3 text-xs font-semibold disabled:opacity-60";
+  return (
+    <div className="flex flex-wrap justify-end gap-2">
+      <button type="button" onClick={beiAbbrechen} className={`${knopfKlasse} border-border`}>
+        {t("pruefung.abbrechen")}
+      </button>
+      {erneut ? (
+        <button type="submit" name="aktion" value="verlaengern" disabled={laeuft} className={`${knopfKlasse} border-primary bg-primary text-primary-foreground`}>
+          {t("pruefung.verlaengern")}
+        </button>
+      ) : (
+        <>
+          <button type="submit" name="aktion" value="ablehnen" disabled={laeuft} className={`${knopfKlasse} border-destructive/40 text-destructive`}>
+            {t("pruefung.ablehnen")}
+          </button>
+          <button type="submit" name="aktion" value="freigeben" disabled={laeuft || !seitenOk} className={`${knopfKlasse} border-primary bg-primary text-primary-foreground`}>
+            {t("pruefung.freigeben")}
+          </button>
+        </>
+      )}
+    </div>
   );
 }
 
