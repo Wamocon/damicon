@@ -971,7 +971,8 @@
       "wissenSammelAbgelehnt": "Rejected: {wert} documents. They stay blocked and can be deleted.",
       "wissenUmgeordnet": "Classification of “{wert}” changed.",
       "wissenNachgeladen": "Pages {wert} loaded and inserted into the book.",
-      "rolleGeaendert": "Role of “{wert}” changed."
+      "rolleGeaendert": "Role of “{wert}” changed.",
+      "nachricht": "Message sent."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1059,7 +1060,9 @@
       "eigeneRolle": "Your own role cannot be changed here. Please ask another administrator.",
       "kundenkonto": "Customer accounts are managed through invitations, not through role assignment.",
       "rolleUnveraendert": "The account already has this role.",
-      "letzterAdmin": "The last administrator keeps the role. Appoint another administrator first."
+      "letzterAdmin": "The last administrator keeps the role. Appoint another administrator first.",
+      "nachrichtZuLang": "The message is longer than 2000 characters.",
+      "vorbestellungStorniert": "A cancelled pre-order gets no new messages."
     },
     "einladungen": {
       "erfolg": {
@@ -4529,5 +4532,34 @@
     "nurAdministration": "Only administration assigns roles.",
     "leer": "No accounts visible.",
     "hinweis": "The last administrator keeps the role. Your own role cannot be changed here."
+  },
+  "nachrichten": {
+    "titel": "Messages on pre-orders",
+    "lead": "Agreements on quantity and date stay with the pre-order. Sent messages cannot be changed or deleted.",
+    "keineVorbestellung": "No pre-order yet.",
+    "keineNachrichten": "No messages yet.",
+    "anzahl": "{anzahl, plural, one {# message} other {# messages}}",
+    "feld": "Message",
+    "platzhalter": "e.g. Please deliver one day earlier",
+    "hinweis": "At most {max} characters. Sent messages cannot be changed.",
+    "senden": "Send",
+    "storniert": "A cancelled pre-order gets no new messages.",
+    "download": {
+      "knopf": "Delivery plan as calendar file",
+      "hinweis": "The calendar file (ICS) contains the upcoming delivery dates. Download again to refresh."
+    }
+  },
+  "lieferplan": {
+    "kalenderName": "Damicon delivery plan",
+    "titelLieferung": "Delivery: {sorte}, {menge} kg",
+    "titelVorbestellung": "Pre-order: {sorte}, {menge} kg",
+    "lieferungGeplant": "Delivery planned",
+    "status": {
+      "angefragt": "Pre-order requested, not yet confirmed",
+      "bestaetigt": "Pre-order confirmed"
+    },
+    "kunde": "Customer: {kunde}",
+    "sorteMenge": "{sorte}, {menge} kg",
+    "ohneSorte": "Variety open"
   }
 }

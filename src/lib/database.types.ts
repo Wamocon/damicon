@@ -3407,6 +3407,44 @@ export type Database = {
           },
         ]
       }
+      vorbestellung_nachrichten: {
+        Row: {
+          autor_name: string | null
+          autor_profil_id: string | null
+          autor_rolle: Database["public"]["Enums"]["app_role"] | null
+          created_at: string
+          id: string
+          text: string
+          vorbestellung_id: string
+        }
+        Insert: {
+          autor_name?: string | null
+          autor_profil_id?: string | null
+          autor_rolle?: Database["public"]["Enums"]["app_role"] | null
+          created_at?: string
+          id?: string
+          text: string
+          vorbestellung_id: string
+        }
+        Update: {
+          autor_name?: string | null
+          autor_profil_id?: string | null
+          autor_rolle?: Database["public"]["Enums"]["app_role"] | null
+          created_at?: string
+          id?: string
+          text?: string
+          vorbestellung_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vorbestellung_nachrichten_vorbestellung_id_fkey"
+            columns: ["vorbestellung_id"]
+            isOneToOne: false
+            referencedRelation: "vorbestellungen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vorbestellungen: {
         Row: {
           b2b_kunde_id: string

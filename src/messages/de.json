@@ -971,7 +971,8 @@
       "wissenSammelAbgelehnt": "Abgelehnt: {wert} Dokumente. Sie bleiben gesperrt und lassen sich löschen.",
       "wissenUmgeordnet": "Einordnung von „{wert}“ geändert.",
       "wissenNachgeladen": "Seiten {wert} nachgeladen und ins Buch eingereiht.",
-      "rolleGeaendert": "Rolle von „{wert}“ geändert."
+      "rolleGeaendert": "Rolle von „{wert}“ geändert.",
+      "nachricht": "Nachricht gesendet."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1059,7 +1060,9 @@
       "eigeneRolle": "Die eigene Rolle lässt sich hier nicht ändern. Bitte eine andere Administration darum bitten.",
       "kundenkonto": "Kundenkonten werden über Einladungen verwaltet, nicht über die Rollenzuweisung.",
       "rolleUnveraendert": "Das Konto hat diese Rolle schon.",
-      "letzterAdmin": "Der letzte Administrator behält seine Rolle. Zuerst eine weitere Administration ernennen."
+      "letzterAdmin": "Der letzte Administrator behält seine Rolle. Zuerst eine weitere Administration ernennen.",
+      "nachrichtZuLang": "Die Nachricht ist länger als 2000 Zeichen.",
+      "vorbestellungStorniert": "Zu einer stornierten Vorbestellung gibt es keine neuen Nachrichten."
     },
     "einladungen": {
       "erfolg": {
@@ -4529,5 +4532,34 @@
     "nurAdministration": "Rollen vergibt nur die Administration.",
     "leer": "Keine Konten sichtbar.",
     "hinweis": "Der letzte Administrator behält seine Rolle. Die eigene Rolle lässt sich hier nicht ändern."
+  },
+  "nachrichten": {
+    "titel": "Nachrichten zu Vorbestellungen",
+    "lead": "Absprachen zu Menge und Termin bleiben an der Vorbestellung. Gesendete Nachrichten lassen sich nicht ändern oder löschen.",
+    "keineVorbestellung": "Noch keine Vorbestellung.",
+    "keineNachrichten": "Noch keine Nachrichten.",
+    "anzahl": "{anzahl, plural, one {# Nachricht} other {# Nachrichten}}",
+    "feld": "Nachricht",
+    "platzhalter": "z. B. Bitte einen Tag früher liefern",
+    "hinweis": "Höchstens {max} Zeichen. Gesendete Nachrichten sind unveränderlich.",
+    "senden": "Senden",
+    "storniert": "Zu einer stornierten Vorbestellung gibt es keine neuen Nachrichten.",
+    "download": {
+      "knopf": "Lieferplan als Kalenderdatei",
+      "hinweis": "Die Kalenderdatei (ICS) enthält die kommenden Liefertermine. Zum Aktualisieren erneut herunterladen."
+    }
+  },
+  "lieferplan": {
+    "kalenderName": "Damicon Lieferplan",
+    "titelLieferung": "Lieferung: {sorte}, {menge} kg",
+    "titelVorbestellung": "Vorbestellung: {sorte}, {menge} kg",
+    "lieferungGeplant": "Lieferung geplant",
+    "status": {
+      "angefragt": "Vorbestellung angefragt, noch nicht bestätigt",
+      "bestaetigt": "Vorbestellung bestätigt"
+    },
+    "kunde": "Kunde: {kunde}",
+    "sorteMenge": "{sorte}, {menge} kg",
+    "ohneSorte": "Sorte offen"
   }
 }

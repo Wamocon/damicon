@@ -15,6 +15,7 @@ import {
   ladeVorbestellungen,
 } from "@/lib/data/vorbestellungen";
 import { ladeRechnungshistorie } from "@/lib/data/rechnungshistorie";
+import { LieferplanDownload, VorbestellungNachrichten } from "@/components/db/vorbestellung-nachrichten";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
@@ -246,7 +247,11 @@ export async function B2bPortalAnsicht() {
         )}
       </Section>
 
-      <Section title={t("vorbestellungenTitel")} description={t("vorbestellungenLead")}>
+      <Section
+        title={t("vorbestellungenTitel")}
+        description={t("vorbestellungenLead")}
+        action={live ? <LieferplanDownload /> : undefined}
+      >
         {vorbestellungen.vorbestellungen.length === 0 ? (
           <LeererZustand
             titel={t("keineVorbestellungen")}
@@ -294,6 +299,14 @@ export async function B2bPortalAnsicht() {
 
       {darfAnlegen ? (
         <VorbestellungAnlegenFormular kunden={kunden} sorten={sorten} fuerBuero={fuerBuero} />
+      ) : null}
+
+      {live ? (
+        <VorbestellungNachrichten
+          vorbestellungen={vorbestellungen.vorbestellungen}
+          darfSchreiben={darfAnlegen}
+          zeigeKunde={fuerBuero}
+        />
       ) : null}
 
       <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{t("note")}</Card>
