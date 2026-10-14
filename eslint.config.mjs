@@ -5,13 +5,14 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // WMC-Vibecode-Cleanup (13.10.2026): Ausreisser sichtbar machen, ohne den Lauf zu brechen. Komplexitaet ueber 40 und Funktionen ueber
-  // 400 Zeilen melden sich als Warnung; vor einer Erweiterung an solcher Stelle erst zerlegen (siehe docs/cleanup-2026-10-13.md).
+  // WMC-Vibecode-Cleanup (13. und 14.10.2026, docs/cleanup-2026-10-13.md): Nach dem Zerlegen aller Ausreißer liegt keine Funktion in src
+  // über Komplexität 30 oder über 300 Zeilen. Damit das so bleibt, sind beide Grenzen Fehler: Der Lint-Lauf (auch in der PR-Prüfung)
+  // bricht, wenn eine Funktion sie überschreitet. Dann die Funktion zerlegen, nicht die Grenze anheben.
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
-      complexity: ["warn", 40],
-      "max-lines-per-function": ["warn", { max: 400, skipBlankLines: true, skipComments: true }],
+      complexity: ["error", 30],
+      "max-lines-per-function": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
     },
   },
   // Override default ignores of eslint-config-next.
