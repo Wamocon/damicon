@@ -183,7 +183,7 @@ export function TransportLoggerFormular({ lieferungId }: { lieferungId: string }
             type="file"
             name="datei"
             required
-            accept=".csv,.tsv,.txt,text/csv,text/plain"
+            accept=".csv,.tsv,.txt,.json,text/csv,text/plain,application/json"
             className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs file:font-semibold file:text-foreground"
           />
         </label>

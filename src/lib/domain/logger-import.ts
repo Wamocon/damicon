@@ -21,6 +21,14 @@ import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
 //   * Temperatur mit Punkt oder Komma, mit oder ohne "°C".
 // Vorspann (Geraetename, Seriennummer, Einstellungen) vor den Messwerten wird uebersprungen.
 //
+// Stufe 2: dieselben Werte als JSON (WMCNL-1517). Viele Logger und Cloud-Dienste exportieren so. Gelesen werden:
+//   * ein Array von Objekten mit Zeit- und Temperaturfeld ("time", "timestamp", "zeit", "datetime", "t" und Verwandte;
+//     "temperature", "temperatur", "temp", "value", "wert", "c"),
+//   * ein Objekt, das so ein Array unter "readings", "data", "messwerte", "samples", "records" oder aehnlich traegt,
+//   * ein Array von Paaren [Zeit, Temperatur].
+// Die Zeit darf Text (wie oben) oder eine Zahl sein: Unix-Sekunden oder Unix-Millisekunden. Die Temperatur darf Zahl oder Text sein.
+// Ohne Zeitzonenangabe im Text gilt auch hier die Betriebszeit. Die Pruefung des Zeitfensters ist dieselbe.
+//
 // Die Pruefung des Zeitfensters folgt der Regel der Datenbank (geraet_zeitpunkt_pruefen):
 // ein Messzeitpunkt darf hoechstens fuenf Minuten in der Zukunft und hoechstens 24 Stunden
 // in der Vergangenheit liegen. Aeltere Werte lehnt die Datenbank ab, weil sie eine falsch
@@ -127,7 +135,82 @@ function spalten(felder: readonly string[]): { zeit: number; temperatur: number 
   return zeit >= 0 && temperatur >= 0 ? { zeit, temperatur } : null;
 }
 
+// --- JSON ------------------------------------------------------------------------------------------------------------------------
+
+const JSON_ZEIT = /^(zeit|zeitpunkt|time|timestamp|ts|date|datetime|datum|t|at|gemessen_am|measured_at|recorded_at|created_at)$/i;
+const JSON_TEMP = /^(temperatur|temperature|temp|value|wert|c|celsius|temperature_c|temperatur_c|temp_c|degc)$/i;
+const JSON_LISTEN = /^(messwerte|messungen|readings|data|samples|records|measurements|points|werte|items|results)$/i;
+
+/** Ein Zeitpunkt aus JSON: Text wie in der CSV-Datei, oder eine Zahl als Unix-Sekunden oder Unix-Millisekunden. */
+function jsonZeit(wert: unknown, zeitzone: string): string | null {
+  if (typeof wert === "string") return liesZeitpunkt(wert, zeitzone);
+  if (typeof wert === "number" && Number.isFinite(wert) && wert > 0) {
+    // Ab 10^11 sind es Millisekunden (Sekunden erreichen das erst im Jahr 5138).
+    const ms = wert >= 1e11 ? wert : wert * 1000;
+    const datum = new Date(ms);
+    return Number.isNaN(datum.getTime()) ? null : datum.toISOString();
+  }
+  return null;
+}
+
+function jsonTemperatur(wert: unknown): number | null {
+  if (typeof wert === "number") return Number.isFinite(wert) && wert >= TEMPERATUR_MIN && wert <= TEMPERATUR_MAX ? Math.round(wert * 10) / 10 : null;
+  return typeof wert === "string" ? liesTemperatur(wert) : null;
+}
+
+/** Das Array der Messwerte in einem JSON-Wert: er selbst, oder das erste passende Feld eines Objekts (auch eine Ebene tiefer). */
+function messwerteListe(wert: unknown, tiefe = 0): unknown[] | null {
+  if (Array.isArray(wert)) return wert;
+  if (typeof wert !== "object" || wert === null || tiefe > 1) return null;
+  const objekt = wert as Record<string, unknown>;
+  for (const [schluessel, inhalt] of Object.entries(objekt)) {
+    if (JSON_LISTEN.test(schluessel) && Array.isArray(inhalt)) return inhalt;
+  }
+  for (const inhalt of Object.values(objekt)) {
+    const tiefer = messwerteListe(inhalt, tiefe + 1);
+    if (tiefer) return tiefer;
+  }
+  return null;
+}
+
+/** Liest Messwerte aus einem JSON-Text. Kein JSON oder keine Liste: leeres Ergebnis. */
+export function liesLoggerJson(inhalt: string, zeitzone: string = betriebsZeitzone): LoggerGelesen {
+  const leer: LoggerGelesen = { messwerte: [], ungueltig: 0, trennzeichen: null };
+  let wert: unknown;
+  try {
+    wert = JSON.parse(inhalt.replace(/^﻿/, ""));
+  } catch {
+    return leer;
+  }
+  const liste = messwerteListe(wert);
+  if (!liste) return leer;
+
+  const messwerte: LoggerMesswert[] = [];
+  let ungueltig = 0;
+  for (const eintrag of liste) {
+    let zeitRoh: unknown;
+    let tempRoh: unknown;
+    if (Array.isArray(eintrag)) {
+      [zeitRoh, tempRoh] = eintrag;
+    } else if (typeof eintrag === "object" && eintrag !== null) {
+      const felder = Object.entries(eintrag as Record<string, unknown>);
+      zeitRoh = felder.find(([k]) => JSON_ZEIT.test(k))?.[1];
+      tempRoh = felder.find(([k]) => JSON_TEMP.test(k))?.[1];
+    }
+    const zeitpunkt = jsonZeit(zeitRoh, zeitzone);
+    const temperatur = jsonTemperatur(tempRoh);
+    if (zeitpunkt !== null && temperatur !== null) messwerte.push({ zeitpunkt, temperaturC: temperatur });
+    else ungueltig += 1;
+  }
+  return { messwerte, ungueltig, trennzeichen: "json" };
+}
+
 export function liesLoggerDatei(inhalt: string, zeitzone: string = betriebsZeitzone): LoggerGelesen {
+  // JSON erkennt man am ersten Zeichen; ein JSON-Text, der keine Messwerte traegt, faellt auf die Zeilenlesart zurueck.
+  if (/^[﻿\s]*[[{]/.test(inhalt)) {
+    const json = liesLoggerJson(inhalt, zeitzone);
+    if (json.trennzeichen !== null && (json.messwerte.length > 0 || json.ungueltig > 0)) return json;
+  }
   const zeilen = inhalt
     .replace(/^﻿/, "")
     .split(/\r\n|\n|\r/)

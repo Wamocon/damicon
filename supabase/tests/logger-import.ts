@@ -8,6 +8,7 @@ import {
   FENSTER_ZUKUNFT_MS,
   LOGGER_MAX_MESSWERTE,
   liesLoggerDatei,
+  liesLoggerJson,
   liesTemperatur,
   liesZeitpunkt,
   waehleMesswerte,
@@ -105,6 +106,30 @@ pruefe("Temperatur: ausserhalb von -50 bis 80 ist ungueltig (Geraetefehler)", te
   for (let i = 0; i < 1440; i++) zeilen.push(`14.10.2026 ${String(Math.floor(i / 60)).padStart(2, "0")}:${String(i % 60).padStart(2, "0")};3,${i % 10}`);
   const r = liesLoggerDatei(zeilen.join("\n"));
   pruefe("Datei: ein ganzer Tag im Minutentakt (1440 Werte)", r.messwerte.length === 1440 && r.ungueltig === 0, `Werte ${r.messwerte.length}`);
+}
+
+// --- 3b. JSON (Stufe 2) --------------------------------------------------------------------------------------------------
+{
+  const objekte = JSON.stringify([{ time: "2026-10-14T08:00:00Z", temperature: 3.5 }, { time: "2026-10-14T08:01:00Z", temperature: "3,6" }, { time: "2026-10-14T08:02:00Z", temperature: 4.14 }]);
+  const r = liesLoggerDatei(objekte);
+  pruefe("JSON: ein Array von Objekten, Zahl und Text als Temperatur, gerundet", r.messwerte.length === 3 && r.trennzeichen === "json" && r.ungueltig === 0 && r.messwerte[1].temperaturC === 3.6 && r.messwerte[2].temperaturC === 4.1 && r.messwerte[0].zeitpunkt === "2026-10-14T08:00:00.000Z", JSON.stringify(r.messwerte));
+  const verpackt = JSON.stringify({ device: "TL-4711", readings: [{ timestamp: "14.10.2026 08:00", value: 2.9 }, { timestamp: "14.10.2026 08:01", value: 3.1 }] });
+  const v = liesLoggerDatei(verpackt);
+  pruefe("JSON: die Liste steht unter readings, Zeit tag-zuerst gilt als Almaty-Zeit", v.messwerte.length === 2 && v.messwerte[0].zeitpunkt === "2026-10-14T03:00:00.000Z", JSON.stringify(v));
+  const tiefer = liesLoggerJson(JSON.stringify({ export: { datenpunkte: 1, data: [{ zeit: "2026-10-14 08:00:00", temperatur: 5 }] } }));
+  pruefe("JSON: eine Ebene tiefer wird gefunden", tiefer.messwerte.length === 1 && tiefer.messwerte[0].zeitpunkt === "2026-10-14T03:00:00.000Z");
+  const paare = liesLoggerDatei(JSON.stringify([["2026-10-14T08:00:00Z", 3.5], ["2026-10-14T08:01:00Z", 3.7]]));
+  pruefe("JSON: Paare aus Zeit und Temperatur", paare.messwerte.length === 2 && paare.messwerte[1].temperaturC === 3.7);
+  const unix = liesLoggerDatei(JSON.stringify([{ t: 1_760_428_800, c: 3.5 }, { t: 1_760_428_860_000, c: 3.6 }]));
+  pruefe("JSON: Unix-Sekunden und Unix-Millisekunden", unix.messwerte.length === 2 && unix.messwerte[0].zeitpunkt === "2025-10-14T08:00:00.000Z" && unix.messwerte[1].zeitpunkt === "2025-10-14T08:01:00.000Z", JSON.stringify(unix.messwerte));
+  const gemischt = liesLoggerDatei(JSON.stringify([{ time: "2026-10-14T08:00:00Z", temperature: 3.5 }, { time: "kein Datum", temperature: 3 }, { time: "2026-10-14T08:02:00Z", temperature: 999 }, { time: "2026-10-14T08:03:00Z" }, 42, null]));
+  pruefe("JSON: unlesbare Eintraege werden gezaehlt, nicht uebernommen (kein Datum, Wert ausser Bereich, ohne Temperatur, kein Objekt)", gemischt.messwerte.length === 1 && gemischt.ungueltig === 5, JSON.stringify([gemischt.messwerte.length, gemischt.ungueltig]));
+  pruefe("JSON: kein JSON oder keine Liste ergibt nichts, ohne Wurf", liesLoggerJson("{kaputt").messwerte.length === 0 && liesLoggerJson('{"a":1}').messwerte.length === 0 && liesLoggerJson('"text"').messwerte.length === 0 && liesLoggerJson("").trennzeichen === null);
+  pruefe("JSON: eine Datei mit Kodierungsmarke wird gelesen", liesLoggerDatei("\uFEFF" + objekte).messwerte.length === 3);
+  const csvMitKlammer = liesLoggerDatei("[Geraet];TL-4711\nZeit;Temperatur\n14.10.2026 08:00;3,5\n14.10.2026 08:01;3,6\n");
+  pruefe("JSON: eine CSV-Datei, deren Vorspann mit einer Klammer beginnt, bleibt eine CSV-Datei", csvMitKlammer.messwerte.length === 2 && csvMitKlammer.trennzeichen === ";");
+  const leereListe = liesLoggerDatei("[]");
+  pruefe("JSON: eine leere Liste ergibt keine Messwerte", leereListe.messwerte.length === 0);
 }
 
 // --- 4. Zeitfenster der Datenbank ------------------------------------------------------------------------------------

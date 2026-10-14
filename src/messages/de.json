@@ -3767,10 +3767,10 @@
     },
     "loggerImport": {
       "titel": "Logger-Datei importieren",
-      "datei": "CSV-Datei des Temperaturloggers",
+      "datei": "CSV- oder JSON-Datei des Temperaturloggers",
       "kennung": "Logger (optional)",
       "kennungBeispiel": "z. B. Seriennummer oder Fahrzeug",
-      "hinweis": "Zeit und Temperatur je Zeile. Zeiten ohne Zeitzone gelten als Almaty-Zeit. Werte, die älter als 24 Stunden sind, übernimmt das System nicht.",
+      "hinweis": "Zeit und Temperatur je Zeile, oder als JSON eine Liste mit Zeit und Temperatur je Eintrag. Zeiten ohne Zeitzone gelten als Almaty-Zeit. Werte, die älter als 24 Stunden sind, übernimmt das System nicht.",
       "knopf": "Importieren"
     }
   },
