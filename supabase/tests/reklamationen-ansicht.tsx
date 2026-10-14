@@ -205,7 +205,7 @@ const TOENE: Record<string, string> = {
 };
 const pillen = (html: string) =>
   [...html.matchAll(/<span (?:title="[^"]*" )?class="inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0\.5 text-\[11px\] font-semibold leading-4 ([^"]+)">((?:(?!<\/span>).)*)<\/span>/g)].map(
-    (m) => `${TOENE[m[1]!] ?? m[1]}:${ohneTrenner(m[2]!).replace(/<svg.*<\/svg>/, "")}`,
+    (m) => `${TOENE[m[1]!] ?? m[1]}:${ohneTrenner(m[2]!).replace(/<svg\b.*<\/svg\b[^>]*>/i, "")}`,
   );
 /** Die Einträge der Liste: aktiv, Ziel, Code, Pillen, Titelzeile, Fußzeile. */
 const eintraege = (html: string) =>
@@ -559,7 +559,7 @@ async function main() {
           <ReklamationDetailKarten detail={detail} rechte={rechte} heuteIso={HEUTE} />
         </div>
       ));
-    const kartenMarkup = (html: string) => html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>$/i, "").slice('<div class="space-y-3">'.length, -"</div>".length);
+    const kartenMarkup = (html: string) => html.replace(/<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>$/i, "").slice('<div class="space-y-3">'.length, -"</div>".length);
     for (const [id, rolle] of [["r1", "betriebsleitung"], ["r3", "betriebsleitung"], ["r1", "kunde"], ["r6", "brigade"]] as const) {
       setze({ profil: profil(rolle, rolle === "kunde" ? "k1" : null) });
       const ganz = (await ansicht(id)).html;
