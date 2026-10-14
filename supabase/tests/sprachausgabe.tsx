@@ -536,20 +536,45 @@ function richteAbschnitteEin({ scheitern = [] as number[], verzoegerung = (nr: n
   });
 }
 const ohneStrom = (id: string, rest?: number) => notiere("ohne-strom", `${id} ${rest ?? "-"}`);
+type Vorlesen = ReturnType<typeof useLiveSprachausgabe>;
+const RUECKRUFE = ["neueRunde", "nimmNachweis", "nimmAbschnitt", "folgeQuelle", "schliesseRunde", "sprichNachricht", "stoppeAlles", "entsperre", "gerade", "halte"] as const;
 
+type Eigenschaften = { ohne: (id: string, rest?: number) => void };
+
+/** Rendert den Hook. Jedes zeige() rendert ohne Änderung neu (die Rückgabe muss dasselbe Objekt bleiben, useMemo), schreibt Phase,
+ *  Quelle und gerade() in die Folge und merkt sich die Rückgabe: am Ende prüft pruefeIdentitaet(), dass die zehn Rückrufe in allen
+ *  Durchläufen dieselben blieben. */
 function rendereVorlesen() {
-  const ansicht = renderHook(() => useLiveSprachausgabe({ beiNachrichtOhneStrom: ohneStrom }));
+  let eigenschaften: Eigenschaften = { ohne: ohneStrom };
+  const ansicht = renderHook((p: Eigenschaften) => useLiveSprachausgabe({ beiNachrichtOhneStrom: p.ohne }), { initialProps: eigenschaften });
   const v = () => ansicht.result.current;
-  const zeige = () => notiere("hook", `${v().phase} ${v().quelle ?? "-"} ${json(v().gerade())}`);
-  return { ansicht, v, zeige };
+  const gesehen: Vorlesen[] = [v()];
+  let stabil = true;
+  const zeige = () => {
+    const vorher = v();
+    ansicht.rerender(eigenschaften);
+    stabil &&= v() === vorher;
+    gesehen.push(v());
+    notiere("hook", `${v().phase} ${v().quelle ?? "-"} ${json(v().gerade())}`);
+  };
+  const setzeEigenschaften = (neu: Eigenschaften) => {
+    eigenschaften = neu;
+    ansicht.rerender(neu);
+  };
+  const pruefeIdentitaet = (fall: string) => {
+    const erstes = gesehen[0]!;
+    const rueckrufeGleich = gesehen.every((x) => RUECKRUFE.every((k) => x[k] === erstes[k]));
+    pruefe(`${fall}: die zehn Rückrufe bleiben in allen ${gesehen.length} Durchläufen dieselben, ein Rerender ohne Änderung gibt dieselbe Rückgabe`, rueckrufeGleich && stabil);
+  };
+  return { ansicht, v, zeige, setzeEigenschaften, pruefeIdentitaet };
 }
 const tu = (wirkung: () => unknown) => ausloesen(wirkung);
 
 async function fallLiveStrom(): Promise<void> {
   const uhr = neuerFall("live-strom");
-  const { ansicht, v, zeige } = rendereVorlesen();
+  const { ansicht, v, zeige, pruefeIdentitaet } = rendereVorlesen();
   const erstes = v();
-  ansicht.rerender();
+  ansicht.rerender({ ohne: ohneStrom });
   pruefe("Hook: ohne Änderung bleibt die Rückgabe dasselbe Objekt", v() === erstes);
   zeige();
   AudioContextAttrappe.anfangsZustand = "suspended";
@@ -583,6 +608,7 @@ async function fallLiveStrom(): Promise<void> {
   await tu(() => v().neueRunde());
   zeige();
   await uhr.vor(1000);
+  pruefeIdentitaet("live-strom");
   ansicht.unmount();
   await uhr.vor(0);
   vergleiche("live-strom", [`kontext ${kontextVon().state}`]);
@@ -591,7 +617,7 @@ async function fallLiveStrom(): Promise<void> {
 async function fallLiveAufgabe(): Promise<void> {
   const uhr = neuerFall("live-aufgabe");
   richteAbschnitteEin({ scheitern: [4] });
-  const { ansicht, v, zeige } = rendereVorlesen();
+  const { ansicht, v, zeige, pruefeIdentitaet } = rendereVorlesen();
   await tu(() => v().entsperre());
   await tu(() => v().nimmNachweis({ zug: "z-1", ablauf: Date.now() + 60_000, sig: "gh78" }));
   await tu(() => v().nimmAbschnitt(abschnitt(1, "Ich schaue in Ihre Aufgaben."), "de"));
@@ -626,6 +652,7 @@ async function fallLiveAufgabe(): Promise<void> {
   zeige();
   await uhr.vor(1000);
   zeige();
+  pruefeIdentitaet("live-aufgabe");
   ansicht.unmount();
   await uhr.vor(0);
   vergleiche("live-aufgabe");
@@ -634,7 +661,7 @@ async function fallLiveAufgabe(): Promise<void> {
 async function fallLiveNachAbsage(): Promise<void> {
   const uhr = neuerFall("live-nach-absage");
   richteAbschnitteEin();
-  const { ansicht, v, zeige } = rendereVorlesen();
+  const { ansicht, v, zeige, pruefeIdentitaet } = rendereVorlesen();
   await tu(() => v().nimmNachweis({ zug: "z-1", ablauf: Date.now() + 60_000, sig: "gh78" }));
   let ergebnis: boolean | null = null;
   await tu(() => (ergebnis = v().sprichNachricht("n-1", "Ein Satz.", "de")));
@@ -649,6 +676,7 @@ async function fallLiveNachAbsage(): Promise<void> {
     zeige();
   }
   await tu(() => v().schliesseRunde());
+  pruefeIdentitaet("live-nach-absage");
   ansicht.unmount();
   await uhr.vor(0);
   vergleiche("live-nach-absage", [`kontext ${kontextVon().state}`]);
@@ -656,7 +684,7 @@ async function fallLiveNachAbsage(): Promise<void> {
 
 async function fallLiveKnopf(): Promise<void> {
   const uhr = neuerFall("live-knopf");
-  const { ansicht, v, zeige } = rendereVorlesen();
+  const { ansicht, v, zeige, setzeEigenschaften, pruefeIdentitaet } = rendereVorlesen();
   let ergebnis: boolean | null = null;
   await tu(() => (ergebnis = v().sprichNachricht("n-1", "Erster Satz der Antwort. Zweiter Satz der Antwort.\n\nНалог уплачивается ежемесячно до двадцать пятого числа.\n\nDritter Satz.", "de")));
   notiere("test", `sprichNachricht ${ergebnis}`);
@@ -667,6 +695,9 @@ async function fallLiveKnopf(): Promise<void> {
   await ton(ws, stromId(ws), 48000);
   await tu(() => v().folgeQuelle("n-folge"));
   zeige();
+  const vorRerender = v();
+  setzeEigenschaften({ ohne: (id, rest) => notiere("ohne-strom-neu", `${id} ${rest ?? "-"}`) });
+  pruefe("Hook: ein neuer Rückruf beiNachrichtOhneStrom ändert die Rückgabe nicht (er gilt trotzdem, siehe ohne-strom-neu)", v() === vorRerender);
   schritt("der Strom gibt mitten in der Nachricht auf: der Rest kommt, wenn der Ton verklungen ist");
   await empfange(ws, { stream_id: stromId(ws), error_code: 429, error_type: "quota", error_message: "x" });
   zeige();
@@ -683,6 +714,7 @@ async function fallLiveKnopf(): Promise<void> {
   await tu(() => (ergebnis = v().sprichNachricht("n-3", "```\n```", "de")));
   notiere("test", `sprichNachricht ${ergebnis}`);
   zeige();
+  pruefeIdentitaet("live-knopf");
   ansicht.unmount();
   await uhr.vor(0);
   vergleiche("live-knopf");
@@ -694,7 +726,7 @@ async function fallLiveOhneWebAudio(): Promise<void> {
   const echt = globalThis.AudioContext;
   (globalThis as { AudioContext?: unknown }).AudioContext = undefined;
   try {
-    const { ansicht, v, zeige } = rendereVorlesen();
+    const { ansicht, v, zeige, pruefeIdentitaet } = rendereVorlesen();
     await tu(() => v().entsperre());
     let ergebnis: boolean | null = null;
     await tu(() => (ergebnis = v().sprichNachricht("n-1", "Ein Satz.", "de")));
@@ -716,6 +748,7 @@ async function fallLiveOhneWebAudio(): Promise<void> {
     zeige();
     await tu(() => v().stoppeAlles());
     zeige();
+    pruefeIdentitaet("live-ohne-webaudio");
     ansicht.unmount();
     await uhr.vor(0);
   } finally {
@@ -727,7 +760,7 @@ async function fallLiveOhneWebAudio(): Promise<void> {
 async function fallLiveHalten(): Promise<void> {
   const uhr = neuerFall("live-halten");
   AudioContextAttrappe.anfangsZustand = "suspended";
-  const { ansicht, v, zeige } = rendereVorlesen();
+  const { ansicht, v, zeige, pruefeIdentitaet } = rendereVorlesen();
   await tu(() => v().halte(true));
   await tu(() => v().entsperre());
   await tu(() => v().halte(false));
@@ -747,6 +780,7 @@ async function fallLiveHalten(): Promise<void> {
   await tu(() => v().halte(true));
   await tu(() => v().stoppeAlles());
   zeige();
+  pruefeIdentitaet("live-halten");
   ansicht.unmount();
   await uhr.vor(0);
   vergleiche("live-halten", [`kontext ${kontextVon().state}`]);
@@ -755,7 +789,7 @@ async function fallLiveHalten(): Promise<void> {
 async function fallLiveAbbau(): Promise<void> {
   const uhr = neuerFall("live-abbau");
   richteAbschnitteEin();
-  const { ansicht, v, zeige } = rendereVorlesen();
+  const { ansicht, v, zeige, pruefeIdentitaet } = rendereVorlesen();
   await tu(() => v().entsperre());
   await tu(() => v().nimmNachweis({ zug: "z-1", ablauf: Date.now() + 60_000, sig: "gh78" }));
   await tu(() => v().nimmAbschnitt(abschnitt(1, "Erster Satz vor dem Abbau."), "de"));
@@ -764,6 +798,7 @@ async function fallLiveAbbau(): Promise<void> {
   await ton(ws, stromId(ws), 24000);
   await uhr.vor(2500);
   zeige();
+  pruefeIdentitaet("live-abbau");
   ansicht.unmount();
   await uhr.vor(0);
   pruefe("Abbau: Kontext zu, Verbindung zu, kein Zeitgeber mehr", kontextVon().state === "closed" && ws.geschlossen !== null && uhr.zeitgeber().length === 0, json(uhr.zeitgeber()));
