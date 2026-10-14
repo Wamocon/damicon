@@ -23,7 +23,7 @@ import {
   type UIMessage,
 } from "ai";
 import { z } from "zod";
-import { getSessionProfile } from "@/lib/auth";
+import { getSessionProfile, type SessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { bestimmeAntwortsprache, zugAusNachrichten } from "@/lib/domain/antwortsprache";
 import {
@@ -282,32 +282,24 @@ function rollenKontext(rolle: Role, vorschau: boolean): string {
     .join(" ");
 }
 
-export async function POST(req: Request) {
-  const beginn = performance.now();
-  // Die Probe der Einbettung (Wissenssuche) laeuft parallel zu Anmeldung und Datenbank, statt
-  // danach: sie ist nur alle fuenf Minuten je Instanz faellig, kostet dann aber eine Anfrage
-  // an den Einbettungsdienst, und die Antwort wartete darauf (Messung vom 28.09.2026).
-  const wissenGesund = pruefeWissenGesundheit();
-  const profil = await getSessionProfile();
-  if (!profil) {
-    return new Response("nicht angemeldet", { status: 401 });
-  }
-  if (!hasPermission(profil.role, "ki_assistent", "create")) {
-    return new Response("keine berechtigung", { status: 403 });
-  }
+/** Der Koerper einer Chat-Anfrage, so wie der Browser (ki/ki-chat.tsx) ihn schickt - ungeprueft. */
+interface AnfrageKoerper {
+  messages?: unknown;
+  einwilligung?: boolean;
+  modus?: unknown;
+  pfad?: unknown;
+  rolle?: unknown;
+  sprache?: unknown;
+  diktatSprachen?: unknown;
+  pruefkontext?: unknown;
+  vorleseWeg?: unknown;
+  seitenkarte?: unknown;
+  unterbrochen?: unknown;
+}
 
-  // Ratenbegrenzung (Vibecode-Cleanup Phase 2): lib/ai/ratenbegrenzung.ts,
-  // derselbe Zaehler-Schluessel wie kiNachrichtSenden (actions/ki-assistent.ts)
-  // - beides ist derselbe Kostenfall "eine Chatnachricht senden", nur ueber
-  // verschiedene Sendewege (siehe Dateikopf). Admin-konfigurierbar
-  // (KiRatenlimitVerwaltung in den KI-Einstellungen) - ohne Admin-Einstellung
-  // liefert ladeRatenlimitGrenze() null und es gilt kein Limit.
-  const ratenGrenze = await ladeRatenlimitGrenze(profil.role);
-  if (ratenlimitUeberschritten(profil.id, ratenGrenze)) {
-    return new Response("ratenlimit", { status: 429 });
-  }
-
-  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown; vorleseWeg?: unknown; seitenkarte?: unknown; unterbrochen?: unknown };
+/** Koerper lesen und den Verlauf pruefen und kuerzen. Eine Response ist ein Fruehausstieg (400 oder 413). */
+async function leseAnfrage(req: Request): Promise<{ body: AnfrageKoerper; nachrichten: UIMessage[] } | Response> {
+  let body: AnfrageKoerper;
   try {
     body = await req.json();
   } catch {
@@ -336,50 +328,42 @@ export async function POST(req: Request) {
   if (verlaufZeichen > MAX_VERLAUF_ZEICHEN) {
     return new Response("verlauf zu gross", { status: 413 });
   }
+  return { body, nachrichten };
+}
 
-  const modus: KiModus = body.modus === "agent" ? "agent" : body.modus === "sprache" ? "sprache" : "assistent";
-  const pfad = bereinigterPfad(body.pfad);
-
-  // "Ansicht als Rolle" (persona.tsx): nur ein Administrator darf den Agenten
-  // im Zuschnitt einer anderen Rolle nutzen - fuer alle anderen zaehlt allein
-  // die eigene Rolle aus der Sitzung.
+// "Ansicht als Rolle" (persona.tsx): nur ein Administrator darf den Agenten
+// im Zuschnitt einer anderen Rolle nutzen - fuer alle anderen zaehlt allein
+// die eigene Rolle aus der Sitzung.
+function wirksameRolle(roh: unknown, sitzungsRolle: Role): { rolle: Role; vorschau: boolean } {
   const angefragt =
-    typeof body.rolle === "string" && (roles as readonly string[]).includes(body.rolle)
-      ? (body.rolle as Role)
+    typeof roh === "string" && (roles as readonly string[]).includes(roh)
+      ? (roh as Role)
       : null;
-  const rolle: Role = profil.role === "admin" && angefragt ? angefragt : profil.role;
-  const vorschau = rolle !== profil.role;
+  const rolle: Role = sitzungsRolle === "admin" && angefragt ? angefragt : sitzungsRolle;
+  return { rolle, vorschau: rolle !== sitzungsRolle };
+}
 
-  // Letzte Nachricht vom Nutzer = neue Frage. Letzte vom Assistenten = eine
-  // Freigabe-Runde (der Nutzer hat eine Aktion bestaetigt oder abgelehnt) -
-  // dann gibt es keine neue Nutzernachricht zu pruefen oder zu speichern.
-  const letzte = nachrichten.at(-1);
-  if (!letzte) {
-    return new Response("ungueltige eingabe", { status: 400 });
-  }
-  const neueNutzerNachricht = letzte.role === "user" ? textAusNachricht(letzte) : "";
-
+// Eine Sprache je Zug, an EINER Stelle bestimmt (domain/antwortsprache.ts):
+// diktiert -> was Soniox gehoert hat, getippt -> die Sprache der Frage,
+// sonst die Oberflaeche. Beide - die Anweisung ans Modell und spaeter die
+// Stimme - richten sich danach.
+//
+// Bis zum 22.09.2026 stand hier die Oberflaechensprache. Der Prompt sagte
+// dem Modell dann "der Nutzer hat auf Russisch geschrieben", obwohl er
+// deutsch geschrieben hatte; das Modell antwortete (richtig) deutsch, und
+// die Stimme las (nach derselben falschen Quelle) russisch vor.
+//
+// 10 statt der 40 Zeichen, die fuer Dokumente gelten: eine Chatfrage ist
+// kurz, und ein begruendeter Tipp ist dort besser als gar keiner.
+//
+// Seit 28.09.2026 zaehlt die letzte FRAGE, nicht die letzte Nachricht: eine
+// Folgeanfrage (nach seiteLesen, zeigeAuf, einer Freigabe) endet mit der
+// Antwort des Assistenten, und mit "" als Frage entschied hier die
+// Oberflaeche - mitten in einem russischen Gespraech sprach dann die
+// deutsche Stimme. Dazu die Sprache des vorigen Zuges (Metadaten der
+// letzten Antwort, sonst ihr Text) fuer kurze Antworten wie "Да" oder "Ja".
+function bestimmeZugSprache(body: AnfrageKoerper, nachrichten: UIMessage[]) {
   const gespraechsSprache = typeof body.sprache === "string" ? body.sprache : "de";
-
-  // Eine Sprache je Zug, an EINER Stelle bestimmt (domain/antwortsprache.ts):
-  // diktiert -> was Soniox gehoert hat, getippt -> die Sprache der Frage,
-  // sonst die Oberflaeche. Beide - die Anweisung ans Modell und spaeter die
-  // Stimme - richten sich danach.
-  //
-  // Bis zum 22.09.2026 stand hier die Oberflaechensprache. Der Prompt sagte
-  // dem Modell dann "der Nutzer hat auf Russisch geschrieben", obwohl er
-  // deutsch geschrieben hatte; das Modell antwortete (richtig) deutsch, und
-  // die Stimme las (nach derselben falschen Quelle) russisch vor.
-  //
-  // 10 statt der 40 Zeichen, die fuer Dokumente gelten: eine Chatfrage ist
-  // kurz, und ein begruendeter Tipp ist dort besser als gar keiner.
-  //
-  // Seit 28.09.2026 zaehlt die letzte FRAGE, nicht die letzte Nachricht: eine
-  // Folgeanfrage (nach seiteLesen, zeigeAuf, einer Freigabe) endet mit der
-  // Antwort des Assistenten, und mit "" als Frage entschied hier die
-  // Oberflaeche - mitten in einem russischen Gespraech sprach dann die
-  // deutsche Stimme. Dazu die Sprache des vorigen Zuges (Metadaten der
-  // letzten Antwort, sonst ihr Text) fuer kurze Antworten wie "Да" oder "Ja".
   const diktatSprachen = Array.isArray(body.diktatSprachen)
     ? (body.diktatSprachen as unknown[]).filter((x): x is string => typeof x === "string")
     : null;
@@ -391,15 +375,82 @@ export async function POST(req: Request) {
     })),
     (t) => erkenneSpracheEindeutig(t, 40),
   );
-  const { sprache: antwortSprache, herkunft: sprachHerkunft } = bestimmeAntwortsprache(
+  return bestimmeAntwortsprache(
     { diktatSprachen, frage: sprachZug.frage, oberflaeche: gespraechsSprache, vorigeSprache: sprachZug.vorigeSprache },
     (t) => erkenneSprache(t, 10),
   );
+}
+
+/** Was die Anfrage verlangt: Modus, Ansicht, wirksame Rolle, neue Frage, Antwortsprache, Zweckentfremdung. */
+interface Anfrage {
+  modus: KiModus;
+  pfad: string | null;
+  rolle: Role;
+  vorschau: boolean;
+  letzte: UIMessage;
+  neueNutzerNachricht: string;
+  antwortSprache: ReturnType<typeof bestimmeAntwortsprache>["sprache"];
+  sprachHerkunft: ReturnType<typeof bestimmeAntwortsprache>["herkunft"];
+  ausserhalb: ReturnType<typeof zweckentfremdung>;
+}
+
+/** Die Anfrage deuten. Eine Response ist ein Fruehausstieg (400: keine Nachricht, leere oder zu lange Frage). */
+function deuteAnfrage(body: AnfrageKoerper, nachrichten: UIMessage[], profil: SessionProfile): Anfrage | Response {
+  const modus: KiModus = body.modus === "agent" ? "agent" : body.modus === "sprache" ? "sprache" : "assistent";
+  const pfad = bereinigterPfad(body.pfad);
+  const { rolle, vorschau } = wirksameRolle(body.rolle, profil.role);
+
+  // Letzte Nachricht vom Nutzer = neue Frage. Letzte vom Assistenten = eine
+  // Freigabe-Runde (der Nutzer hat eine Aktion bestaetigt oder abgelehnt) -
+  // dann gibt es keine neue Nutzernachricht zu pruefen oder zu speichern.
+  const letzte = nachrichten.at(-1);
+  if (!letzte) {
+    return new Response("ungueltige eingabe", { status: 400 });
+  }
+  const neueNutzerNachricht = letzte.role === "user" ? textAusNachricht(letzte) : "";
+  const { sprache: antwortSprache, herkunft: sprachHerkunft } = bestimmeZugSprache(body, nachrichten);
   // Offensichtliche Zweckentfremdung (Code, Kreativtexte, Prompt-Injektion): ohne Werkzeuge nur ablehnen.
   const ausserhalb = neueNutzerNachricht ? zweckentfremdung(neueNutzerNachricht) : null;
   if (letzte.role === "user" && (!neueNutzerNachricht || neueNutzerNachricht.length > MAX_NACHRICHT_LAENGE)) {
     return new Response("ungueltige eingabe", { status: 400 });
   }
+  return { modus, pfad, rolle, vorschau, letzte, neueNutzerNachricht, antwortSprache, sprachHerkunft, ausserhalb };
+}
+
+// Reihenfolge der Pruefungen (nicht umstellen): Anmeldung, Recht, Drosselung, dann erst der Koerper,
+// dann die Lader, das Speichern der Frage und der Modellaufruf. Jede Pruefung steht vor jedem
+// Datenzugriff, den sie schuetzt.
+export async function POST(req: Request) {
+  const beginn = performance.now();
+  // Die Probe der Einbettung (Wissenssuche) laeuft parallel zu Anmeldung und Datenbank, statt
+  // danach: sie ist nur alle fuenf Minuten je Instanz faellig, kostet dann aber eine Anfrage
+  // an den Einbettungsdienst, und die Antwort wartete darauf (Messung vom 28.09.2026).
+  const wissenGesund = pruefeWissenGesundheit();
+  const profil = await getSessionProfile();
+  if (!profil) {
+    return new Response("nicht angemeldet", { status: 401 });
+  }
+  if (!hasPermission(profil.role, "ki_assistent", "create")) {
+    return new Response("keine berechtigung", { status: 403 });
+  }
+
+  // Ratenbegrenzung (Vibecode-Cleanup Phase 2): lib/ai/ratenbegrenzung.ts,
+  // derselbe Zaehler-Schluessel wie kiNachrichtSenden (actions/ki-assistent.ts)
+  // - beides ist derselbe Kostenfall "eine Chatnachricht senden", nur ueber
+  // verschiedene Sendewege (siehe Dateikopf). Admin-konfigurierbar
+  // (KiRatenlimitVerwaltung in den KI-Einstellungen) - ohne Admin-Einstellung
+  // liefert ladeRatenlimitGrenze() null und es gilt kein Limit.
+  const ratenGrenze = await ladeRatenlimitGrenze(profil.role);
+  if (ratenlimitUeberschritten(profil.id, ratenGrenze)) {
+    return new Response("ratenlimit", { status: 429 });
+  }
+
+  const eingang = await leseAnfrage(req);
+  if (eingang instanceof Response) return eingang;
+  const { body, nachrichten } = eingang;
+  const anfrage = deuteAnfrage(body, nachrichten, profil);
+  if (anfrage instanceof Response) return anfrage;
+  const { modus, pfad, rolle, vorschau, letzte, neueNutzerNachricht, antwortSprache, sprachHerkunft, ausserhalb } = anfrage;
 
   // Verlauf, Anbieter und Preislisten haengen nicht voneinander ab: gleichzeitig laden statt nacheinander
   // (gemessen: rund zwei Sekunden bis zum ersten Modellaufruf, davon der Grossteil Wartezeit auf die Datenbank).
