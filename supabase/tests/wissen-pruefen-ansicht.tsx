@@ -1,4 +1,5 @@
-import { WissenPruefenKnopf } from "../../src/components/db/wissen-verwaltung";
+import type { ComponentProps } from "react";
+import { bewerteSeitenAngabe, PruefVorschau, SeitenAbdeckung, WissenPruefenKnopf } from "../../src/components/db/wissen-verwaltung";
 import type { WissenDokumentZeile } from "../../src/lib/wissen/dokumente-liste";
 import { imMarkup, pruefer, rendere, SPRACHEN, texteVon } from "./hilfen/ansicht-probe";
 
@@ -148,7 +149,47 @@ const zeile = (html: string, dt: string, dd: string) => html.includes(`${imMarku
   pruefe("Normale Nutzung: kein Zusatz hinter der Stufe", zeile(html, liste.quellenart, `Fachliteratur, Bücher, ${liste.stufe} 4`));
 }
 
-// ---- 8. Alle Sprachen: kein fehlender Schlüssel in den Zuständen mit den meisten Texten -----------------------------------------------
+// ---- 8. Seitenangabe als reine Funktion (seit dem Zerlegen, 14.10.2026) ---------------------------------------------------------------
+// Was erst nach der Eingabe der korrekt fehlenden Seiten entsteht: Abdeckung, übrige Seiten, Sperre der Freigabe.
+{
+  const mitLuecken: WissenDokumentZeile = { ...basis, seitenFehlend: 3, seitenOffen: 3, seitenOffenStellen: "48-49 (47), 120 (118)" };
+  const leerAngabe = bewerteSeitenAngabe(mitLuecken, false, "");
+  pruefe("Seitenangabe: offene Lücken ohne Angabe sperren die Freigabe", leerAngabe.luecken && leerAngabe.angabe.seiten.length === 0 && !leerAngabe.seitenOk && leerAngabe.unbekannt === 0 && leerAngabe.gelesen.luecken.length === 2);
+  const voll = bewerteSeitenAngabe(mitLuecken, false, "48-49, 120");
+  pruefe("Seitenangabe: alle Lücken abgedeckt gibt frei", voll.abdeckung.ok && voll.seitenOk && voll.abdeckung.bestaetigt.length === 3 && voll.abdeckung.uebrig.length === 0);
+  const teil = bewerteSeitenAngabe(mitLuecken, false, "48");
+  pruefe("Seitenangabe: teilweise abgedeckt sperrt, zwei Seiten bleiben offen", !teil.abdeckung.ok && !teil.seitenOk && teil.abdeckung.fehlendOffen === 2);
+  const ungueltig = bewerteSeitenAngabe(mitLuecken, false, "48-49x");
+  pruefe("Seitenangabe: ungültige Angabe sperrt", !!ungueltig.angabe.fehler && !ungueltig.seitenOk);
+  const uebrig = bewerteSeitenAngabe(mitLuecken, false, "48-49, 120, 300");
+  pruefe("Seitenangabe: Seiten ohne Lücke zählen nicht, die Freigabe bleibt möglich", uebrig.seitenOk && uebrig.abdeckung.uebrig.join() === "300");
+  const unbekannt = bewerteSeitenAngabe({ ...mitLuecken, seitenOffen: 5 }, false, "48-49, 120");
+  pruefe("Seitenangabe: nicht einzeln bekannte Seiten lassen sich nicht bestätigen", unbekannt.unbekannt === 2 && !unbekannt.abdeckung.ok && !unbekannt.seitenOk);
+  const rueckfall = bewerteSeitenAngabe({ ...mitLuecken, seitenOffenStellen: null, seitenStellen: "48-49 (47)", seitenOffen: 2 }, false, "48-49");
+  pruefe("Seitenangabe: ohne offene Stellen gelten die Stellen der Prüfung", rueckfall.gelesen.luecken.length === 1 && rueckfall.seitenOk);
+  const erneut = bewerteSeitenAngabe(mitLuecken, true, "");
+  pruefe("Seitenangabe: bei der Wiedervorlage zählen Lücken nicht", !erneut.luecken && erneut.seitenOk);
+  const ohne = bewerteSeitenAngabe(basis, false, "");
+  pruefe("Seitenangabe: ohne offene Lücken frei", !ohne.luecken && ohne.seitenOk);
+
+  const abdeckung = (eingabe: string, d: WissenDokumentZeile = mitLuecken) => {
+    const s = bewerteSeitenAngabe(d, false, eingabe);
+    return rendere(<SeitenAbdeckung id="x-abdeckung" angabe={s.angabe} abdeckung={s.abdeckung} />).html;
+  };
+  pruefe("Abdeckung: noch nichts angegeben", abdeckung("") === `<div id="x-abdeckung" role="status" aria-live="polite" class="space-y-0.5 text-[11px]"><p class="text-muted-foreground">${imMarkup(pr.seiten.nochNichts)}</p></div>`);
+  pruefe("Abdeckung: ungültig, ohne Liste übriger Seiten", abdeckung("48, 300x") === `<div id="x-abdeckung" role="status" aria-live="polite" class="space-y-0.5 text-[11px]"><p class="font-semibold text-destructive">${imMarkup(pr.seiten.angabeUngueltig)}</p></div>`);
+  pruefe("Abdeckung: alles abgedeckt mit Zahl der Seiten", abdeckung("48-49, 120").includes(`<p class="font-semibold">Alle offenen Lücken sind abgedeckt (3 Seiten als korrekt fehlend bestätigt).</p>`));
+  pruefe("Abdeckung: nicht abgedeckt mit Zahl und Stellen", abdeckung("48").includes(`<p class="break-words font-semibold text-destructive">Nicht abgedeckt: 2 Seiten, Stellen: 49 (47), 120 (118).`));
+  pruefe("Abdeckung: nur Unbekanntes offen, Stellen als Strich", abdeckung("48-49, 120", { ...mitLuecken, seitenOffen: 5 }).includes("Nicht abgedeckt: 0 Seiten, Stellen: -."));
+  pruefe("Abdeckung: übrige Seiten werden genannt", abdeckung("48-49, 120, 300").includes(`<p class="break-words text-muted-foreground">Diese Seitenzahlen gehören zu keiner offenen Lücke und zählen nicht: 300.</p>`));
+  pruefe("Abdeckung: höchstens zwölf übrige Seiten, dann Auslassung", abdeckung("48-49, 120, 300-313").includes("zählen nicht: 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311 ...."));
+
+  const vorschau = (v: ComponentProps<typeof PruefVorschau>["vorschau"]) => rendere(<PruefVorschau vorschau={v} />).html.match(/leading-4">([^<]*)<\/div>/)?.[1];
+  pruefe("Vorschau: vor dem Laden und beim Laden der Ladehinweis", vorschau(null) === imMarkup(pr.vorschauLaedt) && vorschau("laedt") === imMarkup(pr.vorschauLaedt));
+  pruefe("Vorschau: Fehler und geladener Text", vorschau({ text: "", fehler: true }) === imMarkup(pr.vorschauFehler) && vorschau({ text: "Erster Satz <b>", fehler: false }) === "Erster Satz &lt;b&gt;");
+}
+
+// ---- 9. Alle Sprachen: kein fehlender Schlüssel in den Zuständen mit den meisten Texten -----------------------------------------------
 for (const loc of SPRACHEN) {
   const zustaende: [string, WissenDokumentZeile, string | null][] = [
     ["Erstprüfung", basis, "Fachliteratur"],
