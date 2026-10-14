@@ -331,7 +331,8 @@ for (const sp of sprachen) {
   }
 }
 pruefe("Himbi: Wegschicken, Zurueckholen und Abschied sind in allen Sprachen beschriftet", wegOhneText.length === 0, wegOhneText.slice(0, 4).join(", "));
-const huelleQuelle = liesQuelle("src/components/haustier/haustier-huelle.tsx", "utf8");
+// Seit dem 14.10.2026 stehen Halten, Abschied und Tasten der Hülle in haustier-huelle-griff.ts; gelesen werden beide Dateien.
+const huelleQuelle = ["haustier-huelle.tsx", "haustier-huelle-griff.ts"].map((datei) => liesQuelle(`src/components/haustier/${datei}`, "utf8")).join("\n");
 pruefe("Himbi: kein Schliessen-Kreuz mehr, Wegschicken laeuft ueber Halten (und Entf-Taste)", !huelleQuelle.includes("onVerstecken") && huelleQuelle.includes("HALTEN_DAUER_MS") && huelleQuelle.includes('"Delete"'));
 // Der Autopilot der Tour: Verweildauer, Texte, Regeln fuer den Eingriff des Besuchers.
 pruefe(
