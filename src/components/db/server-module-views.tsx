@@ -17,6 +17,7 @@ import { PflichtschulungenAnsicht } from "@/components/db/pflichtschulungen-ansi
 import { FoerdermittelAnsicht } from "@/components/db/foerdermittel-ansicht";
 import { LogistikAnsicht } from "@/components/db/logistik-ansicht";
 import { EsfAnsicht } from "@/components/db/esf-ansicht";
+import { IntegrationenAnsicht } from "@/components/db/integrationen-ansicht";
 import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
 import { PersonalAnsicht } from "@/components/db/personal-ansicht";
 import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
@@ -113,6 +114,10 @@ export function serverModulAnsicht(
     // staatliche System (Stufe 2) braucht den Zugang der Behoerde.
     case "esf":
       return <EsfAnsicht />;
+    // WMCNL-1447 (Stufe 1): Meldeprozess fuer das Einheitssystem ЕСУТД. Die automatische Meldung
+    // (Stufe 2) braucht den Zugang der Behoerde.
+    case "integrationen":
+      return <IntegrationenAnsicht />;
     case "logistik":
       return <LogistikAnsicht />;
     // Anforderung 3.1: die Live-Alarmlogik (KuehlkettenAlarm) lief bisher nur

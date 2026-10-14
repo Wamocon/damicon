@@ -745,9 +745,9 @@
     "integrationen": {
       "title": "State integrations",
       "navTitle": "Integrations",
-      "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.",
-      "summary": "Will get one connector per target system, with status feedback and retry. Accounting stays out of scope.",
-      "todo": "Connectors per system, test access, handling of errors and retries, an overview of the pending items."
+      "description": "Reporting process for the unified system ЕСУТД: conclusion, change and termination of seasonal contracts with deadline, confirmation and proof. Connectors to ЭСФ, virtual stock and the funding portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.",
+      "summary": "Tracks the reports to ЕСУТД and reminds of the deadline for the conclusion. The automatic handover follows once the authority grants access.",
+      "todo": "Stage 2: connectors per system with test access, handling of errors and retries, overview of the pending operations."
     },
     "foerdermittel": {
       "title": "Grant application dossier",
@@ -985,7 +985,12 @@
       "esfBestaetigt": "Confirmation recorded.",
       "esfAbgelehnt": "Rejection recorded.",
       "esfPapier": "Document kept on paper.",
-      "esfNeuBegonnen": "New draft started."
+      "esfNeuBegonnen": "New draft started.",
+      "esutdVertrag": "Conclusion created.",
+      "esutdEreignis": "Report created.",
+      "esutdErfasst": "Report recorded as reported.",
+      "esutdGeoeffnet": "Report reopened.",
+      "esutdEntfernt": "Report removed."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1087,7 +1092,12 @@
       "esfStatuswechsel": "This status change is not provided for, or the document has changed in the meantime.",
       "esfLieferungOffen": "Only a delivered shipment can have a document.",
       "esfBelegFehlt": "The document was not found.",
-      "esfSchonAusgestellt": "This delivery already has an issued document."
+      "esfSchonAusgestellt": "This delivery already has an issued document.",
+      "esutdDatum": "Please enter a valid date, the report date not in the future.",
+      "esutdVertragsnummer": "The contract number is longer than 60 characters.",
+      "esutdBeschreibung": "Please describe what changes, with 3 to 300 characters.",
+      "esutdBestaetigung": "The confirmation number is longer than 100 characters.",
+      "esutdMeldungFehlt": "The report was not found or has changed in the meantime."
     },
     "einladungen": {
       "erfolg": {
@@ -4630,7 +4640,7 @@
     "titel": "Document register of the electronic invoice (ЭСФ)",
     "lead": "The register shows which delivered shipment has which document and which has none yet. The ЭСФ is still issued in the state portal. The system prepares the details and tracks the status.",
     "stufeHinweis": "The automatic handover to the state system follows once the authority grants access. Paper is only permitted during a system outage and needs a reason.",
-    "nurLesen": "View only: administration, management and accounting can record entries.",
+    "nurLesen": "View only: administration, CEO and accounting can record entries.",
     "zaehlOffen": "Without document",
     "offen": {
       "titel": "Deliveries without ЭСФ",
@@ -4711,6 +4721,81 @@
         "titel": "Keep on paper (outage)",
         "grund": "Kind and duration of the outage",
         "knopf": "Keep on paper"
+      }
+    }
+  },
+  "esutdAnsicht": {
+    "titel": "Reporting process in the unified system (ЕСУТД)",
+    "lead": "The conclusion, change and termination of every seasonal contract belong in the state unified system ЕСУТД. The list shows what is to be reported, what has been reported and what proves it. Reporting is still done in the state system, Damicon keeps the status.",
+    "stufeHinweis": "A deadline is stored for the conclusion only: five working days from the start of the contract, without a holiday calendar. No deadline is stored for change and termination. The automatic report follows once the authority grants access.",
+    "nurLesen": "View only: administration, CEO and farm management can record entries.",
+    "zaehl": {
+      "offen": "Open",
+      "ueberfaellig": "Deadline passed",
+      "erfasst": "Reported"
+    },
+    "art": {
+      "abschluss": "Conclusion",
+      "aenderung": "Change",
+      "beendigung": "Termination"
+    },
+    "status": {
+      "offen": "open",
+      "erfasst": "reported"
+    },
+    "liste": {
+      "titel": "Reports",
+      "leer": "No report created yet.",
+      "col": {
+        "person": "Person",
+        "art": "Type",
+        "datum": "Date",
+        "frist": "Deadline",
+        "status": "Status",
+        "beleg": "Proof"
+      },
+      "ohneName": "Name not visible",
+      "keineFrist": "no deadline stored",
+      "fristBis": "by {datum}",
+      "ueberfaellig": "Deadline passed",
+      "ausweis": "ID {ausweis}",
+      "vertrag": "Contract {nummer}",
+      "erfasstAm": "reported on {datum}",
+      "bestaetigung": "Confirmation {nummer}",
+      "beleg": "Proof: {name}",
+      "keinBeleg": "no proof"
+    },
+    "aktion": {
+      "erfassen": {
+        "titel": "Record as reported",
+        "datum": "Reported on",
+        "bestaetigung": "Confirmation number (optional)",
+        "beleg": "Proof (optional)",
+        "keinBeleg": "no proof",
+        "hinweis": "Proofs are kept in the evidence register (category ЕСУТД proof). Upload there, select here.",
+        "knopf": "Record"
+      },
+      "oeffnen": "Reopen",
+      "entfernen": "Remove"
+    },
+    "neu": {
+      "abschluss": {
+        "titel": "Create a new conclusion",
+        "person": "Person",
+        "bitteWaehlen": "please choose",
+        "keinePersonen": "No person visible.",
+        "beginn": "Start of contract",
+        "nummer": "Contract number (optional)",
+        "knopf": "Create"
+      },
+      "ereignis": {
+        "titel": "Create a change or termination",
+        "vertrag": "Contract",
+        "keineVertraege": "No conclusion recorded yet.",
+        "art": "Type",
+        "datum": "Date of the change or end of the contract",
+        "beschreibung": "What changes? (optional for a termination)",
+        "knopf": "Create"
       }
     }
   }

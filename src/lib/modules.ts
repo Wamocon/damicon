@@ -249,7 +249,10 @@ export const modules: ModuleDef[] = [
     slug: "integrationen",
     icon: "plug",
     resource: "integrationen",
-    reifegrad: "in-entwicklung",
+    // WMCNL-1447 (Stufe 1): Meldeprozess fuer das Einheitssystem ЕСУТД unter RLS (Abschluss,
+    // Aenderung, Beendigung mit Frist, Bestaetigung und Beleg). Die automatische Meldung und die
+    // Konnektoren zu den uebrigen Systemen (Stufe 2) brauchen den Zugang der Behoerden.
+    reifegrad: "angebunden",
   },
   {
     key: "foerdermittel",

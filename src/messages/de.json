@@ -745,9 +745,9 @@
     "integrationen": {
       "title": "Staatliche Integrationen",
       "navTitle": "Integrationen",
-      "description": "Vorgesehen sind Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
-      "summary": "Bekommt je Zielsystem einen Konnektor mit Statusrückmeldung und Wiederholung. Die Buchhaltung bleibt außen vor.",
-      "todo": "Konnektoren je System, Testzugänge, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge."
+      "description": "Meldeprozess für das Einheitssystem ЕСУТД: Abschluss, Änderung und Beendigung der Saisonverträge mit Frist, Bestätigung und Beleg. Konnektoren zu ЭСФ, virtuellem Lagerbestand und den Förderportalen gosagro.kz und qoldau.kz sind vorgesehen. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
+      "summary": "Führt die Meldungen an das ЕСУТД und erinnert an die Frist des Abschlusses. Die automatische Übergabe folgt mit dem Zugang der Behörde.",
+      "todo": "Stufe 2: Konnektoren je System mit Testzugängen, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge."
     },
     "foerdermittel": {
       "title": "Fördermitteldossier",
@@ -985,7 +985,12 @@
       "esfBestaetigt": "Bestätigung erfasst.",
       "esfAbgelehnt": "Ablehnung erfasst.",
       "esfPapier": "Beleg auf Papier geführt.",
-      "esfNeuBegonnen": "Neuer Entwurf begonnen."
+      "esfNeuBegonnen": "Neuer Entwurf begonnen.",
+      "esutdVertrag": "Abschluss angelegt.",
+      "esutdEreignis": "Meldung angelegt.",
+      "esutdErfasst": "Meldung als gemeldet erfasst.",
+      "esutdGeoeffnet": "Meldung wieder geöffnet.",
+      "esutdEntfernt": "Meldung entfernt."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1087,7 +1092,12 @@
       "esfStatuswechsel": "Dieser Statuswechsel ist nicht vorgesehen, oder der Beleg hat sich inzwischen geändert.",
       "esfLieferungOffen": "Nur zu einer zugestellten Lieferung gibt es einen Beleg.",
       "esfBelegFehlt": "Der Beleg wurde nicht gefunden.",
-      "esfSchonAusgestellt": "Zu dieser Lieferung gibt es schon einen ausgestellten Beleg."
+      "esfSchonAusgestellt": "Zu dieser Lieferung gibt es schon einen ausgestellten Beleg.",
+      "esutdDatum": "Bitte ein gültiges Datum angeben, das Meldedatum nicht in der Zukunft.",
+      "esutdVertragsnummer": "Die Vertragsnummer ist länger als 60 Zeichen.",
+      "esutdBeschreibung": "Bitte beschreiben, was sich ändert, mit 3 bis 300 Zeichen.",
+      "esutdBestaetigung": "Die Bestätigungsnummer ist länger als 100 Zeichen.",
+      "esutdMeldungFehlt": "Die Meldung wurde nicht gefunden oder hat sich inzwischen geändert."
     },
     "einladungen": {
       "erfolg": {
@@ -4711,6 +4721,81 @@
         "titel": "Auf Papier führen (Störung)",
         "grund": "Art und Dauer der Störung",
         "knopf": "Auf Papier führen"
+      }
+    }
+  },
+  "esutdAnsicht": {
+    "titel": "Meldeprozess im Einheitssystem (ЕСУТД)",
+    "lead": "Abschluss, Änderung und Beendigung jedes Saisonvertrags gehören ins staatliche Einheitssystem ЕСУТД. Die Liste zeigt, was zu melden ist, was gemeldet ist und womit es belegt ist. Gemeldet wird weiterhin im staatlichen System, Damicon führt den Stand.",
+    "stufeHinweis": "Eine Frist ist nur für den Abschluss hinterlegt: fünf Werktage ab Vertragsbeginn, ohne Feiertagskalender. Für Änderung und Beendigung ist keine Frist hinterlegt. Die automatische Meldung folgt, sobald der Zugang der Behörde vorliegt.",
+    "nurLesen": "Nur Ansicht: erfassen dürfen Administration, Geschäftsführung und Betriebsleitung.",
+    "zaehl": {
+      "offen": "Offen",
+      "ueberfaellig": "Frist überschritten",
+      "erfasst": "Gemeldet"
+    },
+    "art": {
+      "abschluss": "Abschluss",
+      "aenderung": "Änderung",
+      "beendigung": "Beendigung"
+    },
+    "status": {
+      "offen": "offen",
+      "erfasst": "gemeldet"
+    },
+    "liste": {
+      "titel": "Meldungen",
+      "leer": "Noch keine Meldung angelegt.",
+      "col": {
+        "person": "Person",
+        "art": "Art",
+        "datum": "Datum",
+        "frist": "Frist",
+        "status": "Status",
+        "beleg": "Beleg"
+      },
+      "ohneName": "Name nicht sichtbar",
+      "keineFrist": "keine Frist hinterlegt",
+      "fristBis": "bis {datum}",
+      "ueberfaellig": "Frist überschritten",
+      "ausweis": "Ausweis {ausweis}",
+      "vertrag": "Vertrag {nummer}",
+      "erfasstAm": "gemeldet am {datum}",
+      "bestaetigung": "Bestätigung {nummer}",
+      "beleg": "Beleg: {name}",
+      "keinBeleg": "kein Beleg"
+    },
+    "aktion": {
+      "erfassen": {
+        "titel": "Als gemeldet erfassen",
+        "datum": "Gemeldet am",
+        "bestaetigung": "Bestätigungsnummer (optional)",
+        "beleg": "Beleg (optional)",
+        "keinBeleg": "kein Beleg",
+        "hinweis": "Belege liegen im Nachweisregister (Kategorie ЕСУТД-Nachweis). Dort hochladen, hier auswählen.",
+        "knopf": "Erfassen"
+      },
+      "oeffnen": "Wieder öffnen",
+      "entfernen": "Entfernen"
+    },
+    "neu": {
+      "abschluss": {
+        "titel": "Neuen Abschluss anlegen",
+        "person": "Person",
+        "bitteWaehlen": "bitte wählen",
+        "keinePersonen": "Keine Person sichtbar.",
+        "beginn": "Vertragsbeginn",
+        "nummer": "Vertragsnummer (optional)",
+        "knopf": "Anlegen"
+      },
+      "ereignis": {
+        "titel": "Änderung oder Beendigung anlegen",
+        "vertrag": "Vertrag",
+        "keineVertraege": "Noch kein Abschluss erfasst.",
+        "art": "Art",
+        "datum": "Datum der Änderung oder des Vertragsendes",
+        "beschreibung": "Was ändert sich? (bei Beendigung freiwillig)",
+        "knopf": "Anlegen"
       }
     }
   }

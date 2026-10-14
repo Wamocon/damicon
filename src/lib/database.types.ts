@@ -864,8 +864,67 @@ export type Database = {
           },
         ]
       }
+      esutd_ereignisse: {
+        Row: {
+          art: string
+          beleg_dokument_id: string | null
+          beschreibung: string | null
+          bestaetigung: string | null
+          created_at: string
+          ereignis_am: string
+          erfasst_am: string | null
+          id: string
+          status: string
+          updated_at: string
+          vertrag_id: string
+        }
+        Insert: {
+          art: string
+          beleg_dokument_id?: string | null
+          beschreibung?: string | null
+          bestaetigung?: string | null
+          created_at?: string
+          ereignis_am: string
+          erfasst_am?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          vertrag_id: string
+        }
+        Update: {
+          art?: string
+          beleg_dokument_id?: string | null
+          beschreibung?: string | null
+          bestaetigung?: string | null
+          created_at?: string
+          ereignis_am?: string
+          erfasst_am?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          vertrag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "esutd_ereignisse_vertrag_id_fkey"
+            columns: ["vertrag_id"]
+            isOneToOne: false
+            referencedRelation: "esutd_vertraege"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "esutd_ereignisse_beleg_dokument_id_fkey"
+            columns: ["beleg_dokument_id"]
+            isOneToOne: false
+            referencedRelation: "dokumente"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       esutd_vertraege: {
         Row: {
+          beleg_dokument_id: string | null
+          bestaetigung: string | null
           created_at: string
           erfasst_am: string | null
           id: string
@@ -876,6 +935,8 @@ export type Database = {
           vertragsnummer: string | null
         }
         Insert: {
+          beleg_dokument_id?: string | null
+          bestaetigung?: string | null
           created_at?: string
           erfasst_am?: string | null
           id?: string
@@ -886,6 +947,8 @@ export type Database = {
           vertragsnummer?: string | null
         }
         Update: {
+          beleg_dokument_id?: string | null
+          bestaetigung?: string | null
           created_at?: string
           erfasst_am?: string | null
           id?: string
@@ -908,6 +971,13 @@ export type Database = {
             columns: ["outbox_id"]
             isOneToOne: false
             referencedRelation: "integration_outbox"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "esutd_vertraege_beleg_dokument_id_fkey"
+            columns: ["beleg_dokument_id"]
+            isOneToOne: false
+            referencedRelation: "dokumente"
             referencedColumns: ["id"]
           },
         ]
@@ -4113,6 +4183,34 @@ export type Database = {
             columns: ["lieferung_id"]
             isOneToOne: false
             referencedRelation: "lieferungen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_esutd_meldungen: {
+        Row: {
+          art: string | null
+          beleg_dokument_id: string | null
+          beschreibung: string | null
+          bestaetigung: string | null
+          created_at: string | null
+          ereignis_am: string | null
+          erfasst_am: string | null
+          id: string | null
+          meldefrist_am: string | null
+          pfluecker_ausweis: string | null
+          pfluecker_id: string | null
+          pfluecker_name: string | null
+          quelle: string | null
+          status: string | null
+          vertragsnummer: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "v_esutd_meldungen_pfluecker_id_fkey"
+            columns: ["pfluecker_id"]
+            isOneToOne: false
+            referencedRelation: "pfluecker"
             referencedColumns: ["id"]
           },
         ]
