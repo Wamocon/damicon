@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { nachrichtSenden } from "@/lib/actions/nachrichten";
@@ -13,6 +14,7 @@ export function NachrichtFormular({ vorbestellungId }: { vorbestellungId: string
   const t = useTranslations("nachrichten");
   const pfad = usePathname();
   const { status, formProps } = useBehalteEingaben(nachrichtSenden);
+  const hinweisId = useId();
 
   return (
     <form {...formProps} className="space-y-2">
@@ -25,10 +27,11 @@ export function NachrichtFormular({ vorbestellungId }: { vorbestellungId: string
           required
           rows={3}
           maxLength={NACHRICHT_MAX_ZEICHEN}
+          aria-describedby={hinweisId}
           placeholder={t("platzhalter")}
           className={`${feldKlassen} h-auto min-h-16 py-2`}
         />
-        <span className="block schrift-label text-muted-foreground">{t("hinweis", { max: NACHRICHT_MAX_ZEICHEN })}</span>
+        <span id={hinweisId} className="block schrift-label text-muted-foreground">{t("hinweis", { max: NACHRICHT_MAX_ZEICHEN })}</span>
       </label>
       <div className="flex flex-wrap items-center gap-3">
         <SubmitKnopf label={t("senden")} status={status} />
