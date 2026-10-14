@@ -1,5 +1,24 @@
 import type { ComponentProps } from "react";
-import { BuchEintrag, WissenBuecher } from "../../src/components/db/wissen-buecher";
+import { BuchEintrag, BuchFortschritt, WissenBuecher } from "../../src/components/db/wissen-buecher";
+import {
+  angabenFehlen,
+  artPasst,
+  brauchtAufmerksamkeit,
+  buchKopf,
+  eintragOk,
+  gesamtFortschritt,
+  gesperrt,
+  istGesetz,
+  istLadbar,
+  istTextDatei,
+  mitEigenemFeld,
+  mitKiAntwort,
+  nachDemLesen,
+  neuerEintrag,
+  uebernimm,
+  type Ladbar,
+  type Lauf,
+} from "../../src/lib/wissen/buch-eintrag";
 import type { Ansicht } from "../../src/components/db/ansicht-schalter";
 import type { Analyse } from "../../src/lib/wissen/analyse";
 import type { SeitenLuecke, SeitenPruefung } from "../../src/lib/wissen/seitenverlauf";
@@ -12,6 +31,8 @@ import { imMarkup, pruefer, rendere, SPRACHEN, texteVon } from "./hilfen/ansicht
 //   * BuchEintrag: jeder Schritt eines Buchs (wartet, liest, bereit, lädt, fertig, Fehler, abgebrochen) in Liste und Raster, zu und aufgeklappt,
 //     mit Textgüte, Qualität, Original, Seitenverlauf (lückenlos, eingeschränkt, Lücken mit und ohne Bestätigung), Artikelfolge, Analyse mit
 //     und ohne KI, Nutzung und Pflicht-Link.
+//   * seit dem Zerlegen (14.10.2026) das Modell eines Eintrags in lib/wissen/buch-eintrag.ts als reine Funktionen (neu, gelesen, von Hand
+//     geändert, von der KI eingeordnet, ladbar, Kopf fürs Hochladen, Gesamtfortschritt) und die Fortschrittsanzeige BuchFortschritt.
 // Lesen, KI-Analyse, Hochladen und Abbrechen laufen über Ereignisse und Server Actions und bleiben Prüfpunkte im Browser.
 // Aufruf: npm run test:wissen-buecher-ansicht
 
@@ -216,7 +237,88 @@ const auswahl = (html: string, wert: string) => html.match(new RegExp(`<select c
   pruefe("Raster: Analyse untereinander", html.includes(`<div class="grid gap-2 ">`) && !html.includes("sm:grid-cols-3"));
 }
 
-// ---- 12. Alle Sprachen ---------------------------------------------------------------------------------------------------------------
+// ---- 12. Das Modell eines Eintrags als reine Funktionen (buch-eintrag.ts, seit dem Zerlegen am 14.10.2026) -------------------------------
+// Was in der Oberfläche erst durch Dateiwahl, Lesen, KI-Antwort und Hochladen entsteht.
+{
+  const md = new File(["# Titel"], "mein_kommentar.md", { type: "text/markdown" });
+  const neu = neuerEintrag(3, md);
+  pruefe("Neu: wartet, Titel aus dem Dateinamen, Vorgaben Recht, Fachliteratur, Original, nichts eigen", neu.id === 3 && neu.schritt === "wartet" && neu.titel === "Mein kommentar" && neu.bereich === "recht" && neu.quellenart === "fachliteratur" && neu.textgrundlage === "original" && neu.eigene.size === 0 && neu.ki === "aus" && neu.text === null && neu.url === "");
+  pruefe("Dateiart: Markdown und Text werden direkt gelesen, PDF nicht", istTextDatei(md) && istTextDatei(new File([""], "a.TXT")) && !istTextDatei(datei));
+
+  const a = analyse({ bereich: "compliance", quellenart: "standard", textgrundlage: "amtlich_uebersetzt" });
+  const ueb = uebernimm(leer, a, "publikationen");
+  pruefe("Analyse übernehmen: Bereich, Art und Textgrundlage aus der Analyse", ueb.analyse === a && ueb.bereich === "compliance" && ueb.quellenart === "standard" && ueb.textgrundlage === "amtlich_uebersetzt");
+  const eigen = uebernimm({ ...leer, bereich: "risiko", eigene: new Set(["bereich"] as const) }, a, "publikationen");
+  pruefe("Analyse übernehmen: selbst geänderte Felder bleiben", eigen.bereich === "risiko" && eigen.quellenart === "standard");
+  pruefe("Analyse übernehmen: eine Art, die nicht zum Cluster passt, wird Fachliteratur", uebernimm(leer, analyse({ quellenart: "internetquelle" }), "buecher").quellenart === "fachliteratur" && uebernimm(leer, analyse({ quellenart: "internetquelle" }), "internet").quellenart === "internetquelle");
+
+  const vorher = new Set<"bereich" | "quellenart" | "textgrundlage">();
+  const geaendert = mitEigenemFeld({ ...bereit, eigene: vorher }, "quellenart", "standard");
+  pruefe("Von Hand geändert: Wert gesetzt, Feld gilt als eigen, der alte Satz bleibt unberührt", geaendert.quellenart === "standard" && geaendert.eigene.has("quellenart") && vorher.size === 0);
+  pruefe("Von Hand geändert: ein zulässiger Bereich lässt die Art stehen", mitEigenemFeld({ ...bereit, quellenart: "internetquelle" }, "bereich", "audit").quellenart === "internetquelle");
+
+  const ki = { bereich: "recht" as const, quellenart: "rechtsnorm" as const, textgrundlage: "original" as const, titel: "  Steuerkodex der Republik Kasachstan  ", begruendung: "Gesetzestext.", sicherheit: "hoch" as const };
+  const mitAnalyse: Eintrag = { ...bereit, titel: "Steuerkodex 2026", datei: new File([""], "steuerkodex_2026.pdf") };
+  pruefe("KI: ohne Antwort zu diesem Eintrag bleibt er unverändert", mitKiAntwort(mitAnalyse, undefined, "buecher") === mitAnalyse);
+  pruefe("KI: leere Antwort oder keine Analyse ergibt nur nach Regeln", mitKiAntwort(mitAnalyse, { id: "7", ki: null }, "buecher").ki === "keine" && mitKiAntwort({ ...mitAnalyse, analyse: null }, { id: "7", ki }, "buecher").ki === "keine");
+  const eingeordnet = mitKiAntwort(mitAnalyse, { id: "7", ki }, "buecher");
+  pruefe("KI: Einordnung, Herkunft und Titel aus der Antwort, solange der Titel vom Dateinamen stammt", eingeordnet.ki === "fertig" && eingeordnet.quellenart === "rechtsnorm" && eingeordnet.bereich === "recht" && eingeordnet.analyse?.quelle === "ki" && eingeordnet.analyse?.hinweis === "Gesetzestext." && eingeordnet.titel === "Steuerkodex der Republik Kasachstan");
+  pruefe("KI: ein eigener Titel bleibt, ohne Titel in der Antwort auch", mitKiAntwort({ ...mitAnalyse, titel: "Mein Titel" }, { id: "7", ki }, "buecher").titel === "Mein Titel" && mitKiAntwort(mitAnalyse, { id: "7", ki: { ...ki, titel: undefined } }, "buecher").titel === "Steuerkodex 2026");
+  pruefe("KI: ein langer Titel wird auf 200 Zeichen gekürzt", mitKiAntwort(mitAnalyse, { id: "7", ki: { ...ki, titel: "x".repeat(250) } }, "buecher").titel.length === 200);
+
+  const gelesenText = { text: TEXT, guete: guete("gut", [], 80), verlauf: verlauf({ seiten: 100, fehlend: 4 }), artikel: null, hash: "b".repeat(64), analyse: analyse(), pakete: 2, roheSeiten: ["s1"] };
+  const gelesen = nachDemLesen({ ...leer, schritt: "liest", trotzdem: true }, gelesenText, "buecher");
+  pruefe("Gelesen: bereit, Text, Hash, Pakete, Bestätigung zurückgesetzt, KI noch aus", gelesen.schritt === "bereit" && gelesen.text === TEXT && gelesen.hash === "b".repeat(64) && gelesen.pakete === 2 && !gelesen.trotzdem && gelesen.ki === "aus" && gelesen.roheSeiten?.[0] === "s1" && gelesen.bereich === "steuer");
+  pruefe("Gelesen: Qualität vorab um fehlende Seiten gemindert (80 % mal 0,8)", gelesen.qualitaet === 64, String(gelesen.qualitaet));
+  pruefe("Gelesen: ohne geprüften Seitenverlauf zählt nur der Text", nachDemLesen(leer, { ...gelesenText, verlauf: verlauf({ geprueft: false, fehlend: 50 }) }, "buecher").qualitaet === 80 && nachDemLesen(leer, { ...gelesenText, verlauf: null }, "buecher").qualitaet === 80);
+
+  pruefe("Ladbar: nur mit Text, Hash und gültiger Art", istLadbar(bereit) && !istLadbar({ ...bereit, text: "" }) && !istLadbar({ ...bereit, hash: null }) && !istLadbar({ ...bereit, quellenart: "" }));
+  pruefe("Gesperrt beim Hochladen und danach", gesperrt({ ...bereit, schritt: "laedt" }) && gesperrt({ ...bereit, schritt: "fertig" }) && !gesperrt(bereit) && !gesperrt({ ...bereit, schritt: "fehler" }));
+  pruefe("Gesetz: Rechtsnorm und Verwaltungsanweisung", istGesetz({ ...bereit, quellenart: "rechtsnorm" }) && istGesetz({ ...bereit, quellenart: "verwaltungsanweisung" }) && !istGesetz(bereit));
+  pruefe("Art passt: Internetquelle nur im Cluster Internet, ohne gültigen Cluster nichts", artPasst("internetquelle", "internet") && !artPasst("internetquelle", "buecher") && artPasst("fachliteratur", "buecher") && !artPasst("fachliteratur", "unsinn") && !artPasst("", "buecher"));
+  pruefe("Ok: bereit und vollständig", eintragOk(bereit, "buecher"));
+  pruefe("Nicht ok: anderer Schritt, ohne Güte, schlechter Text, ohne Text oder Hash", !eintragOk({ ...bereit, schritt: "fertig" }, "buecher") && !eintragOk({ ...bereit, guete: null }, "buecher") && !eintragOk({ ...bereit, guete: guete("schlecht") }, "buecher") && !eintragOk({ ...bereit, text: null }, "buecher") && !eintragOk({ ...bereit, hash: null }, "buecher"));
+  pruefe("Nicht ok: offene Lücken, bestätigte Lücken ok", !eintragOk({ ...bereit, verlauf: verlauf({ fehlend: 2 }) }, "buecher") && eintragOk({ ...bereit, verlauf: verlauf({ fehlend: 2 }), trotzdem: true }, "buecher"));
+  pruefe("Nicht ok: unbekannter Bereich, unbekannte Art, Art passt nicht, unbekannte Textgrundlage, leerer Titel", !eintragOk({ ...bereit, bereich: "amtlich" }, "buecher") && !eintragOk({ ...bereit, quellenart: "unsinn" }, "buecher") && !eintragOk({ ...bereit, quellenart: "forum", url: "https://x.example" }, "buecher") && !eintragOk({ ...bereit, textgrundlage: "frei" }, "buecher") && !eintragOk({ ...bereit, titel: " " }, "buecher"));
+  pruefe("Pflicht-Link: fehlt oder kein http(s), mit Leerzeichen und Großschreibung ok", !eintragOk({ ...bereit, quellenart: "forum" }, "internet") && !eintragOk({ ...bereit, quellenart: "forum", url: "forum.example" }, "internet") && eintragOk({ ...bereit, quellenart: "forum", url: "  HTTPS://forum.example " }, "internet"));
+  pruefe("Angaben fehlen: nur bei bereit, nicht bei schlechtem Text oder offenen Lücken", angabenFehlen({ ...bereit, titel: "" }, "buecher") && !angabenFehlen(bereit, "buecher") && !angabenFehlen({ ...bereit, titel: "", guete: guete("schlecht") }, "buecher") && !angabenFehlen({ ...bereit, titel: "", verlauf: verlauf({ fehlend: 1 }) }, "buecher") && !angabenFehlen({ ...leer, titel: "" }, "buecher"));
+  pruefe("Von selbst aufgeklappt: Fehler, offene Lücken, schlechter Text, fehlende Angaben", brauchtAufmerksamkeit({ ...leer, fehler: "x" }, "buecher") && brauchtAufmerksamkeit({ ...bereit, verlauf: verlauf({ fehlend: 1 }) }, "buecher") && brauchtAufmerksamkeit({ ...bereit, guete: guete("schlecht") }, "buecher") && brauchtAufmerksamkeit({ ...bereit, titel: "" }, "buecher") && !brauchtAufmerksamkeit(bereit, "buecher") && !brauchtAufmerksamkeit(leer, "buecher"));
+
+  const ladbar = { ...bereit, titel: "  Steuerkodex  ", url: "  ", verlauf: verlauf({ geprueft: false }) } as Ladbar;
+  const kopf = buchKopf(ladbar, ["p1", "p2"], ["buchhaltung"], "buecher");
+  pruefe("Kopf: Titel gekürzt, leerer Link entfällt als undefined, Zahl der Pakete und Zeichen", kopf.titel === "Steuerkodex" && "url" in kopf && kopf.url === undefined && kopf.pakete === 2 && kopf.zeichen === TEXT.length && kopf.hash === "a".repeat(64) && kopf.cluster === "buecher" && kopf.rollen.join() === "buchhaltung" && kopf.dateiname === "steuerkodex-2026.pdf");
+  pruefe("Kopf: ohne geprüften Seitenverlauf keine Seitenangabe", !("seiten" in kopf));
+  pruefe("Kopf: Reihenfolge der Angaben", Object.keys(kopf).join() === "titel,bereich,rollen,dateiname,hash,quellenart,cluster,textgrundlage,url,pakete,zeichen");
+  const mitSeiten = buchKopf({ ...ladbar, url: " https://x.example ", verlauf: verlauf({ luecken: [{ nachPdfSeite: 46, vonGedruckt: 48, bisGedruckt: 49, anzahl: 2, genau: true }], fehlend: 2 }), quellenart: "rechtsnorm", artikel: { artikel: 40, kleinste: 1, groesste: 42, luecken: [[5, 6]], fehlend: 2 } } as Ladbar, ["p1"], [], "publikationen");
+  pruefe("Kopf: Link getrimmt, Seitenangabe mit Stellen und bei Gesetzen mit Artikeln", mitSeiten.url === "https://x.example" && mitSeiten.seiten?.stellen === "48-49 (46)" && mitSeiten.seiten?.fehlend === 2 && mitSeiten.seiten?.artikelFehlend === 2 && mitSeiten.seiten?.orte === undefined);
+  const kommentar = buchKopf({ ...ladbar, verlauf: verlauf(), artikel: { artikel: 40, kleinste: 1, groesste: 42, luecken: [[5, 6]], fehlend: 2 } } as Ladbar, ["p1"], [], "buecher");
+  pruefe("Kopf: beim Kommentar keine Artikel in der Seitenangabe", !!kommentar.seiten && kommentar.seiten.artikelFehlend === undefined);
+
+  const e = (id: number, teil: Partial<Eintrag>): Eintrag => ({ ...bereit, id, ...teil });
+  const liste = [e(1, { schritt: "fertig", pakete: 3 }), e(2, { schritt: "laedt", pakete: 4, paket: 2 }), e(3, { schritt: "fehler", pakete: 2 }), e(4, { schritt: "abgebrochen", pakete: 5 }), e(5, { pakete: 6 })];
+  const lauf: Lauf = { ids: [1, 2, 3, 4], start: 1000, ende: null };
+  const f = gesamtFortschritt(liste, lauf, 61000);
+  pruefe("Fortschritt: Pakete im Lauf, erledigt zählt fertige und gescheiterte ganz, die laufende nach Paketen", f.imLauf.length === 4 && f.paketeGesamt === 14 && f.paketeErledigt === 12 && f.buecherFertig === 1 && f.buecherFehler === 2 && f.aktuellesBuch?.id === 2 && f.prozent === 85);
+  pruefe("Fortschritt: Restzeit aus der bisherigen Geschwindigkeit, mindestens eine Minute", f.restMinuten === 1 && gesamtFortschritt(liste, { ...lauf, start: 61000 - 600_000 }, 61000).restMinuten === 2);
+  pruefe("Fortschritt: keine Restzeit nach dem Ende, unter zwei Paketen oder unter fünf Sekunden", gesamtFortschritt(liste, { ...lauf, ende: 50000 }, 61000).restMinuten === null && gesamtFortschritt([e(2, { schritt: "laedt", pakete: 4, paket: 1 })], { ids: [2], start: 1000, ende: null }, 61000).restMinuten === null && gesamtFortschritt(liste, { ...lauf, start: 58000 }, 61000).restMinuten === null);
+  pruefe("Fortschritt: ohne Lauf nichts im Lauf, ohne Pakete null Prozent", gesamtFortschritt(liste, null, 0).imLauf.length === 0 && gesamtFortschritt(liste, null, 0).restMinuten === null && gesamtFortschritt([e(1, { schritt: "laedt", pakete: 0 })], { ids: [1], start: 0, ende: null }, 9000).prozent === 0);
+  pruefe("Fortschritt: höchstens 100 Prozent", gesamtFortschritt([e(1, { schritt: "laedt", pakete: 2, paket: 5 })], { ids: [1], start: 0, ende: null }, 1).prozent === 100);
+  const lesen = gesamtFortschritt([e(1, { schritt: "wartet" }), e(2, { schritt: "liest" }), e(3, {}), e(4, { schritt: "fehler" })], null, 0);
+  pruefe("Fortschritt: Lesen läuft, solange ein Eintrag wartet oder liest, gelesen zählt die übrigen", lesen.liestNoch && lesen.gelesen === 2 && !gesamtFortschritt([e(3, {})], null, 0).liestNoch);
+
+  const balken = (eintraege: Eintrag[], l: Lauf | null, jetzt = 61000) => rendere(<BuchFortschritt eintraege={eintraege} lauf={l} jetzt={jetzt} />).html;
+  pruefe("Fortschrittsanzeige: ohne Einträge oder ohne Lesen und Lauf nichts", balken([], lauf) === "" && balken([bereit], null) === "");
+  const leseAnzeige = balken([e(1, { schritt: "wartet" }), e(2, {})], null);
+  pruefe("Fortschrittsanzeige: Lesen mit Zahl und Balken", leseAnzeige.startsWith(`<div role="status" aria-live="polite" class="mt-3 space-y-1.5 rounded-lg border border-border bg-muted/30 p-2.5"><div class="space-y-1"><p class="text-xs font-semibold text-card-foreground">Dateien lesen und analysieren: 1 von 2</p><progress class="h-1.5 w-full" max="2" value="1" aria-label="${imMarkup(b.fortschritt.lesenBalken)}"></progress></div></div>`));
+  const laufAnzeige = balken(liste, lauf);
+  pruefe("Fortschrittsanzeige: Hochladen mit Buch, Prozent, Paketen, aktuellem Buch, Restzeit und Hinweis", laufAnzeige.includes("Buch 4 von 4 wird hochgeladen, insgesamt 85 Prozent") && laufAnzeige.includes(`<progress class="h-2 w-full" max="14" value="12" aria-label="${imMarkup(b.fortschritt.gesamtBalken)}"></progress>`) && laufAnzeige.includes("12 von 14 Paketen übertragen · gerade: Steuerkodex 2026 (Paket 2 von 4) · noch etwa 1 Min.") && laufAnzeige.includes(imMarkup(b.fortschritt.nichtSchliessen)));
+  pruefe("Fortschrittsanzeige: ein langer Titel wird auf 60 Zeichen gekürzt", balken([e(2, { schritt: "laedt", pakete: 4, paket: 2, titel: "y".repeat(80) })], { ids: [2], start: 1000, ende: null }).includes(`gerade: ${"y".repeat(60)} (Paket`));
+  pruefe("Fortschrittsanzeige: Ende mit Fehlern, ohne Restzeit und ohne Hinweis", balken(liste, { ...lauf, ende: 50000 }).includes("Beendet: 1 Bücher hochgeladen, 2 nicht.") && !balken(liste, { ...lauf, ende: 50000 }).includes("noch etwa") && !balken(liste, { ...lauf, ende: 50000 }).includes(imMarkup(b.fortschritt.nichtSchliessen)));
+  pruefe("Fortschrittsanzeige: Ende ohne Fehler", balken([e(1, { schritt: "fertig", pakete: 3 })], { ids: [1], start: 0, ende: 9000 }).includes("Fertig: 1 Bücher hochgeladen."));
+  pruefe("Fortschrittsanzeige: ein Lauf ohne passende Einträge zeigt nur den leeren Rahmen", balken([bereit], { ids: [99], start: 0, ende: null }) === `<div role="status" aria-live="polite" class="mt-3 space-y-1.5 rounded-lg border border-border bg-muted/30 p-2.5"></div>`);
+}
+
+// ---- 13. Alle Sprachen ---------------------------------------------------------------------------------------------------------------
 for (const loc of SPRACHEN) {
   const karte = rendere(<WissenBuecher beiFertig={() => {}} />, loc);
   pruefe(`Sprache ${loc}, Karte: kein fehlender Schlüssel, kein Fehler`, karte.fehler.length === 0, karte.fehler.slice(0, 3).join(" | "));
