@@ -4,6 +4,7 @@ import { prerender } from "react-dom/static";
 import type { SessionProfile } from "../../src/lib/auth";
 import type { AuswahlZeile, ReklamationDetail, ReklamationListenEintrag, ReklamationenListe } from "../../src/lib/data/reklamationen";
 import type { Role } from "../../src/lib/rbac";
+import { istAbschliessbar, istOffen, istUeberfaellig, reklamationsRechte, type ReklamationsRechte } from "../../src/lib/domain/reklamationen";
 import { ersetzeModule } from "./hilfen/modul-ersatz";
 import { imMarkup, pruefer, texteVon } from "./hilfen/ansicht-probe";
 
@@ -16,6 +17,9 @@ import { imMarkup, pruefer, texteVon } from "./hilfen/ansicht-probe";
 //     Status (offen, in Prüfung, angenommen, Endlage), Verlauf mit und ohne Einträge, intern markiert, Nachrichtenformular.
 //   * leere Liste und fehlendes Detail mit und ohne Anlegen-Link, Anlegen-Formular mit Kunden- und Chargenauswahl.
 //   * Grenzwerte: Menge, Gutschrift und Minuten 0 erscheinen (Prüfung auf null, nicht auf Wahrheitswert), Charge ohne Reihenblock.
+//   * seit dem Zerlegen (14.10.2026) die Teile einzeln: Statusregeln und reklamationsRechte (lib/domain/reklamationen.ts),
+//     zeitpunkt, hatRueckverfolgung und die Detailkarten (db/reklamation-detail.tsx) mit festen Daten, die Karten auch mit
+//     Rechten, die keine Rolle heute so hat (Prüfen ohne Entscheiden und umgekehrt).
 // Server-Bausteine sind ersetzt (hilfen/modul-ersatz.ts): next-intl/server liefert Übersetzer und Formatierer aus den echten
 // Texten, getSessionProfile die Anmeldung der Lage, die vier Lader feste Daten. Gerendert wird mit prerender, weil die Ansicht und
 // das Quellen-Abzeichen asynchrone Server-Komponenten sind. Abschicken der Formulare bleibt ein Prüfpunkt im Browser.
@@ -507,6 +511,88 @@ async function main() {
       angaben(rv).join(" | "),
     );
     pruefe("Grenzwerte: 0 Minuten nach dem Pflücken statt ohne Zeitpunkt", rv.includes('<span class="text-foreground">0 Minuten nach dem Pflücken</span>') && !rv.includes(imMarkup(t.rueckverfolgung.ohneZeitpunkt!)));
+  }
+
+  // ---- 9. Teile ohne die Ansicht: Statusregeln, Rechte, Zeitpunkt und Detailkarten (seit dem Zerlegen, 14.10.2026) ----------------
+  {
+    const { ReklamationDetailKarten, hatRueckverfolgung, zeitpunkt } = await import("../../src/components/db/reklamation-detail");
+    const alle = ["offen", "in_pruefung", "angenommen", "abgelehnt", "erledigt"] as const;
+    pruefe("Status: offen sind nur gemeldet und in Prüfung", alle.filter(istOffen).join(",") === "offen,in_pruefung");
+    pruefe("Status: abschließbar ist zusätzlich angenommen", alle.filter(istAbschliessbar).join(",") === "offen,in_pruefung,angenommen");
+    pruefe(
+      "Frist: überfällig nur offen oder in Prüfung und vor heute",
+      istUeberfaellig({ status: "offen", fristAm: "2026-10-13" }, "2026-10-14") &&
+        istUeberfaellig({ status: "in_pruefung", fristAm: "2026-10-01" }, "2026-10-14") &&
+        !istUeberfaellig({ status: "offen", fristAm: "2026-10-14" }, "2026-10-14") &&
+        !istUeberfaellig({ status: "offen", fristAm: null }, "2026-10-14") &&
+        !istUeberfaellig({ status: "angenommen", fristAm: "2026-10-01" }, "2026-10-14"),
+    );
+
+    const rechte = (rolle: Role | null | undefined, live: boolean) =>
+      Object.entries(reklamationsRechte(rolle, live))
+        .filter(([, darf]) => darf)
+        .map(([name]) => name)
+        .join(",");
+    pruefe("Rechte: Büro mit Live-Daten darf alles", rechte("betriebsleitung", true) === "istBuero,darfAnlegen,darfInPruefungNehmen,darfEntscheiden", rechte("betriebsleitung", true));
+    pruefe("Rechte: Büro ohne Live-Daten bleibt Büro, schreibt aber nichts", rechte("admin", false) === "istBuero", rechte("admin", false));
+    pruefe("Rechte: Kunde legt nur an, und nur mit Live-Daten", rechte("kunde", true) === "darfAnlegen" && rechte("kunde", false) === "");
+    pruefe("Rechte: Brigade und ohne Anmeldung nichts", rechte("brigade", true) === "" && rechte(null, true) === "" && rechte(undefined, true) === "");
+
+    const ohne = detailVon(LISTE[1]!);
+    pruefe(
+      "Rückverfolgung: jeder Block allein reicht, ohne alle keine",
+      !hatRueckverfolgung(ohne) &&
+        hatRueckverfolgung({ ...ohne, pflueckerListe: RUECKVERFOLGUNG.pflueckerListe }) &&
+        hatRueckverfolgung({ ...ohne, kuehlmessungen: RUECKVERFOLGUNG.kuehlmessungen }) &&
+        hatRueckverfolgung({ ...ohne, transportMessungen: RUECKVERFOLGUNG.transportMessungen }) &&
+        hatRueckverfolgung({ ...ohne, nachbarbetrieb: RUECKVERFOLGUNG.nachbarbetrieb }),
+    );
+    const format = createFormatter({ locale: "de", timeZone: ZEITZONE });
+    pruefe("Zeitpunkt: Datum mittel mit Uhrzeit, ohne Angabe ein Strich", zeitpunkt(format, "2026-09-03T05:10:00Z") === DATUM && zeitpunkt(format, null) === "-");
+
+    // Die Detailkarten allein mit festen Daten, ohne Ansicht und ohne Lader. In derselben Spalte gebaut wie in der Ansicht, damit
+    // die Auszüge (karten, statusZiele, nachricht) greifen; das Markup der Karten steht Zeichen für Zeichen auch in der ganzen Ansicht.
+    // React hängt bei Formularen mit Aktion ein Skript für vorzeitiges Abschicken hinter die Wurzel; es gehört nicht zu den Karten.
+    const spalte = (detail: ReklamationDetail, rechte: ReklamationsRechte) =>
+      baue(() => (
+        <div className="space-y-3">
+          <ReklamationDetailKarten detail={detail} rechte={rechte} heuteIso={HEUTE} />
+        </div>
+      ));
+    const kartenMarkup = (html: string) => html.replace(/<script>[\s\S]*?<\/script>$/, "").slice('<div class="space-y-3">'.length, -"</div>".length);
+    for (const [id, rolle] of [["r1", "betriebsleitung"], ["r3", "betriebsleitung"], ["r1", "kunde"], ["r6", "brigade"]] as const) {
+      setze({ profil: profil(rolle, rolle === "kunde" ? "k1" : null) });
+      const ganz = (await ansicht(id)).html;
+      const allein = await spalte(DETAILS[id]!, reklamationsRechte(rolle, true));
+      const fehler = allein.fehler.filter((f) => !f.includes(UNBEKANNT));
+      pruefe(
+        `Detailkarten allein (${id}, ${rolle}): ohne Fehler und Zeichen für Zeichen wie in der Ansicht`,
+        fehler.length === 0 && kartenMarkup(allein.html).startsWith('<div class="rounded-2xl border border-border p-5 bg-muted/20">') && ganz.includes(kartenMarkup(allein.html)),
+        fehler.slice(0, 2).join(" | "),
+      );
+    }
+
+    // Bearbeitung je Recht, auch in Kombinationen, die heute keine Rolle hat (wer update hat, hat auch approve).
+    const ohneRechte: ReklamationsRechte = { istBuero: false, darfAnlegen: false, darfInPruefungNehmen: false, darfEntscheiden: false };
+    const bearbeitung = async (status: ReklamationDetail["status"], rechte: Partial<ReklamationsRechte>) => {
+      const { html } = await spalte({ ...DETAILS.r4!, status }, { ...ohneRechte, ...rechte });
+      return `${karten(html)} ${statusZiele(html) || "-"}`;
+    };
+    const faelle: [string, ReklamationDetail["status"], Partial<ReklamationsRechte>, string][] = [
+      ["nur in Prüfung nehmen, offen", "offen", { darfInPruefungNehmen: true }, "Kopf|Prüfen|Verlauf in_pruefung"],
+      ["nur in Prüfung nehmen, schon in Prüfung", "in_pruefung", { darfInPruefungNehmen: true }, "Kopf|Verlauf -"],
+      ["nur entscheiden, offen", "offen", { darfEntscheiden: true }, "Kopf|Entscheidung|Verlauf angenommen,erledigt,abgelehnt"],
+      ["nur entscheiden, angenommen", "angenommen", { darfEntscheiden: true }, "Kopf|Entscheidung|Verlauf erledigt"],
+      ["nur entscheiden, abgelehnt", "abgelehnt", { darfEntscheiden: true }, "Kopf|Verlauf -"],
+    ];
+    for (const [name, status, rechte, erwartet] of faelle) {
+      const ergebnis = await bearbeitung(status, rechte);
+      pruefe(`Teile: ${name}`, ergebnis === erwartet, ergebnis);
+    }
+    const nurBuero = await spalte(DETAILS.r1!, { ...ohneRechte, istBuero: true });
+    pruefe("Teile: Büro ohne Schreibrecht sieht Rückverfolgung, schreibt aber keine Nachricht", karten(nurBuero.html) === "Kopf|Rückverfolgung|Verlauf" && nachricht(nurBuero.html) === null, karten(nurBuero.html));
+    const nurAnlegen = await spalte(DETAILS.r1!, { ...ohneRechte, darfAnlegen: true });
+    pruefe("Teile: Anlegen ohne Büro schreibt Nachrichten ohne Intern-Schalter, ohne Rückverfolgung", karten(nurAnlegen.html) === "Kopf|Verlauf" && nachricht(nurAnlegen.html) === "r1", karten(nurAnlegen.html));
   }
 
   ende();

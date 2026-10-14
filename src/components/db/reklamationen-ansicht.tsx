@@ -1,31 +1,34 @@
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
+import { useFormatter, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Card, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
-import {
-  ReklamationAnlegenFormular,
-  ReklamationEntscheidungFormular,
-  ReklamationInPruefungFormular,
-  ReklamationNachrichtFormular,
-} from "@/components/db/reklamationen-formulare";
+import { ReklamationAnlegenFormular } from "@/components/db/reklamationen-formulare";
+import { ReklamationDetailKarten, zeitpunkt } from "@/components/db/reklamation-detail";
 import {
   ladeB2bKundenOptionen,
   ladeChargenOptionen,
   ladeReklamation,
   ladeReklamationen,
+  type ReklamationListenEintrag,
 } from "@/lib/data/reklamationen";
 import { getSessionProfile } from "@/lib/auth";
-import { hasPermission } from "@/lib/rbac";
-import { reklamationStatusMeta } from "@/lib/domain/reklamationen";
+import {
+  istOffen,
+  istUeberfaellig,
+  reklamationsRechte,
+  reklamationStatusMeta,
+} from "@/lib/domain/reklamationen";
 import { LeererZustand } from "@/components/ui/liste";
 import { formularZiel } from "@/lib/formular-ziele";
-import { kuehlErgebnisTon } from "@/components/db/toene";
 
-// Reklamationsmanagement (WMCNL-1455). Liste + Detail wie bei
-// pflueckaufgaben-ansicht.tsx: die Auswahl laeuft ueber die Adresszeile, damit
+// Reklamationsmanagement (WMCNL-1455). Liste und Detail wie bei
+// pflueckaufgaben-ansicht.tsx: Die Auswahl läuft über die Adresszeile, damit
 // die Ansicht serverseitig bleibt und ein Link auf eine Reklamation teilbar
-// ist. Wer was sieht, entscheidet RLS (Buero alles, ein Kunde nur die eigene
-// Firma) - diese Komponente filtert nicht zusaetzlich selbst.
+// ist. Wer was sieht, entscheidet RLS (Büro alles, ein Kunde nur die eigene
+// Firma). Diese Komponente filtert nicht zusätzlich selbst. Die rechte Spalte
+// mit dem Detail steht in reklamation-detail.tsx, die Rechte und Statusregeln
+// in lib/domain/reklamationen.ts.
 export async function ReklamationenAnsicht({
   pfad,
   auswahl,
@@ -38,23 +41,11 @@ export async function ReklamationenAnsicht({
     getSessionProfile(),
     getTranslations("reklamationenAnsicht"),
   ]);
-  const st = await getTranslations("reklamationStatus");
-  const grundT = await getTranslations("reklamationGrund");
-  // Wiederverwendung der bestehenden ok/warnung/verstoss-Beschriftungen aus
-  // der Nachweiskette statt einer zweiten Uebersetzung derselben drei Werte.
-  const kkT = await getTranslations("nachweiskette");
-  const format = await getFormatter();
 
   const gewaehlt = liste.reklamationen.find((r) => r.id === auswahl) ?? liste.reklamationen[0];
 
-  const live = liste.quelle === "db";
-  // "approve" ist in rbac.ts ausschliesslich den Buero-Rollen vorbehalten -
-  // damit laesst sich hier zuverlaessig zwischen Kunde und Buero unterscheiden,
-  // ohne die Rolle selbst abzufragen.
-  const istBuero = hasPermission(profil?.role, "reklamationen", "approve");
-  const darfAnlegen = live && hasPermission(profil?.role, "reklamationen", "create");
-  const darfInPruefungNehmen = live && hasPermission(profil?.role, "reklamationen", "update");
-  const darfEntscheiden = live && hasPermission(profil?.role, "reklamationen", "approve");
+  const rechte = reklamationsRechte(profil?.role, liste.quelle === "db");
+  const { istBuero, darfAnlegen } = rechte;
 
   const [b2bKunden, chargen, detail] = await Promise.all([
     darfAnlegen && istBuero ? ladeB2bKundenOptionen() : Promise.resolve([]),
@@ -63,17 +54,6 @@ export async function ReklamationenAnsicht({
   ]);
 
   const heuteIso = new Date().toISOString().slice(0, 10);
-  const istOffen = (statusWert: string) => statusWert === "offen" || statusWert === "in_pruefung";
-  // "angenommen" ist keine Endlage wie "abgelehnt"/"erledigt": eine
-  // angenommene Reklamation braucht noch den Abschluss durch "Als erledigt
-  // abschliessen" (WMCNL-2374) - fuer die Frist-/Ueberfaelligkeitslogik oben
-  // zaehlt sie trotzdem nicht mehr als "offen" (istOffen bleibt unveraendert).
-  const istAbschliessbar = (statusWert: string) => istOffen(statusWert) || statusWert === "angenommen";
-  const istUeberfaellig = (r: { status: string; fristAm: string | null }) =>
-    istOffen(r.status) && !!r.fristAm && r.fristAm < heuteIso;
-
-  const datum = (iso: string | null) =>
-    iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }) : "-";
 
   return (
     <div className="space-y-6">
@@ -95,46 +75,16 @@ export async function ReklamationenAnsicht({
                 }
               />
             ) : (
-              liste.reklamationen.map((r) => {
-                const aktiv = r.id === gewaehlt?.id;
-                return (
-                  <Link
-                    key={r.id}
-                    href={{ pathname: pfad, query: { reklamation: r.id } }}
-                    scroll={false}
-                    className={`block w-full rounded-xl border p-4 text-left transition ${
-                      aktiv
-                        ? "border-primary bg-primary/5"
-                        : "border-border bg-card hover:border-primary/40"
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-mono text-xs font-semibold text-foreground">
-                        {r.code}
-                      </span>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {istOffen(r.status) && r.fristAm ? (
-                          <StatusPill tone={istUeberfaellig(r) ? "danger" : "neutral"}>
-                            {t("frist")}: {format.dateTime(new Date(r.fristAm), { dateStyle: "short" })}
-                          </StatusPill>
-                        ) : null}
-                        <StatusPill tone={reklamationStatusMeta[r.status].tone as Tone}>
-                          {st(r.status)}
-                        </StatusPill>
-                      </div>
-                    </div>
-                    <p className="mt-1 text-sm font-semibold text-card-foreground">
-                      {istBuero ? `${r.kunde} · ` : ""}
-                      {r.betreff}
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span>{grundT(r.grund)}</span>
-                      {r.chargeCode ? <span>{t("charge")} {r.chargeCode}</span> : null}
-                      <span>{datum(r.gemeldetAm)}</span>
-                    </div>
-                  </Link>
-                );
-              })
+              liste.reklamationen.map((r) => (
+                <ReklamationsEintrag
+                  key={r.id}
+                  r={r}
+                  aktiv={r.id === gewaehlt?.id}
+                  pfad={pfad}
+                  istBuero={istBuero}
+                  heuteIso={heuteIso}
+                />
+              ))
             )}
           </div>
         </Section>
@@ -143,255 +93,7 @@ export async function ReklamationenAnsicht({
           {!detail ? (
             <LeererZustand titel={t("detailEmpty")} modul="reklamationen" />
           ) : (
-            <>
-              <Card>
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <span className="font-mono text-xs font-semibold text-muted-foreground">
-                      {detail.code}
-                    </span>
-                    <p className="mt-0.5 text-sm font-black text-card-foreground">
-                      {detail.betreff}
-                    </p>
-                  </div>
-                  <StatusPill tone={reklamationStatusMeta[detail.status].tone as Tone}>
-                    {st(detail.status)}
-                  </StatusPill>
-                </div>
-
-                {detail.beschreibung ? (
-                  <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                    {detail.beschreibung}
-                  </p>
-                ) : null}
-
-                <dl className="mt-3 grid grid-cols-1 gap-x-3 gap-y-2 text-xs sm:grid-cols-2">
-                  <div>
-                    <dt className="text-muted-foreground">{t("kunde")}</dt>
-                    <dd className="font-semibold text-foreground">{detail.kunde}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">{t("grund")}</dt>
-                    <dd className="font-semibold text-foreground">{grundT(detail.grund)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">{t("charge")}</dt>
-                    <dd className="font-semibold text-foreground">
-                      {detail.chargeCode
-                        ? `${detail.chargeCode}${detail.reihenblock ? ` · ${t("reihenblock")} ${detail.reihenblock}` : ""}`
-                        : t("ohneCharge")}
-                    </dd>
-                  </div>
-                  {detail.betroffeneMengeKg !== null ? (
-                    <div>
-                      <dt className="text-muted-foreground">{t("menge")}</dt>
-                      <dd className="font-semibold text-foreground">{detail.betroffeneMengeKg} kg</dd>
-                    </div>
-                  ) : null}
-                  <div>
-                    <dt className="text-muted-foreground">{t("gemeldetAm")}</dt>
-                    <dd className="font-semibold text-foreground">{datum(detail.gemeldetAm)}</dd>
-                  </div>
-                  {detail.gemeldetVon ? (
-                    <div>
-                      <dt className="text-muted-foreground">{t("gemeldetVon")}</dt>
-                      <dd className="font-semibold text-foreground">{detail.gemeldetVon}</dd>
-                    </div>
-                  ) : null}
-                  {istOffen(detail.status) && detail.fristAm ? (
-                    <div>
-                      <dt className="text-muted-foreground">{t("frist")}</dt>
-                      <dd
-                        className={`font-semibold ${istUeberfaellig(detail) ? "text-destructive" : "text-foreground"}`}
-                      >
-                        {format.dateTime(new Date(detail.fristAm), { dateStyle: "medium" })}
-                      </dd>
-                    </div>
-                  ) : null}
-                  {!istOffen(detail.status) ? (
-                    <div>
-                      <dt className="text-muted-foreground">{t("erledigtAm")}</dt>
-                      <dd className="font-semibold text-foreground">{datum(detail.erledigtAm)}</dd>
-                    </div>
-                  ) : null}
-                  {detail.gutschriftTenge !== null ? (
-                    <div>
-                      <dt className="text-muted-foreground">{t("gutschrift")}</dt>
-                      <dd className="font-semibold text-foreground">
-                        {format.number(detail.gutschriftTenge)} ₸
-                      </dd>
-                    </div>
-                  ) : null}
-                </dl>
-
-                {detail.loesung && !istOffen(detail.status) ? (
-                  <p className="mt-3 rounded-lg border border-border bg-muted/30 p-2.5 text-xs leading-5 text-foreground">
-                    <span className="font-semibold">{t("loesung")}: </span>
-                    {detail.loesung}
-                  </p>
-                ) : null}
-              </Card>
-
-              {istBuero &&
-              (detail.pflueckerListe.length > 0 ||
-                detail.kuehlmessungen.length > 0 ||
-                detail.transportMessungen.length > 0 ||
-                detail.nachbarbetrieb) ? (
-                <Card className="space-y-3">
-                  <div>
-                    <p className="text-sm font-black text-card-foreground">
-                      {t("rueckverfolgung.titel")}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                      {t("rueckverfolgung.lead")}
-                    </p>
-                  </div>
-
-                  {detail.pflueckerListe.length > 0 ? (
-                    <div>
-                      <dt className="text-xs text-muted-foreground">
-                        {t("rueckverfolgung.pfluecker")}
-                      </dt>
-                      <dd className="mt-1 flex flex-wrap gap-1.5">
-                        {detail.pflueckerListe.map((p) => (
-                          <span
-                            key={p.ausweis}
-                            className="rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-foreground"
-                          >
-                            {p.name} · {p.ausweis}
-                          </span>
-                        ))}
-                      </dd>
-                    </div>
-                  ) : null}
-
-                  {detail.kuehlmessungen.length > 0 ? (
-                    <div>
-                      <dt className="text-xs text-muted-foreground">
-                        {t("rueckverfolgung.kuehlkette")}
-                      </dt>
-                      <dd className="mt-1 space-y-1">
-                        {detail.kuehlmessungen.map((m) => (
-                          <div key={m.id} className="flex flex-wrap items-center gap-1.5 text-xs">
-                            <StatusPill tone={kuehlErgebnisTon[m.ergebnis] ?? "neutral"}>
-                              {kkT(`ergebnis.${m.ergebnis}`)}
-                            </StatusPill>
-                            <span className="text-foreground">
-                              {m.minutenSeitPfluecken !== null
-                                ? t("rueckverfolgung.minuten", { minuten: m.minutenSeitPfluecken })
-                                : t("rueckverfolgung.ohneZeitpunkt")}
-                            </span>
-                            <span className="text-muted-foreground">· {datum(m.gemessenAm)}</span>
-                          </div>
-                        ))}
-                      </dd>
-                    </div>
-                  ) : null}
-
-                  {detail.transportMessungen.length > 0 ? (
-                    <div>
-                      <dt className="text-xs text-muted-foreground">
-                        {t("rueckverfolgung.transport")}
-                      </dt>
-                      <dd className="mt-1 space-y-1">
-                        {detail.transportMessungen.map((m) => (
-                          <div key={m.id} className="flex flex-wrap items-center gap-1.5 text-xs">
-                            <StatusPill tone={kuehlErgebnisTon[m.ergebnis] ?? "neutral"}>
-                              {m.temperaturC} °C · {kkT(`ergebnis.${m.ergebnis}`)}
-                            </StatusPill>
-                            <span className="text-muted-foreground">{datum(m.gemessenAm)}</span>
-                          </div>
-                        ))}
-                      </dd>
-                    </div>
-                  ) : null}
-
-                  {detail.nachbarbetrieb ? (
-                    <div>
-                      <dt className="text-xs text-muted-foreground">
-                        {t("rueckverfolgung.nachbarbetrieb")}
-                      </dt>
-                      <dd className="mt-1 text-xs font-semibold text-foreground">
-                        {detail.nachbarbetrieb.name}
-                        {detail.nachbarbetrieb.ort ? ` · ${detail.nachbarbetrieb.ort}` : ""}
-                      </dd>
-                    </div>
-                  ) : null}
-                </Card>
-              ) : null}
-
-              {darfInPruefungNehmen && detail.status === "offen" ? (
-                <Card>
-                  <p className="text-sm font-black text-card-foreground">{t("ablauf.titel")}</p>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("ablauf.lead")}</p>
-                  <div className="mt-3">
-                    <ReklamationInPruefungFormular id={detail.id} />
-                  </div>
-                </Card>
-              ) : null}
-
-              {darfEntscheiden && istAbschliessbar(detail.status) ? (
-                <Card className="space-y-3">
-                  <div>
-                    <p className="text-sm font-black text-card-foreground">{t("ablauf.titel")}</p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("ablauf.lead")}</p>
-                  </div>
-                  {istOffen(detail.status) ? (
-                    <ReklamationEntscheidungFormular
-                      id={detail.id}
-                      ziel="angenommen"
-                      label={t("ablauf.annehmenKnopf")}
-                      mitGutschrift
-                    />
-                  ) : null}
-                  <ReklamationEntscheidungFormular
-                    id={detail.id}
-                    ziel="erledigt"
-                    label={t("ablauf.erledigtKnopf")}
-                    mitGutschrift
-                  />
-                  {istOffen(detail.status) ? (
-                    <ReklamationEntscheidungFormular
-                      id={detail.id}
-                      ziel="abgelehnt"
-                      label={t("ablauf.ablehnenKnopf")}
-                      mitGutschrift={false}
-                    />
-                  ) : null}
-                </Card>
-              ) : null}
-
-              <Card>
-                <p className="text-sm font-black text-card-foreground">{t("verlaufTitel")}</p>
-                <div className="mt-3 space-y-2.5">
-                  {detail.ereignisse.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">{t("verlaufLeer")}</p>
-                  ) : (
-                    detail.ereignisse.map((e) => (
-                      <div key={e.id} className="rounded-lg border border-border p-2.5 text-xs">
-                        <div className="flex flex-wrap items-center justify-between gap-1.5">
-                          <span className="font-semibold text-foreground">
-                            {e.autor ?? detail.kunde}
-                          </span>
-                          <div className="flex items-center gap-1.5">
-                            {!e.sichtbarFuerKunde ? (
-                              <StatusPill tone="neutral">{t("internMarkierung")}</StatusPill>
-                            ) : null}
-                            <span className="text-[11px] text-muted-foreground">{datum(e.erstelltAm)}</span>
-                          </div>
-                        </div>
-                        <p className="mt-1 leading-5 text-foreground">{e.text}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-                {darfAnlegen ? (
-                  <div className="mt-3 border-t border-border pt-3">
-                    <ReklamationNachrichtFormular reklamationId={detail.id} istBuero={istBuero} />
-                  </div>
-                ) : null}
-              </Card>
-            </>
+            <ReklamationDetailKarten detail={detail} rechte={rechte} heuteIso={heuteIso} />
           )}
 
           <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{t("note")}</Card>
@@ -406,5 +108,62 @@ export async function ReklamationenAnsicht({
         />
       ) : null}
     </div>
+  );
+}
+
+/** Ein Eintrag der Liste, verlinkt über die Adresszeile. */
+function ReklamationsEintrag({
+  r,
+  aktiv,
+  pfad,
+  istBuero,
+  heuteIso,
+}: {
+  r: ReklamationListenEintrag;
+  aktiv: boolean;
+  pfad: string;
+  istBuero: boolean;
+  heuteIso: string;
+}) {
+  const t = useTranslations("reklamationenAnsicht");
+  const st = useTranslations("reklamationStatus");
+  const grundT = useTranslations("reklamationGrund");
+  const format = useFormatter();
+
+  return (
+    <Link
+      href={{ pathname: pfad, query: { reklamation: r.id } }}
+      scroll={false}
+      className={`block w-full rounded-xl border p-4 text-left transition ${
+        aktiv
+          ? "border-primary bg-primary/5"
+          : "border-border bg-card hover:border-primary/40"
+      }`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="font-mono text-xs font-semibold text-foreground">
+          {r.code}
+        </span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {istOffen(r.status) && r.fristAm ? (
+            <StatusPill tone={istUeberfaellig(r, heuteIso) ? "danger" : "neutral"}>
+              {t("frist")}: {format.dateTime(new Date(r.fristAm), { dateStyle: "short" })}
+            </StatusPill>
+          ) : null}
+          <StatusPill tone={reklamationStatusMeta[r.status].tone as Tone}>
+            {st(r.status)}
+          </StatusPill>
+        </div>
+      </div>
+      <p className="mt-1 text-sm font-semibold text-card-foreground">
+        {istBuero ? `${r.kunde} · ` : ""}
+        {r.betreff}
+      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <span>{grundT(r.grund)}</span>
+        {r.chargeCode ? <span>{t("charge")} {r.chargeCode}</span> : null}
+        <span>{zeitpunkt(format, r.gemeldetAm)}</span>
+      </div>
+    </Link>
   );
 }
