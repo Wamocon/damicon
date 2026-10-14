@@ -48,6 +48,9 @@ next-env.d.ts
 # playwright test runner artifacts (siehe e2e/, playwright.config.ts)
 /playwright-report/
 /test-results/
+# Referenzbilder der visuellen Regression gelten nur fuer die CI-Umgebung (Linux): Bilder von Windows oder macOS nie einchecken.
+/e2e/visuell.spec.ts-snapshots/*-win32.png
+/e2e/visuell.spec.ts-snapshots/*-darwin.png
 
 # Snapshots und Zwischenergebnisse von Prüf-Agenten
 /*-leitung.md

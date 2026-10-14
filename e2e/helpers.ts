@@ -10,6 +10,9 @@ import { expect } from "@playwright/test";
 export const PASSWORT = process.env.DAMICON_DEMO_PASSWORT ?? "DamiconDemo2026!";
 
 export const KONTEN = {
+  admin: process.env.DAMICON_KONTO_ADMIN ?? "admin@damicon.demo",
+  ceo: process.env.DAMICON_KONTO_CEO ?? "ceo@damicon.demo",
+  erzeuger: process.env.DAMICON_KONTO_ERZEUGER ?? "erzeuger@damicon.demo",
   kunde: process.env.DAMICON_KONTO_KUNDE ?? "kunde@damicon.demo",
   leitung: process.env.DAMICON_KONTO_LEITUNG ?? "leitung@damicon.demo",
   brigade: process.env.DAMICON_KONTO_BRIGADE ?? "brigade@damicon.demo",

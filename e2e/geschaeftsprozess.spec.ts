@@ -21,11 +21,16 @@ import { anmelden, testMarker } from "./helpers";
  * pflueckaufgaben-liste.spec.ts.
  */
 
+/** Ein Pixel, PNG: der kleinste gueltige Fotobeleg. */
+const KLEINES_BILD = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+
 test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag", () => {
   const sorte = "Polka";
   // Kleine, pro Lauf unterscheidbare Menge, damit die Zeile auch bei mehrfacher
   // Ausfuehrung am selben Tag in der Buero-Liste eindeutig wiedergefunden wird.
-  const menge = (40 + new Date().getSeconds() / 100).toFixed(2).replace(".", ",");
+  // Die Oberflaeche zeigt "40,3" statt "40,30": eine Menge, die auf 0 endet, liesse sich nicht mehr wiederfinden.
+  const hundertstel = new Date().getSeconds();
+  const menge = (40 + (hundertstel % 10 === 0 ? hundertstel + 1 : hundertstel) / 100).toFixed(2).replace(".", ",");
   const kostentraegerName = testMarker("Regressionstest Kostentraeger");
 
   let pflueckaufgabeCode = "";
@@ -66,6 +71,9 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     const wochenVoraus = page.getByRole("textbox", { name: "Wochen voraus" });
     await wochenVoraus.fill("2");
     await page.getByRole("button", { name: "Plan erzeugen" }).click();
+    // Wie viele Termine im ersten Lauf entstehen, haengt vom Bestand ab (Demo: 0, frische Datenbank: mehrere).
+    // Erst wenn er fertig ist, laeuft der zweite: sonst ueberholen sich die beiden Aufrufe auf einer frischen Datenbank.
+    await expect(page.getByText(/\d+ neue Termine erzeugt\./)).toBeVisible();
     await wochenVoraus.fill("2");
     await page.getByRole("button", { name: "Plan erzeugen" }).click();
     await expect(page.getByText("0 neue Termine erzeugt.")).toBeVisible();
@@ -117,13 +125,8 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     await page.getByRole("link", { name: new RegExp(pflueckaufgabeCode) }).click();
     const panel = page.getByRole("region", { name: new RegExp(pflueckaufgabeCode) });
 
+    // WMCNL-2414 ist behoben (Migrationen 20261121000000 und 20261122000000): die Brigade nimmt die Aufgabe an.
     await panel.getByRole("button", { name: "Aufgabe annehmen" }).click();
-    // Bekannter Defekt WMCNL-2414: die Aktion wird derzeit rollenseitig
-    // abgewiesen. Sobald behoben, muessen die folgenden Schritte wieder aktiv
-    // sein (siehe e2e/bekannte-defekte.spec.ts fuer den isolierten Nachweis).
-    await expect(panel.getByText("Ihre Rolle darf diesen Vorgang nicht ausführen.")).toBeVisible();
-    test.fixme(true, "Blockiert durch WMCNL-2414: Aufgabe annehmen fuer Brigade nicht moeglich.");
-
     await panel.getByRole("button", { name: "Pflücken starten" }).click();
     // Steigen, Arbeitszeit und Kuehlmessung stehen im Reiter Nachweiskette.
     await panel.getByRole("link", { name: "Nachweiskette", exact: true }).click();
@@ -133,6 +136,11 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     await panel.getByRole("button", { name: "Arbeitszeit melden" }).click();
     await panel.getByLabel("Temperatur in °C").fill("3,5");
     await panel.getByRole("button", { name: "Kühlmessung erfassen" }).click();
+    // Ohne Fotobeleg gibt die Betriebsleitung die Aufgabe nicht frei. Ein kleines Bild genuegt.
+    await panel.getByRole("link", { name: /^Fotobelege/ }).click();
+    await panel.locator('input[type="file"]').setInputFiles({ name: "beleg.png", mimeType: "image/png", buffer: Buffer.from(KLEINES_BILD, "base64") });
+    await panel.getByRole("button", { name: "Fotobeleg hochladen" }).click();
+    await expect(panel.getByRole("link", { name: /^Fotobelege\s*1/ })).toBeVisible();
     await panel.getByRole("link", { name: "Übersicht", exact: true }).click();
     await panel.getByLabel("Ist-Menge").fill("41,2");
     await panel.getByRole("button", { name: "Menge melden und zur Belegprüfung geben" }).click();
@@ -141,7 +149,6 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
 
   test("[Betriebsleitung]-E2E-Beleg prüfen und Qualitätsfaktor freigeben", async ({ page }) => {
     test.skip(!pflueckaufgabeCode, "Vorherige Phase hat keinen Aufgaben-Code geliefert.");
-    test.fixme(true, "Erwartet einen von der Brigade angenommenen Auftrag, siehe WMCNL-2414.");
     await anmelden(page, "leitung");
 
     await page.goto(`/de/dashboard/feld/pflueckaufgaben?suche=${pflueckaufgabeCode}`);
@@ -172,17 +179,22 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     await lieferungFormular.getByRole("button", { name: "Lieferung anlegen" }).click();
     await expect(page.getByText("Lieferung angelegt.")).toBeVisible();
 
+    // Die Karte dieser Lieferung: das innerste Element, das den Chargen-Code UND das Messfeld enthaelt. Mit .first()
+    // kaeme der aeusserste Behaelter, und bei mehreren geplanten Lieferungen waeren die Felder nicht mehr eindeutig.
     const lieferungsKarte = page
-      .locator("article, li, div", { hasText: chargenCode })
+      .locator("div")
+      .filter({ hasText: chargenCode })
       .filter({ hasText: "geplant" })
-      .first();
+      .filter({ has: page.getByLabel("Temperatur in °C") })
+      .last();
     await lieferungsKarte.getByLabel("Temperatur in °C").fill("2,9");
     await lieferungsKarte.getByRole("button", { name: "Messung erfassen" }).click();
     await expect(page.getByText("Transportmessung erfasst.")).toBeVisible();
 
-    await lieferungsKarte.getByLabel("Empfänger").fill("Regressionstest Empfänger");
+    await lieferungsKarte.getByLabel("Entgegengenommen von").fill("Regressionstest Empfänger");
     await lieferungsKarte.getByRole("button", { name: "Übergabe erfassen" }).click();
-    await expect(lieferungsKarte.getByText("zugestellt")).toBeVisible();
+    // Nach der Uebergabe hat die Karte kein Messfeld mehr: sie wird ueber Code und neuen Status gefunden.
+    await expect(page.locator("div").filter({ hasText: chargenCode }).filter({ hasText: "zugestellt" }).last()).toBeVisible();
   });
 
   test("[Kunde]-E2E-Lieferung und Herkunft nachweisen", async ({ page, context }) => {
@@ -200,7 +212,7 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     // im QR-Etikett. Dieser Test prueft daher die allgemeine Zugriffsregel
     // anhand der Aushang-Uebersicht statt eines konkreten Codes.
     await oeffentlicheSeite.goto("/de/herkunft/aushang");
-    await expect(oeffentlicheSeite.getByRole("heading", { name: /Herkunft/ })).toBeVisible();
+    await expect(oeffentlicheSeite.getByRole("heading", { name: /Woher kommt diese Himbeere/ })).toBeVisible();
     await oeffentlicherKontext.close();
   });
 
@@ -219,7 +231,8 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     await page.getByLabel("Periode von").fill(isoVon);
     await page.getByLabel("Periode bis").fill(isoBis);
     await page.getByRole("button", { name: "Periode berechnen" }).click();
-    await expect(page.getByText(/Abrechnung\(en\) berechnet/)).toBeVisible();
+    // Die Berechnung laeuft in der Datenbank und braucht auf einem frischen Start laenger als die uebliche Wartezeit.
+    await expect(page.getByText(/Abrechnung\(en\) berechnet/)).toBeVisible({ timeout: 30_000 });
 
     await page.goto("/de/dashboard/buero/finanzen");
     // Die Finanzseite steht in Reitern: Kostentraeger ist der Standardreiter,
@@ -262,7 +275,8 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     await anmelden(page, "pfluecker");
 
     await page.goto("/de/dashboard/buero/lohn");
-    const tabelle = page.locator("table", { hasText: "Abrechnungen" }).first();
+    // "Abrechnungen" ist die Ueberschrift des Abschnitts, nicht Teil der Tabelle: sie wird ueber die Spalte Grundlohn gefunden.
+    const tabelle = page.locator("table", { hasText: "Grundlohn" }).first();
     await expect(tabelle).toBeVisible();
     // Nur die eigene Zeile darf sichtbar sein: kein fremder Pfluecker-Name.
     await expect(tabelle.getByText("Sarsenbaj").first()).toBeVisible();

@@ -1,0 +1,12 @@
+/* Fuer die Bildvergleiche (e2e/visuell.spec.ts): alles ausblenden, was sich von selbst veraendert und kein
+   Teil des Entwurfs ist. Das Haustier und seine Sprechblase aendern sich mit der Tageszeit und dem Stand des
+   Betriebs, der Hinweis der Entwicklungsumgebung gibt es nur im Entwicklungsmodus. */
+[class*="hb-"],
+nextjs-portal {
+  display: none !important;
+}
+
+/* Cursor und Fokusring blinken oder wandern: fuer das Bild ruhigstellen. */
+* {
+  caret-color: transparent !important;
+}

@@ -69,7 +69,7 @@ jobs:
     needs: autofix
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 
@@ -143,6 +143,75 @@ jobs:
 
       - name: Produktions-Build
         run: npm run build
+
+      # Browsertests (WMCNL-1473, WMCNL-1460) gegen den frisch gebauten Stand und die lokale Datenbank. Die Datenbank
+      # wird vorher auf den Stand der Migrationen und des Seeds zurueckgesetzt: die Tests davor haben Zeilen angelegt
+      # und geaendert, und die Browsertests setzen die Demo-Daten voraus. Der Hauptprozess schreibt in die lokale
+      # Datenbank, sie wird danach verworfen.
+      - name: Datenbank für die Browsertests zurücksetzen
+        run: |
+          supabase db reset
+          npm run db:seed-auth
+
+      - name: Anwendung starten
+        run: |
+          npm run start > app.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fs -o /dev/null http://localhost:3000/de/login && exit 0
+            sleep 2
+          done
+          echo "Die Anwendung ist nicht erreichbar:"
+          tail -50 app.log
+          exit 1
+
+      - name: Browser installieren
+        run: npx playwright install --with-deps chromium
+
+      # Rechte je Rolle im Browser (gegen die Rechtematrix), Weiterleitungen, Schnittstellen, der Hauptprozess von
+      # der Vorbestellung bis zum Deckungsbeitrag und die Pflueckaufgabenliste.
+      - name: Browsertests
+        env:
+          DAMICON_BASE_URL: http://localhost:3000
+        run: npm run test:e2e
+
+      # Bildvergleich der Kernseiten (Hell, Dunkel, vier Sprachen). Die Referenzbilder muessen aus dieser Umgebung
+      # stammen (Linux, derselbe Browser): ein Bild von einem anderen Rechner scheitert an jeder Schriftglaettung.
+      # Liegen noch keine im Repository, werden sie erzeugt und als Artefakt angehaengt, ohne den Lauf scheitern
+      # zu lassen. Danach pruefen, nach e2e/visuell.spec.ts-snapshots/ kopieren und einchecken.
+      - name: Visuelle Regression
+        env:
+          DAMICON_BASE_URL: http://localhost:3000
+        run: |
+          if ls e2e/visuell.spec.ts-snapshots/*-linux.png >/dev/null 2>&1; then
+            npm run test:visuell
+          else
+            npm run test:visuell:aktualisieren
+            {
+              echo "### Visuelle Regression"
+              echo "Im Repository liegen noch keine Referenzbilder. Sie wurden eben erzeugt und hängen als Artefakt \`visuelle-referenz\` an diesem Lauf. Bilder ansehen, nach \`e2e/visuell.spec.ts-snapshots/\` kopieren und einchecken."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Berichte sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browsertests
+          path: |
+            playwright-report
+            test-results
+            app.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Referenzbilder sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visuelle-referenz
+          path: e2e/visuell.spec.ts-snapshots
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Supabase stoppen
         if: always()

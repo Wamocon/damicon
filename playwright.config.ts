@@ -1,9 +1,16 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Regressionstestset fuer den Damicon-Hauptgeschaeftsprozess (Vorbestellung bis
- * Deckungsbeitrag). Zielumgebung ist standardmaessig die Demo-/Staging-Instanz,
- * ueberschreibbar per DAMICON_BASE_URL fuer andere Umgebungen.
+ * Browsertests fuer Damicon: Hauptgeschaeftsprozess (Vorbestellung bis Deckungsbeitrag), Rechte je Rolle,
+ * Pflueckaufgabenliste und, mit dem Tag @visuell, der Bildvergleich der Kernseiten.
+ *
+ * Zielumgebung ist standardmaessig die Demo-/Staging-Instanz, ueberschreibbar per DAMICON_BASE_URL. Die
+ * Pipeline (.github/workflows/pr-pipeline.yml) startet den frisch gebauten Stand gegen die lokale Datenbank
+ * und setzt DAMICON_BASE_URL=http://localhost:3000. Lokal: npm run dev gegen den lokalen Supabase-Stack,
+ * dann DAMICON_BASE_URL=http://localhost:3000 npm run test:e2e.
+ *
+ * Funktionstests: npm run test:e2e. Bildvergleich: npm run test:visuell (Referenzbilder nur aus der CI-Umgebung,
+ * siehe e2e/visuell.spec.ts).
  */
 export default defineConfig({
   testDir: "./e2e",
