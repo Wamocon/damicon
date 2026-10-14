@@ -9,6 +9,7 @@ import {
 import { istFristUeberfaellig, ladeFoerdermittel } from "@/lib/data/foerdermittel";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { FoerdermittelCheckliste } from "@/components/db/foerder-checkliste";
 import { LeererZustand } from "@/components/ui/liste";
 import { formularZiel } from "@/lib/formular-ziele";
 
@@ -145,6 +146,8 @@ export async function FoerdermittelAnsicht() {
           )}
         </DataTable>
       </Section>
+
+      {live ? <FoerdermittelCheckliste dossiers={uebersicht.dossiers} darfAendern={darfAktualisieren} /> : null}
 
       {darfAnlegen ? <DossierAnlegenFormular /> : null}
       {darfAktualisieren && uebersicht.dossiers.length > 0 ? (

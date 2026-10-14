@@ -965,6 +965,53 @@ export type Database = {
           },
         ]
       }
+      foerder_checkpunkte: {
+        Row: {
+          bezeichnung: string | null
+          created_at: string
+          dossier_id: string
+          erledigt_am: string | null
+          frist_am: string | null
+          id: string
+          pflicht: boolean
+          reihenfolge: number
+          updated_at: string
+          vorlage_key: string | null
+        }
+        Insert: {
+          bezeichnung?: string | null
+          created_at?: string
+          dossier_id: string
+          erledigt_am?: string | null
+          frist_am?: string | null
+          id?: string
+          pflicht?: boolean
+          reihenfolge?: number
+          updated_at?: string
+          vorlage_key?: string | null
+        }
+        Update: {
+          bezeichnung?: string | null
+          created_at?: string
+          dossier_id?: string
+          erledigt_am?: string | null
+          frist_am?: string | null
+          id?: string
+          pflicht?: boolean
+          reihenfolge?: number
+          updated_at?: string
+          vorlage_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "foerder_checkpunkte_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "foerderdossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       foerderdossiers: {
         Row: {
           antragsnummer: string | null

@@ -973,7 +973,12 @@
       "wissenNachgeladen": "Pages {wert} loaded and inserted into the book.",
       "rolleGeaendert": "Role of “{wert}” changed.",
       "nachricht": "Message sent.",
-      "loggerImport": "{anzahl} readings imported. Skipped: {zuAlt} older than 24 hours, {zukunft} in the future, {doppelt} already present, {unlesbar} unreadable."
+      "loggerImport": "{anzahl} readings imported. Skipped: {zuAlt} older than 24 hours, {zukunft} in the future, {doppelt} already present, {unlesbar} unreadable.",
+      "checkpunkt": "Item added.",
+      "checkpunktErledigt": "Item done.",
+      "checkpunktGeoeffnet": "Item reopened.",
+      "checkpunktEntfernt": "Item removed.",
+      "checklisteVorschlag": "General suggestion applied."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1066,7 +1071,9 @@
       "vorbestellungStorniert": "A cancelled pre-order gets no new messages.",
       "loggerDateiLeer": "The file contains no readable readings (expected: time and temperature per line).",
       "loggerDateiZuGross": "The file is larger than 2 MB.",
-      "loggerKeineNeuen": "Nothing imported. Skipped: {zuAlt} older than 24 hours, {zukunft} in the future, {doppelt} already present, {unlesbar} unreadable."
+      "loggerKeineNeuen": "Nothing imported. Skipped: {zuAlt} older than 24 hours, {zukunft} in the future, {doppelt} already present, {unlesbar} unreadable.",
+      "checkpunktZuLang": "The item is longer than 200 characters.",
+      "checklisteNichtLeer": "The checklist already has items. The suggestion only applies to an empty list."
     },
     "einladungen": {
       "erfolg": {
@@ -4573,5 +4580,36 @@
     "kunde": "Customer: {kunde}",
     "sorteMenge": "{sorte}, {menge} kg",
     "ohneSorte": "Variety open"
+  },
+  "foerdermittelCheckliste": {
+    "titel": "Checklists of the dossiers",
+    "lead": "The funding body decides what an application needs. The checklist helps to forget nothing and reminds of deadlines. It is not an official form.",
+    "keineDossiers": "No dossier yet.",
+    "leer": "No items yet",
+    "fortschritt": "{erledigt} of {gesamt} done ({prozent} %)",
+    "pflichtOffen": "Required open: {anzahl}",
+    "ueberfaellig": "Deadline passed: {anzahl}",
+    "vollstaendig": "All required items are done.",
+    "vorschlagHinweis": "Five general items as a suggestion, not an official catalogue. Please compare with the funding body's requirements and adjust.",
+    "vorschlagUebernehmen": "Use general suggestion",
+    "freiwillig": "optional",
+    "erledigtAm": "done on {datum}",
+    "erledigen": "Done",
+    "oeffnen": "Reopen",
+    "entfernen": "Remove",
+    "hinzufuegen": "Add item",
+    "beispiel": "e.g. obtain a quote for the cooling unit",
+    "feld": {
+      "bezeichnung": "New item",
+      "frist": "Deadline (optional)",
+      "pflicht": "Required item"
+    },
+    "vorlage": {
+      "antragsformular": "Application form completed and signed",
+      "identifikation": "Proof of legal form and identification number",
+      "kostenaufstellung": "Cost or investment statement with quotes",
+      "flaechennachweis": "Proof of the areas and the crops",
+      "zahlungsbelege": "Payment receipts for the settlement"
+    }
   }
 }

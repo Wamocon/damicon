@@ -2457,7 +2457,12 @@
       "wissenNachgeladen": "Страницы {wert} догружены и вставлены в книгу.",
       "rolleGeaendert": "Роль “{wert}” изменена.",
       "nachricht": "Сообщение отправлено.",
-      "loggerImport": "Принято измерений: {anzahl}. Пропущено: {zuAlt} старше 24 часов, {zukunft} в будущем, {doppelt} уже есть, {unlesbar} нечитаемых."
+      "loggerImport": "Принято измерений: {anzahl}. Пропущено: {zuAlt} старше 24 часов, {zukunft} в будущем, {doppelt} уже есть, {unlesbar} нечитаемых.",
+      "checkpunkt": "Пункт добавлен.",
+      "checkpunktErledigt": "Пункт выполнен.",
+      "checkpunktGeoeffnet": "Пункт снова открыт.",
+      "checkpunktEntfernt": "Пункт удалён.",
+      "checklisteVorschlag": "Общее предложение принято."
     },
     "fehler": {
       "eingabe": "Заполните все обязательные поля.",
@@ -2550,7 +2555,9 @@
       "vorbestellungStorniert": "К отменённому предзаказу новые сообщения не добавляются.",
       "loggerDateiLeer": "В файле нет читаемых измерений (ожидается: время и температура в каждой строке).",
       "loggerDateiZuGross": "Файл больше 2 МБ.",
-      "loggerKeineNeuen": "Ничего не принято. Пропущено: {zuAlt} старше 24 часов, {zukunft} в будущем, {doppelt} уже есть, {unlesbar} нечитаемых."
+      "loggerKeineNeuen": "Ничего не принято. Пропущено: {zuAlt} старше 24 часов, {zukunft} в будущем, {doppelt} уже есть, {unlesbar} нечитаемых.",
+      "checkpunktZuLang": "Пункт длиннее 200 символов.",
+      "checklisteNichtLeer": "В чек-листе уже есть пункты. Предложение применяется только к пустому списку."
     },
     "einladungen": {
       "erfolg": {
@@ -4573,5 +4580,36 @@
     "kunde": "Клиент: {kunde}",
     "sorteMenge": "{sorte}, {menge} кг",
     "ohneSorte": "Сорт не указан"
+  },
+  "foerdermittelCheckliste": {
+    "titel": "Чек-листы досье",
+    "lead": "Что нужно для заявки, определяет орган поддержки. Чек-лист помогает ничего не забыть и напоминает о сроках. Это не официальная форма.",
+    "keineDossiers": "Досье пока нет.",
+    "leer": "Пунктов пока нет",
+    "fortschritt": "Выполнено {erledigt} из {gesamt} ({prozent} %)",
+    "pflichtOffen": "Обязательных открыто: {anzahl}",
+    "ueberfaellig": "Срок прошёл: {anzahl}",
+    "vollstaendig": "Все обязательные пункты выполнены.",
+    "vorschlagHinweis": "Пять общих пунктов как предложение, не официальный перечень. Сверьте с требованиями органа поддержки и скорректируйте.",
+    "vorschlagUebernehmen": "Принять общее предложение",
+    "freiwillig": "необязательно",
+    "erledigtAm": "выполнено {datum}",
+    "erledigen": "Готово",
+    "oeffnen": "Открыть снова",
+    "entfernen": "Удалить",
+    "hinzufuegen": "Добавить пункт",
+    "beispiel": "например, получить предложение на холодильную установку",
+    "feld": {
+      "bezeichnung": "Новый пункт",
+      "frist": "Срок (необязательно)",
+      "pflicht": "Обязательный пункт"
+    },
+    "vorlage": {
+      "antragsformular": "Форма заявки заполнена и подписана",
+      "identifikation": "Подтверждение организационно-правовой формы и идентификационного номера",
+      "kostenaufstellung": "Смета затрат или инвестиций с предложениями поставщиков",
+      "flaechennachweis": "Подтверждение площадей и посадок",
+      "zahlungsbelege": "Платёжные документы для отчёта"
+    }
   }
 }

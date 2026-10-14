@@ -973,7 +973,12 @@
       "wissenNachgeladen": "Seiten {wert} nachgeladen und ins Buch eingereiht.",
       "rolleGeaendert": "Rolle von „{wert}“ geändert.",
       "nachricht": "Nachricht gesendet.",
-      "loggerImport": "{anzahl} Messwerte übernommen. Ausgelassen: {zuAlt} älter als 24 Stunden, {zukunft} in der Zukunft, {doppelt} schon vorhanden, {unlesbar} nicht lesbar."
+      "loggerImport": "{anzahl} Messwerte übernommen. Ausgelassen: {zuAlt} älter als 24 Stunden, {zukunft} in der Zukunft, {doppelt} schon vorhanden, {unlesbar} nicht lesbar.",
+      "checkpunkt": "Punkt hinzugefügt.",
+      "checkpunktErledigt": "Punkt erledigt.",
+      "checkpunktGeoeffnet": "Punkt wieder geöffnet.",
+      "checkpunktEntfernt": "Punkt entfernt.",
+      "checklisteVorschlag": "Allgemeiner Vorschlag übernommen."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1066,7 +1071,9 @@
       "vorbestellungStorniert": "Zu einer stornierten Vorbestellung gibt es keine neuen Nachrichten.",
       "loggerDateiLeer": "Die Datei enthält keine lesbaren Messwerte (erwartet: Zeit und Temperatur je Zeile).",
       "loggerDateiZuGross": "Die Datei ist größer als 2 MB.",
-      "loggerKeineNeuen": "Nichts übernommen. Ausgelassen: {zuAlt} älter als 24 Stunden, {zukunft} in der Zukunft, {doppelt} schon vorhanden, {unlesbar} nicht lesbar."
+      "loggerKeineNeuen": "Nichts übernommen. Ausgelassen: {zuAlt} älter als 24 Stunden, {zukunft} in der Zukunft, {doppelt} schon vorhanden, {unlesbar} nicht lesbar.",
+      "checkpunktZuLang": "Der Punkt ist länger als 200 Zeichen.",
+      "checklisteNichtLeer": "Die Checkliste hat schon Punkte. Der Vorschlag gilt nur für eine leere Liste."
     },
     "einladungen": {
       "erfolg": {
@@ -4573,5 +4580,36 @@
     "kunde": "Kunde: {kunde}",
     "sorteMenge": "{sorte}, {menge} kg",
     "ohneSorte": "Sorte offen"
+  },
+  "foerdermittelCheckliste": {
+    "titel": "Checklisten der Dossiers",
+    "lead": "Was ein Antrag braucht, legt die Förderstelle fest. Die Checkliste hilft, nichts zu vergessen, und erinnert an Fristen. Sie ist kein amtliches Formular.",
+    "keineDossiers": "Noch kein Dossier.",
+    "leer": "Noch keine Punkte",
+    "fortschritt": "{erledigt} von {gesamt} erledigt ({prozent} %)",
+    "pflichtOffen": "Pflicht offen: {anzahl}",
+    "ueberfaellig": "Frist überschritten: {anzahl}",
+    "vollstaendig": "Alle Pflichtpunkte sind erledigt.",
+    "vorschlagHinweis": "Fünf allgemeine Punkte als Vorschlag, kein amtlicher Katalog. Bitte mit den Vorgaben der Förderstelle abgleichen und anpassen.",
+    "vorschlagUebernehmen": "Allgemeinen Vorschlag übernehmen",
+    "freiwillig": "freiwillig",
+    "erledigtAm": "erledigt am {datum}",
+    "erledigen": "Erledigt",
+    "oeffnen": "Wieder öffnen",
+    "entfernen": "Entfernen",
+    "hinzufuegen": "Punkt hinzufügen",
+    "beispiel": "z. B. Angebot der Kühlanlage einholen",
+    "feld": {
+      "bezeichnung": "Neuer Punkt",
+      "frist": "Frist (optional)",
+      "pflicht": "Pflichtpunkt"
+    },
+    "vorlage": {
+      "antragsformular": "Antragsformular ausgefüllt und unterschrieben",
+      "identifikation": "Nachweis der Rechtsform und der Identifikationsnummer",
+      "kostenaufstellung": "Kosten- oder Investitionsaufstellung mit Angeboten",
+      "flaechennachweis": "Nachweis der Flächen und des Anbaus",
+      "zahlungsbelege": "Zahlungsbelege für die Abrechnung"
+    }
   }
 }
