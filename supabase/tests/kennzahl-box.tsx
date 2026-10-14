@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
 import { KennzahlBox, TrendPfeil } from "../../src/components/dashboard/kennzahl-box";
 import type { Datenherkunft, Kpi } from "../../src/lib/domain/kpis";
+import { kachelInhalt } from "../../src/lib/domain/kachel-form";
 import { imMarkup, pruefer, rendere, SPRACHEN, texteVon } from "./hilfen/ansicht-probe";
 
 // Charakterisierung der Kennzahlkachel (dashboard/kennzahl-box.tsx), ohne Browser (seit 14.10.2026):
@@ -11,6 +12,7 @@ import { imMarkup, pruefer, rendere, SPRACHEN, texteVon } from "./hilfen/ansicht
 //   * jede Form: Meter (mit und ohne Achse), Heldenzahl, nur Wert, Zähler, Punkte, Rangliste, Punktstreifen, Histogramm, dazu die Fälle,
 //     in denen eine gewünschte Form mangels Ziel, Grundgesamtheit oder Einzelwerten nichts zeichnet.
 //   * Lücke: nur auf Anforderung und nur beim Platzhalter, Text je Datenherkunft.
+//   * seit dem Zerlegen (14.10.2026) die Variantenwahl kachelInhalt() aus lib/domain/kachel-form.ts als reine Funktion, je Form.
 // Die Kachel hat keinen Zustand und keine Effekte, alles Sichtbare entsteht beim ersten Aufbau.
 // Aufruf: npm run test:kennzahl-box
 
@@ -284,7 +286,22 @@ const koerper = (html: string) =>
   pruefe("Lücke: gerechnet keine, auch auf Anforderung", luecke(box({ ...basis, gerechnet: gerechnet(7.7, "%") }, { lueckeZeigen: true }).html) === null);
 }
 
-// ---- 8. Sprachen -------------------------------------------------------------------------------------------------------------------
+// ---- 8. kachelInhalt: welche Zeichnung eine Form mit den Daten der Kachel bekommt (seit dem Zerlegen, 14.10.2026) ------------------
+{
+  const art = (form: Parameters<typeof kachelInhalt>[0], kpi: Kpi, werte?: { name: string; wert: number }[]) => JSON.stringify(kachelInhalt(form, kpi, werte));
+  const prozent = { ...basis, ziel: "100 %", gutRichtung: "up" as const, gerechnet: gerechnet(75, "%", 4) };
+  pruefe("Inhalt: Zähler mit Grundgesamtheit", art("zaehler", prozent) === JSON.stringify({ art: "zaehler", anteil: { erfuellt: 3, gesamt: 4 } }), art("zaehler", prozent));
+  pruefe("Inhalt: Punkte mit Grundgesamtheit", art("punkte", prozent) === JSON.stringify({ art: "punkte", anteil: { erfuellt: 3, gesamt: 4 } }), art("punkte", prozent));
+  pruefe("Inhalt: Zähler und Punkte ohne Prozent nur der Wert", art("zaehler", { ...prozent, gerechnet: gerechnet(47, "min", 4) }) === '{"art":"wert"}' && art("punkte", basis) === '{"art":"wert"}');
+  const gemessen = { ...basis, gerechnet: gerechnet(7.7, "%") };
+  pruefe("Inhalt: Meter und Heldenzahl zeichnen das Meter", art("meter", gemessen) === JSON.stringify({ art: "meter", ist: 7.7, soll: 6 }) && art("held", gemessen) === art("meter", gemessen), art("held", gemessen));
+  pruefe("Inhalt: Meter ohne Messung oder ohne Zielzahl nur der Wert", art("meter", basis) === '{"art":"wert"}' && art("held", { ...gemessen, ziel: "Ausgangswert" }) === '{"art":"wert"}');
+  pruefe("Inhalt: Rangliste und Streifen mit Einzelwerten und Schwelle", art("rangliste", gemessen, verteilung3) === JSON.stringify({ art: "rangliste", werte: verteilung3, soll: 6 }) && art("streifen", gemessen, verteilung3) === JSON.stringify({ art: "streifen", werte: verteilung3, soll: 6 }));
+  pruefe("Inhalt: Rangliste und Streifen ohne Einzelwerte oder ohne Zielzahl nur der Wert", art("streifen", gemessen) === '{"art":"wert"}' && art("rangliste", { ...gemessen, ziel: "Ausgangswert" }, verteilung3) === '{"art":"wert"}');
+  pruefe("Inhalt: die Form Wert bleibt der Wert, auch mit allen Daten", art("wert", gemessen, verteilung3) === '{"art":"wert"}');
+}
+
+// ---- 9. Sprachen -------------------------------------------------------------------------------------------------------------------
 for (const loc of SPRACHEN) {
   const proben = [
     box({ ...basis, trend: "up" }, { lueckeZeigen: true }, loc),
