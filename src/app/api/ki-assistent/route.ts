@@ -613,92 +613,104 @@ async function modellNachrichtenAus({
   }
 }
 
-// Reihenfolge der Pruefungen (nicht umstellen): Anmeldung, Recht, Drosselung, dann erst der Koerper,
-// dann die Lader, das Speichern der Frage und der Modellaufruf. Jede Pruefung steht vor jedem
-// Datenzugriff, den sie schuetzt.
-export async function POST(req: Request) {
-  const beginn = performance.now();
-  // Die Probe der Einbettung (Wissenssuche) laeuft parallel zu Anmeldung und Datenbank, statt
-  // danach: sie ist nur alle fuenf Minuten je Instanz faellig, kostet dann aber eine Anfrage
-  // an den Einbettungsdienst, und die Antwort wartete darauf (Messung vom 28.09.2026).
-  const wissenGesund = pruefeWissenGesundheit();
-  const profil = await getSessionProfile();
-  if (!profil) {
-    return new Response("nicht angemeldet", { status: 401 });
+/** Alles, was der Modellaufruf und das Speichern danach brauchen. */
+interface ModellZug {
+  modell: AnbieterKette["modell"];
+  festerTeil: string;
+  wechselnderTeil: string;
+  modellNachrichten: Awaited<ReturnType<typeof convertToModelMessages>>;
+  werkzeuge: ZugWerkzeuge;
+  modus: KiModus;
+  ausserhalb: Anfrage["ausserhalb"];
+  letzte: UIMessage;
+  neueNutzerNachricht: string;
+  profil: SessionProfile;
+  rolle: Role;
+  anbieter: AnbieterKette["primaer"];
+  anbieterwechsel: AusweichEreignis[];
+  antwortId: string;
+  markenAn: boolean;
+  beginn: number;
+  vorModell: number;
+}
+
+/** Was onFinish vom SDK bekommt, soweit es hier gebraucht wird. */
+interface ZugEnde {
+  steps: { text: string; toolCalls: ({ toolName?: string } | undefined)[] }[];
+  totalUsage: { inputTokens?: number } | undefined;
+}
+
+// Messpunkte fuer die Latenz im Gespraech (Vercel-Protokoll): Vorbereitung bis zum
+// Modellaufruf, erstes Wort des Modells, und ob der Prompt-Cache greift.
+function meldeSprachZeiten(zug: ModellZug, { steps, totalUsage }: ZugEnde, ersterText: number | null): void {
+  const { beginn, vorModell } = zug;
+  const cache = (totalUsage as { inputTokenDetails?: { cacheReadTokens?: number; cacheWriteTokens?: number } } | undefined)?.inputTokenDetails;
+  console.info(
+    `[damicon] KI-Zeiten (Sprache): Vorbereitung ${Math.round(vorModell - beginn)} ms, erstes Wort ${ersterText === null ? "-" : Math.round(ersterText - beginn)} ms, ` +
+      `Eingabe ${totalUsage?.inputTokens ?? "?"} Tokens, Cache gelesen ${cache?.cacheReadTokens ?? 0}, geschrieben ${cache?.cacheWriteTokens ?? 0}, Schritte ${steps.length}`,
+  );
+}
+
+/** Nach dem Strom (onFinish): Antwort mit service_role speichern und den Zug protokollieren. */
+async function speichereAntwort(zug: ModellZug, ende: ZugEnde, ersterText: number | null): Promise<void> {
+  const { modus, markenAn, profil, rolle, anbieter, anbieterwechsel, antwortId } = zug;
+  const { steps } = ende;
+  if (modus === "sprache") meldeSprachZeiten(zug, ende, ersterText);
+  const werkzeugaufrufe = steps
+    .flatMap((schritt) => schritt.toolCalls.map((aufruf) => aufruf?.toolName))
+    .filter((name): name is string => Boolean(name));
+  // Der Text ALLER Schritte: im Agent-Modus steckt die Begleitung der Tour
+  // (ein Satz je Station) in den Schritten vor der Schlussantwort.
+  // Sprechmarken gehoeren nie in den gespeicherten Verlauf (Anzeige, Vorlesen-Knopf).
+  // Nur im Sprachmodus: sonst kann "[[...]]" gewoehnlicher Text sein.
+  const gesamtText = steps
+    .map((schritt) => (markenAn ? ohneSprechmarken(schritt.text) : schritt.text).trim())
+    .filter(Boolean)
+    .join("\n\n");
+
+  try {
+    // Ein Zug ohne Text (endet mit einem Client-Werkzeug, dessen Ergebnis der
+    // Browser gleich nachliefert) ist keine Antwort - die folgende Runde speichert
+    // den eigentlichen Text.
+    // Seit 28.09.2026 mit service_role (speichereKiServerZeile): die Sitzung
+    // darf nur noch die eigene Frage anlegen, sonst liesse sich eine
+    // "Antwort" mit freiem Text anlegen und vorlesen (Cleanup-Fund 77).
+    if (gesamtText) {
+      const { error: antwortFehler } = await speichereKiServerZeile({
+        id: antwortId,
+        profilId: profil.id,
+        rolle: "assistent",
+        inhalt: gesamtText,
+        anbieterName: anbieterwechsel.length > 0 ? `${anbieter.anzeige_name} (Ersatz: ${anbieterwechsel.at(-1)?.nach ?? "?"})` : anbieter.anzeige_name,
+        fallback: false,
+        werkzeugaufrufe,
+      });
+      if (antwortFehler) console.error("[damicon] KI-Agent: Antwort nicht gespeichert:", antwortFehler.message);
+    }
+    await protokolliereBasis(profil, "ki_chat.nachricht", "ki_chat_nachrichten", profil.id, {
+      fallback: false,
+      anbieter: anbieter.anzeige_name,
+      // Anbieterwechsel in dieser Antwort (leer = keiner): von, nach, Grund
+      anbieterwechsel: anbieterwechsel.map((w) => `${w.von}->${w.nach ?? "-"}:${w.art}`),
+      werkzeugaufrufe,
+      modus,
+      rolle,
+    });
+  } catch (fehler) {
+    // Wie ueberall sonst im KI-Assistenten: ein Protokollierungsfehler
+    // darf die Antwort, die der Nutzer bereits gesehen hat, nicht
+    // nachtraeglich als Fehlschlag markieren.
+    console.error("[damicon] KI-Agent: Speichern der Antwort fehlgeschlagen:", fehler);
   }
-  if (!hasPermission(profil.role, "ki_assistent", "create")) {
-    return new Response("keine berechtigung", { status: 403 });
-  }
+}
 
-  // Ratenbegrenzung (Vibecode-Cleanup Phase 2): lib/ai/ratenbegrenzung.ts,
-  // derselbe Zaehler-Schluessel wie kiNachrichtSenden (actions/ki-assistent.ts)
-  // - beides ist derselbe Kostenfall "eine Chatnachricht senden", nur ueber
-  // verschiedene Sendewege (siehe Dateikopf). Admin-konfigurierbar
-  // (KiRatenlimitVerwaltung in den KI-Einstellungen) - ohne Admin-Einstellung
-  // liefert ladeRatenlimitGrenze() null und es gilt kein Limit.
-  const ratenGrenze = await ladeRatenlimitGrenze(profil.role);
-  if (ratenlimitUeberschritten(profil.id, ratenGrenze)) {
-    return new Response("ratenlimit", { status: 429 });
-  }
-
-  const eingang = await leseAnfrage(req);
-  if (eingang instanceof Response) return eingang;
-  const { body, nachrichten } = eingang;
-  const anfrage = deuteAnfrage(body, nachrichten, profil);
-  if (anfrage instanceof Response) return anfrage;
-  const { modus, pfad, rolle, vorschau, letzte, neueNutzerNachricht, antwortSprache, sprachHerkunft, ausserhalb } = anfrage;
-
-  const grundlagen = await ladeGrundlagen(rolle, body.einwilligung);
-  if (grundlagen instanceof Response) return grundlagen;
-  const { quellen, preislisten, kette, anbieterwechsel } = grundlagen;
-  const anbieter = kette.primaer;
-
-  const frageFehler = await speichereFrage(profil.id, neueNutzerNachricht);
-  if (frageFehler) return frageFehler;
-
-  const ortHinweis = pfad ? `Der Nutzer sieht gerade diese Ansicht: ${pfad}` : "";
-  // Sprechmarken (domain/sprechmarken.ts) nur, wo sie ausgewertet werden: im
-  // Sprachmodus mit Live-Vorlesen (unten filtert der Server sie aus dem Text).
-  const geheimnis = sprachausgabeGeheimnis();
-  const liveVorlesen = sprachausgabeLiveAn() && Boolean(geheimnis);
-  const markenAn = modus === "sprache" && liveVorlesen;
-  const seitenkarte = modus === "sprache" ? bereinigteSeitenkarte(body.seitenkarte) : null;
-  // Die Datenbank-ID der Antwort steht schon VOR dem Stream fest und geht als
-  // Nachrichten-ID an den Client (generateMessageId unten), gespeichert wird
-  // die Zeile in onFinish unter genau dieser ID. So kennt der Client fuer jede
-  // Antwort ihre Zeile - die Sprachausgabe (api/ki-sprachausgabe) nimmt
-  // bewusst nur IDs gespeicherter Antworten, nie freien Text.
-  const antwortId = crypto.randomUUID();
-
-  // Ist die Einbettung fuer die Wissenssuche erreichbar? (gemerkt, kostet nur beim ersten Mal und nach Ausfaellen)
-  // Gespraech zu einem Prüfbericht: nur fuer Rollen, die Prüfungen ausloesen duerfen (sonst gibt es keinen Bericht), begrenzt und als Daten gekennzeichnet.
-  const pruefKontext = pruefKontextAus(body.pruefkontext, profil.role);
-
-  await wissenGesund;
-  const werkzeuge = zugWerkzeuge(rolle, profil, vorschau, modus, nachrichten, pruefKontext);
-  const { festerTeil, wechselnderTeil } = systemPrompt({
-    quellen,
-    preislisten,
-    rolle,
-    vorschau,
-    modus,
-    antwortSprache,
-    werkzeuge,
-    pruefKontext,
-    ortHinweis,
-    markenAn,
-    seitenkarte,
-    letzte,
-    ausserhalb,
-  });
-  const vorModell = performance.now();
+/** Der Modellaufruf als Strom (streamText), mit Schrittsteuerung, Fehlerprotokoll und Speichern in onFinish. */
+function starteModell(zug: ModellZug) {
+  const { modell, festerTeil, wechselnderTeil, modellNachrichten, werkzeuge, modus, ausserhalb, letzte, neueNutzerNachricht } = zug;
   let ersterText: number | null = null;
-  const modellNachrichten = await modellNachrichtenAus({ nachrichten, body, modus, markenAn, seitenkarte, antwortSprache, werkzeuge });
-  if (modellNachrichten instanceof Response) return modellNachrichten;
-
-  const result = streamText({
+  return streamText({
     // Kette mit Ausweichanbieter (Guthaben, Ratenlimit, Ueberlastung): lib/ai/anbieter-kette.ts
-    model: kette.modell,
+    model: modell,
     system: [
       { role: "system", content: festerTeil, providerOptions: { anthropic: { cacheControl: { type: "ephemeral" } } } },
       { role: "system", content: wechselnderTeil },
@@ -739,85 +751,36 @@ export async function POST(req: Request) {
     onError: (ereignis) => {
       console.error("[damicon] KI-Agent (Stream) fehlgeschlagen:", ereignis.error);
     },
-    onFinish: async ({ steps, totalUsage }) => {
-      if (modus === "sprache") {
-        // Messpunkte fuer die Latenz im Gespraech (Vercel-Protokoll): Vorbereitung bis zum
-        // Modellaufruf, erstes Wort des Modells, und ob der Prompt-Cache greift.
-        const cache = (totalUsage as { inputTokenDetails?: { cacheReadTokens?: number; cacheWriteTokens?: number } } | undefined)?.inputTokenDetails;
-        console.info(
-          `[damicon] KI-Zeiten (Sprache): Vorbereitung ${Math.round(vorModell - beginn)} ms, erstes Wort ${ersterText === null ? "-" : Math.round(ersterText - beginn)} ms, ` +
-            `Eingabe ${totalUsage?.inputTokens ?? "?"} Tokens, Cache gelesen ${cache?.cacheReadTokens ?? 0}, geschrieben ${cache?.cacheWriteTokens ?? 0}, Schritte ${steps.length}`,
-        );
-      }
-      const werkzeugaufrufe = steps
-        .flatMap((schritt) => schritt.toolCalls.map((aufruf) => aufruf?.toolName))
-        .filter((name): name is string => Boolean(name));
-      // Der Text ALLER Schritte: im Agent-Modus steckt die Begleitung der Tour
-      // (ein Satz je Station) in den Schritten vor der Schlussantwort.
-      // Sprechmarken gehoeren nie in den gespeicherten Verlauf (Anzeige, Vorlesen-Knopf).
-      // Nur im Sprachmodus: sonst kann "[[...]]" gewoehnlicher Text sein.
-      const gesamtText = steps
-        .map((schritt) => (markenAn ? ohneSprechmarken(schritt.text) : schritt.text).trim())
-        .filter(Boolean)
-        .join("\n\n");
-
-      try {
-        // Ein Zug ohne Text (endet mit einem Client-Werkzeug, dessen Ergebnis der
-        // Browser gleich nachliefert) ist keine Antwort - die folgende Runde speichert
-        // den eigentlichen Text.
-        // Seit 28.09.2026 mit service_role (speichereKiServerZeile): die Sitzung
-        // darf nur noch die eigene Frage anlegen, sonst liesse sich eine
-        // "Antwort" mit freiem Text anlegen und vorlesen (Cleanup-Fund 77).
-        if (gesamtText) {
-          const { error: antwortFehler } = await speichereKiServerZeile({
-            id: antwortId,
-            profilId: profil.id,
-            rolle: "assistent",
-            inhalt: gesamtText,
-            anbieterName: anbieterwechsel.length > 0 ? `${anbieter.anzeige_name} (Ersatz: ${anbieterwechsel.at(-1)?.nach ?? "?"})` : anbieter.anzeige_name,
-            fallback: false,
-            werkzeugaufrufe,
-          });
-          if (antwortFehler) console.error("[damicon] KI-Agent: Antwort nicht gespeichert:", antwortFehler.message);
-        }
-        await protokolliereBasis(profil, "ki_chat.nachricht", "ki_chat_nachrichten", profil.id, {
-          fallback: false,
-          anbieter: anbieter.anzeige_name,
-          // Anbieterwechsel in dieser Antwort (leer = keiner): von, nach, Grund
-          anbieterwechsel: anbieterwechsel.map((w) => `${w.von}->${w.nach ?? "-"}:${w.art}`),
-          werkzeugaufrufe,
-          modus,
-          rolle,
-        });
-      } catch (fehler) {
-        // Wie ueberall sonst im KI-Assistenten: ein Protokollierungsfehler
-        // darf die Antwort, die der Nutzer bereits gesehen hat, nicht
-        // nachtraeglich als Fehlschlag markieren.
-        console.error("[damicon] KI-Agent: Speichern der Antwort fehlgeschlagen:", fehler);
-      }
-    },
+    onFinish: (ende) => speichereAntwort(zug, ende, ersterText),
   });
+}
+type ModellErgebnis = ReturnType<typeof starteModell>;
 
-  // Die Antwortsprache geht als Metadatum mit der Antwort mit: der Browser
-  // schickt sie beim Vorlesen zurueck, damit die Stimme dieselbe Sprache
-  // spricht wie der Text. api/ki-sprachausgabe prueft sie dort noch einmal
-  // gegen den fertigen Text.
-  const nachrichtenBeigabe = () => ({ sprache: antwortSprache, sprachHerkunft });
+/** Was der Live-Vorlese-Strom braucht. */
+interface VorleseZug {
+  result: ModellErgebnis;
+  profil: SessionProfile;
+  antwortId: string;
+  geheimnis: string;
+  body: AnfrageKoerper;
+  antwortSprache: Anfrage["antwortSprache"];
+  markenAn: boolean;
+  nachrichten: UIMessage[];
+  seitenkarte: string | null;
+  nachrichtenBeigabe: () => { sprache: Anfrage["antwortSprache"]; sprachHerkunft: Anfrage["sprachHerkunft"] };
+}
 
-  if (!liveVorlesen || !geheimnis) {
-    return result.toUIMessageStreamResponse({ generateMessageId: () => antwortId, messageMetadata: nachrichtenBeigabe });
-  }
-
-  // Live-Sprachausgabe: waehrend der Text entsteht, gehen sprechbare
-  // Abschnitte als eigene Ereignisse mit. Der Browser holt dafuer Audio,
-  // noch bevor die Antwort fertig ist - sonst beginnt die Stimme erst, wenn
-  // schon alles dasteht, und das sind bei einer langen Antwort viele
-  // Sekunden Stille.
-  //
-  // Der Strom wird hier SELBST weitergereicht statt mit writer.merge():
-  // so wird er genau einmal gelesen, und dabei faellt der Text fuer den
-  // Zerleger ohnehin an. Ein zweiter Leser waere ein zweiter Verbraucher
-  // desselben Stroms.
+// Live-Sprachausgabe: waehrend der Text entsteht, gehen sprechbare
+// Abschnitte als eigene Ereignisse mit. Der Browser holt dafuer Audio,
+// noch bevor die Antwort fertig ist - sonst beginnt die Stimme erst, wenn
+// schon alles dasteht, und das sind bei einer langen Antwort viele
+// Sekunden Stille.
+//
+// Der Strom wird hier SELBST weitergereicht statt mit writer.merge():
+// so wird er genau einmal gelesen, und dabei faellt der Text fuer den
+// Zerleger ohnehin an. Ein zweiter Leser waere ein zweiter Verbraucher
+// desselben Stroms.
+function liveVorleseAntwort({ result, profil, antwortId, geheimnis, body, antwortSprache, markenAn, nachrichten, seitenkarte, nachrichtenBeigabe }: VorleseZug): Response {
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       // Spricht der Browser ueber den Soniox-Strom (domain/sprachausgabe-strom.ts),
@@ -912,4 +875,119 @@ export async function POST(req: Request) {
   });
 
   return createUIMessageStreamResponse({ stream });
+}
+
+// Reihenfolge der Pruefungen (nicht umstellen): Anmeldung, Recht, Drosselung, dann erst der Koerper,
+// dann die Lader, das Speichern der Frage und der Modellaufruf. Jede Pruefung steht vor jedem
+// Datenzugriff, den sie schuetzt. Nur die Probe der Einbettung startet schon vorher; sie liest
+// keine Daten des Nutzers. Festgehalten in supabase/tests/ki-assistent-route.ts.
+export async function POST(req: Request) {
+  const beginn = performance.now();
+  // Die Probe der Einbettung (Wissenssuche) laeuft parallel zu Anmeldung und Datenbank, statt
+  // danach: sie ist nur alle fuenf Minuten je Instanz faellig, kostet dann aber eine Anfrage
+  // an den Einbettungsdienst, und die Antwort wartete darauf (Messung vom 28.09.2026).
+  const wissenGesund = pruefeWissenGesundheit();
+  const profil = await getSessionProfile();
+  if (!profil) {
+    return new Response("nicht angemeldet", { status: 401 });
+  }
+  if (!hasPermission(profil.role, "ki_assistent", "create")) {
+    return new Response("keine berechtigung", { status: 403 });
+  }
+
+  // Ratenbegrenzung (Vibecode-Cleanup Phase 2): lib/ai/ratenbegrenzung.ts,
+  // derselbe Zaehler-Schluessel wie kiNachrichtSenden (actions/ki-assistent.ts)
+  // - beides ist derselbe Kostenfall "eine Chatnachricht senden", nur ueber
+  // verschiedene Sendewege (siehe Dateikopf). Admin-konfigurierbar
+  // (KiRatenlimitVerwaltung in den KI-Einstellungen) - ohne Admin-Einstellung
+  // liefert ladeRatenlimitGrenze() null und es gilt kein Limit.
+  const ratenGrenze = await ladeRatenlimitGrenze(profil.role);
+  if (ratenlimitUeberschritten(profil.id, ratenGrenze)) {
+    return new Response("ratenlimit", { status: 429 });
+  }
+
+  const eingang = await leseAnfrage(req);
+  if (eingang instanceof Response) return eingang;
+  const { body, nachrichten } = eingang;
+  const anfrage = deuteAnfrage(body, nachrichten, profil);
+  if (anfrage instanceof Response) return anfrage;
+  const { modus, pfad, rolle, vorschau, letzte, neueNutzerNachricht, antwortSprache, sprachHerkunft, ausserhalb } = anfrage;
+
+  const grundlagen = await ladeGrundlagen(rolle, body.einwilligung);
+  if (grundlagen instanceof Response) return grundlagen;
+  const { quellen, preislisten, kette, anbieterwechsel } = grundlagen;
+  const anbieter = kette.primaer;
+
+  const frageFehler = await speichereFrage(profil.id, neueNutzerNachricht);
+  if (frageFehler) return frageFehler;
+
+  const ortHinweis = pfad ? `Der Nutzer sieht gerade diese Ansicht: ${pfad}` : "";
+  // Sprechmarken (domain/sprechmarken.ts) nur, wo sie ausgewertet werden: im
+  // Sprachmodus mit Live-Vorlesen (unten filtert der Server sie aus dem Text).
+  const geheimnis = sprachausgabeGeheimnis();
+  const liveVorlesen = sprachausgabeLiveAn() && Boolean(geheimnis);
+  const markenAn = modus === "sprache" && liveVorlesen;
+  const seitenkarte = modus === "sprache" ? bereinigteSeitenkarte(body.seitenkarte) : null;
+  // Die Datenbank-ID der Antwort steht schon VOR dem Stream fest und geht als
+  // Nachrichten-ID an den Client (generateMessageId unten), gespeichert wird
+  // die Zeile in onFinish unter genau dieser ID. So kennt der Client fuer jede
+  // Antwort ihre Zeile - die Sprachausgabe (api/ki-sprachausgabe) nimmt
+  // bewusst nur IDs gespeicherter Antworten, nie freien Text.
+  const antwortId = crypto.randomUUID();
+
+  // Ist die Einbettung fuer die Wissenssuche erreichbar? (gemerkt, kostet nur beim ersten Mal und nach Ausfaellen)
+  // Gespraech zu einem Prüfbericht: nur fuer Rollen, die Prüfungen ausloesen duerfen (sonst gibt es keinen Bericht), begrenzt und als Daten gekennzeichnet.
+  const pruefKontext = pruefKontextAus(body.pruefkontext, profil.role);
+
+  await wissenGesund;
+  const werkzeuge = zugWerkzeuge(rolle, profil, vorschau, modus, nachrichten, pruefKontext);
+  const { festerTeil, wechselnderTeil } = systemPrompt({
+    quellen,
+    preislisten,
+    rolle,
+    vorschau,
+    modus,
+    antwortSprache,
+    werkzeuge,
+    pruefKontext,
+    ortHinweis,
+    markenAn,
+    seitenkarte,
+    letzte,
+    ausserhalb,
+  });
+  const vorModell = performance.now();
+  const modellNachrichten = await modellNachrichtenAus({ nachrichten, body, modus, markenAn, seitenkarte, antwortSprache, werkzeuge });
+  if (modellNachrichten instanceof Response) return modellNachrichten;
+
+  const result = starteModell({
+    modell: kette.modell,
+    festerTeil,
+    wechselnderTeil,
+    modellNachrichten,
+    werkzeuge,
+    modus,
+    ausserhalb,
+    letzte,
+    neueNutzerNachricht,
+    profil,
+    rolle,
+    anbieter,
+    anbieterwechsel,
+    antwortId,
+    markenAn,
+    beginn,
+    vorModell,
+  });
+
+  // Die Antwortsprache geht als Metadatum mit der Antwort mit: der Browser
+  // schickt sie beim Vorlesen zurueck, damit die Stimme dieselbe Sprache
+  // spricht wie der Text. api/ki-sprachausgabe prueft sie dort noch einmal
+  // gegen den fertigen Text.
+  const nachrichtenBeigabe = () => ({ sprache: antwortSprache, sprachHerkunft });
+
+  if (!liveVorlesen || !geheimnis) {
+    return result.toUIMessageStreamResponse({ generateMessageId: () => antwortId, messageMetadata: nachrichtenBeigabe });
+  }
+  return liveVorleseAntwort({ result, profil, antwortId, geheimnis, body, antwortSprache, markenAn, nachrichten, seitenkarte, nachrichtenBeigabe });
 }
