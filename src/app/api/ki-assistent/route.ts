@@ -55,7 +55,7 @@ import {
   schnappschuesseKuerzen,
   verlaufAusAnfrage,
 } from "@/lib/ai/anfrage-eingaben";
-import { ladeAnbieterKette, meldeAnbieterwechsel } from "@/lib/ai/anbieter-kette";
+import { ladeAnbieterKette, meldeAnbieterwechsel, type AnbieterKette } from "@/lib/ai/anbieter-kette";
 import type { AusweichEreignis } from "@/lib/ai/ausfall-modell";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { profilFuerTagesLage } from "@/lib/domain/tages-lage";
@@ -417,41 +417,16 @@ function deuteAnfrage(body: AnfrageKoerper, nachrichten: UIMessage[], profil: Se
   return { modus, pfad, rolle, vorschau, letzte, neueNutzerNachricht, antwortSprache, sprachHerkunft, ausserhalb };
 }
 
-// Reihenfolge der Pruefungen (nicht umstellen): Anmeldung, Recht, Drosselung, dann erst der Koerper,
-// dann die Lader, das Speichern der Frage und der Modellaufruf. Jede Pruefung steht vor jedem
-// Datenzugriff, den sie schuetzt.
-export async function POST(req: Request) {
-  const beginn = performance.now();
-  // Die Probe der Einbettung (Wissenssuche) laeuft parallel zu Anmeldung und Datenbank, statt
-  // danach: sie ist nur alle fuenf Minuten je Instanz faellig, kostet dann aber eine Anfrage
-  // an den Einbettungsdienst, und die Antwort wartete darauf (Messung vom 28.09.2026).
-  const wissenGesund = pruefeWissenGesundheit();
-  const profil = await getSessionProfile();
-  if (!profil) {
-    return new Response("nicht angemeldet", { status: 401 });
-  }
-  if (!hasPermission(profil.role, "ki_assistent", "create")) {
-    return new Response("keine berechtigung", { status: 403 });
-  }
+/** Wissensquellen der Rolle, Preislisten und die Anbieterkette (samt der Liste, in die sie Wechsel meldet). */
+interface Grundlagen {
+  quellen: ReturnType<typeof wissensQuellenFuerFaehigkeiten>;
+  preislisten: Parameters<typeof baueGesamtWissenskontext>[1];
+  kette: AnbieterKette;
+  anbieterwechsel: AusweichEreignis[];
+}
 
-  // Ratenbegrenzung (Vibecode-Cleanup Phase 2): lib/ai/ratenbegrenzung.ts,
-  // derselbe Zaehler-Schluessel wie kiNachrichtSenden (actions/ki-assistent.ts)
-  // - beides ist derselbe Kostenfall "eine Chatnachricht senden", nur ueber
-  // verschiedene Sendewege (siehe Dateikopf). Admin-konfigurierbar
-  // (KiRatenlimitVerwaltung in den KI-Einstellungen) - ohne Admin-Einstellung
-  // liefert ladeRatenlimitGrenze() null und es gilt kein Limit.
-  const ratenGrenze = await ladeRatenlimitGrenze(profil.role);
-  if (ratenlimitUeberschritten(profil.id, ratenGrenze)) {
-    return new Response("ratenlimit", { status: 429 });
-  }
-
-  const eingang = await leseAnfrage(req);
-  if (eingang instanceof Response) return eingang;
-  const { body, nachrichten } = eingang;
-  const anfrage = deuteAnfrage(body, nachrichten, profil);
-  if (anfrage instanceof Response) return anfrage;
-  const { modus, pfad, rolle, vorschau, letzte, neueNutzerNachricht, antwortSprache, sprachHerkunft, ausserhalb } = anfrage;
-
+/** Verlauf, Anbieter und Preislisten laden. Eine Response ist ein Fruehausstieg (Einwilligung fehlt, kein passender Anbieter). */
+async function ladeGrundlagen(rolle: Role, einwilligung: boolean | undefined): Promise<Grundlagen | Response> {
   // Verlauf, Anbieter und Preislisten haengen nicht voneinander ab: gleichzeitig laden statt nacheinander
   // (gemessen: rund zwei Sekunden bis zum ersten Modellaufruf, davon der Grossteil Wartezeit auf die Datenbank).
   // Rollenbasierte Wissensgrundlage - identisch zu kiNachrichtSenden(), siehe
@@ -475,50 +450,38 @@ export async function POST(req: Request) {
   // Anforderung 5.5 (Einwilligung): wie kiNachrichtSenden() - vor der
   // allerersten Nachricht muss der Transparenzhinweis bestaetigt sein.
   const istErsteNachricht = bisherigerVerlauf.nachrichten.length === 0;
-  if (istErsteNachricht && !body.einwilligung) {
+  if (istErsteNachricht && !einwilligung) {
     return new Response("einwilligung fehlt", { status: 400 });
   }
 
   if (!kette) {
     return new Response("kein-anbieter", { status: 409 });
   }
-  const anbieter = kette.primaer;
   // 'openai_kompatibel' hat noch kein Werkzeug-Wissen - der Client faellt in
   // diesem Fall auf die bisherige Server-Action-Ansicht zurueck (ki/ki-pane.tsx
   // entscheidet anhand von anbieter.typ, welche Komponente gemountet wird).
-  if (anbieter.typ !== "anthropic") {
+  if (kette.primaer.typ !== "anthropic") {
     return new Response("kein-anthropic-anbieter", { status: 409 });
   }
+  return { quellen, preislisten, kette, anbieterwechsel };
+}
 
+/** Die neue Frage mit der Sitzung des Nutzers speichern (eine Freigabe-Runde hat keine). null heisst: gespeichert oder nichts zu tun. */
+async function speichereFrage(profilId: string, neueNutzerNachricht: string): Promise<Response | null> {
   const supabase = await createClient();
   if (neueNutzerNachricht) {
     const { error: nutzerFehler } = await supabase
       .from("ki_chat_nachrichten")
-      .insert({ profil_id: profil.id, rolle: "nutzer", inhalt: neueNutzerNachricht });
+      .insert({ profil_id: profilId, rolle: "nutzer", inhalt: neueNutzerNachricht });
     if (nutzerFehler) {
       return new Response("db-fehler", { status: 500 });
     }
   }
+  return null;
+}
 
-  const ortHinweis = pfad ? `Der Nutzer sieht gerade diese Ansicht: ${pfad}` : "";
-  // Sprechmarken (domain/sprechmarken.ts) nur, wo sie ausgewertet werden: im
-  // Sprachmodus mit Live-Vorlesen (unten filtert der Server sie aus dem Text).
-  const geheimnis = sprachausgabeGeheimnis();
-  const liveVorlesen = sprachausgabeLiveAn() && Boolean(geheimnis);
-  const markenAn = modus === "sprache" && liveVorlesen;
-  const seitenkarte = modus === "sprache" ? bereinigteSeitenkarte(body.seitenkarte) : null;
-  // Die Datenbank-ID der Antwort steht schon VOR dem Stream fest und geht als
-  // Nachrichten-ID an den Client (generateMessageId unten), gespeichert wird
-  // die Zeile in onFinish unter genau dieser ID. So kennt der Client fuer jede
-  // Antwort ihre Zeile - die Sprachausgabe (api/ki-sprachausgabe) nimmt
-  // bewusst nur IDs gespeicherter Antworten, nie freien Text.
-  const antwortId = crypto.randomUUID();
-
-  // Ist die Einbettung fuer die Wissenssuche erreichbar? (gemerkt, kostet nur beim ersten Mal und nach Ausfaellen)
-  // Gespraech zu einem Prüfbericht: nur fuer Rollen, die Prüfungen ausloesen duerfen (sonst gibt es keinen Bericht), begrenzt und als Daten gekennzeichnet.
-  const pruefKontext = pruefKontextAus(body.pruefkontext, profil.role);
-
-  await wissenGesund;
+/** Die Werkzeuge dieses Zuges: zugeschnitten auf die Rolle, im Gespraech zu einem Pruefbericht mit oeffnePruefBereich. */
+function zugWerkzeuge(rolle: Role, profil: SessionProfile, vorschau: boolean, modus: KiModus, nachrichten: UIMessage[], pruefKontext: string | null) {
   const werkzeugeOhneBericht = baueWerkzeuge(rolle, {
     vorschau,
     // tagesLageAbrufen braucht Brigade, Kunde und Profil fuer "meine" Punkte
@@ -533,7 +496,42 @@ export async function POST(req: Request) {
   });
   // oeffnePruefBereich nur, wenn es ueberhaupt einen Bericht gibt, auf dessen Kacheln es
   // verweisen koennte (siehe pruefGespraechAnweisung, dieselbe Bedingung).
-  const werkzeuge = pruefKontext ? { ...werkzeugeOhneBericht, oeffnePruefBereich: bauePruefBereichWerkzeug() } : werkzeugeOhneBericht;
+  return pruefKontext ? { ...werkzeugeOhneBericht, oeffnePruefBereich: bauePruefBereichWerkzeug() } : werkzeugeOhneBericht;
+}
+type ZugWerkzeuge = ReturnType<typeof zugWerkzeuge>;
+
+interface PromptAngaben {
+  quellen: Grundlagen["quellen"];
+  preislisten: Grundlagen["preislisten"];
+  rolle: Role;
+  vorschau: boolean;
+  modus: KiModus;
+  antwortSprache: Anfrage["antwortSprache"];
+  werkzeuge: ZugWerkzeuge;
+  pruefKontext: string | null;
+  ortHinweis: string;
+  markenAn: boolean;
+  seitenkarte: string | null;
+  letzte: UIMessage;
+  ausserhalb: Anfrage["ausserhalb"];
+}
+
+/** Der Systemprompt in zwei Teilen: fest (gecacht) und je Anfrage wechselnd. */
+function systemPrompt({
+  quellen,
+  preislisten,
+  rolle,
+  vorschau,
+  modus,
+  antwortSprache,
+  werkzeuge,
+  pruefKontext,
+  ortHinweis,
+  markenAn,
+  seitenkarte,
+  letzte,
+  ausserhalb,
+}: PromptAngaben): { festerTeil: string; wechselnderTeil: string } {
   // Wochentag, Datum und Uhrzeit in der Betriebszeitzone (Almaty), nicht in UTC - und nur im
   // wechselnden Teil: im festen Teil schriebe jede neue Minute den Cache neu.
   const heute = heuteAnweisung(new Date(), betriebsZeitzone);
@@ -573,21 +571,37 @@ export async function POST(req: Request) {
   ]
     .filter(Boolean)
     .join("\n\n");
-  const vorModell = performance.now();
-  let ersterText: number | null = null;
+  return { festerTeil, wechselnderTeil };
+}
 
-  // An der letzten Frage haengt ein Hinweis in der Antwortsprache - nur in dieser Kopie fuers Modell,
-  // gespeichert und angezeigt wird die Frage unveraendert. Der Systemprompt ist deutsch, und die
-  // Sprachanweisung darin verlor gegen die vielen deutschen Vorgaben (siehe domain/antwort-anweisungen.ts).
-  // Im Sprachmodus nach einem "Stopp" zusaetzlich, bis wohin Himbi gesprochen hatte (Kontext bleibt).
-  // nachrichten ist oben schon durch schnappschuesseKuerzen gelaufen; bis 28.09.2026 stand
-  // hier ein zweiter Aufruf, der nur eine weitere Kopie des Verlaufs anlegte (Fund 49).
-  // Unvollstaendige Werkzeugaufrufe (Stopp mitten im Aufruf, Abbruch) wuerden sonst jede weitere
-  // Anfrage des Verlaufs scheitern lassen. Scheitert die Umwandlung an einer manipulierten Eingabe,
-  // ist das eine 400, keine 500 (Gegenpruefung vom 29.09.2026).
-  let modellNachrichten: Awaited<ReturnType<typeof convertToModelMessages>>;
+// An der letzten Frage haengt ein Hinweis in der Antwortsprache - nur in dieser Kopie fuers Modell,
+// gespeichert und angezeigt wird die Frage unveraendert. Der Systemprompt ist deutsch, und die
+// Sprachanweisung darin verlor gegen die vielen deutschen Vorgaben (siehe domain/antwort-anweisungen.ts).
+// Im Sprachmodus nach einem "Stopp" zusaetzlich, bis wohin Himbi gesprochen hatte (Kontext bleibt).
+// nachrichten ist oben schon durch schnappschuesseKuerzen gelaufen; bis 28.09.2026 stand
+// hier ein zweiter Aufruf, der nur eine weitere Kopie des Verlaufs anlegte (Fund 49).
+// Unvollstaendige Werkzeugaufrufe (Stopp mitten im Aufruf, Abbruch) wuerden sonst jede weitere
+// Anfrage des Verlaufs scheitern lassen. Scheitert die Umwandlung an einer manipulierten Eingabe,
+// ist das eine 400, keine 500 (Gegenpruefung vom 29.09.2026).
+async function modellNachrichtenAus({
+  nachrichten,
+  body,
+  modus,
+  markenAn,
+  seitenkarte,
+  antwortSprache,
+  werkzeuge,
+}: {
+  nachrichten: UIMessage[];
+  body: AnfrageKoerper;
+  modus: KiModus;
+  markenAn: boolean;
+  seitenkarte: string | null;
+  antwortSprache: Anfrage["antwortSprache"];
+  werkzeuge: ZugWerkzeuge;
+}): Promise<Awaited<ReturnType<typeof convertToModelMessages>> | Response> {
   try {
-    modellNachrichten = await convertToModelMessages(
+    return await convertToModelMessages(
       mitSprachErinnerung(
         mitSeitenkarte(mitUnterbrechungsHinweis(nachrichten, modus === "sprache" ? (body.unterbrochen as string | undefined) : null), markenAn ? seitenkarte : null),
         antwortSprache,
@@ -597,6 +611,90 @@ export async function POST(req: Request) {
   } catch {
     return new Response("ungueltige eingabe", { status: 400 });
   }
+}
+
+// Reihenfolge der Pruefungen (nicht umstellen): Anmeldung, Recht, Drosselung, dann erst der Koerper,
+// dann die Lader, das Speichern der Frage und der Modellaufruf. Jede Pruefung steht vor jedem
+// Datenzugriff, den sie schuetzt.
+export async function POST(req: Request) {
+  const beginn = performance.now();
+  // Die Probe der Einbettung (Wissenssuche) laeuft parallel zu Anmeldung und Datenbank, statt
+  // danach: sie ist nur alle fuenf Minuten je Instanz faellig, kostet dann aber eine Anfrage
+  // an den Einbettungsdienst, und die Antwort wartete darauf (Messung vom 28.09.2026).
+  const wissenGesund = pruefeWissenGesundheit();
+  const profil = await getSessionProfile();
+  if (!profil) {
+    return new Response("nicht angemeldet", { status: 401 });
+  }
+  if (!hasPermission(profil.role, "ki_assistent", "create")) {
+    return new Response("keine berechtigung", { status: 403 });
+  }
+
+  // Ratenbegrenzung (Vibecode-Cleanup Phase 2): lib/ai/ratenbegrenzung.ts,
+  // derselbe Zaehler-Schluessel wie kiNachrichtSenden (actions/ki-assistent.ts)
+  // - beides ist derselbe Kostenfall "eine Chatnachricht senden", nur ueber
+  // verschiedene Sendewege (siehe Dateikopf). Admin-konfigurierbar
+  // (KiRatenlimitVerwaltung in den KI-Einstellungen) - ohne Admin-Einstellung
+  // liefert ladeRatenlimitGrenze() null und es gilt kein Limit.
+  const ratenGrenze = await ladeRatenlimitGrenze(profil.role);
+  if (ratenlimitUeberschritten(profil.id, ratenGrenze)) {
+    return new Response("ratenlimit", { status: 429 });
+  }
+
+  const eingang = await leseAnfrage(req);
+  if (eingang instanceof Response) return eingang;
+  const { body, nachrichten } = eingang;
+  const anfrage = deuteAnfrage(body, nachrichten, profil);
+  if (anfrage instanceof Response) return anfrage;
+  const { modus, pfad, rolle, vorschau, letzte, neueNutzerNachricht, antwortSprache, sprachHerkunft, ausserhalb } = anfrage;
+
+  const grundlagen = await ladeGrundlagen(rolle, body.einwilligung);
+  if (grundlagen instanceof Response) return grundlagen;
+  const { quellen, preislisten, kette, anbieterwechsel } = grundlagen;
+  const anbieter = kette.primaer;
+
+  const frageFehler = await speichereFrage(profil.id, neueNutzerNachricht);
+  if (frageFehler) return frageFehler;
+
+  const ortHinweis = pfad ? `Der Nutzer sieht gerade diese Ansicht: ${pfad}` : "";
+  // Sprechmarken (domain/sprechmarken.ts) nur, wo sie ausgewertet werden: im
+  // Sprachmodus mit Live-Vorlesen (unten filtert der Server sie aus dem Text).
+  const geheimnis = sprachausgabeGeheimnis();
+  const liveVorlesen = sprachausgabeLiveAn() && Boolean(geheimnis);
+  const markenAn = modus === "sprache" && liveVorlesen;
+  const seitenkarte = modus === "sprache" ? bereinigteSeitenkarte(body.seitenkarte) : null;
+  // Die Datenbank-ID der Antwort steht schon VOR dem Stream fest und geht als
+  // Nachrichten-ID an den Client (generateMessageId unten), gespeichert wird
+  // die Zeile in onFinish unter genau dieser ID. So kennt der Client fuer jede
+  // Antwort ihre Zeile - die Sprachausgabe (api/ki-sprachausgabe) nimmt
+  // bewusst nur IDs gespeicherter Antworten, nie freien Text.
+  const antwortId = crypto.randomUUID();
+
+  // Ist die Einbettung fuer die Wissenssuche erreichbar? (gemerkt, kostet nur beim ersten Mal und nach Ausfaellen)
+  // Gespraech zu einem Prüfbericht: nur fuer Rollen, die Prüfungen ausloesen duerfen (sonst gibt es keinen Bericht), begrenzt und als Daten gekennzeichnet.
+  const pruefKontext = pruefKontextAus(body.pruefkontext, profil.role);
+
+  await wissenGesund;
+  const werkzeuge = zugWerkzeuge(rolle, profil, vorschau, modus, nachrichten, pruefKontext);
+  const { festerTeil, wechselnderTeil } = systemPrompt({
+    quellen,
+    preislisten,
+    rolle,
+    vorschau,
+    modus,
+    antwortSprache,
+    werkzeuge,
+    pruefKontext,
+    ortHinweis,
+    markenAn,
+    seitenkarte,
+    letzte,
+    ausserhalb,
+  });
+  const vorModell = performance.now();
+  let ersterText: number | null = null;
+  const modellNachrichten = await modellNachrichtenAus({ nachrichten, body, modus, markenAn, seitenkarte, antwortSprache, werkzeuge });
+  if (modellNachrichten instanceof Response) return modellNachrichten;
 
   const result = streamText({
     // Kette mit Ausweichanbieter (Guthaben, Ratenlimit, Ueberlastung): lib/ai/anbieter-kette.ts
