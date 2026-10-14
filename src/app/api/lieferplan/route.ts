@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { getSessionProfile, requireAal2Aktuell } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
-import { routing } from "@/i18n/routing";
+import { sitzungFuerRoute, textAntwort } from "@/lib/api/sitzung";
 import { icsKalender } from "@/lib/domain/ics";
 import { lieferplanTermine } from "@/lib/domain/lieferplan";
 import { ladeLieferplanQuelle } from "@/lib/data/lieferplan";
@@ -15,31 +14,17 @@ import { ladeLieferplanQuelle } from "@/lib/data/lieferplan";
 // seine eigenen Termine, das Buero alle). Wer den Plan aktuell halten will, ruft die
 // Datei erneut ab; ein Import mit gleichbleibender Kennung (UID) ersetzt die Termine.
 //
-// src/proxy.ts schliesst /api aus, deshalb prueft dieser Handler Anmeldung, Recht und
-// zweiten Faktor selbst.
+// Anmeldung, Recht und zweiter Faktor prueft sitzungFuerRoute() (src/proxy.ts schliesst /api aus).
 
 const DATEINAME = "damicon-lieferplan.ics";
 
-function antwort(text: string, status: number) {
-  return new Response(text, { status, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
-}
-
 export async function GET(request: Request) {
-  const profil = await getSessionProfile();
-  if (!profil) return antwort("Nicht angemeldet.", 401);
-  if (!hasPermission(profil.role, "b2b_portal", "view")) return antwort("Keine Berechtigung.", 403);
-  try {
-    await requireAal2Aktuell();
-  } catch {
-    return antwort("Zweiter Faktor erforderlich.", 401);
-  }
-
-  // Die Sprache der Texte in der Datei: eine bekannte Oberflaechensprache, sonst Deutsch.
-  const gewuenscht = new URL(request.url).searchParams.get("sprache") ?? "";
-  const sprache = (routing.locales as readonly string[]).includes(gewuenscht) ? gewuenscht : routing.defaultLocale;
+  const sitzung = await sitzungFuerRoute(request, (rolle) => hasPermission(rolle, "b2b_portal", "view"));
+  if (sitzung instanceof Response) return sitzung;
+  const { sprache } = sitzung;
 
   const geladen = await ladeLieferplanQuelle();
-  if (!geladen) return antwort("Der Lieferplan konnte nicht geladen werden.", 500);
+  if (!geladen) return textAntwort("Der Lieferplan konnte nicht geladen werden.", 500);
 
   const t = await getTranslations({ locale: sprache, namespace: "lieferplan" });
   const termine = lieferplanTermine(geladen.quelle, geladen.heute, (art, d) => {

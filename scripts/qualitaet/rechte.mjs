@@ -13,7 +13,7 @@ const R = process.cwd().split("\\").join("/") + "/";
 const dateien = execSync("git ls-files src", { cwd: R, encoding: "utf8" }).split("\n").filter((f) => /\.(tsx?)$/.test(f));
 
 /** Aufrufe, an denen eine Prüfung erkennbar ist (getSessionProfile auch ohne Klammern: als Abhängigkeit übergeben). */
-const PRUEF = /requirePermission\(|getSessionProfile\b|requireAal2Aktuell\(|auth\.getUser\(|verwaltungsProfil\(/;
+const PRUEF = /requirePermission\(|getSessionProfile\b|requireAal2Aktuell\(|auth\.getUser\(|verwaltungsProfil\(|sitzungFuerRoute\(/;
 
 /** Bewusst ohne Anmeldung erreichbar, jeweils mit Grund. */
 const OEFFENTLICH = new Map([

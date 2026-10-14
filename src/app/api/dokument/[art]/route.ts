@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { getSessionProfile, requireAal2Aktuell } from "@/lib/auth";
-import { routing } from "@/i18n/routing";
+import { sitzungFuerRoute, textAntwort } from "@/lib/api/sitzung";
 import { dokumentAlsHtml } from "@/lib/dokument/damicon-dokument";
 import { RAHMEN_NAMENSRAUM, rahmenTexte, type DokumentKontext, type Uebersetzer } from "@/lib/dokument/kontext";
 import { DOKUMENT_ARTEN } from "@/lib/dokument/arten";
@@ -10,31 +9,18 @@ import { protokolliere } from "@/lib/actions/formular-helfer";
 //
 // Ein eigenstaendiges HTML-Dokument mit Deckblatt, Kopf- und Fusszeile, nummerierten Abschnitten und Siegel, das der Browser
 // ueber "Drucken" zur PDF-Datei macht (wie der Compliance-Pruefbericht). Gebunden an die Sitzung: Anmeldung, Recht je Art und
-// zweiter Faktor werden hier selbst geprueft (src/proxy.ts schliesst /api aus), die Daten kommen mit den Rechten der Person
+// zweiter Faktor prueft sitzungFuerRoute() (src/proxy.ts schliesst /api aus), die Daten kommen mit den Rechten der Person
 // (Zeilensicherheit). Jeder Abruf steht mit der Pruefsumme im Protokoll: so laesst sich spaeter zeigen, was herausgegeben wurde.
 // Die Arten und ihre Parameter stehen in lib/dokument/arten.ts.
 
-function antwort(text: string, status: number) {
-  return new Response(text, { status, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
-}
-
 export async function GET(request: Request, { params }: { params: Promise<{ art: string }> }) {
-  const profil = await getSessionProfile();
-  if (!profil) return antwort("Nicht angemeldet.", 401);
-
   const { art } = await params;
   const definition = Object.hasOwn(DOKUMENT_ARTEN, art) ? DOKUMENT_ARTEN[art] : undefined;
-  if (!definition) return antwort("Unbekannte Dokumentart.", 404);
-  if (!definition.erlaubt(profil.role)) return antwort("Keine Berechtigung.", 403);
-  try {
-    await requireAal2Aktuell();
-  } catch {
-    return antwort("Zweiter Faktor erforderlich.", 401);
-  }
-
-  const parameter = new URL(request.url).searchParams;
-  const gewuenscht = parameter.get("sprache") ?? "";
-  const sprache = (routing.locales as readonly string[]).includes(gewuenscht) ? gewuenscht : routing.defaultLocale;
+  // Eine unbekannte Art laesst die Rechtepruefung durch, damit sie erst nach der Anmeldung mit 404 antwortet (nicht mit 403).
+  const sitzung = await sitzungFuerRoute(request, (rolle) => !definition || definition.erlaubt(rolle));
+  if (sitzung instanceof Response) return sitzung;
+  if (!definition) return textAntwort("Unbekannte Dokumentart.", 404);
+  const { profil, sprache, parameter } = sitzung;
 
   const uebersetzer = new Map<string, Uebersetzer>();
   for (const namensraum of new Set([RAHMEN_NAMENSRAUM, "roles", ...definition.namensraeume])) {
@@ -53,7 +39,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ art:
     t,
   };
   const eingabe = await definition.baue({ profil, parameter, x });
-  if (!eingabe) return antwort("Nicht gefunden.", 404);
+  if (!eingabe) return textAntwort("Nicht gefunden.", 404);
 
   await protokolliere(profil, "dokument.erzeugt", "dokumente", null, { art, kennung: eingabe.kennung, siegel: eingabe.siegel, sprache });
 

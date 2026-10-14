@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { getSessionProfile, requireAal2Aktuell } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
-import { routing } from "@/i18n/routing";
+import { sitzungFuerRoute } from "@/lib/api/sitzung";
 import { csvDatei } from "@/lib/domain/csv";
 import { ladeEsutdMeldungen } from "@/lib/data/esutd";
 import { protokolliere } from "@/lib/actions/formular-helfer";
@@ -11,27 +10,14 @@ import { protokolliere } from "@/lib/actions/formular-helfer";
 // Fuer die Eingabe im staatlichen System, solange es keine Anbindung gibt (Stufe 2). Das System
 // kennt kein amtliches Importformat, deshalb ist die Datei eine schlichte Tabelle, kein
 // erfundenes Format. Sie enthaelt Namen und Ausweisnummern: Anmeldung, Recht und zweiter Faktor
-// werden hier selbst geprueft (src/proxy.ts schliesst /api aus), jeder Abruf steht im Protokoll.
+// prueft sitzungFuerRoute() (src/proxy.ts schliesst /api aus), jeder Abruf steht im Protokoll.
 // Nur wer Meldungen erfassen darf (personal:update) bekommt die Datei, und sie zeigt nur, was die
 // Zeilensicherheit ihr ohnehin zeigt.
 
-function antwort(text: string, status: number) {
-  return new Response(text, { status, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
-}
-
 export async function GET(request: Request) {
-  const profil = await getSessionProfile();
-  if (!profil) return antwort("Nicht angemeldet.", 401);
-  if (!hasPermission(profil.role, "personal", "update")) return antwort("Keine Berechtigung.", 403);
-  try {
-    await requireAal2Aktuell();
-  } catch {
-    return antwort("Zweiter Faktor erforderlich.", 401);
-  }
-
-  const parameter = new URL(request.url).searchParams;
-  const gewuenscht = parameter.get("sprache") ?? "";
-  const sprache = (routing.locales as readonly string[]).includes(gewuenscht) ? gewuenscht : routing.defaultLocale;
+  const sitzung = await sitzungFuerRoute(request, (rolle) => hasPermission(rolle, "personal", "update"));
+  if (sitzung instanceof Response) return sitzung;
+  const { profil, sprache, parameter } = sitzung;
   const nurOffene = parameter.get("status") !== "alle";
 
   const alle = await ladeEsutdMeldungen();
