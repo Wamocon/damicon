@@ -29,10 +29,13 @@ import { useLiveSprachausgabe, type LiveAbschnitt } from "@/components/ki/sprach
 //     Zeichengrenze, neue Ausgabe während einer laufenden, Ruhe, Aufsicht, Leerlauf, angehaltene Stimme, Schließen, Absage.
 //   * useLiveSprachausgabe (components/ki/sprachausgabe-live.ts): Strom-Weg live, Aufgabe des Stroms mit Übergabe an die
 //     Abschnitte (mit und ohne klingenden Strom-Ton), Knopf an einer Nachricht samt Rest für den Datei-Weg, Weg ohne Web Audio,
-//     Abschnitts-Weg nach der Absage, Anhalten und Entsperren, neue Runde, Abbau, Identität der Rückgabe.
-// Je Fall wird die vollständige Folge aller Aufrufe an AudioContext, WebSocket, fetch, <audio>, Objekt-URLs und Konsole mit der Zeit
-// der Uhr aufgezeichnet (dazu Rückmeldungen, stand(), gerade(), Phase und offene Zeitgeber) und mit der Folge des Codes vor dem
-// Zerlegen verglichen (fixtures/sprachausgabe-golden.json, Stand 532c9180). Ein Unterschied meldet die erste abweichende Zeile.
+//     Abschnitts-Weg nach der Absage, Anhalten und Entsperren (auch mit spielendem Abschnitt vor dem Stopp), neue Runde, Abbau,
+//     Identität der Rückgabe.
+// Zusammen 14 Fälle, je sieben für den Sprecher und für den Hook. Je Fall wird die vollständige Folge aller Aufrufe an
+// AudioContext, WebSocket, fetch, <audio>, Objekt-URLs und Konsole mit der Zeit der Uhr aufgezeichnet (dazu Rückmeldungen,
+// stand(), gerade(), Phase und offene Zeitgeber) und mit der Folge des Codes vor dem Zerlegen verglichen
+// (fixtures/sprachausgabe-golden.json, Stand 22cd798c, dem Vorgänger der Charakterisierung). Ein Unterschied meldet die erste
+// abweichende Zeile.
 // Dazu prüfen ausgeschriebene Regeln die wichtigsten Zeitpunkte. Der Sprecher hält Zustand je Tab (Modul): die Fälle laufen deshalb
 // in fester Reihenfolge, die Absage (Zustand bis zum Neuladen) zuletzt. Die Vergleichswerte neu schreiben nur mit einem Code, dessen
 // Verhalten gewollt ist:
@@ -540,13 +543,25 @@ type Vorlesen = ReturnType<typeof useLiveSprachausgabe>;
 const RUECKRUFE = ["neueRunde", "nimmNachweis", "nimmAbschnitt", "folgeQuelle", "schliesseRunde", "sprichNachricht", "stoppeAlles", "entsperre", "gerade", "halte"] as const;
 
 type Eigenschaften = { ohne: (id: string, rest?: number) => void };
+// Obergrenze der Renderdurchläufe je Fall (gebraucht werden höchstens 25, live-aufgabe). Wird ein Rückruf instabil, etwa
+// stoppeAlles mit einem neuen Objekt in der Abhängigkeitsliste, räumt der Abbau-Effekt nach jedem Render auf, setzt Zustand und
+// rendert erneut, ohne Ende: ohne Grenze liefe der Test bis zum Speicherabbruch, mit ihr bricht der Fall mit einer Meldung ab.
+const RENDER_GRENZE = 500;
 
 /** Rendert den Hook. Jedes zeige() rendert ohne Änderung neu (die Rückgabe muss dasselbe Objekt bleiben, useMemo), schreibt Phase,
  *  Quelle und gerade() in die Folge und merkt sich die Rückgabe: am Ende prüft pruefeIdentitaet(), dass die zehn Rückrufe in allen
  *  Durchläufen dieselben blieben. */
 function rendereVorlesen() {
   let eigenschaften: Eigenschaften = { ohne: ohneStrom };
-  const ansicht = renderHook((p: Eigenschaften) => useLiveSprachausgabe({ beiNachrichtOhneStrom: p.ohne }), { initialProps: eigenschaften });
+  let renders = 0;
+  const ansicht = renderHook(
+    (p: Eigenschaften) => {
+      renders += 1;
+      if (renders > RENDER_GRENZE) throw new Error(`mehr als ${RENDER_GRENZE} Renderdurchläufe in einem Fall: ein Rückruf des Hooks ist instabil`);
+      return useLiveSprachausgabe({ beiNachrichtOhneStrom: p.ohne });
+    },
+    { initialProps: eigenschaften },
+  );
   const v = () => ansicht.result.current;
   const gesehen: Vorlesen[] = [v()];
   let stabil = true;
@@ -780,6 +795,20 @@ async function fallLiveHalten(): Promise<void> {
   await tu(() => v().halte(true));
   await tu(() => v().stoppeAlles());
   zeige();
+  schritt("Weg 2 angehalten: der Strom gibt ohne Ton auf, ein Abschnitt spielt, die Stimme hält an, dann Stopp");
+  richteAbschnitteEin();
+  await tu(() => v().nimmNachweis({ zug: "z-2", ablauf: Date.now() + 60_000, sig: "ij90" }));
+  await tu(() => v().nimmAbschnitt(abschnitt(1, "Der Abschnitt nach der Aufgabe.", "z-2"), "de"));
+  await uhr.vor(0);
+  const ws2 = verbindung();
+  await empfange(ws2, { stream_id: stromId(ws2), error_code: 500, error_type: "internal_error", error_message: "x" });
+  await uhr.vor(200);
+  zeige();
+  await tu(() => v().halte(true));
+  zeige();
+  // Erst die Stimme freigeben, dann Weg 2 leeren (stoppeAlles: gibFrei vor leereAbschnitte).
+  await tu(() => v().stoppeAlles());
+  zeige();
   pruefeIdentitaet("live-halten");
   ansicht.unmount();
   await uhr.vor(0);
@@ -825,14 +854,15 @@ async function main(): Promise<void> {
   console.error = echteKonsole.error;
   pruefe("Konsole: keine Fehler (etwa React-Updates außerhalb von act)", konsolenFehler.length === 0, json(konsolenFehler).slice(0, 600));
   if (schreiben) {
-    writeFileSync(GOLDEN, `${JSON.stringify({ stand: "Code vor dem Zerlegen (532c9180)", ...neu }, null, 1)}\n`);
+    writeFileSync(GOLDEN, `${JSON.stringify({ stand: "Code vor dem Zerlegen (22cd798c)", ...neu }, null, 1)}\n`);
     console.log(`Vergleichswerte geschrieben: ${GOLDEN}`);
   }
   beendeUmgebung();
   ende();
 }
 
-main().catch((e) => {
-  console.error("FAIL  Ausnahme", e);
+main().catch((e: unknown) => {
+  // console.error ist während der Fälle abgefangen (konsolenFehler): direkt auf stderr.
+  process.stderr.write(`FAIL  Ausnahme ${e instanceof Error ? e.stack : String(e)}\n`);
   process.exit(1);
 });
