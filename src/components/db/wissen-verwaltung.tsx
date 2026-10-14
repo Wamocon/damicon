@@ -501,7 +501,7 @@ export function bewerteSeitenAngabe(dokument: WissenDokumentZeile, erneut: boole
   return { luecken, gelesen, unbekannt, angabe, abdeckung, seitenOk };
 }
 
-type SeitenAngabe = ReturnType<typeof bewerteSeitenAngabe>;
+type SeitenBewertung = ReturnType<typeof bewerteSeitenAngabe>;
 
 /** Was freigegeben wird: Titel, Bereich, Quellenart (mit Cluster, Stufe und Nutzung), Rollen, Herkunft, Umfang und Link. */
 function PruefAngaben({ dokument, bereichName, artName }: { dokument: WissenDokumentZeile; bereichName: string; artName: string | null }) {
@@ -584,7 +584,7 @@ function SeitenBestaetigung({
 }: {
   dokument: WissenDokumentZeile;
   titelId: string;
-  seiten: SeitenAngabe;
+  seiten: SeitenBewertung;
   eingabe: { bestaetigt: string; setBestaetigt: (wert: string) => void; vermerk: string; setVermerk: (wert: string) => void };
   beiErgebnis: (status: AktionsStatus) => void;
 }) {
@@ -641,7 +641,7 @@ function SeitenBestaetigung({
 }
 
 /** Deckt die Angabe alle offenen Lücken ab? Dazu die angegebenen Seiten, die zu keiner Lücke gehören. */
-export function SeitenAbdeckung({ id, angabe, abdeckung }: { id: string; angabe: SeitenAngabe["angabe"]; abdeckung: SeitenAngabe["abdeckung"] }) {
+export function SeitenAbdeckung({ id, angabe, abdeckung }: { id: string; angabe: SeitenBewertung["angabe"]; abdeckung: SeitenBewertung["abdeckung"] }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
   return (
     <div id={id} role="status" aria-live="polite" className="space-y-0.5 text-[11px]">
