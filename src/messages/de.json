@@ -731,7 +731,7 @@
     "dokumente": {
       "title": "Dokumentenverwaltung",
       "navTitle": "Dokumente",
-      "description": "Geschützte Ablage und Nachweisregister für Zertifikate, Verträge, Genehmigungen, Versicherungen, Spritzmittelprotokolle, ЕСУТД-Nachweise und Förderdossiers - mit Gültigkeitszeitraum, automatischem Ablaufstatus und Verantwortlichem, verknüpft mit Reihenblock, Charge und Partnern.",
+      "description": "Geschützte Ablage und Nachweisregister für Zertifikate, Verträge, Genehmigungen, Versicherungen, Spritzmittelprotokolle, ЕСУТД-Nachweise und Förderdossiers, mit Gültigkeitszeitraum, automatischem Ablaufstatus und Verantwortlichem, verknüpft mit Reihenblock, Charge und Partnern.",
       "summary": "Kategorisierte, geschützte Dokumentenablage mit automatischem Ablaufstatus, Verantwortlichem und Verknüpfung zu Reihenblock, Charge und Partnern.",
       "todo": "Versionen je Dokument."
     },
@@ -1213,7 +1213,7 @@
       "rechtsgrundlage": "Rechtsgrundlage"
     },
     "beispiel": {
-      "name": "Spritzprotokoll KW 37 - Parzelle Nord",
+      "name": "Spritzprotokoll KW 37, Parzelle Nord",
       "rechtsgrundlage": "z. B. Auflage des Abnehmers"
     },
     "keinDossier": "kein Dossier",
@@ -1638,9 +1638,9 @@
     },
     "risikoRadar": {
       "titel": "Risiko-Radar",
-      "lead": "Alle offenen gesetzlichen Fristen aus Steuer-, Arbeits- und Datenschutzrecht und abgelaufene oder bald ablaufende Nachweise an einer Stelle - nach Dringlichkeit sortiert.",
+      "lead": "Alle offenen gesetzlichen Fristen aus Steuer-, Arbeits- und Datenschutzrecht und abgelaufene oder bald ablaufende Nachweise an einer Stelle, nach Dringlichkeit sortiert.",
       "anzahlOffen": "{anzahl} offene Frist(en)",
-      "alleErledigt": "Keine offene Frist - Steuer-, Arbeits- und Datenschutzrecht und die Nachweise sind aktuell im Plan.",
+      "alleErledigt": "Keine offene Frist. Steuer-, Arbeits- und Datenschutzrecht und die Nachweise sind aktuell im Plan.",
       "ansehen": "Ansehen →",
       "kategorie": {
         "steuer": "Steuerrecht",

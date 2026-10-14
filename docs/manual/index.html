@@ -557,6 +557,12 @@ mark.treffer-aktiv {
     <a class="toc-link toc-2" href="#anleitung-dokument">4.4 Ein Dokument aufnehmen</a>
     <a class="toc-link toc-2" href="#anleitung-zugang">4.5 Zugang einrichten: Einladung und zweiter Faktor</a>
     <a class="toc-link toc-2" href="#anleitung-wissensdokument">4.6 Dokument in die Wissensbasis hochladen, freigeben und löschen (Administration)</a>
+    <a class="toc-link toc-2" href="#anleitung-esf">4.7 Eine Lieferung mit ЭСФ belegen (Belegregister)</a>
+    <a class="toc-link toc-2" href="#anleitung-esutd">4.8 Saisonverträge ins ЕСУТД melden (Meldeprozess)</a>
+    <a class="toc-link toc-2" href="#anleitung-nachweis">4.9 Einen Nachweis mit Gültigkeit führen</a>
+    <a class="toc-link toc-2" href="#anleitung-logger">4.10 Die Datei eines Temperaturloggers importieren</a>
+    <a class="toc-link toc-2" href="#anleitung-rollen">4.11 Rollen vergeben</a>
+    <a class="toc-link toc-2" href="#anleitung-nachrichten">4.12 Nachrichten zu einer Vorbestellung und Lieferplan</a>
     <a class="toc-link toc-1" href="#referenz">05 Referenz</a>
     <a class="toc-link toc-2" href="#referenz-seiten">5.1 Seiten</a>
     <a class="toc-link toc-2" href="#referenz-rechte">5.2 Rechte je Rolle</a>
@@ -738,7 +744,7 @@ mark.treffer-aktiv {
             <tr><td><strong>Kühlkette</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</td></tr>
             <tr><td><strong>Abholrunden</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</td></tr>
             <tr><td><strong>QR-Steigen</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</td></tr>
-            <tr><td><strong>Lieferschein (ЭСФ)</strong></td><td><span class="pille pille-offen">in Entwicklung</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
+            <tr><td><strong>Lieferschein (ЭСФ)</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
             <tr><td><strong>Rollen und Rechte</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung</td></tr>
             <tr><td><strong>Finanzen</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb</td></tr>
             <tr><td><strong>Wirtschaftlichkeit</strong></td><td><span class="pille pille-offen">in Entwicklung</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
@@ -746,7 +752,7 @@ mark.treffer-aktiv {
             <tr><td><strong>Qualitätsfaktor-Lohn</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Pflücker</td></tr>
             <tr><td><strong>Dokumente</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb, B2B-Kunde</td></tr>
             <tr><td><strong>Compliance</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
-            <tr><td><strong>Integrationen</strong></td><td><span class="pille pille-offen">in Entwicklung</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
+            <tr><td><strong>Integrationen</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
             <tr><td><strong>Fördermittel</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
             <tr><td><strong>Stammdaten</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
             <tr><td><strong>Sortenkatalog</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, B2B-Kunde</td></tr>
@@ -860,14 +866,14 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Die Steigen-Etiketten lassen sich noch nicht mit der Kamera scannen, nur der Pflückerausweis.</span></div>
       </div>
 
-      <h4 id="modul-esf">3.2.4 Elektronischer Lieferschein (ЭСФ) <span class="pille pille-offen">in Entwicklung</span></h4>
-      <p>Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Die Anbindung an das staatliche ЭСФ-System ist vorgesehen, eine eigene Buchhaltung nicht.</p>
+      <h4 id="modul-esf">3.2.4 Elektronischer Lieferschein (ЭСФ) <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Belegregister für die elektronische Rechnung (ЭСФ): welche Lieferung hat welchen Beleg, welche hat noch keinen. Die Angaben für das Portal werden vorbereitet, ausgestellt wird weiterhin im staatlichen System.</p>
       <div class="merkmale">
-        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Führt künftig die Belegkette von der Charge zum Lieferschein und nimmt die Statusrückmeldung aus dem staatlichen System auf. Pflichtintegration.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Zeigt die Lieferungen ohne ЭСФ, bereitet die Angaben aus Lieferung, Preisliste und MwSt-Stand vor und führt den Status bis zur Bestätigung. Pflichtintegration, die Anbindung folgt mit dem Zugang der Behörde.</span></div>
         <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/hof/lieferschein-esf</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
         <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Buchhaltung</span></div>
-        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Anbindung an das ИС ЭСФ, Belegkette Charge zu Lieferschein, Statusrückmeldung und Wiederholung.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Stufe 2: automatische Übergabe an das ИС ЭСФ und Statusrückmeldung, sobald der Zugang der Behörde vorliegt.</span></div>
       </div>
 
       <h3 id="bereich-buero">3.3 Büro</h3>
@@ -876,11 +882,11 @@ mark.treffer-aktiv {
       <h4 id="modul-rollen">3.3.1 Rollen und Rechte <span class="pille pille-gut">einsatzbereit</span></h4>
       <p>Acht Kernrollen von der Geschäftsführung und Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden, mit einer Rechtematrix über Ressourcen und Aktionen.</p>
       <div class="merkmale">
-        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Legt fest, wer was sehen und ändern darf. Eine neue Rolle lässt sich anlegen, ohne dass an den Modulen etwas geändert werden muss.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Legt fest, wer was sehen und ändern darf. Die Administration weist Konten ihre Rolle zu. Eine neue Rolle lässt sich anlegen, ohne dass an den Modulen etwas geändert werden muss.</span></div>
         <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/rollen</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
         <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung</span></div>
-        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Nutzerverwaltung, Rollenzuweisung, feingranulare Zugriffsregeln je Ressource.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Konten für Mitarbeitende anlegen und sperren, feingranulare Zugriffsregeln je Ressource.</span></div>
       </div>
 
       <h4 id="modul-finanzen">3.3.2 Deckungsbeitrag und Finanzen <span class="pille pille-gut">einsatzbereit</span></h4>
@@ -924,13 +930,13 @@ mark.treffer-aktiv {
       </div>
 
       <h4 id="modul-dokumente">3.3.6 Dokumentenverwaltung <span class="pille pille-gut">einsatzbereit</span></h4>
-      <p>Geschützte Ablage für Spritzmittelprotokolle, ЕСУТД-Nachweise, Liefer- und Rahmenverträge, Förderdossiers und Zertifikate - verknüpft mit Reihenblock und Charge.</p>
+      <p>Geschützte Ablage und Nachweisregister für Zertifikate, Verträge, Genehmigungen, Versicherungen, Spritzmittelprotokolle, ЕСУТД-Nachweise und Förderdossiers, mit Gültigkeitszeitraum, automatischem Ablaufstatus und Verantwortlichem, verknüpft mit Reihenblock, Charge und Partnern.</p>
       <div class="merkmale">
-        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Kategorisierte, geschützte Dokumentenablage mit Verknüpfung zu Reihenblock und Charge.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Kategorisierte, geschützte Dokumentenablage mit automatischem Ablaufstatus, Verantwortlichem und Verknüpfung zu Reihenblock, Charge und Partnern.</span></div>
         <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/dokumente</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb, B2B-Kunde</span></div>
         <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
-        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Versionen je Dokument, Ablauffristen mit Erinnerung.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Versionen je Dokument.</span></div>
       </div>
 
       <h4 id="modul-compliance">3.3.7 Compliance-Cockpit <span class="pille pille-gut">einsatzbereit</span></h4>
@@ -943,14 +949,14 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Rechtszitate aus Steuergesetzbuch, KI-Gesetz und Digitalkodex, Aufbewahrungsfristen je Datenart, Prüfung des Speicherorts.</span></div>
       </div>
 
-      <h4 id="modul-integrationen">3.3.8 Staatliche Integrationen <span class="pille pille-offen">in Entwicklung</span></h4>
-      <p>Vorgesehen sind Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.</p>
+      <h4 id="modul-integrationen">3.3.8 Staatliche Integrationen <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Meldeprozess für das Einheitssystem ЕСУТД: Abschluss, Änderung und Beendigung der Saisonverträge mit Frist, Bestätigung und Beleg. Konnektoren zu ЭСФ, virtuellem Lagerbestand und den Förderportalen gosagro.kz und qoldau.kz sind vorgesehen. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.</p>
       <div class="merkmale">
-        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Bekommt je Zielsystem einen Konnektor mit Statusrückmeldung und Wiederholung. Die Buchhaltung bleibt außen vor.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Führt die Meldungen an das ЕСУТД und erinnert an die Frist des Abschlusses. Die automatische Übergabe folgt mit dem Zugang der Behörde.</span></div>
         <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/integrationen</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
         <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Buchhaltung</span></div>
-        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Konnektoren je System, Testzugänge, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Stufe 2: Konnektoren je System mit Testzugängen, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge.</span></div>
       </div>
 
       <h4 id="modul-foerdermittel">3.3.9 Fördermitteldossier <span class="pille pille-gut">einsatzbereit</span></h4>
@@ -1049,7 +1055,7 @@ mark.treffer-aktiv {
 
     <section id="anleitungen">
       <h2><span class="nr">04</span> Anleitungen</h2>
-      <p>Sechs Abläufe, die den Kern des Betriebs abdecken. Die Pfade beziehen sich auf die Seitenleiste.</p>
+      <p>Zwölf Abläufe, die den Kern des Betriebs abdecken. Die Pfade beziehen sich auf die Seitenleiste.</p>
 
       <h3 id="anleitung-wartezeit">4.1 Wartezeitsperre auslösen und aufheben</h3>
       <p>Nach einer Pflanzenschutzbehandlung darf ein Reihenblock bis zum Ablauf der Wartezeit nicht beerntet werden. Das Portal setzt diese Sperre selbst.</p>
@@ -1104,11 +1110,11 @@ mark.treffer-aktiv {
       <h3 id="anleitung-wissensdokument">4.6 Dokument in die Wissensbasis hochladen, freigeben und löschen (Administration)</h3>
       <p>Die Wissensbasis enthält die Texte zu Recht, Steuern, Compliance, Audit und Risiko, aus denen der Assistent seine Belege holt. Nur die Administration darf hier Dokumente hinzufügen, und jedes neue Dokument muss eine zweite Person freigeben (Vier-Augen-Prinzip).</p>
       <ol>
-          <li>Als Administration anmelden und in der Seitenleiste unter „Administration“ die Seite „Wissensbasis“ öffnen. Die Gruppe „Administration“ steht als letzte unter den Zonen und ist nur für die Administration sichtbar. Die Seite zeigt oben das Formular und darunter die Liste „Vorhandene Dokumente“. Die Liste nennt je Dokument Cluster, Quellenart und Stufe und lässt sich nach Cluster filtern. Bestand aus der Zeit vor der Typisierung steht als „Nicht eingeordnet“.</li>
-          <li>Unter „Dokument hochladen“ eine Datei wählen (PDF, Markdown oder Text, höchstens 8 MB). Ein PDF muss Text enthalten, ein reiner Scan wird abgelehnt.</li>
-          <li>Titel eintragen, den Bereich wählen (Recht, Steuern, Compliance, Audit oder Risiko), dann die Quellenart und den Cluster. Die Quellenart richtet sich nach der Herkunft des Textes: Gesetz, Urteil, Fachliteratur, Praxisbeitrag, Internetquelle, Forum und weitere. Der Cluster ist der Weg, auf dem der Text zu uns kam: Bücher, Publikationen oder Internet-Quelle. Beides ist unabhängig: Ein Gesetz von einer Regierungsseite ist eine Rechtsnorm aus dem Internet. Nur Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz. Wählen Sie zuerst die Quellenart, schlägt das Formular den typischen Cluster vor. Die Stufe der Quelle legt das Portal aus der Quellenart fest.</li>
+          <li>Als Administration anmelden und in der Seitenleiste unter „Administration“ die Seite „Wissensbasis“ öffnen. Die Gruppe „Administration“ steht als letzte unter den Zonen und ist nur für die Administration sichtbar. Die Seite zeigt oben „Dokumente und Bücher hochladen“ und darunter die Liste „Vorhandene Dokumente“. Die Liste und die Auflistung beim Hochladen lassen sich zwischen „Liste“ (eine Zeile je Dokument, Details aufklappbar) und „Raster“ (große Kacheln mit allen Angaben) umschalten, der Browser merkt sich die Wahl. Die Liste nennt je Dokument Cluster, Quellenart und Stufe und lässt sich nach Cluster filtern. Bestand aus der Zeit vor der Typisierung steht als „Nicht eingeordnet“.</li>
+          <li>Unter „Dokumente und Bücher hochladen“ eine oder mehrere Dateien wählen (PDF, Markdown oder Text, beliebig lang, ohne Größengrenze). Der Browser liest die Dateien selbst. Ein PDF muss Text enthalten, ein reiner Scan wird gesperrt.</li>
+          <li>Den Cluster wählen. Titel (aus dem Dateinamen), Bereich (Recht, Steuern, Compliance, Audit oder Risiko), Quellenart und Textgrundlage schlägt die Analyse je Datei vor, jede Angabe lässt sich ändern. Die Quellenart richtet sich nach der Herkunft des Textes: Gesetz, Urteil, Fachliteratur, Praxisbeitrag, Internetquelle, Forum und weitere. Der Cluster ist der Weg, auf dem der Text zu uns kam: Bücher, Publikationen oder Internet-Quelle. Beides ist unabhängig: Ein Gesetz von einer Regierungsseite ist eine Rechtsnorm aus dem Internet. Nur Internetquelle, Forum und Internetrecherche stammen immer aus dem Netz. Die Stufe der Quelle legt das Portal aus der Quellenart fest.</li>
           <li>Nicht jede Quellenart ist gleich belastbar. Blogs, Foren, Erfahrungsberichte, Bewertungsportale, Wikipedia und Internetrecherchen gelten als ungesicherte Internetquellen: Der Assistent nutzt sie nur, wenn es zu einer Frage sonst keine tragende Quelle gibt, und sagt dann gleich zu Beginn, dass es dazu keine offizielle staatliche Quelle gibt. Der Link zur Quelle ist Pflicht. Fachliteratur und amtliche Quellen haben Vorrang.</li>
-          <li>Festlegen, welche Büro-Rollen das Dokument sehen dürfen (die Administration ist immer dabei), und „Dokument hochladen“ drücken. Der Text wird zerlegt und eingebettet, bei langen Dokumenten dauert das bis zu einer Minute.</li>
+          <li>Festlegen, welche Büro-Rollen die Dokumente sehen dürfen (die Administration ist immer dabei), und „Dokumente hochladen“ drücken. Der Text geht in Paketen zum Server und wird zerlegt und eingebettet. Fortschritt und Restzeit stehen über der Liste.</li>
           <li>Das Dokument steht jetzt als „Wartet auf Freigabe“ in der Liste und ist noch für niemanden durchsuchbar. Wer hochgeladen hat, kann es nicht selbst freigeben.</li>
           <li>Eine zweite Person mit Administrationsrecht öffnet die Liste, wählt „Prüfen“ und liest den Anfang des Textes, Quellenart, Stufe und Link. „Freigeben“ macht das Dokument für die gewählten Rollen durchsuchbar, „Ablehnen“ sperrt es.</li>
           <li>Internetquellen, Foren, Nachschlagewerke und ähnliche Quellen laufen nach 12 Monaten ab (Praxisbeiträge und interne Ausarbeitungen nach 24). Die Liste meldet dann „Prüfung fällig“, die Suche findet die Quelle nicht mehr, bis eine zweite Person erneut prüft und verlängert.</li>
@@ -1116,9 +1122,9 @@ mark.treffer-aktiv {
           <li>Zum Löschen bei einem hochgeladenen Dokument „Löschen“ wählen und im Fenster Titel, Bereich und Zahl der Abschnitte prüfen. Das Löschen lässt sich nicht rückgängig machen. Dokumente, die per Skript eingelesen wurden, haben keinen Löschen-Knopf.</li>
           <li>Der Assistent nennt zu jeder Quelle die Quellenart, die Stufe und den Stand. Hinweise aus Internet, Forum oder KI-Texten kennzeichnet er als ungeprüft und stützt nie eine verbindliche Aussage allein darauf. Gibt es nur Hinweise, sagt er, dass die Wissensbasis keine belastbare Quelle enthält.</li>
           <li>Bestand, der vor der Typisierung eingelesen wurde, steht als „Nicht eingeordnet“ in der Liste. Über der Liste öffnet der Bereich „Bestand einordnen“: Zu jedem Dokument macht die Seite einen Vorschlag aus Link, bisheriger Stufe und Rechtsstelle, mit Begründung und Sicherheit. Art und Cluster lassen sich je Dokument ändern. Dokumente mit vollständiger Wahl ankreuzen und „Einordnung prüfen“ wählen. Das Fenster zeigt, welche Dokumente danach in ihrem Bereich nicht mehr gefunden werden, nur noch als Hinweis gelten oder ihre Stufe ändern. Erst „Einordnung speichern“ ändert etwas, und jede Einordnung wird protokolliert. Schon eingeordnete Quellen fasst dieser Weg nie an.</li>
-          <li>Bücher und lange Dokumente (zum Beispiel PDF nach einer Texterkennung, OCR) lädt der Bereich „Bücher und lange Dokumente hochladen“. Dort nur den Cluster wählen (Bücher, Publikationen oder Internet-Quelle) und die Rollen, dann mehrere Dateien auf einmal auswählen. Eine Dateigröße oder Seitenzahl ist nicht begrenzt: Der Browser liest die Datei selbst und schickt den Text in Paketen. Die PDF wird zusätzlich als Original abgelegt (in Stücken, bei einem Verbindungsabbruch geht es weiter, mit Fortschrittsanzeige), solange das Buch auf die Freigabe wartet. Je Datei sind höchstens 1 GB möglich, alle wartenden Originale zusammen höchstens 50 GB: Wird das überschritten, bitte getrennt hochladen, erst einen Teil und freigeben, dann den nächsten. Im Prüffenster öffnet „Original öffnen“ sie in einem neuen Tab, bei früher hochgeladenen Büchern trägt „Original nachtragen“ sie nach (die Datei wird dabei mit dem gespeicherten Text verglichen). Nach der Freigabe oder Ablehnung wird das Original gelöscht. Hat das Buch laut Seitenverlauf-Prüfung fehlende Seiten, zeigt das Prüffenster sie mit Nummer. Die zweite Person sieht am Original nach und trägt einen Vermerk ein, zum Beispiel „Leere Seiten im Buch“. Ohne Vermerk lässt sich das Buch nicht freigeben, und die Sammelfreigabe nimmt solche Bücher nicht mit. Ein PDF braucht eine Textebene, ein reiner Bildscan ergibt keinen Text.</li>
+          <li>Bücher und lange Dokumente (zum Beispiel PDF nach einer Texterkennung, OCR) lädt derselbe Bereich „Dokumente und Bücher hochladen“. Dort nur den Cluster wählen (Bücher, Publikationen oder Internet-Quelle) und die Rollen, dann mehrere Dateien auf einmal auswählen. Eine Dateigröße oder Seitenzahl ist nicht begrenzt: Der Browser liest die Datei selbst und schickt den Text in Paketen. Die PDF wird zusätzlich als Original abgelegt (in Stücken, bei einem Verbindungsabbruch geht es weiter, mit Fortschrittsanzeige), solange das Buch auf die Freigabe wartet. Je Datei sind höchstens 1 GB möglich, alle wartenden Originale zusammen höchstens 50 GB: Wird das überschritten, bitte getrennt hochladen, erst einen Teil und freigeben, dann den nächsten. Im Prüffenster öffnet „Original öffnen“ sie in einem neuen Tab, bei früher hochgeladenen Büchern trägt „Original nachtragen“ sie nach (die Datei wird dabei mit dem gespeicherten Text verglichen). Nach der Freigabe oder Ablehnung wird das Original gelöscht. Hat das Buch laut Seitenverlauf-Prüfung fehlende Seiten, zeigt das Prüffenster sie mit Nummer. Die zweite Person sieht am Original nach und trägt einen Vermerk ein, zum Beispiel „Leere Seiten im Buch“. Ohne Vermerk lässt sich das Buch nicht freigeben, und die Sammelfreigabe nimmt solche Bücher nicht mit. Ein PDF braucht eine Textebene, ein reiner Bildscan ergibt keinen Text.</li>
           <li>Vor dem Hochladen zeigt die Seite je Datei die Zahl der Zeichen und eine Einschätzung der Textqualität (gut lesbar, prüfen, schlecht) mit den Gründen, etwa zerhackte Wörter oder viele Sonderzeichen. Ein Text mit der Note „schlecht“ wird nicht hochgeladen, die Datei sollte neu mit OCR erzeugt werden. Der Titel entsteht aus dem Dateinamen und lässt sich ändern. „Bücher hochladen“ startet die Reihe, eine Gesamtanzeige nennt Buch, Pakete, Prozent und die geschätzte Restzeit, je Buch zeigt ein Balken den Stand (die Seite bitte offen lassen), und „Abbrechen“ entfernt das angefangene Buch wieder.</li>
-          <li>Beim Lesen einer PDF prüft die Seite auch den Seitenverlauf: Sie liest die gedruckte Seitenzahl am Rand jeder Seite und vergleicht sie mit der Reihenfolge in der Datei. Springt die Zahl (zum Beispiel von 47 auf 50), fehlen Seiten im Scan. Das Buch zeigt dann, welche gedruckten Seiten fehlen und nach welcher PDF-Seite, und lässt sich nur hochladen, wenn Sie die Lücken ausdrücklich bestätigen. Besser ist es, die Seiten nachzuscannen und die Datei neu zu erzeugen. Bei Gesetzen zeigt die Seite zusätzlich fehlende Artikelnummern (aufgehobene Artikel können dabei sein). Die Angabe geht mit dem Buch zur zweiten Person: Bei der Prüfung steht der Hinweis „Im Scan fehlen Seiten“, und das Buch gilt höchstens als „Text prüfen“.</li>
+          <li>Beim Lesen einer PDF prüft die Seite auch den Seitenverlauf: Sie liest die gedruckte Seitenzahl am Rand jeder Seite und vergleicht sie mit der Reihenfolge in der Datei. Springt die Zahl (zum Beispiel von 47 auf 50), fehlen Seiten im Scan. Das Buch zeigt dann, welche gedruckten Seiten fehlen und nach welcher PDF-Seite, und lässt sich nur hochladen, wenn Sie die Lücken ausdrücklich bestätigen. Besser ist es, die Seiten nachzuscannen und die Datei neu zu erzeugen. Bei Gesetzen zeigt die Seite zusätzlich fehlende Artikelnummern (aufgehobene Artikel können dabei sein). Die Angabe geht mit dem Buch zur zweiten Person: Bei der Prüfung steht der Hinweis „Im Scan fehlen Seiten“, und das Buch gilt höchstens als „Text prüfen“. Die zweite Person sieht am Original nach und gibt im Prüffenster die gedruckten Seitenzahlen an, die korrekt fehlen (zum Beispiel Leer- oder Notizseiten). Deckt die Angabe nicht alle Lücken ab, fehlt echter Inhalt, und das Buch wird nicht freigegeben. Dann lädt man die fehlenden Seiten als PDF mit Texterkennung im Prüffenster nach (das System liest die gedruckten Seitenzahlen, reiht die Seiten an der Stelle der Lücke ein und zeigt das Buch erneut zur Freigabe) oder löscht das Buch und lädt die ganze PDF neu hoch. Als korrekt fehlend bestätigte Seiten mindern die Qualität des Buchs nicht, offene Lücken schon.</li>
           <li>Unter „Bestand prüfen und bereinigen“ prüft die Seite auf Knopfdruck die ganze Wissensbasis: Arbeitsdokumente der Recherche (Aufträge, Indizes, Pläne), ausdrücklich als veraltet gekennzeichnete Dokumente, Dubletten, Dokumente, deren Inhalt schon in einem hochgeladenen Buch steht, fällige Wiedervorlagen und Dokumente ohne brauchbaren Link. Der inhaltliche Vergleich läuft in Schritten mit Fortschrittsanzeige und lässt sich abwählen. Zu jedem Befund steht die Begründung, und bei Dubletten und durch Bücher abgedeckten Dokumenten zeigt „Vergleich ansehen“ die Abschnitte im Wortlaut, denn Ähnlichkeit allein beweist keine gleiche Aussage. Die Prüfung verändert nichts. Entfernt wird erst, wenn Sie Dokumente ausgewählt, einen Grund eingetragen, bestätigt und die Zahl der Dokumente eingetippt haben. Jedes Entfernen steht im Protokoll, ist endgültig und wird beim Abgleich in die Produktion nicht zurückkopiert.</li>
           <li>In der Liste der vorhandenen Dokumente steht bei jedem Dokument die Qualität in Prozent, zum Beispiel „Qualität 95 %“. Der Wert sagt, wie gut der gespeicherte Text lesbar ist (Texterkennung, zerhackte Wörter, Zeichensalat; Inhaltsverzeichnisse und Register zählen nicht). Bei einem Buch, dem im Scan Seiten fehlen, sinkt der Wert zusätzlich. Ab 90 Prozent ist der Text gut, ab 75 Prozent sollte er geprüft werden, darunter ist er schlecht. Neu hochgeladene Bücher bekommen den Wert automatisch, für ältere Dokumente berechnet ihn der Knopf „Qualität berechnen“ unter „Bestand prüfen und bereinigen“. Vor dem Hochladen zeigt die Seite den Wert schon je Datei an.</li>
           <li>Bricht die Verbindung ab, steht das Buch als „Unvollständig“ in der Liste. Es lässt sich nicht freigeben, nur löschen und neu hochladen. Ein Buch bleibt wie jedes Dokument ungeprüft, bis eine zweite Person es freigibt.</li>
@@ -1129,6 +1135,64 @@ mark.treffer-aktiv {
           <li>Die Einordnung lässt sich später jederzeit ändern: In der Liste bei jedem Dokument „Einordnung ändern“ wählen, dann Cluster, Bereich, Quellenart und Textgrundlage ändern. Das Fenster zeigt, welche Stufe aus der Quellenart folgt und wie die Quelle im Bereich genutzt wird. Die Änderung wird protokolliert. Bei einem freigegebenen Upload ändert nicht die hochladende Person Bereich, Quellenart und Textgrundlage, sondern eine zweite (Vier-Augen-Prinzip, auch in der Datenbank erzwungen); der Cluster bleibt frei änderbar.</li>
           <li>Der KI-Assistent hilft bei der Verwaltung der Wissensbasis (nur Administration): Er gibt Überblick über Bestand und Verteilung, nennt, was auf Prüfung wartet oder nicht eingeordnet ist, analysiert ein Dokument und begründet, ob die Einordnung stimmt. Er prüft auch den Bestand auf Veraltetes, Dubletten und Dokumente, die schon in einem Buch stehen, zeigt auf Wunsch den Vergleich im Wortlaut und nennt die Qualität eines Dokuments in Prozent. Eine Änderung der Einordnung und das Entfernen von Dokumenten schlägt er als Karte vor, die Sie bestätigen. Dateien hochladen und Dokumente freigeben kann er nicht, das bleibt bei Ihnen und der zweiten Person.</li>
           <li>Die Liste lässt sich filtern: oben nach Cluster, darunter nach Suchbegriff im Titel, Bereich, Verlässlichkeit (amtlich, sicher, nur als Hinweis, unsicher, nicht eingeordnet), Quellenart, Status (zum Beispiel wartet auf Freigabe), Herkunft (hochgeladen oder Bestand) und der Rolle, für die ein Dokument sichtbar ist. Die Filter gelten zusammen, die Zahl hinter jedem Eintrag nennt die Treffer. Unsichere Quellen sind ungesicherte Internetquellen, die der Assistent nur im Notfall und gekennzeichnet nennt. Die Sammelprüfung wirkt nur auf die gezeigten Dokumente.</li>
+      </ol>
+
+      <h3 id="anleitung-esf">4.7 Eine Lieferung mit ЭСФ belegen (Belegregister)</h3>
+      <p>Seit 01.01.2026 muss jede Lieferung über das staatliche ЭСФ-System belegt werden. Das Portal stellt die ЭСФ nicht aus. Es führt das Register, bereitet die Angaben vor und zeigt, welche Lieferung noch keinen Beleg hat.</p>
+      <ol>
+          <li>Als Administration, Geschäftsführung oder Buchhaltung Hof → Lieferschein (ЭСФ) öffnen. „Lieferungen ohne ЭСФ“ zeigt alle zugestellten Lieferungen ohne ausgestellten Beleg, die älteste zuerst. Das Alter zählt ab dem Liefertag. Eine Frist hinterlegt das Portal nicht, welche gilt, legt die Buchhaltung fest.</li>
+          <li>„Entwurf erstellen“ legt ein Standbild der Angaben an: Käufer mit Identifikationsnummer, Sorte, Menge, Preis laut Preisliste am Liefertag und, wenn der Betrieb am Liefertag MwSt-registriert war, die MwSt. Was fehlt (Preis, Sorte, Identifikationsnummer, MwSt-Satz), steht unter „Dem Entwurf fehlt noch“. Der Entwurf nimmt an, dass die Preisliste Nettopreise führt: das vor dem Ausstellen mit der Buchhaltung abgleichen.</li>
+          <li>Die ЭСФ im staatlichen Portal mit diesen Angaben ausstellen. Danach im Register „Als ausgestellt erfassen“: ЭСФ-Nummer und Datum eintragen. Ab hier ändert sich der Entwurf nicht mehr.</li>
+          <li>Wird die ЭСФ bestätigt, „Bestätigung erfassen“. Wird sie abgelehnt, „Ablehnung erfassen“ mit Grund, danach „Neuen Entwurf beginnen“.</li>
+          <li>Papier ist nur bei einer Störung des staatlichen Systems zulässig. „Auf Papier führen“ verlangt deshalb eine Begründung. Bestätigte und auf Papier geführte Belege sind abgeschlossen.</li>
+          <li>Die Betriebsleitung sieht das Register, erfasst aber nichts. Einen Statuswechsel, den der Ablauf nicht kennt, weist die Datenbank ab. Jede Aktion steht im Protokoll. Die automatische Übergabe an das staatliche System folgt, sobald der Zugang der Behörde vorliegt.</li>
+      </ol>
+
+      <h3 id="anleitung-esutd">4.8 Saisonverträge ins ЕСУТД melden (Meldeprozess)</h3>
+      <p>Abschluss, Änderung und Beendigung jedes Saisonvertrags gehören in das staatliche Einheitssystem ЕСУТД. Das Portal meldet nicht selbst. Es zeigt, was zu melden ist, und hält fest, was gemeldet ist und womit es belegt ist.</p>
+      <ol>
+          <li>Als Administration, Geschäftsführung oder Betriebsleitung Büro → Integrationen öffnen.</li>
+          <li>Unter „Neuen Abschluss anlegen“ Person, Vertragsbeginn und optional die Vertragsnummer eintragen. Für den Abschluss rechnet das Portal die Meldefrist: fünf Werktage ab Vertragsbeginn, ohne Feiertagskalender. Ist sie verstrichen, steht „Frist überschritten“ an der Zeile und im Risiko-Radar.</li>
+          <li>Änderung und Beendigung unter „Änderung oder Beendigung anlegen“: Vertrag, Art, Datum und bei einer Änderung, was sich ändert. Für beide ist keine Frist hinterlegt.</li>
+          <li>„Offene Meldungen als CSV“ lädt die Angaben (Name, Ausweis, Art, Datum, Vertragsnummer) als einfache Tabelle für die Eingabe im staatlichen System. Ein amtliches Importformat gibt es nicht. Die Datei enthält personenbezogene Daten: nach der Eingabe löschen. Jeder Abruf steht im Protokoll.</li>
+          <li>Nach der Meldung im staatlichen System „Als gemeldet erfassen“: Meldedatum (nicht in der Zukunft), optional Bestätigungsnummer und ein Beleg. Den Beleg zuerst im Nachweisregister hochladen (Büro → Dokumente, Kategorie ЕСУТД-Nachweis), dann hier auswählen.</li>
+          <li>Eine falsch erfasste Meldung lässt sich „Wieder öffnen“: Datum, Bestätigung und Beleg werden geleert. Eine noch offene Meldung lässt sich entfernen. In der Personal-Ansicht zeigt das ЕСУТД-Feld einer Person „offen“, solange eine ihrer Meldungen offen ist. Die Buchhaltung sieht die Liste, erfasst aber nichts.</li>
+      </ol>
+
+      <h3 id="anleitung-nachweis">4.9 Einen Nachweis mit Gültigkeit führen</h3>
+      <p>Zertifikate, Genehmigungen und Verträge haben ein Ende. Das Nachweisregister rechnet den Status aus dem Zeitraum, er wird nicht von Hand gesetzt.</p>
+      <ol>
+          <li>Büro → Dokumente öffnen. Beim Aufnehmen oder über „Bearbeiten“ Gültig ab, Gültig bis (oder „Unbefristet gültig“), die Vorwarnung in Tagen (1 bis 365, Vorgabe 60), Verantwortlichen, Rechtsgrundlage und gegebenenfalls Partner eintragen.</li>
+          <li>Der Status lautet gültig, läuft ab (innerhalb der Vorwarnzeit), abgelaufen oder offen. Offen heißt: kein Zeitraum erfasst oder noch nicht wirksam. Das Portal erfindet keine Daten, ein Nachweis ohne Zeitraum fällt als Lücke auf.</li>
+          <li>„Gültig bis“ ist der letzte Gültigkeitstag, am Folgetag gilt der Nachweis als abgelaufen. Der Tag wechselt um Mitternacht in Almaty.</li>
+          <li>Die Kopfzeile zählt die Stände. Nachweise, die ablaufen oder abgelaufen sind, erscheinen auch im Risiko-Radar des Compliance-Cockpits.</li>
+      </ol>
+
+      <h3 id="anleitung-logger">4.10 Die Datei eines Temperaturloggers importieren</h3>
+      <p>Ein Temperaturlogger im Fahrzeug zeichnet die Temperatur der Fahrt auf. Das Portal übernimmt seine Datei, statt dass die Werte von Hand abgetippt werden.</p>
+      <ol>
+          <li>Hof → Abholrunden öffnen und bei der geplanten Lieferung „Logger-Datei importieren“ aufklappen.</li>
+          <li>Die CSV-Datei des Loggers wählen: Zeit und Temperatur je Zeile, Trenner Komma, Semikolon oder Tabulator, Dezimalkomma oder Dezimalpunkt, bis 2 MB. Optional Seriennummer oder Fahrzeug als Kennung eintragen.</li>
+          <li>Zeiten ohne Zeitzone gelten als Almaty-Zeit. Übernommen werden Werte der letzten 24 Stunden. Ältere, solche in der Zukunft, doppelte und nicht lesbare Zeilen lässt das Portal aus und nennt die Zahlen nach dem Import.</li>
+          <li>Jeder Wert wird wie eine Handmessung bewertet (bis 4 Grad in Ordnung, bis 8 Grad Warnung, darüber Verstoß) und trägt die Herkunft „logger“. Eine zugestellte oder stornierte Lieferung nimmt keine Werte mehr an.</li>
+      </ol>
+
+      <h3 id="anleitung-rollen">4.11 Rollen vergeben</h3>
+      <p>Die Rolle eines Kontos bestimmt, was es sehen und tun darf. Vergeben kann sie nur die Administration.</p>
+      <ol>
+          <li>Als Administration Büro → Rollen und Rechte öffnen. Unter „Konten und Rollen“ steht jedes Konto mit seiner Rolle.</li>
+          <li>In der Zeile die neue Rolle wählen und „Speichern“. Die Änderung gilt ab der nächsten Seite, die das Konto öffnet.</li>
+          <li>Die eigene Rolle lässt sich hier nicht ändern. Kundenkonten entstehen über Einladungen und behalten ihre Rolle.</li>
+          <li>Der letzte Administrator behält seine Rolle: die Datenbank weist den Entzug ab, auch bei direktem Zugriff. Jede Änderung steht im Protokoll, mit der alten und der neuen Rolle.</li>
+      </ol>
+
+      <h3 id="anleitung-nachrichten">4.12 Nachrichten zu einer Vorbestellung und Lieferplan</h3>
+      <p>Absprachen zu Menge und Termin bleiben an der Vorbestellung, statt in Telefonaten und Messengern zu verschwinden.</p>
+      <ol>
+          <li>Markt → B2B-Portal öffnen. Unter „Nachrichten zu Vorbestellungen“ steht je Vorbestellung ein Verlauf. Der Kunde sieht nur seine eigenen, das Büro alle.</li>
+          <li>Eine Vorbestellung aufklappen, die Nachricht schreiben (bis 2000 Zeichen) und „Senden“. Autor, Rolle und Zeitpunkt setzt die Datenbank aus der Anmeldung.</li>
+          <li>Gesendete Nachrichten lassen sich nicht ändern oder löschen. Zu einer stornierten Vorbestellung gibt es keine neuen Nachrichten.</li>
+          <li>„Lieferplan als Kalenderdatei“ lädt die kommenden Liefertermine als ICS-Datei für den Kalender. Es ist ein Download an die Sitzung, kein Abo-Link: zum Aktualisieren erneut herunterladen. Der Kunde bekommt nur seine Termine.</li>
       </ol>
     </section>
 
@@ -1209,7 +1273,7 @@ mark.treffer-aktiv {
       </div>
 
       <h3 id="referenz-schnittstellen">5.3 Schnittstellen</h3>
-      <p>Sechs Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.</p>
+      <p>Neun Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.</p>
       <div class="tabelle">
         <table>
           <thead><tr><th>Adresse</th><th>Aufgabe</th><th>Zugriff</th></tr></thead>
@@ -1221,6 +1285,8 @@ mark.treffer-aktiv {
             <tr><td><code>/api/ki-sprachausgabe/schluessel</code></td><td>Stellt für das Vorlesen einen kurzlebigen Schlüssel aus, dazu Stimme, Tempo und Format je Sprache. Damit spricht der Browser direkt mit dem Sprachdienst: Jeder Satz geht sofort hinein, und der Ton klingt, während er entsteht, ohne Pausen zwischen den Abschnitten. Einen Schlüssel gibt es nur mit Nachweis, also für die gerade laufende Antwort oder eine eigene gespeicherte Antwort. Er öffnet genau einen Strom, ist 60 Sekunden gültig, und je Person gibt es höchstens zwölf Schlüssel pro Minute. Der eigentliche Schlüssel verlässt den Server nie. Sagt der Endpunkt ab, liest der bisherige Weg über einzelne Abschnitte vor.</td><td>Recht am KI-Assistenten, Soniox als Sprachausgabe</td></tr>
             <tr><td><code>/api/ki-spracherkennung</code></td><td>Stellt für das Live-Diktat einen kurzlebigen Schlüssel aus: nur für die Spracherkennung, nur einmal, eine Minute zum Verbinden. Damit schickt der Browser das Gesprochene direkt an den Erkennungsdienst, und der Text erscheint schon während des Sprechens im Eingabefeld. Der eigentliche Schlüssel verlässt den Server nie. Sagt der Endpunkt ab, geht dieselbe Aufnahme wie bisher als Datei zur Erkennung.</td><td>Recht am KI-Assistenten, Live-Diktat eingeschaltet</td></tr>
             <tr><td><code>/api/sync</code></td><td>Nimmt die Meldungen aus der Warteschlange entgegen, die im Feld ohne Netz entstanden sind. Sie laufen durch dieselbe Prüfung wie die zugehörigen Formulare.</td><td>Angemeldet, zweiter Faktor aktuell</td></tr>
+            <tr><td><code>/api/lieferplan</code></td><td>Liefert die kommenden Liefertermine als Kalenderdatei (ICS). Ein Download an die Sitzung, kein Abo-Link mit Geheimnis in der Adresse. Der Kunde bekommt nur seine Termine, das Büro alle.</td><td>Recht am B2B-Portal, zweiter Faktor aktuell</td></tr>
+            <tr><td><code>/api/esutd/export</code></td><td>Die Angaben der ЕСУТД-Meldungen als CSV-Datei für die Eingabe im staatlichen System, offene oder alle. Sie enthält personenbezogene Daten, deshalb steht jeder Abruf im Protokoll.</td><td>Recht, Personal zu ändern, zweiter Faktor aktuell</td></tr>
           </tbody>
         </table>
       </div>

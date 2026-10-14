@@ -731,7 +731,7 @@
     "dokumente": {
       "title": "Document management",
       "navTitle": "Documents",
-      "description": "A secure store and evidence register for certificates, contracts, permits, insurance, spray records, ЕСУТД evidence and grant dossiers - with validity period, automatic expiry status and a responsible person, linked to the row block, the batch and partners.",
+      "description": "A secure store and evidence register for certificates, contracts, permits, insurance, spray records, ЕСУТД evidence and grant dossiers, with validity period, automatic expiry status and a responsible person, linked to the row block, the batch and partners.",
       "summary": "A categorised, secure document store with automatic expiry status, a responsible person and links to row block, batch and partners.",
       "todo": "Versions per document."
     },
@@ -1213,7 +1213,7 @@
       "rechtsgrundlage": "Legal basis"
     },
     "beispiel": {
-      "name": "Spray record week 37 - North plot",
+      "name": "Spray record week 37, North plot",
       "rechtsgrundlage": "e.g. requirement of the buyer"
     },
     "keinDossier": "no dossier",
@@ -1636,9 +1636,9 @@
     },
     "risikoRadar": {
       "titel": "Risk radar",
-      "lead": "Every open statutory deadline from tax, labor and data-protection law, plus expired or expiring evidence, in one place - sorted by urgency.",
+      "lead": "Every open statutory deadline from tax, labor and data-protection law, plus expired or expiring evidence, in one place, sorted by urgency.",
       "anzahlOffen": "{anzahl} open deadline(s)",
-      "alleErledigt": "No open deadline - tax, labor and data-protection obligations and all evidence are on track right now.",
+      "alleErledigt": "No open deadline. Tax, labor and data-protection obligations and all evidence are on track right now.",
       "ansehen": "View →",
       "kategorie": {
         "steuer": "Tax law",

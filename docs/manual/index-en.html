@@ -557,6 +557,12 @@ mark.treffer-aktiv {
     <a class="toc-link toc-2" href="#anleitung-dokument">4.4 Filing a document</a>
     <a class="toc-link toc-2" href="#anleitung-zugang">4.5 Setting up access: invitation and second factor</a>
     <a class="toc-link toc-2" href="#anleitung-wissensdokument">4.6 Upload, approve and delete a document in the knowledge base (administration)</a>
+    <a class="toc-link toc-2" href="#anleitung-esf">4.7 Documenting a delivery with ЭСФ (document register)</a>
+    <a class="toc-link toc-2" href="#anleitung-esutd">4.8 Reporting seasonal contracts to ЕСУТД (reporting process)</a>
+    <a class="toc-link toc-2" href="#anleitung-nachweis">4.9 Keeping a proof with a validity period</a>
+    <a class="toc-link toc-2" href="#anleitung-logger">4.10 Importing the file of a temperature logger</a>
+    <a class="toc-link toc-2" href="#anleitung-rollen">4.11 Assigning roles</a>
+    <a class="toc-link toc-2" href="#anleitung-nachrichten">4.12 Messages on a pre-order and the delivery schedule</a>
     <a class="toc-link toc-1" href="#referenz">05 Reference</a>
     <a class="toc-link toc-2" href="#referenz-seiten">5.1 Pages</a>
     <a class="toc-link toc-2" href="#referenz-rechte">5.2 Permissions by role</a>
@@ -738,7 +744,7 @@ mark.treffer-aktiv {
             <tr><td><strong>Cold chain</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Brigade / field</td></tr>
             <tr><td><strong>Collection rounds</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Brigade / field</td></tr>
             <tr><td><strong>QR crates</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Brigade / field</td></tr>
-            <tr><td><strong>Delivery note (ЭСФ)</strong></td><td><span class="pille pille-offen">in development</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
+            <tr><td><strong>Delivery note (ЭСФ)</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
             <tr><td><strong>Roles and permissions</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management</td></tr>
             <tr><td><strong>Finance</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm</td></tr>
             <tr><td><strong>Business case</strong></td><td><span class="pille pille-offen">in development</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
@@ -746,7 +752,7 @@ mark.treffer-aktiv {
             <tr><td><strong>Quality-factor pay</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Picker</td></tr>
             <tr><td><strong>Documents</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm, B2B client</td></tr>
             <tr><td><strong>Compliance</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
-            <tr><td><strong>Integrations</strong></td><td><span class="pille pille-offen">in development</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
+            <tr><td><strong>Integrations</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
             <tr><td><strong>Grants</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
             <tr><td><strong>Master data</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
             <tr><td><strong>Variety catalogue</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, B2B client</td></tr>
@@ -860,14 +866,14 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Still open</span><span>The crate labels cannot be scanned with the camera yet, only the picker badge.</span></div>
       </div>
 
-      <h4 id="modul-esf">3.2.4 Electronic delivery note (ЭСФ) <span class="pille pille-offen">in development</span></h4>
-      <p>An electronic delivery note in line with the goods-accompanying-document obligation. A link to the state ЭСФ system is planned, accounting of its own is not.</p>
+      <h4 id="modul-esf">3.2.4 Electronic delivery note (ЭСФ) <span class="pille pille-gut">ready for use</span></h4>
+      <p>Document register for the electronic invoice (ЭСФ): which delivery has which document and which has none yet. The details for the portal are prepared, issuing stays in the state system.</p>
       <div class="merkmale">
-        <div class="merkmal"><span class="merkmal-name">In short</span><span>Will carry the evidence chain from the batch to the delivery note and take in the status feedback from the state system. Mandatory integration.</span></div>
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Shows the deliveries without ЭСФ, prepares the details from delivery, price list and VAT status and tracks the status up to confirmation. Mandatory integration, the link follows once the authority grants access.</span></div>
         <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/hof/lieferschein-esf</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting</span></div>
         <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Accounting</span></div>
-        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Connection to ИС ЭСФ, evidence chain batch to delivery note, status feedback and retry.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Stage 2: automatic handover to ИС ЭСФ and status feedback once the authority grants access.</span></div>
       </div>
 
       <h3 id="bereich-buero">3.3 Office</h3>
@@ -880,7 +886,7 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/rollen</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management</span></div>
         <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO</span></div>
-        <div class="merkmal"><span class="merkmal-name">Still open</span><span>User management, role assignment, fine-grained access rules per resource.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Creating and blocking staff accounts, fine-grained access rules per resource.</span></div>
       </div>
 
       <h4 id="modul-finanzen">3.3.2 Contribution margin and finance <span class="pille pille-gut">ready for use</span></h4>
@@ -924,13 +930,13 @@ mark.treffer-aktiv {
       </div>
 
       <h4 id="modul-dokumente">3.3.6 Document management <span class="pille pille-gut">ready for use</span></h4>
-      <p>A secure store for spray records, ЕСУТД evidence, supply and framework contracts, grant dossiers and certificates - linked to the row block and the batch.</p>
+      <p>A secure store and evidence register for certificates, contracts, permits, insurance, spray records, ЕСУТД evidence and grant dossiers, with validity period, automatic expiry status and a responsible person, linked to the row block, the batch and partners.</p>
       <div class="merkmale">
-        <div class="merkmal"><span class="merkmal-name">In short</span><span>A categorised, secure document store linked to the row block and the batch.</span></div>
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>A categorised, secure document store with automatic expiry status, a responsible person and links to row block, batch and partners.</span></div>
         <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/dokumente</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm, B2B client</span></div>
         <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, Accounting</span></div>
-        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Versions per document, expiry dates with a reminder.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Versions per document.</span></div>
       </div>
 
       <h4 id="modul-compliance">3.3.7 Compliance cockpit <span class="pille pille-gut">ready for use</span></h4>
@@ -943,14 +949,14 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Still open</span><span>Legal citations from the tax code, the AI act and the digital code, retention periods per kind of data, a check of the storage location.</span></div>
       </div>
 
-      <h4 id="modul-integrationen">3.3.8 State integrations <span class="pille pille-offen">in development</span></h4>
-      <p>Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.</p>
+      <h4 id="modul-integrationen">3.3.8 State integrations <span class="pille pille-gut">ready for use</span></h4>
+      <p>Reporting process for the unified system ЕСУТД: conclusion, change and termination of seasonal contracts with deadline, confirmation and proof. Connectors to ЭСФ, virtual stock and the funding portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.</p>
       <div class="merkmale">
-        <div class="merkmal"><span class="merkmal-name">In short</span><span>Will get one connector per target system, with status feedback and retry. Accounting stays out of scope.</span></div>
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Tracks the reports to ЕСУТД and reminds of the deadline for the conclusion. The automatic handover follows once the authority grants access.</span></div>
         <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/integrationen</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting</span></div>
         <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Accounting</span></div>
-        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Connectors per system, test access, handling of errors and retries, an overview of the pending items.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Stage 2: connectors per system with test access, handling of errors and retries, overview of the pending operations.</span></div>
       </div>
 
       <h4 id="modul-foerdermittel">3.3.9 Grant application dossier <span class="pille pille-gut">ready for use</span></h4>
@@ -1049,7 +1055,7 @@ mark.treffer-aktiv {
 
     <section id="anleitungen">
       <h2><span class="nr">04</span> How-to guides</h2>
-      <p>Six procedures that cover the core of the operation. The paths refer to the sidebar.</p>
+      <p>Twelve procedures that cover the core of the operation. The paths refer to the sidebar.</p>
 
       <h3 id="anleitung-wartezeit">4.1 Applying and lifting a pre-harvest interval lock</h3>
       <p>After a crop protection treatment a row block must not be harvested until the pre-harvest interval has elapsed. The portal applies this lock itself.</p>
@@ -1104,11 +1110,11 @@ mark.treffer-aktiv {
       <h3 id="anleitung-wissensdokument">4.6 Upload, approve and delete a document in the knowledge base (administration)</h3>
       <p>The knowledge base holds the law, tax, compliance, audit and risk texts from which the assistant takes its references. Only administration can add documents here, and every new document must be approved by a second person (four-eyes principle).</p>
       <ol>
-          <li>Sign in as administration and open the page “Knowledge base” under “Administration” in the sidebar. The “Administration” group is the last one below the zones and is visible to administration only. The page shows the form on top and the list “Existing documents” below it. The list shows cluster, source type and level for each document and can be filtered by cluster. Material from before typing appears as “Not classified”.</li>
-          <li>Under “Upload document” choose a file (PDF, Markdown or text, at most 8 MB). A PDF must contain text, a pure scan is rejected.</li>
-          <li>Enter a title, choose the area (Law, Tax, Compliance, Audit or Risk), then the source type and the cluster. The source type follows where the text comes from: statute, case law, specialist literature, practice paper, internet source, forum and more. The cluster is the way the text reached us: Books, Publications or Internet source. The two are independent: a law from a government site is a legal norm from the internet. Only internet source, forum and internet research always come from the web. If you choose the source type first, the form suggests the typical cluster. The portal sets the level of the source from the source type.</li>
+          <li>Sign in as administration and open the page “Knowledge base” under “Administration” in the sidebar. The “Administration” group is the last one below the zones and is visible to administration only. The page shows “Upload documents and books” on top and the list “Existing documents” below it. The list and the upload listing can be switched between “List” (one row per document, details expandable) and “Grid” (large tiles with all details); the browser remembers the choice. The list shows cluster, source type and level for each document and can be filtered by cluster. Material from before typing appears as “Not classified”.</li>
+          <li>Under “Upload documents and books” choose one or more files (PDF, Markdown or text, any length, no size limit). The browser reads the files itself. A PDF must contain text, a pure scan is blocked.</li>
+          <li>Choose the cluster. Title (from the file name), area (Law, Tax, Compliance, Audit or Risk), source type and text basis are suggested by the analysis for each file; every entry can be changed. The source type follows where the text comes from: statute, case law, specialist literature, practice paper, internet source, forum and more. The cluster is the way the text reached us: Books, Publications or Internet source. The two are independent: a law from a government site is a legal norm from the internet. Only internet source, forum and internet research always come from the web. The portal sets the level of the source from the source type.</li>
           <li>Not every source type is equally reliable. Blogs, forums, experience reports, review portals, Wikipedia and internet searches count as unreliable internet sources: the assistant uses them only when there is no solid source for a question, and then says right at the start that there is no official government source. The link to the source is required. Specialist literature and official sources take priority.</li>
-          <li>Choose which office roles may see the document (administration is always included) and press “Upload document”. The text is split and embedded, which takes up to a minute for long documents.</li>
+          <li>Choose which office roles may see the documents (administration is always included) and press “Upload documents”. The text goes to the server in packages and is split and embedded. Progress and remaining time are shown above the list.</li>
           <li>The document now appears in the list as “Awaiting approval” and is not searchable for anyone yet. The person who uploaded it cannot approve it themselves.</li>
           <li>A second person with administration rights opens the list, chooses “Review” and reads the start of the text, source type, level and link. “Approve” makes the document searchable for the chosen roles, “Reject” blocks it.</li>
           <li>Internet sources, forums, reference works and similar sources expire after 12 months (practice papers and internal documents after 24). The list then shows “Review due” and search no longer finds the source until a second person checks it again and extends it.</li>
@@ -1116,9 +1122,9 @@ mark.treffer-aktiv {
           <li>To delete, choose “Delete” on an uploaded document and check title, area and number of sections in the window. Deleting cannot be undone. Documents loaded by script have no delete button.</li>
           <li>For every source the assistant names the source type, the level and the date. It labels hints from the internet, forums or AI texts as unchecked and never bases a binding statement on them alone. If there are only hints, it says that the knowledge base holds no reliable source.</li>
           <li>Material loaded before typing appears as “Not classified” in the list. Above the list the section “Classify existing documents” opens: for each document the page suggests a value from the link, the previous level and the legal reference, with a reason and a confidence. Type and cluster can be changed per document. Tick the documents with a complete choice and choose “Review classification”. The window shows which documents will no longer be found in their area, only count as a hint, or change their level. Only “Save classification” changes anything, and every classification is logged. Sources that are already classified are never touched by this route.</li>
-          <li>Books and long documents (for example PDF after text recognition, OCR) go in through the section “Upload books and long documents”. Choose only the cluster (books, publications or internet source) and the roles there, then select several files at once. There is no limit on file size or page count: the browser reads the file itself and sends the text in packages. The PDF is also saved as an original (in chunks, resuming after a lost connection, with a progress display) while the book waits for approval. Up to 1 GB per file is possible, and all waiting originals together may take up to 50 GB: if that is exceeded, please upload separately, one part first and approve it, then the next. In the review window “Open original” shows it in a new tab, and for books uploaded earlier “Add original” adds it afterwards (the file is compared with the stored text). After approval or rejection the original is deleted. If the page sequence check found missing pages, the review window lists them by number. The second person checks the original and enters a note, for example “Blank pages in the book”. Without a note the book cannot be approved, and the bulk approval skips such books. A PDF needs a text layer, a pure image scan yields no text.</li>
+          <li>Books and long documents (for example PDF after text recognition, OCR) go in through the same section “Upload documents and books”. Choose only the cluster (books, publications or internet source) and the roles there, then select several files at once. There is no limit on file size or page count: the browser reads the file itself and sends the text in packages. The PDF is also saved as an original (in chunks, resuming after a lost connection, with a progress display) while the book waits for approval. Up to 1 GB per file is possible, and all waiting originals together may take up to 50 GB: if that is exceeded, please upload separately, one part first and approve it, then the next. In the review window “Open original” shows it in a new tab, and for books uploaded earlier “Add original” adds it afterwards (the file is compared with the stored text). After approval or rejection the original is deleted. If the page sequence check found missing pages, the review window lists them by number. The second person checks the original and enters a note, for example “Blank pages in the book”. Without a note the book cannot be approved, and the bulk approval skips such books. A PDF needs a text layer, a pure image scan yields no text.</li>
           <li>Before uploading, the page shows for each file the number of characters and an assessment of the text quality (readable, check, poor) with the reasons, such as chopped words or many special characters. A text rated “poor” is not uploaded, the file should be created again with OCR. The title is taken from the file name and can be changed. “Upload books” starts the series, an overall display shows book, packages, percent and the estimated time left, and a bar per book shows its progress (please keep the page open), and “Cancel” removes the book that was started.</li>
-          <li>When reading a PDF the page also checks the page sequence: it reads the printed page number at the edge of every page and compares it with the order in the file. If the number jumps (for example from 47 to 50), pages are missing in the scan. The book then shows which printed pages are missing and after which PDF page, and can only be uploaded if you explicitly confirm the gaps. It is better to rescan the pages and create the file again. For laws the page also shows missing article numbers (repealed articles may be among them). The information goes with the book to the second person: during the review the note “Pages are missing in the scan” appears, and the book counts as “check text” at best.</li>
+          <li>When reading a PDF the page also checks the page sequence: it reads the printed page number at the edge of every page and compares it with the order in the file. If the number jumps (for example from 47 to 50), pages are missing in the scan. The book then shows which printed pages are missing and after which PDF page, and can only be uploaded if you explicitly confirm the gaps. It is better to rescan the pages and create the file again. For laws the page also shows missing article numbers (repealed articles may be among them). The information goes with the book to the second person: during the review the note “Pages are missing in the scan” appears, and the book counts as “check text” at best. The second person checks the original and enters in the review window the printed page numbers that are correctly missing (for example blank or note pages). If the entry does not cover all gaps, real content is missing and the book is not approved. In that case the missing pages are loaded as a PDF with text recognition in the review window (the system reads the printed page numbers, inserts the pages at the position of the gap and offers the book for approval again), or the book is deleted and the whole PDF is uploaded again. Pages confirmed as correctly missing do not lower the quality of the book, open gaps do.</li>
           <li>Each document in the list of existing documents shows its quality in percent, for example &quot;Quality 95%&quot;. The value says how well the stored text can be read (text recognition, chopped words, character noise; tables of contents and indexes are not counted). For a book with pages missing from the scan the value drops further. From 90 percent the text is good, from 75 percent it should be checked, below that it is poor. Newly uploaded books get the value automatically; for older documents the button &quot;Calculate quality&quot; computes it. Before uploading, the page already shows the value for each file.</li>
           <li>Under “Check and clean up the holdings” the page checks the whole knowledge base at the push of a button: research working documents (orders, indexes, plans), documents explicitly marked as outdated, duplicates, documents whose content is already in an uploaded book, due review dates and documents without a usable link. The content comparison runs in steps with a progress display and can be switched off. Every finding comes with its reason, and for duplicates and documents covered by books “Show comparison” displays the passages word for word, because similarity alone does not prove the same statement. The check changes nothing. Documents are only removed once you have selected them, entered a reason, confirmed and typed the number of documents. Every removal is logged, is final and is not copied back by the synchronisation to production.</li>
           <li>If the connection breaks off, the book appears as “Incomplete” in the list. It cannot be approved, only deleted and uploaded again. Like every document, a book stays unchecked until a second person approves it.</li>
@@ -1129,6 +1135,64 @@ mark.treffer-aktiv {
           <li>The classification can be changed at any time later: in the list choose “Change classification” for a document, then change cluster, area, source type and text basis. The window shows which level follows from the source type and how the source is used in the area. The change is logged. For an approved upload, area, source type and text basis are not changed by the person who uploaded it but by a second person (four-eyes principle, also enforced in the database); the cluster can always be changed.</li>
           <li>The AI assistant helps with managing the knowledge base (administration only): it gives an overview of holdings and distribution, names what is waiting for review or is not classified, analyses a document and explains whether the classification is right. It also checks the holdings for outdated material, duplicates and documents already contained in a book, shows the comparison in the original wording on request and gives the quality of a document in percent. It proposes a change of classification and the removal of documents as a card that you confirm. It cannot upload files or approve documents, that stays with you and the second person.</li>
           <li>The list can be filtered: at the top by cluster, below by search term in the title, area, reliability (official, reliable, indicative only, unreliable, not classified), source type, status (for example waiting for approval), origin (uploaded or existing holdings) and the role a document is visible to. The filters apply together, and the number behind each entry shows the hits. Unreliable sources are unverified internet sources that the assistant names only as a last resort and labelled. The bulk review only acts on the documents shown.</li>
+      </ol>
+
+      <h3 id="anleitung-esf">4.7 Documenting a delivery with ЭСФ (document register)</h3>
+      <p>Since 1 January 2026 every delivery must be documented through the state ЭСФ system. The portal does not issue the ЭСФ. It keeps the register, prepares the details and shows which delivery has no document yet.</p>
+      <ol>
+          <li>As administration, CEO or accounting open Yard → Delivery note (ЭСФ). “Deliveries without ЭСФ” lists all delivered shipments without an issued document, the oldest first. The age counts from the delivery day. The portal stores no deadline, accounting decides which one applies.</li>
+          <li>“Create draft” stores a snapshot of the details: buyer with identification number, variety, quantity, price per the price list on the delivery day and, if the farm was VAT-registered on that day, the VAT. What is missing (price, variety, identification number, VAT rate) is listed under “The draft still lacks”. The draft assumes the price list holds net prices: check this with accounting before issuing.</li>
+          <li>Issue the ЭСФ in the state portal with these details. Then record it in the register with “Record as issued”: enter the ЭСФ number and date. From here on the draft no longer changes.</li>
+          <li>If the ЭСФ is confirmed, “Record confirmation”. If it is rejected, “Record rejection” with a reason, then “Start a new draft”.</li>
+          <li>Paper is only permitted during an outage of the state system. “Keep on paper” therefore requires a reason. Confirmed documents and documents kept on paper are closed.</li>
+          <li>Farm management can see the register but records nothing. The database rejects any status change the process does not know. Every action is logged. The automatic handover to the state system follows once the authority grants access.</li>
+      </ol>
+
+      <h3 id="anleitung-esutd">4.8 Reporting seasonal contracts to ЕСУТД (reporting process)</h3>
+      <p>The conclusion, change and termination of every seasonal contract belong in the state unified system ЕСУТД. The portal does not report by itself. It shows what is to be reported and records what has been reported and what proves it.</p>
+      <ol>
+          <li>As administration, CEO or farm management open Office → Integrations.</li>
+          <li>Under “Create a new conclusion” enter the person, the start of the contract and optionally the contract number. For the conclusion the portal calculates the deadline: five working days from the start of the contract, without a holiday calendar. Once it has passed, “Deadline passed” appears on the row and in the risk radar.</li>
+          <li>Enter changes and terminations under “Create a change or termination”: contract, type, date and, for a change, what changes. No deadline is stored for either.</li>
+          <li>“Open reports as CSV” downloads the details (name, ID, type, date, contract number) as a plain table for entry in the state system. There is no official import format. The file contains personal data: delete it after entry. Every download is logged.</li>
+          <li>After reporting in the state system choose “Record as reported”: report date (not in the future), optionally a confirmation number and a proof. Upload the proof first in the evidence register (Office → Documents, category ЕСУТД proof), then select it here.</li>
+          <li>A wrongly recorded report can be reopened: date, confirmation and proof are cleared. A report that is still open can be removed. In the personnel view the ЕСУТД field of a person shows “open” as long as one of their reports is open. Accounting can see the list but records nothing.</li>
+      </ol>
+
+      <h3 id="anleitung-nachweis">4.9 Keeping a proof with a validity period</h3>
+      <p>Certificates, permits and contracts come to an end. The evidence register calculates the status from the period, it is not set by hand.</p>
+      <ol>
+          <li>Open Office → Documents. When adding a document, or through “Edit”, enter valid from, valid until (or “Valid without end date”), the advance warning in days (1 to 365, default 60), the person responsible, the legal basis and, where relevant, the partner.</li>
+          <li>The status is valid, expiring (within the warning period), expired or open. Open means: no period recorded or not yet in force. The portal does not invent dates, a proof without a period stands out as a gap.</li>
+          <li>“Valid until” is the last day of validity, on the following day the proof counts as expired. The day changes at midnight in Almaty.</li>
+          <li>The header counts the states. Proofs that are expiring or expired also appear in the risk radar of the compliance cockpit.</li>
+      </ol>
+
+      <h3 id="anleitung-logger">4.10 Importing the file of a temperature logger</h3>
+      <p>A temperature logger in the vehicle records the temperature of the trip. The portal takes over its file instead of the values being typed in by hand.</p>
+      <ol>
+          <li>Open Yard → Collection rounds and unfold “Import logger file” at the planned delivery.</li>
+          <li>Choose the logger’s CSV file: time and temperature per line, separator comma, semicolon or tab, decimal comma or decimal point, up to 2 MB. Optionally enter a serial number or vehicle as identifier.</li>
+          <li>Times without a time zone count as Almaty time. Values of the last 24 hours are taken over. Older rows, rows in the future, duplicates and unreadable rows are left out, and the portal gives the numbers after the import.</li>
+          <li>Each value is rated like a manual measurement (up to 4 degrees fine, up to 8 degrees warning, above that violation) and carries the origin “logger”. A delivered or cancelled delivery no longer accepts values.</li>
+      </ol>
+
+      <h3 id="anleitung-rollen">4.11 Assigning roles</h3>
+      <p>The role of an account determines what it may see and do. Only administration can assign it.</p>
+      <ol>
+          <li>As administration open Office → Roles and permissions. Under “Accounts and roles” every account is listed with its role.</li>
+          <li>Choose the new role in the row and “Save”. The change applies from the next page the account opens.</li>
+          <li>Your own role cannot be changed here. Customer accounts are created through invitations and keep their role.</li>
+          <li>The last administrator keeps the role: the database rejects the withdrawal, even with direct access. Every change is logged with the old and the new role.</li>
+      </ol>
+
+      <h3 id="anleitung-nachrichten">4.12 Messages on a pre-order and the delivery schedule</h3>
+      <p>Agreements on quantity and date stay with the pre-order instead of vanishing in phone calls and messengers.</p>
+      <ol>
+          <li>Open Market → B2B portal. Under “Messages on pre-orders” every pre-order has its thread. The customer sees only their own, the office sees all.</li>
+          <li>Unfold a pre-order, write the message (up to 2000 characters) and “Send”. The database sets author, role and time from the login.</li>
+          <li>Sent messages cannot be changed or deleted. A cancelled pre-order gets no new messages.</li>
+          <li>“Delivery schedule as calendar file” downloads the upcoming delivery dates as an ICS file for the calendar. It is a download tied to the session, not a subscription link: download again to refresh. The customer gets only their own dates.</li>
       </ol>
     </section>
 
@@ -1209,7 +1273,7 @@ mark.treffer-aktiv {
       </div>
 
       <h3 id="referenz-schnittstellen">5.3 Interfaces</h3>
-      <p>Six endpoints for tasks that have no page of their own. Each checks session and permission itself.</p>
+      <p>Nine endpoints for tasks that have no page of their own. Each checks session and permission itself.</p>
       <div class="tabelle">
         <table>
           <thead><tr><th>Address</th><th>Purpose</th><th>Access</th></tr></thead>
@@ -1221,6 +1285,8 @@ mark.treffer-aktiv {
             <tr><td><code>/api/ki-sprachausgabe/schluessel</code></td><td>Issues a short-lived key for reading aloud, together with voice, speed and format per language. The browser then talks to the speech service directly: every sentence goes in at once, and the audio plays while it is being generated, without pauses between sections. A key is only issued with proof, that is for the answer currently being written or for one of your own saved answers. It opens exactly one stream, is valid for 60 seconds, and each person gets at most twelve keys per minute. The actual key never leaves the server. If the endpoint declines, the previous path reads aloud in single sections.</td><td>Permission for the AI assistant, Soniox as speech output</td></tr>
             <tr><td><code>/api/ki-spracherkennung</code></td><td>Issues a short-lived key for live dictation: speech recognition only, single use, one minute to connect. With it the browser sends speech straight to the recognition service, and the text appears in the input field while the person is still speaking. The actual key never leaves the server. If the endpoint declines, the same recording goes to recognition as a file, as before.</td><td>AI assistant permission, live dictation switched on</td></tr>
             <tr><td><code>/api/sync</code></td><td>Receives the reports from the queue that were created in the field without a connection. They pass through the same checks as the corresponding forms.</td><td>Signed in, second factor current</td></tr>
+            <tr><td><code>/api/lieferplan</code></td><td>Delivers the upcoming delivery dates as a calendar file (ICS). A download tied to the session, not a subscription link with a secret in the address. The customer gets only their own dates, the office all of them.</td><td>Permission on the B2B portal, second factor current</td></tr>
+            <tr><td><code>/api/esutd/export</code></td><td>The details of the ЕСУТД reports as a CSV file for entry in the state system, open ones or all. It contains personal data, so every download is logged.</td><td>Permission to change personnel data, second factor current</td></tr>
           </tbody>
         </table>
       </div>

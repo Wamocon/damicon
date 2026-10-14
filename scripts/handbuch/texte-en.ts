@@ -170,7 +170,7 @@ export const en: HandbuchTexte = {
 
   anleitungen: {
     einleitung:
-      "Six procedures that cover the core of the operation. The paths refer to the sidebar.",
+      "Twelve procedures that cover the core of the operation. The paths refer to the sidebar.",
     liste: [
       {
         id: "wartezeit",
@@ -266,6 +266,82 @@ export const en: HandbuchTexte = {
           "The classification can be changed at any time later: in the list choose “Change classification” for a document, then change cluster, area, source type and text basis. The window shows which level follows from the source type and how the source is used in the area. The change is logged. For an approved upload, area, source type and text basis are not changed by the person who uploaded it but by a second person (four-eyes principle, also enforced in the database); the cluster can always be changed.",
           "The AI assistant helps with managing the knowledge base (administration only): it gives an overview of holdings and distribution, names what is waiting for review or is not classified, analyses a document and explains whether the classification is right. It also checks the holdings for outdated material, duplicates and documents already contained in a book, shows the comparison in the original wording on request and gives the quality of a document in percent. It proposes a change of classification and the removal of documents as a card that you confirm. It cannot upload files or approve documents, that stays with you and the second person.",
           "The list can be filtered: at the top by cluster, below by search term in the title, area, reliability (official, reliable, indicative only, unreliable, not classified), source type, status (for example waiting for approval), origin (uploaded or existing holdings) and the role a document is visible to. The filters apply together, and the number behind each entry shows the hits. Unreliable sources are unverified internet sources that the assistant names only as a last resort and labelled. The bulk review only acts on the documents shown.",
+        ],
+      },
+      {
+        id: "esf",
+        titel: "Documenting a delivery with ЭСФ (document register)",
+        einleitung:
+          "Since 1 January 2026 every delivery must be documented through the state ЭСФ system. The portal does not issue the ЭСФ. It keeps the register, prepares the details and shows which delivery has no document yet.",
+        schritte: [
+          "As administration, CEO or accounting open Yard → Delivery note (ЭСФ). “Deliveries without ЭСФ” lists all delivered shipments without an issued document, the oldest first. The age counts from the delivery day. The portal stores no deadline, accounting decides which one applies.",
+          "“Create draft” stores a snapshot of the details: buyer with identification number, variety, quantity, price per the price list on the delivery day and, if the farm was VAT-registered on that day, the VAT. What is missing (price, variety, identification number, VAT rate) is listed under “The draft still lacks”. The draft assumes the price list holds net prices: check this with accounting before issuing.",
+          "Issue the ЭСФ in the state portal with these details. Then record it in the register with “Record as issued”: enter the ЭСФ number and date. From here on the draft no longer changes.",
+          "If the ЭСФ is confirmed, “Record confirmation”. If it is rejected, “Record rejection” with a reason, then “Start a new draft”.",
+          "Paper is only permitted during an outage of the state system. “Keep on paper” therefore requires a reason. Confirmed documents and documents kept on paper are closed.",
+          "Farm management can see the register but records nothing. The database rejects any status change the process does not know. Every action is logged. The automatic handover to the state system follows once the authority grants access.",
+        ],
+      },
+      {
+        id: "esutd",
+        titel: "Reporting seasonal contracts to ЕСУТД (reporting process)",
+        einleitung:
+          "The conclusion, change and termination of every seasonal contract belong in the state unified system ЕСУТД. The portal does not report by itself. It shows what is to be reported and records what has been reported and what proves it.",
+        schritte: [
+          "As administration, CEO or farm management open Office → Integrations.",
+          "Under “Create a new conclusion” enter the person, the start of the contract and optionally the contract number. For the conclusion the portal calculates the deadline: five working days from the start of the contract, without a holiday calendar. Once it has passed, “Deadline passed” appears on the row and in the risk radar.",
+          "Enter changes and terminations under “Create a change or termination”: contract, type, date and, for a change, what changes. No deadline is stored for either.",
+          "“Open reports as CSV” downloads the details (name, ID, type, date, contract number) as a plain table for entry in the state system. There is no official import format. The file contains personal data: delete it after entry. Every download is logged.",
+          "After reporting in the state system choose “Record as reported”: report date (not in the future), optionally a confirmation number and a proof. Upload the proof first in the evidence register (Office → Documents, category ЕСУТД proof), then select it here.",
+          "A wrongly recorded report can be reopened: date, confirmation and proof are cleared. A report that is still open can be removed. In the personnel view the ЕСУТД field of a person shows “open” as long as one of their reports is open. Accounting can see the list but records nothing.",
+        ],
+      },
+      {
+        id: "nachweis",
+        titel: "Keeping a proof with a validity period",
+        einleitung:
+          "Certificates, permits and contracts come to an end. The evidence register calculates the status from the period, it is not set by hand.",
+        schritte: [
+          "Open Office → Documents. When adding a document, or through “Edit”, enter valid from, valid until (or “Valid without end date”), the advance warning in days (1 to 365, default 60), the person responsible, the legal basis and, where relevant, the partner.",
+          "The status is valid, expiring (within the warning period), expired or open. Open means: no period recorded or not yet in force. The portal does not invent dates, a proof without a period stands out as a gap.",
+          "“Valid until” is the last day of validity, on the following day the proof counts as expired. The day changes at midnight in Almaty.",
+          "The header counts the states. Proofs that are expiring or expired also appear in the risk radar of the compliance cockpit.",
+        ],
+      },
+      {
+        id: "logger",
+        titel: "Importing the file of a temperature logger",
+        einleitung:
+          "A temperature logger in the vehicle records the temperature of the trip. The portal takes over its file instead of the values being typed in by hand.",
+        schritte: [
+          "Open Yard → Collection rounds and unfold “Import logger file” at the planned delivery.",
+          "Choose the logger’s CSV file: time and temperature per line, separator comma, semicolon or tab, decimal comma or decimal point, up to 2 MB. Optionally enter a serial number or vehicle as identifier.",
+          "Times without a time zone count as Almaty time. Values of the last 24 hours are taken over. Older rows, rows in the future, duplicates and unreadable rows are left out, and the portal gives the numbers after the import.",
+          "Each value is rated like a manual measurement (up to 4 degrees fine, up to 8 degrees warning, above that violation) and carries the origin “logger”. A delivered or cancelled delivery no longer accepts values.",
+        ],
+      },
+      {
+        id: "rollen",
+        titel: "Assigning roles",
+        einleitung:
+          "The role of an account determines what it may see and do. Only administration can assign it.",
+        schritte: [
+          "As administration open Office → Roles and permissions. Under “Accounts and roles” every account is listed with its role.",
+          "Choose the new role in the row and “Save”. The change applies from the next page the account opens.",
+          "Your own role cannot be changed here. Customer accounts are created through invitations and keep their role.",
+          "The last administrator keeps the role: the database rejects the withdrawal, even with direct access. Every change is logged with the old and the new role.",
+        ],
+      },
+      {
+        id: "nachrichten",
+        titel: "Messages on a pre-order and the delivery schedule",
+        einleitung:
+          "Agreements on quantity and date stay with the pre-order instead of vanishing in phone calls and messengers.",
+        schritte: [
+          "Open Market → B2B portal. Under “Messages on pre-orders” every pre-order has its thread. The customer sees only their own, the office sees all.",
+          "Unfold a pre-order, write the message (up to 2000 characters) and “Send”. The database sets author, role and time from the login.",
+          "Sent messages cannot be changed or deleted. A cancelled pre-order gets no new messages.",
+          "“Delivery schedule as calendar file” downloads the upcoming delivery dates as an ICS file for the calendar. It is a download tied to the session, not a subscription link: download again to refresh. The customer gets only their own dates.",
         ],
       },
     ],
@@ -378,7 +454,7 @@ export const en: HandbuchTexte = {
 
     schnittstellenTitel: "Interfaces",
     schnittstellenEinleitung:
-      "Six endpoints for tasks that have no page of their own. Each checks session and permission itself.",
+      "Nine endpoints for tasks that have no page of their own. Each checks session and permission itself.",
     spalteAufgabe: "Purpose",
     schnittstellen: [
       {
@@ -422,6 +498,18 @@ export const en: HandbuchTexte = {
         aufgabe:
           "Receives the reports from the queue that were created in the field without a connection. They pass through the same checks as the corresponding forms.",
         zugriff: "Signed in, second factor current",
+      },
+      {
+        pfad: "/api/lieferplan",
+        aufgabe:
+          "Delivers the upcoming delivery dates as a calendar file (ICS). A download tied to the session, not a subscription link with a secret in the address. The customer gets only their own dates, the office all of them.",
+        zugriff: "Permission on the B2B portal, second factor current",
+      },
+      {
+        pfad: "/api/esutd/export",
+        aufgabe:
+          "The details of the ЕСУТД reports as a CSV file for entry in the state system, open ones or all. It contains personal data, so every download is logged.",
+        zugriff: "Permission to change personnel data, second factor current",
       },
     ],
   },
