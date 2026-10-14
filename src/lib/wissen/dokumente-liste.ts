@@ -182,7 +182,22 @@ function neuesDokument(z: WissenListeZeile, schluessel: string, schluesselSpalte
 /** Jede weitere Zeile desselben Dokuments: Zahlen addieren, Lücken füllen, und das Dokument gilt so streng wie seine strengste Zeile. */
 function fuehreZusammen(d: WissenDokumentZeile, z: WissenListeZeile, status: Pruefstatus, anzahl: number): void {
   d.chunks += anzahl;
+  fuelleLuecken(d, z);
+  fuelleSeitenLuecken(d, z);
+  vereinigeZeilenwerte(d, z, status);
+}
+
+/** Qualität, Größe des Originals, Rechtsstelle und hochladende Person: aus der ersten Zeile, die sie nennt. */
+function fuelleLuecken(d: WissenDokumentZeile, z: WissenListeZeile): void {
   if (d.gueteProzent === null && typeof z.guete_prozent === "number") d.gueteProzent = z.guete_prozent;
+  if (d.originalGroesse === null && z.original_groesse != null && Number(z.original_groesse) > 0) d.originalGroesse = Number(z.original_groesse);
+  if (!d.rechtsstelle && z.rechtsstelle) d.rechtsstelle = z.rechtsstelle;
+  if (!d.hochgeladenVon && z.hochgeladen_von) d.hochgeladenVon = z.hochgeladen_von;
+  if (!d.hochgeladenVonId && z.hochgeladen_von_id) d.hochgeladenVonId = z.hochgeladen_von_id;
+}
+
+/** Fehlende Seiten mit ihren Stellen, Vermerk, bestätigte und nachgeladene Seiten: aus der ersten Zeile, die sie nennt. Vermerkt, sobald eine Zeile es ist. */
+function fuelleSeitenLuecken(d: WissenDokumentZeile, z: WissenListeZeile): void {
   if (d.seitenFehlend === 0 && Number(z.seiten_fehlend ?? 0) > 0) {
     d.seitenFehlend = Number(z.seiten_fehlend);
     d.seitenStellen = z.seiten_stellen ?? null;
@@ -191,14 +206,14 @@ function fuehreZusammen(d: WissenDokumentZeile, z: WissenListeZeile, status: Pru
   d.seitenBestaetigt ??= z.seiten_bestaetigt || null;
   if (z.seiten_vermerkt === true) d.seitenVermerkt = true;
   d.seitenNachgeladen ??= z.seiten_nachgeladen || null;
-  if (d.originalGroesse === null && z.original_groesse != null && Number(z.original_groesse) > 0) d.originalGroesse = Number(z.original_groesse);
+}
+
+/** Was alle Zeilen zusammen ergeben: löschbar nur, wenn jede es ist; alle Rollen; die meisten Pakete; das neueste Datum; der strengste Status; die früheste Wiedervorlage. */
+function vereinigeZeilenwerte(d: WissenDokumentZeile, z: WissenListeZeile, status: Pruefstatus): void {
   d.loeschbar &&= istUploadZeile(z);
   for (const r of z.rollen ?? []) if (!d.rollen.includes(r)) d.rollen.push(r);
-  if (!d.rechtsstelle && z.rechtsstelle) d.rechtsstelle = z.rechtsstelle;
   if (z.pakete_gesamt) d.paketeGesamt = Math.max(d.paketeGesamt ?? 0, Number(z.pakete_gesamt));
   if (z.eingelesen_am && (!d.datum || z.eingelesen_am > d.datum)) d.datum = z.eingelesen_am;
-  if (!d.hochgeladenVon && z.hochgeladen_von) d.hochgeladenVon = z.hochgeladen_von;
-  if (!d.hochgeladenVonId && z.hochgeladen_von_id) d.hochgeladenVonId = z.hochgeladen_von_id;
   // Ein Dokument gilt so streng wie seine strengste Zeile (ungeprueft vor abgelehnt vor freigegeben).
   if (RANG[status] < RANG[d.pruefstatus]) d.pruefstatus = status;
   if (z.pruefen_bis && (!d.pruefenBis || z.pruefen_bis < d.pruefenBis)) d.pruefenBis = z.pruefen_bis;
