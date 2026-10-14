@@ -807,6 +807,63 @@ export type Database = {
           },
         ]
       }
+      esf_belege: {
+        Row: {
+          ausgestellt_am: string | null
+          bemerkung: string | null
+          bestaetigt_am: string | null
+          created_at: string
+          entwurf: Json
+          erstellt_von_profil_id: string | null
+          esf_nummer: string | null
+          id: string
+          lieferung_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          ausgestellt_am?: string | null
+          bemerkung?: string | null
+          bestaetigt_am?: string | null
+          created_at?: string
+          entwurf: Json
+          erstellt_von_profil_id?: string | null
+          esf_nummer?: string | null
+          id?: string
+          lieferung_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          ausgestellt_am?: string | null
+          bemerkung?: string | null
+          bestaetigt_am?: string | null
+          created_at?: string
+          entwurf?: Json
+          erstellt_von_profil_id?: string | null
+          esf_nummer?: string | null
+          id?: string
+          lieferung_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "esf_belege_lieferung_id_fkey"
+            columns: ["lieferung_id"]
+            isOneToOne: false
+            referencedRelation: "lieferungen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "esf_belege_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       esutd_vertraege: {
         Row: {
           created_at: string
@@ -4036,6 +4093,26 @@ export type Database = {
             columns: ["charge_id"]
             isOneToOne: false
             referencedRelation: "chargen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_esf_offen: {
+        Row: {
+          beleg_id: string | null
+          beleg_status: string | null
+          geliefert_am: string | null
+          kunde: string | null
+          lieferung_id: string | null
+          menge_kg: number | null
+          tage_seit_lieferung: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "v_esf_offen_lieferung_id_fkey"
+            columns: ["lieferung_id"]
+            isOneToOne: false
+            referencedRelation: "lieferungen"
             referencedColumns: ["id"]
           },
         ]

@@ -696,9 +696,9 @@
     "esf": {
       "title": "Elektronischer Lieferschein (ЭСФ)",
       "navTitle": "Lieferschein (ЭСФ)",
-      "description": "Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Die Anbindung an das staatliche ЭСФ-System ist vorgesehen, eine eigene Buchhaltung nicht.",
-      "summary": "Führt künftig die Belegkette von der Charge zum Lieferschein und nimmt die Statusrückmeldung aus dem staatlichen System auf. Pflichtintegration.",
-      "todo": "Anbindung an das ИС ЭСФ, Belegkette Charge zu Lieferschein, Statusrückmeldung und Wiederholung."
+      "description": "Belegregister für die elektronische Rechnung (ЭСФ): welche Lieferung hat welchen Beleg, welche hat noch keinen. Die Angaben für das Portal werden vorbereitet, ausgestellt wird weiterhin im staatlichen System.",
+      "summary": "Zeigt die Lieferungen ohne ЭСФ, bereitet die Angaben aus Lieferung, Preisliste und MwSt-Stand vor und führt den Status bis zur Bestätigung. Pflichtintegration, die Anbindung folgt mit dem Zugang der Behörde.",
+      "todo": "Stufe 2: automatische Übergabe an das ИС ЭСФ und Statusrückmeldung, sobald der Zugang der Behörde vorliegt."
     },
     "rollen": {
       "title": "Rollen und Rechte",
@@ -978,7 +978,14 @@
       "checkpunktErledigt": "Punkt erledigt.",
       "checkpunktGeoeffnet": "Punkt wieder geöffnet.",
       "checkpunktEntfernt": "Punkt entfernt.",
-      "checklisteVorschlag": "Allgemeiner Vorschlag übernommen."
+      "checklisteVorschlag": "Allgemeiner Vorschlag übernommen.",
+      "esfEntwurf": "Entwurf gespeichert.",
+      "esfEntwurfVerworfen": "Entwurf verworfen.",
+      "esfAusgestellt": "Beleg als ausgestellt erfasst.",
+      "esfBestaetigt": "Bestätigung erfasst.",
+      "esfAbgelehnt": "Ablehnung erfasst.",
+      "esfPapier": "Beleg auf Papier geführt.",
+      "esfNeuBegonnen": "Neuer Entwurf begonnen."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1073,7 +1080,14 @@
       "loggerDateiZuGross": "Die Datei ist größer als 2 MB.",
       "loggerKeineNeuen": "Nichts übernommen. Ausgelassen: {zuAlt} älter als 24 Stunden, {zukunft} in der Zukunft, {doppelt} schon vorhanden, {unlesbar} nicht lesbar.",
       "checkpunktZuLang": "Der Punkt ist länger als 200 Zeichen.",
-      "checklisteNichtLeer": "Die Checkliste hat schon Punkte. Der Vorschlag gilt nur für eine leere Liste."
+      "checklisteNichtLeer": "Die Checkliste hat schon Punkte. Der Vorschlag gilt nur für eine leere Liste.",
+      "esfNummer": "Bitte die ЭСФ-Nummer angeben, höchstens 100 Zeichen.",
+      "esfDatum": "Bitte ein gültiges Datum angeben, nicht in der Zukunft und nicht vor dem Ausstellen.",
+      "esfBemerkung": "Bitte einen Grund mit 3 bis 500 Zeichen angeben.",
+      "esfStatuswechsel": "Dieser Statuswechsel ist nicht vorgesehen, oder der Beleg hat sich inzwischen geändert.",
+      "esfLieferungOffen": "Nur zu einer zugestellten Lieferung gibt es einen Beleg.",
+      "esfBelegFehlt": "Der Beleg wurde nicht gefunden.",
+      "esfSchonAusgestellt": "Zu dieser Lieferung gibt es schon einen ausgestellten Beleg."
     },
     "einladungen": {
       "erfolg": {
@@ -4610,6 +4624,94 @@
       "kostenaufstellung": "Kosten- oder Investitionsaufstellung mit Angeboten",
       "flaechennachweis": "Nachweis der Flächen und des Anbaus",
       "zahlungsbelege": "Zahlungsbelege für die Abrechnung"
+    }
+  },
+  "esfAnsicht": {
+    "titel": "Belegregister der elektronischen Rechnung (ЭСФ)",
+    "lead": "Das Register zeigt, welche zugestellte Lieferung welchen Beleg hat und welche noch keinen. Ausgestellt wird die ЭСФ weiterhin im staatlichen Portal. Das System bereitet die Angaben vor und führt den Stand.",
+    "stufeHinweis": "Die automatische Übergabe an das staatliche System folgt, sobald der Zugang der Behörde vorliegt. Papier ist nur bei einer Störung des Systems zulässig und braucht eine Begründung.",
+    "nurLesen": "Nur Ansicht: erfassen dürfen Administration, Geschäftsführung und Buchhaltung.",
+    "zaehlOffen": "Ohne Beleg",
+    "offen": {
+      "titel": "Lieferungen ohne ЭСФ",
+      "lead": "Zugestellt, aber ohne ausgestellten Beleg. Das Alter zählt ab dem Liefertag. Welche Frist gilt, legt die Buchhaltung fest, das System hinterlegt keine.",
+      "leer": "Alle zugestellten Lieferungen haben einen ausgestellten Beleg.",
+      "col": {
+        "kunde": "Kunde",
+        "geliefertAm": "Geliefert am",
+        "menge": "Menge",
+        "alter": "Alter",
+        "beleg": "Beleg"
+      },
+      "heute": "heute",
+      "tage": "{tage, plural, one {# Tag} other {# Tage}}",
+      "keinBeleg": "noch kein Entwurf"
+    },
+    "belege": {
+      "titel": "Belege",
+      "lead": "Der Entwurf ist ein Standbild der Angaben am Liefertag. Ab dem Ausstellen ändert er sich nicht mehr.",
+      "leer": "Noch kein Beleg angelegt."
+    },
+    "status": {
+      "entwurf": "Entwurf",
+      "ausgestellt": "ausgestellt",
+      "bestaetigt": "bestätigt",
+      "abgelehnt": "abgelehnt",
+      "papier": "Papier (Störung)"
+    },
+    "nummerMit": "ЭСФ-Nummer {nummer}",
+    "ausgestelltAm": "ausgestellt am {datum}",
+    "bestaetigtAm": "bestätigt am {datum}",
+    "entwurf": {
+      "titel": "Angaben für das Portal",
+      "stichtag": "Liefertag",
+      "kaeufer": "Käufer",
+      "identifikationsnummer": "Identifikationsnummer (IIN oder BIN)",
+      "fehlt": "fehlt",
+      "sorte": "Sorte",
+      "charge": "Charge",
+      "menge": "Menge",
+      "preis": "Preis je kg laut Preisliste",
+      "betrag": "Betrag",
+      "mwst": "MwSt {prozent} %",
+      "nichtRegistriert": "Der Betrieb war am Liefertag nicht MwSt-registriert, keine MwSt im Entwurf.",
+      "gesamt": "Gesamt",
+      "annahme": "Annahme: Die Preisliste führt Nettopreise. Bitte vor dem Ausstellen mit der Buchhaltung abgleichen.",
+      "lueckenTitel": "Dem Entwurf fehlt noch:",
+      "unlesbar": "Der gespeicherte Entwurf ist nicht lesbar. Bitte neu berechnen."
+    },
+    "luecke": {
+      "preis": "Kein Preis in der Preisliste am Liefertag",
+      "sorte": "Keine Sorte an Lieferung oder Charge",
+      "identifikationsnummer": "Identifikationsnummer des Kunden fehlt",
+      "mwstSatz": "Kein MwSt-Satz für den Liefertag hinterlegt"
+    },
+    "aktion": {
+      "entwurfErstellen": "Entwurf erstellen",
+      "entwurfNeu": "Entwurf neu berechnen",
+      "entwurfVerwerfen": "Entwurf verwerfen",
+      "neuBeginnen": "Neuen Entwurf beginnen",
+      "ausgestellt": {
+        "titel": "Als ausgestellt erfassen",
+        "nummer": "ЭСФ-Nummer",
+        "datum": "Ausgestellt am",
+        "knopf": "Erfassen"
+      },
+      "bestaetigt": {
+        "titel": "Bestätigung erfassen",
+        "datum": "Bestätigt am",
+        "knopf": "Erfassen"
+      },
+      "abgelehnt": {
+        "titel": "Ablehnung erfassen",
+        "grund": "Grund der Ablehnung",
+        "knopf": "Erfassen"
+      },
+      "papier": {
+        "titel": "Auf Papier führen (Störung)",
+        "grund": "Art und Dauer der Störung",
+        "knopf": "Auf Papier führen"
+      }
     }
   }
 }

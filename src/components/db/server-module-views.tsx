@@ -16,6 +16,7 @@ import { EinarbeitungAnsicht } from "@/components/db/einarbeitung-ansicht";
 import { PflichtschulungenAnsicht } from "@/components/db/pflichtschulungen-ansicht";
 import { FoerdermittelAnsicht } from "@/components/db/foerdermittel-ansicht";
 import { LogistikAnsicht } from "@/components/db/logistik-ansicht";
+import { EsfAnsicht } from "@/components/db/esf-ansicht";
 import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
 import { PersonalAnsicht } from "@/components/db/personal-ansicht";
 import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
@@ -108,6 +109,10 @@ export function serverModulAnsicht(
     // interne Arbeitsansicht (Buero/Brigade erfassen), b2b_portal die
     // kundenseitige Sicht auf dieselben Daten, ergaenzt um Preisliste/
     // Vorbestellung (Anforderung 5.1, Teil 2 von 2).
+    // WMCNL-1440 (Stufe 1): Belegregister der elektronischen Rechnung. Die Anbindung an das
+    // staatliche System (Stufe 2) braucht den Zugang der Behoerde.
+    case "esf":
+      return <EsfAnsicht />;
     case "logistik":
       return <LogistikAnsicht />;
     // Anforderung 3.1: die Live-Alarmlogik (KuehlkettenAlarm) lief bisher nur

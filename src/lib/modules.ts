@@ -154,7 +154,10 @@ export const modules: ModuleDef[] = [
     slug: "lieferschein-esf",
     icon: "file-check-2",
     resource: "integrationen",
-    reifegrad: "in-entwicklung",
+    // WMCNL-1440 (Stufe 1): Belegregister unter RLS (esf_belege) mit Entwurf, Status und der Liste der
+    // Lieferungen ohne ЭСФ. Die Anbindung an das staatliche System (Stufe 2) steht noch aus: sie
+    // braucht den Zugang der Behoerde.
+    reifegrad: "angebunden",
   },
 
   // --------------------------------------------------------------- Zone Buero

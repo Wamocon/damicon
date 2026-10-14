@@ -696,9 +696,9 @@
     "esf": {
       "title": "Electronic delivery note (ЭСФ)",
       "navTitle": "Delivery note (ЭСФ)",
-      "description": "An electronic delivery note in line with the goods-accompanying-document obligation. A link to the state ЭСФ system is planned, accounting of its own is not.",
-      "summary": "Will carry the evidence chain from the batch to the delivery note and take in the status feedback from the state system. Mandatory integration.",
-      "todo": "Connection to ИС ЭСФ, evidence chain batch to delivery note, status feedback and retry."
+      "description": "Document register for the electronic invoice (ЭСФ): which delivery has which document and which has none yet. The details for the portal are prepared, issuing stays in the state system.",
+      "summary": "Shows the deliveries without ЭСФ, prepares the details from delivery, price list and VAT status and tracks the status up to confirmation. Mandatory integration, the link follows once the authority grants access.",
+      "todo": "Stage 2: automatic handover to ИС ЭСФ and status feedback once the authority grants access."
     },
     "rollen": {
       "title": "Roles and permissions",
@@ -978,7 +978,14 @@
       "checkpunktErledigt": "Item done.",
       "checkpunktGeoeffnet": "Item reopened.",
       "checkpunktEntfernt": "Item removed.",
-      "checklisteVorschlag": "General suggestion applied."
+      "checklisteVorschlag": "General suggestion applied.",
+      "esfEntwurf": "Draft saved.",
+      "esfEntwurfVerworfen": "Draft discarded.",
+      "esfAusgestellt": "Document recorded as issued.",
+      "esfBestaetigt": "Confirmation recorded.",
+      "esfAbgelehnt": "Rejection recorded.",
+      "esfPapier": "Document kept on paper.",
+      "esfNeuBegonnen": "New draft started."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1073,7 +1080,14 @@
       "loggerDateiZuGross": "The file is larger than 2 MB.",
       "loggerKeineNeuen": "Nothing imported. Skipped: {zuAlt} older than 24 hours, {zukunft} in the future, {doppelt} already present, {unlesbar} unreadable.",
       "checkpunktZuLang": "The item is longer than 200 characters.",
-      "checklisteNichtLeer": "The checklist already has items. The suggestion only applies to an empty list."
+      "checklisteNichtLeer": "The checklist already has items. The suggestion only applies to an empty list.",
+      "esfNummer": "Please enter the ЭСФ number, at most 100 characters.",
+      "esfDatum": "Please enter a valid date, not in the future and not before the issue date.",
+      "esfBemerkung": "Please give a reason of 3 to 500 characters.",
+      "esfStatuswechsel": "This status change is not provided for, or the document has changed in the meantime.",
+      "esfLieferungOffen": "Only a delivered shipment can have a document.",
+      "esfBelegFehlt": "The document was not found.",
+      "esfSchonAusgestellt": "This delivery already has an issued document."
     },
     "einladungen": {
       "erfolg": {
@@ -4610,6 +4624,94 @@
       "kostenaufstellung": "Cost or investment statement with quotes",
       "flaechennachweis": "Proof of the areas and the crops",
       "zahlungsbelege": "Payment receipts for the settlement"
+    }
+  },
+  "esfAnsicht": {
+    "titel": "Document register of the electronic invoice (ЭСФ)",
+    "lead": "The register shows which delivered shipment has which document and which has none yet. The ЭСФ is still issued in the state portal. The system prepares the details and tracks the status.",
+    "stufeHinweis": "The automatic handover to the state system follows once the authority grants access. Paper is only permitted during a system outage and needs a reason.",
+    "nurLesen": "View only: administration, management and accounting can record entries.",
+    "zaehlOffen": "Without document",
+    "offen": {
+      "titel": "Deliveries without ЭСФ",
+      "lead": "Delivered, but without an issued document. The age counts from the delivery day. Accounting decides which deadline applies, the system stores none.",
+      "leer": "All delivered shipments have an issued document.",
+      "col": {
+        "kunde": "Customer",
+        "geliefertAm": "Delivered on",
+        "menge": "Quantity",
+        "alter": "Age",
+        "beleg": "Document"
+      },
+      "heute": "today",
+      "tage": "{tage, plural, one {# day} other {# days}}",
+      "keinBeleg": "no draft yet"
+    },
+    "belege": {
+      "titel": "Documents",
+      "lead": "The draft is a snapshot of the details on the delivery day. Once issued, it no longer changes.",
+      "leer": "No document created yet."
+    },
+    "status": {
+      "entwurf": "Draft",
+      "ausgestellt": "issued",
+      "bestaetigt": "confirmed",
+      "abgelehnt": "rejected",
+      "papier": "Paper (outage)"
+    },
+    "nummerMit": "ЭСФ number {nummer}",
+    "ausgestelltAm": "issued on {datum}",
+    "bestaetigtAm": "confirmed on {datum}",
+    "entwurf": {
+      "titel": "Details for the portal",
+      "stichtag": "Delivery day",
+      "kaeufer": "Buyer",
+      "identifikationsnummer": "Identification number (IIN or BIN)",
+      "fehlt": "missing",
+      "sorte": "Variety",
+      "charge": "Batch",
+      "menge": "Quantity",
+      "preis": "Price per kg per price list",
+      "betrag": "Amount",
+      "mwst": "VAT {prozent} %",
+      "nichtRegistriert": "The farm was not VAT-registered on the delivery day, no VAT in the draft.",
+      "gesamt": "Total",
+      "annahme": "Assumption: the price list holds net prices. Please check with accounting before issuing.",
+      "lueckenTitel": "The draft still lacks:",
+      "unlesbar": "The stored draft cannot be read. Please recalculate."
+    },
+    "luecke": {
+      "preis": "No price in the price list on the delivery day",
+      "sorte": "No variety on delivery or batch",
+      "identifikationsnummer": "Customer identification number is missing",
+      "mwstSatz": "No VAT rate stored for the delivery day"
+    },
+    "aktion": {
+      "entwurfErstellen": "Create draft",
+      "entwurfNeu": "Recalculate draft",
+      "entwurfVerwerfen": "Discard draft",
+      "neuBeginnen": "Start a new draft",
+      "ausgestellt": {
+        "titel": "Record as issued",
+        "nummer": "ЭСФ number",
+        "datum": "Issued on",
+        "knopf": "Record"
+      },
+      "bestaetigt": {
+        "titel": "Record confirmation",
+        "datum": "Confirmed on",
+        "knopf": "Record"
+      },
+      "abgelehnt": {
+        "titel": "Record rejection",
+        "grund": "Reason for rejection",
+        "knopf": "Record"
+      },
+      "papier": {
+        "titel": "Keep on paper (outage)",
+        "grund": "Kind and duration of the outage",
+        "knopf": "Keep on paper"
+      }
     }
   }
 }

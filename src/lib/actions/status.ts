@@ -86,6 +86,13 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // (fehler.regel), sonst zeigt die Oberflaeche faelschlich "Wartezeit
       // ist noch nicht abgelaufen", obwohl genau das nicht die Ursache ist.
       return fehler("fehler.reihenblockGesperrt");
+    case "DA013":
+      // esf_beleg_pruefen() (WMCNL-1440): ein Statuswechsel, den der Ablauf nicht kennt, oder die
+      // Aenderung eines abgeschlossenen oder ausgestellten Belegs.
+      return fehler("fehler.esfStatuswechsel");
+    case "DA014":
+      // esf_beleg_pruefen() (WMCNL-1440): einen Beleg gibt es nur zu einer zugestellten Lieferung.
+      return fehler("fehler.esfLieferungOffen");
     case "DA012":
       // vorbestellung_nachricht_vorbereiten() (WMCNL-1472): zu einer stornierten
       // Vorbestellung gibt es keine neuen Nachrichten.

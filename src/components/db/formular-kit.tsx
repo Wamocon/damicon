@@ -408,3 +408,37 @@ export function FormularKarte({
     </div>
   );
 }
+
+// Eine kleine Aktion mit eigener Rueckmeldung, etwa "Erledigt" oder "Entfernen" in einer Liste: ein
+// Formular aus einem Knopf und versteckten Feldern. Erfolg zeigt schon die neu gezeichnete Seite,
+// deshalb meldet sich die Aktion nur, wenn sie misslingt.
+export function MiniAktion({
+  aktion,
+  felder,
+  label,
+  warnend = false,
+}: {
+  aktion: (status: AktionsStatus, formData: FormData) => Promise<AktionsStatus>;
+  felder: Record<string, string>;
+  label: string;
+  warnend?: boolean;
+}) {
+  const [status, action] = useActionState(aktion, leer);
+  return (
+    <form action={action} className="inline-flex flex-col items-start gap-1">
+      <PfadFeld />
+      {Object.entries(felder).map(([name, wert]) => (
+        <input key={name} type="hidden" name={name} value={wert} />
+      ))}
+      <button
+        type="submit"
+        className={`rounded-full border border-border px-2.5 py-0.5 text-[11px] font-semibold text-foreground transition ${
+          warnend ? "hover:border-destructive hover:text-destructive" : "hover:border-primary hover:text-primary"
+        }`}
+      >
+        {label}
+      </button>
+      {status.stand === "fehler" ? <AktionsMeldung status={status} /> : null}
+    </form>
+  );
+}
