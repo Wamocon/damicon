@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 // Gruppen, Fokus-Stichwort, mehr als 140 Elemente, lange Texte, Überschriften, Abschnitte (details, aria-expanded, data-offen, ids,
 // kurze und lange Listen) und stabile Referenzen über mehrere Lesungen. Je Fall wird das Ergebnis als JSON festgehalten, dazu das Markup
 // danach (die vergebenen data-ki-ref und data-ki-abschnitt), und mit dem Stand vor dem Zerlegen verglichen
-// (fixtures/ui-schnappschuss-golden.json, Stand 1fb29cf1). Ausgeschriebene Regeln prüfen die wichtigsten Eigenschaften zusätzlich.
+// (fixtures/ui-schnappschuss-golden.json, Stand 166db7f2). Ausgeschriebene Regeln prüfen die wichtigsten Eigenschaften zusätzlich.
 //
 // jsdom hat kein Layout: jedes Element bekommt über setzeRechteck eine Fläche (200 x 20), außer es trägt data-test-flach (keine Fläche)
 // oder data-test-hoch (2000 hoch). innerText und CSS.escape kennt jsdom nicht; hier stehen schlichte Nachbildungen (innerText wie
@@ -208,6 +208,25 @@ const GRUPPEN = `
   <button>Abmelden</button>
 </main>`;
 
+// Deaktiviert heißt: das Element hat die Eigenschaft disabled und sie ist wahr. Ein Attribut an einem Element ohne die Eigenschaft
+// (a, div mit Rolle) zählt nicht, ebenso wenig ein gesperrtes fieldset um ein Feld.
+const DEAKTIVIERT = `
+<main id="main">
+  <h1>Gesperrt</h1>
+  <button disabled>Knopf gesperrt</button>
+  <button>Knopf frei</button>
+  <input name="feld-gesperrt" aria-label="Feld gesperrt" disabled>
+  <select name="auswahl-gesperrt" aria-label="Auswahl gesperrt" disabled><option>A</option></select>
+  <textarea name="notiz-gesperrt" aria-label="Notiz gesperrt" disabled></textarea>
+  <a href="/de/dashboard/lohn" disabled>Link mit disabled</a>
+  <div role="button" disabled>Rolle mit disabled</div>
+  <fieldset disabled>
+    <legend>Gesperrte Gruppe</legend>
+    <input name="im-feldset" aria-label="Feld im Feldset">
+    <button type="button">Knopf im Feldset</button>
+  </fieldset>
+</main>`;
+
 async function main() {
   const { schnappschuss } = await import("@/components/ki/ui-steuerung");
 
@@ -274,6 +293,21 @@ async function main() {
   pruefe("Langer Text: auf 3200 Zeichen plus Auslassung gekürzt, Leerraum zusammengefasst", s.text.length === 3201 && s.text.endsWith("…") && !s.text.includes("  "), String(s.text.length));
   pruefe("Lange Beschriftung: 70 Zeichen mit Auslassung, Auswahl mit höchstens 25 Optionen", s.elemente[0]!.label.length === 70 && s.elemente[0]!.label.endsWith("…") && s.elemente.find((e) => e.typ === "auswahl")?.optionen?.length === 25, json(s.elemente.slice(0, 2)));
   pruefe("Titel ohne h1: Dokumenttitel", s.titel === "Lang");
+
+  // ---- 6. Deaktiviert ---------------------------------------------------------------------------------------------------------------
+  baue({ html: DEAKTIVIERT, titel: "Gesperrt" });
+  s = await lies(schnappschuss, "deaktivierte Elemente");
+  const gesperrt = (label: string) => nachTyp(s, label)?.deaktiviert;
+  pruefe(
+    "Deaktiviert: Knopf, Feld, Auswahl und Notiz mit der Eigenschaft disabled sind markiert",
+    gesperrt("Knopf gesperrt") === true && gesperrt("Feld gesperrt") === true && gesperrt("Auswahl gesperrt") === true && gesperrt("Notiz gesperrt") === true,
+    json(s.elemente),
+  );
+  pruefe(
+    "Deaktiviert: ein Attribut an Link und Rollen-Knopf oder ein gesperrtes Feldset markiert nicht",
+    ["Knopf frei", "Link mit disabled", "Rolle mit disabled", "Feld im Feldset", "Knopf im Feldset"].every((l) => nachTyp(s, l) !== undefined && gesperrt(l) === undefined),
+    json(s.elemente),
+  );
 
   beendeUmgebung();
   if (schreiben) {

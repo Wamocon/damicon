@@ -17,7 +17,7 @@ import { pruefer } from "./hilfen/ansicht-probe";
 // Je Fall festgehalten: jeder Aufruf an die Attrappen in Reihenfolge (mit Argumenten), Statuscode, alle Header, der ganze Antwortkörper
 // (beim Strom jede SSE-Zeile), jeder Modellaufruf (Systemprompt als Abdruck, Nachrichten, Werkzeuge, toolChoice, maxOutputTokens,
 // providerOptions) und die Konsole. Verglichen wird mit dem Stand vor dem Zerlegen (fixtures/ki-assistent-route-golden.json, Stand
-// 1fb29cf1); die Systemprompts stehen dort einmal je Abdruck im Klartext. Dazu ausgeschriebene Regeln für jeden Frühausstieg und die
+// 166db7f2); die Systemprompts stehen dort einmal je Abdruck im Klartext. Dazu ausgeschriebene Regeln für jeden Frühausstieg und die
 // Reihenfolge von Anmeldung, Recht, Drosselung, Eingabeprüfung und Datenzugriff.
 // Datum, performance.now, crypto.randomUUID und Math.random sind fest, damit Prompt, Signaturen und Kennungen gleich bleiben.
 // Vergleichswerte neu schreiben nur mit einem Code, dessen Verhalten gewollt ist:
@@ -292,6 +292,8 @@ const anfrage = (body: unknown, roh?: string) =>
   new Request("http://localhost/api/ki-assistent", { method: "POST", headers: { "content-type": "application/json" }, body: roh ?? json(body) });
 const einfach = (text = "Wie steht die Ernte heute?", extra: Record<string, unknown> = {}) => ({ messages: [frage(text)], sprache: "de", ...extra });
 const LIVE = { KI_SPRACHAUSGABE_LIVE: "an", KI_SPRACHAUSGABE_SIGNATUR: "geheimnis-fuer-die-tests-0123456789" };
+// Eine Frage mit genau n Zeichen, ohne Leerzeichen am Ende (MAX_NACHRICHT_LAENGE = 2000 in lib/domain/ki-assistent.ts).
+const frageMitLaenge = (n: number) => `${"Ernte ".repeat(Math.floor(n / 6))}${"E".repeat(n % 6)}`;
 
 type Post = (req: Request) => Promise<Response>;
 
@@ -381,6 +383,9 @@ async function main() {
     ["Verlauf zu tief verschachtelt", anfrage(null, `{"messages":[{"id":"u","role":"user","parts":[{"type":"text","text":"Hallo"}],"metadata":${"[".repeat(200_000)}${"]".repeat(200_000)}}]}`), 413, "verlauf zu gross"],
     ["leere Frage", anfrage(einfach("   ")), 400, "ungueltige eingabe"],
     ["zu lange Frage", anfrage(einfach("Ernte ".repeat(400))), 400, "ungueltige eingabe"],
+    // Gezählt wird nach dem Kürzen des Leerraums: 2001 Zeichen sind eines zu viel, auch mit Leerraum drumherum.
+    ["Frage mit 2001 Zeichen nach dem Kürzen", anfrage(einfach(`  ${frageMitLaenge(2001)}  \n`)), 400, "ungueltige eingabe"],
+    ["Frage mit 2001 Zeichen ohne Leerraum", anfrage(einfach(frageMitLaenge(2001))), 400, "ungueltige eingabe"],
   ];
   for (const [name, req, status, text] of ungueltig) {
     f = await fuehreAus(POST, name, {}, req);
@@ -392,6 +397,18 @@ async function main() {
   pruefe("ohne Einwilligung: 400 'einwilligung fehlt' nach dem Laden, nichts gespeichert", f.status === 400 && f.koerper.join("\n") === "einwilligung fehlt" && frueh(f, ...VOR_DEM_KOERPER, ...LADER), json(f.aufrufe));
   f = await fuehreAus(POST, "erste Nachricht mit Einwilligung", { bisher: 0 }, anfrage(einfach("Wie steht die Ernte heute?", { einwilligung: true })));
   pruefe("mit Einwilligung: die erste Nachricht geht durch", f.status === 200 && namen(f).includes("modell.doStream"));
+  f = await fuehreAus(POST, "Frage mit genau 2000 Zeichen", {}, anfrage(einfach(frageMitLaenge(2000))));
+  pruefe(
+    "Grenze: genau 2000 Zeichen gehen durch und werden unverändert gespeichert",
+    f.status === 200 && namen(f).includes("modell.doStream") && f.aufrufe.some((a) => a.includes(`"inhalt":"${frageMitLaenge(2000)}"`)),
+    `${f.status} ${json(namen(f))}`,
+  );
+  f = await fuehreAus(POST, "Frage mit 2000 Zeichen nach dem Kürzen", {}, anfrage(einfach(`  \n${frageMitLaenge(2000)}  `)));
+  pruefe(
+    "Grenze: 2000 Zeichen nach dem Kürzen des Leerraums gehen durch, gespeichert wird die gekürzte Frage",
+    f.status === 200 && namen(f).includes("modell.doStream") && f.aufrufe.some((a) => a.includes(`"inhalt":"${frageMitLaenge(2000)}"`)),
+    `${f.status} ${json(namen(f))}`,
+  );
   f = await fuehreAus(POST, "kein Anbieter", { anbieter: null }, anfrage(einfach()));
   pruefe("kein Anbieter: 409 'kein-anbieter', nichts gespeichert", f.status === 409 && f.koerper.join("\n") === "kein-anbieter" && frueh(f, ...VOR_DEM_KOERPER, ...LADER), json(f.aufrufe));
   f = await fuehreAus(POST, "Anbieter nicht Anthropic", { anbieter: "openai_kompatibel" }, anfrage(einfach()));

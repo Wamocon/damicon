@@ -2797,5 +2797,90 @@
    ]
   },
   "markup": "\n<main id=\"main\">\n  <p>Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. Ein sehr langer Absatz mit vielen Wörtern. </p>\n  <button data-ki-ref=\"e193\">Beschriftung Beschriftung Beschriftung Beschriftung Beschriftung Beschriftung Beschriftung Beschriftung </button>\n  <select name=\"sorten\" data-ki-ref=\"e194\"><option>Eine sehr lange Sortenbezeichnung mit Zusatzangaben</option><option>Sorte 2</option><option>Sorte 3</option><option>Sorte 4</option><option>Sorte 5</option><option>Sorte 6</option><option>Sorte 7</option><option>Sorte 8</option><option>Sorte 9</option><option>Sorte 10</option><option>Sorte 11</option><option>Sorte 12</option><option>Sorte 13</option><option>Sorte 14</option><option>Sorte 15</option><option>Sorte 16</option><option>Sorte 17</option><option>Sorte 18</option><option>Sorte 19</option><option>Sorte 20</option><option>Sorte 21</option><option>Sorte 22</option><option>Sorte 23</option><option>Sorte 24</option><option>Sorte 25</option><option>Sorte 26</option><option>Sorte 27</option><option>Sorte 28</option><option>Sorte 29</option><option>Sorte 30</option></select>\n  <select name=\"ohne\" data-ki-ref=\"e195\"></select>\n  <input name=\"lang\" value=\"Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert Wert \" data-ki-ref=\"e196\">\n  <h2 data-ki-abschnitt=\"a86\">Überschrift Überschrift Überschrift Überschrift Überschrift Überschrift Überschrift Überschrift Überschrift Überschrift </h2>\n</main>"
+ },
+ "deaktivierte Elemente": {
+  "ergebnis": {
+   "url": "/de/dashboard",
+   "titel": "Gesperrt",
+   "ueberschriften": [
+    "Gesperrt"
+   ],
+   "text": "Gesperrt Knopf gesperrt Knopf frei A Link mit disabled Rolle mit disabled Gesperrte Gruppe Knopf im Feldset",
+   "elemente": [
+    {
+     "ref": "e197",
+     "typ": "schaltflaeche",
+     "label": "Knopf gesperrt",
+     "gruppe": null,
+     "deaktiviert": true
+    },
+    {
+     "ref": "e198",
+     "typ": "schaltflaeche",
+     "label": "Knopf frei",
+     "gruppe": null
+    },
+    {
+     "ref": "e199",
+     "typ": "eingabe:text",
+     "label": "Feld gesperrt",
+     "gruppe": null,
+     "wert": "",
+     "deaktiviert": true
+    },
+    {
+     "ref": "e200",
+     "typ": "auswahl",
+     "label": "Auswahl gesperrt",
+     "gruppe": null,
+     "wert": "A",
+     "optionen": [
+      "A"
+     ],
+     "deaktiviert": true
+    },
+    {
+     "ref": "e201",
+     "typ": "text",
+     "label": "Notiz gesperrt",
+     "gruppe": null,
+     "wert": "",
+     "deaktiviert": true
+    },
+    {
+     "ref": "e202",
+     "typ": "link",
+     "label": "Link mit disabled",
+     "gruppe": null,
+     "ziel": "/de/dashboard/lohn"
+    },
+    {
+     "ref": "e203",
+     "typ": "schaltflaeche",
+     "label": "Rolle mit disabled",
+     "gruppe": null
+    },
+    {
+     "ref": "e204",
+     "typ": "eingabe:text",
+     "label": "Feld im Feldset",
+     "gruppe": null,
+     "wert": ""
+    },
+    {
+     "ref": "e205",
+     "typ": "schaltflaeche",
+     "label": "Knopf im Feldset",
+     "gruppe": null
+    }
+   ],
+   "abschnitte": [
+    {
+     "ref": "a87",
+     "titel": "Gesperrt"
+    }
+   ]
+  },
+  "markup": "\n<main id=\"main\">\n  <h1 data-ki-abschnitt=\"a87\">Gesperrt</h1>\n  <button disabled=\"\" data-ki-ref=\"e197\">Knopf gesperrt</button>\n  <button data-ki-ref=\"e198\">Knopf frei</button>\n  <input name=\"feld-gesperrt\" aria-label=\"Feld gesperrt\" disabled=\"\" data-ki-ref=\"e199\">\n  <select name=\"auswahl-gesperrt\" aria-label=\"Auswahl gesperrt\" disabled=\"\" data-ki-ref=\"e200\"><option>A</option></select>\n  <textarea name=\"notiz-gesperrt\" aria-label=\"Notiz gesperrt\" disabled=\"\" data-ki-ref=\"e201\"></textarea>\n  <a href=\"/de/dashboard/lohn\" disabled=\"\" data-ki-ref=\"e202\">Link mit disabled</a>\n  <div role=\"button\" disabled=\"\" data-ki-ref=\"e203\">Rolle mit disabled</div>\n  <fieldset disabled=\"\">\n    <legend>Gesperrte Gruppe</legend>\n    <input name=\"im-feldset\" aria-label=\"Feld im Feldset\" data-ki-ref=\"e204\">\n    <button type=\"button\" data-ki-ref=\"e205\">Knopf im Feldset</button>\n  </fieldset>\n</main>"
  }
 }
