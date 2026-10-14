@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { NextIntlClientProvider, createFormatter, createTranslator } from "next-intl";
 import { prerender } from "react-dom/static";
 import type { SessionProfile } from "../../src/lib/auth";
@@ -14,6 +15,7 @@ import { imMarkup, pruefer, texteVon } from "./hilfen/ansicht-probe";
 //   * Detail: jede Angabe mit und ohne Wert, Lösung erst nach dem Abschluss, Rückverfolgung je Block nur fürs Büro, Bearbeitung je
 //     Status (offen, in Prüfung, angenommen, Endlage), Verlauf mit und ohne Einträge, intern markiert, Nachrichtenformular.
 //   * leere Liste und fehlendes Detail mit und ohne Anlegen-Link, Anlegen-Formular mit Kunden- und Chargenauswahl.
+//   * Grenzwerte: Menge, Gutschrift und Minuten 0 erscheinen (Prüfung auf null, nicht auf Wahrheitswert), Charge ohne Reihenblock.
 // Server-Bausteine sind ersetzt (hilfen/modul-ersatz.ts): next-intl/server liefert Übersetzer und Formatierer aus den echten
 // Texten, getSessionProfile die Anmeldung der Lage, die vier Lader feste Daten. Gerendert wird mit prerender, weil die Ansicht und
 // das Quellen-Abzeichen asynchrone Server-Komponenten sind. Abschicken der Formulare bleibt ein Prüfpunkt im Browser.
@@ -74,15 +76,14 @@ ersetzeModule({
   },
 });
 
-async function ansicht(auswahl?: string): Promise<{ html: string; fehler: string[] }> {
-  protokoll = [];
+/** Baut ein Element wie die Seite (prerender mit den echten Texten) und sammelt Textfehler, Konsolenmeldungen und fehlende Schlüssel. */
+async function baue(erzeuge: () => ReactElement | Promise<ReactElement>): Promise<{ html: string; fehler: string[] }> {
   textFehler = [];
   const konsole: string[] = [];
   const echt = console.error;
   console.error = (...a: unknown[]) => konsole.push(a.map(String).join(" "));
   try {
-    const { ReklamationenAnsicht } = await import("../../src/components/db/reklamationen-ansicht");
-    const element = await ReklamationenAnsicht({ pfad: "/reklamationen", auswahl });
+    const element = await erzeuge();
     const { prelude } = await prerender(
       <NextIntlClientProvider locale="de" timeZone={ZEITZONE} messages={de} onError={(e) => textFehler.push(e.message)} getMessageFallback={ersatzText}>
         {element}
@@ -95,6 +96,12 @@ async function ansicht(auswahl?: string): Promise<{ html: string; fehler: string
   } finally {
     console.error = echt;
   }
+}
+
+async function ansicht(auswahl?: string): Promise<{ html: string; fehler: string[] }> {
+  protokoll = [];
+  const { ReklamationenAnsicht } = await import("../../src/components/db/reklamationen-ansicht");
+  return baue(() => ReklamationenAnsicht({ pfad: "/reklamationen", auswahl }));
 }
 
 // ---- Testdaten ---------------------------------------------------------------------------------------------------------------------
@@ -484,6 +491,22 @@ async function main() {
     setze({ details: {} });
     const { html } = await ansicht();
     pruefe("Detail nicht gefunden: leerer Zustand statt Karten, Liste bleibt", karten(html) === "Hinweis" && html.includes(imMarkup(t.detailEmpty!)) && eintraege(html).length === 7 && anlegen(html) !== null);
+  }
+
+  // ---- 8. Grenzwerte: 0 ist ein Wert, Charge ohne Reihenblock ----------------------------------------------------------------------
+  {
+    const rv = await nurBlock({
+      reihenblock: null,
+      betroffeneMengeKg: 0,
+      gutschriftTenge: 0,
+      kuehlmessungen: [{ id: "k1", minutenSeitPfluecken: 0, ergebnis: "ok", gemessenAm: "2026-09-02T08:00:00Z" }],
+    });
+    pruefe(
+      "Grenzwerte: Charge ohne Reihenblock, Menge 0 kg und Gutschrift 0 ₸ erscheinen",
+      angaben(rv).join(" | ") === `Kunde=Almaty Fresh | Grund=Menge | Charge=CH-0902-12 | Betroffene Menge=0 kg | Gemeldet am=${DATUM} | Gemeldet von=Aigerim Sadykova | Frist=31.12.2099 | Gutschrift=0 ₸`,
+      angaben(rv).join(" | "),
+    );
+    pruefe("Grenzwerte: 0 Minuten nach dem Pflücken statt ohne Zeitpunkt", rv.includes('<span class="text-foreground">0 Minuten nach dem Pflücken</span>') && !rv.includes(imMarkup(t.rueckverfolgung.ohneZeitpunkt!)));
   }
 
   ende();
