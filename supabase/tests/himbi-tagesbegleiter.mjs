@@ -274,7 +274,8 @@ console.log("\n3. Begruessung im Sprachmodus, Sprechblase, Kontext");
   pruefe("Tagesbeginn: die gestellte Frage fuehrt vom Zuhoeren zum Nachdenken (sonst naehme das Ohr Himbis Antwort als Frage)", naechstePhase("hoert", { art: "frage-gestellt" }) === "denkt");
   // Verdrahtung im Effekt, so knapp wie moeglich: die Funktion entscheidet, gefragt und gemerkt
   // wird nur bei "fragen", der Merker erst nach der Frage.
-  const modus = lies("src/components/ki/sprachmodus.tsx");
+  // Seit dem 14.10.2026 steht der Effekt in sprachmodus-chat.ts (useTagesbeginn); gelesen werden alle Dateien des Sprachmodus.
+  const modus = ["sprachmodus.tsx", "sprachmodus-gedaechtnis.ts", "sprachmodus-fragen.ts", "sprachmodus-verdacht.ts", "sprachmodus-erkennung.ts", "sprachmodus-ohr.ts", "sprachmodus-chat.ts", "sprachmodus-bedienung.ts", "sprachmodus-seite.ts", "sprachmodus-anzeige.tsx"].map((datei) => lies(`src/components/ki/${datei}`)).join("\n");
   const effekt = /const aktion = tagesbeginnAktion\(\{[\s\S]*?\}\);\s*if \(aktion === "nichts"\) return;\s*tagesbeginnEntschieden\.current = true;\s*if \(aktion !== "fragen"\) return;\s*stelleFrage\(t\(`tagesbeginn\.\$\{tageszeitBestimmen\(jetzt\)\}`\), \[sprache\]\);\s*merkeTagesbeginn\(ablage, nutzerId, "gespraech", jetzt\);/;
   pruefe("Sprachmodus: der Effekt folgt tagesbeginnAktion, fragt in der Oberflaechensprache je Tageszeit und merkt den Tag erst danach", effekt.test(modus));
   pruefe("Sprachmodus: Nutzer und Einstellung kommen aus den Kontexten", modus.includes("const { beendeSprachmodus, nutzerId } = useKiPane();") && modus.includes("const { tagesbeginnAn } = useHaustierStatus();"));
