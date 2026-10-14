@@ -373,7 +373,7 @@ export function AktionsMeldung({ status }: { status: AktionsStatus }) {
       }`}
     >
       <Symbol className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-      {t(status.meldung, { wert: status.wert ?? "" })}
+      {t(status.meldung, { wert: status.wert ?? "", ...status.werte })}
     </p>
   );
 }

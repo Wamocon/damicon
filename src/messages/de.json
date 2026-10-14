@@ -972,7 +972,8 @@
       "wissenUmgeordnet": "Einordnung von „{wert}“ geändert.",
       "wissenNachgeladen": "Seiten {wert} nachgeladen und ins Buch eingereiht.",
       "rolleGeaendert": "Rolle von „{wert}“ geändert.",
-      "nachricht": "Nachricht gesendet."
+      "nachricht": "Nachricht gesendet.",
+      "loggerImport": "{anzahl} Messwerte übernommen. Ausgelassen: {zuAlt} älter als 24 Stunden, {zukunft} in der Zukunft, {doppelt} schon vorhanden, {unlesbar} nicht lesbar."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1062,7 +1063,10 @@
       "rolleUnveraendert": "Das Konto hat diese Rolle schon.",
       "letzterAdmin": "Der letzte Administrator behält seine Rolle. Zuerst eine weitere Administration ernennen.",
       "nachrichtZuLang": "Die Nachricht ist länger als 2000 Zeichen.",
-      "vorbestellungStorniert": "Zu einer stornierten Vorbestellung gibt es keine neuen Nachrichten."
+      "vorbestellungStorniert": "Zu einer stornierten Vorbestellung gibt es keine neuen Nachrichten.",
+      "loggerDateiLeer": "Die Datei enthält keine lesbaren Messwerte (erwartet: Zeit und Temperatur je Zeile).",
+      "loggerDateiZuGross": "Die Datei ist größer als 2 MB.",
+      "loggerKeineNeuen": "Nichts übernommen. Ausgelassen: {zuAlt} älter als 24 Stunden, {zukunft} in der Zukunft, {doppelt} schon vorhanden, {unlesbar} nicht lesbar."
     },
     "einladungen": {
       "erfolg": {
@@ -3661,6 +3665,14 @@
         "keinBezug": "kein Bezug",
         "knopf": "Lieferung anlegen"
       }
+    },
+    "loggerImport": {
+      "titel": "Logger-Datei importieren",
+      "datei": "CSV-Datei des Temperaturloggers",
+      "kennung": "Logger (optional)",
+      "kennungBeispiel": "z. B. Seriennummer oder Fahrzeug",
+      "hinweis": "Zeit und Temperatur je Zeile. Zeiten ohne Zeitzone gelten als Almaty-Zeit. Werte, die älter als 24 Stunden sind, übernimmt das System nicht.",
+      "knopf": "Importieren"
     }
   },
   "b2bPortalAnsicht": {

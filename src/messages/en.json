@@ -972,7 +972,8 @@
       "wissenUmgeordnet": "Classification of “{wert}” changed.",
       "wissenNachgeladen": "Pages {wert} loaded and inserted into the book.",
       "rolleGeaendert": "Role of “{wert}” changed.",
-      "nachricht": "Message sent."
+      "nachricht": "Message sent.",
+      "loggerImport": "{anzahl} readings imported. Skipped: {zuAlt} older than 24 hours, {zukunft} in the future, {doppelt} already present, {unlesbar} unreadable."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1062,7 +1063,10 @@
       "rolleUnveraendert": "The account already has this role.",
       "letzterAdmin": "The last administrator keeps the role. Appoint another administrator first.",
       "nachrichtZuLang": "The message is longer than 2000 characters.",
-      "vorbestellungStorniert": "A cancelled pre-order gets no new messages."
+      "vorbestellungStorniert": "A cancelled pre-order gets no new messages.",
+      "loggerDateiLeer": "The file contains no readable readings (expected: time and temperature per line).",
+      "loggerDateiZuGross": "The file is larger than 2 MB.",
+      "loggerKeineNeuen": "Nothing imported. Skipped: {zuAlt} older than 24 hours, {zukunft} in the future, {doppelt} already present, {unlesbar} unreadable."
     },
     "einladungen": {
       "erfolg": {
@@ -3661,6 +3665,14 @@
         "keinBezug": "no reference",
         "knopf": "Create delivery"
       }
+    },
+    "loggerImport": {
+      "titel": "Import logger file",
+      "datei": "CSV file of the temperature logger",
+      "kennung": "Logger (optional)",
+      "kennungBeispiel": "e.g. serial number or vehicle",
+      "hinweis": "Time and temperature per line. Times without a time zone count as Almaty time. Values older than 24 hours are not accepted.",
+      "knopf": "Import"
     }
   },
   "b2bPortalAnsicht": {

@@ -3320,6 +3320,8 @@ export type Database = {
           geraet_zeitpunkt: string | null
           id: string
           lieferung_id: string
+          logger_kennung: string | null
+          quelle: string
           server_eingang_zeitpunkt: string | null
           temperatur_c: number
         }
@@ -3330,6 +3332,8 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           id?: string
           lieferung_id: string
+          logger_kennung?: string | null
+          quelle?: string
           server_eingang_zeitpunkt?: string | null
           temperatur_c: number
         }
@@ -3340,6 +3344,8 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           id?: string
           lieferung_id?: string
+          logger_kennung?: string | null
+          quelle?: string
           server_eingang_zeitpunkt?: string | null
           temperatur_c?: number
         }

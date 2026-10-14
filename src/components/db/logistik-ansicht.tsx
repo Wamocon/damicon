@@ -4,6 +4,7 @@ import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   LieferungAnlegenFormular,
   LieferungStornierenKnopf,
+  TransportLoggerFormular,
   TransportMessungFormular,
   UebergabeErfassenFormular,
 } from "@/components/db/lieferungen-formulare";
@@ -154,7 +155,10 @@ export async function LogistikAnsicht() {
                     stehen. Es gibt keinen separaten "im Uebergabemoment"-Weg
                     (uebergabeErfassen() nimmt keine Temperatur entgegen). */}
                 {darfErfassen && l.status === "geplant" ? (
-                  <TransportMessungFormular lieferungId={l.id} />
+                  <>
+                    <TransportMessungFormular lieferungId={l.id} />
+                    <TransportLoggerFormular lieferungId={l.id} />
+                  </>
                 ) : null}
 
                 {darfErfassen && l.status === "geplant" ? (

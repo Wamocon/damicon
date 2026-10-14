@@ -8,6 +8,8 @@ export interface AktionsStatus {
   meldung?: string;
   /** Zusatzangabe fuer Meldungen mit Platzhalter, z. B. der Blockcode. */
   wert?: string;
+  /** Mehrere benannte Angaben fuer Meldungen mit mehreren Platzhaltern, z. B. die Zaehlung eines Imports. */
+  werte?: Record<string, string | number>;
   /** ID eines neu angelegten Datensatzes. Die Oberflaeche oeffnet ihn danach in
    *  der Detailansicht (Liste mit Detailansicht, WMCNL-2488). */
   id?: string;
@@ -25,6 +27,15 @@ export function ok(meldung: string, wert?: string, sprachen?: string[]): Aktions
 
 export function fehler(meldung: string, wert?: string): AktionsStatus {
   return { stand: "fehler", meldung, wert };
+}
+
+/** Erfolg mit mehreren benannten Platzhaltern, etwa "{uebernommen} Messwerte uebernommen". */
+export function okMitWerten(meldung: string, werte: Record<string, string | number>): AktionsStatus {
+  return { stand: "ok", meldung, werte };
+}
+
+export function fehlerMitWerten(meldung: string, werte: Record<string, string | number>): AktionsStatus {
+  return { stand: "fehler", meldung, werte };
 }
 
 // Datenbankfehler auf sprechende Schluessel abbilden. Der Rohtext bleibt im

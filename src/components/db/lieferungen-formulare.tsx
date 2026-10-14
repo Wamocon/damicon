@@ -9,6 +9,7 @@ import {
   transportMessungErfassen,
   uebergabeErfassen,
 } from "@/lib/actions/lieferungen";
+import { transportLoggerImportieren } from "@/lib/actions/logger-import";
 import { leer } from "@/lib/actions/status";
 import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, StornoKnopf, SubmitKnopf } from "@/components/db/formular-kit";
 import type { AuswahlZeile } from "@/lib/domain/lieferungen";
@@ -158,6 +159,39 @@ export function TransportMessungFormular({ lieferungId }: { lieferungId: string 
       </div>
       <AktionsMeldung status={status} />
     </form>
+  );
+}
+
+// Temperaturlogger-Datei importieren (WMCNL-1517, Stufe 1): die CSV-Datei des Loggers waehlen, die
+// Messwerte kommen als Transportmessungen mit Herkunft "logger" in die Lieferung. Aufklappbar, damit
+// die Karte der Lieferung schmal bleibt.
+export function TransportLoggerFormular({ lieferungId }: { lieferungId: string }) {
+  const [status, action] = useActionState(transportLoggerImportieren, leer);
+  const t = useTranslations("lieferungenAnsicht.loggerImport");
+
+  return (
+    <details className="mt-2 border-t border-border pt-2">
+      <summary className="cursor-pointer text-xs font-semibold text-primary">{t("titel")}</summary>
+      <form action={action} className="mt-2 space-y-2">
+        <PfadFeld />
+        <input type="hidden" name="lieferung_id" value={lieferungId} />
+        <label className="block space-y-1">
+          <span className="schrift-label font-semibold text-card-foreground">{t("datei")}</span>
+          <input
+            type="file"
+            name="datei"
+            required
+            accept=".csv,.tsv,.txt,text/csv,text/plain"
+            className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs file:font-semibold file:text-foreground"
+          />
+        </label>
+        <Feld label={t("kennung")} name="logger_kennung" placeholder={t("kennungBeispiel")} hinweis={t("hinweis")} />
+        <div className="flex flex-wrap items-center gap-3">
+          <SubmitKnopf label={t("knopf")} status={status} />
+          <AktionsMeldung status={status} />
+        </div>
+      </form>
+    </details>
   );
 }
 
