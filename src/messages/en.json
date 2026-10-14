@@ -344,8 +344,8 @@
   },
   "suche": {
     "titel": "Search",
-    "platzhalter": "Search pages and modules …",
-    "eingabe": "Search pages and modules",
+    "platzhalter": "Search pages, modules or codes …",
+    "eingabe": "Search pages, modules or codes",
     "oeffnen": "Open search",
     "schliessen": "Close search",
     "bedienung": "Arrow keys choose a result, Enter opens it, Esc closes the search.",
@@ -353,10 +353,28 @@
     "gruppeTreffer": "Pages and modules",
     "gruppeZuletzt": "Recently opened",
     "gruppeErwaehnt": "Mentioned in",
-    "leer": "Type the name of a zone, module or page.",
+    "leer": "Type the name of a zone, module or page, or a code such as a batch number.",
     "keineTreffer": "No page or module matches “{begriff}”.",
     "anzahl": "{anzahl, plural, one {# result} other {# results}}",
-    "kiFragen": "Ask AI: {begriff}"
+    "kiFragen": "Ask AI: {begriff}",
+    "gruppeDaten": "Records",
+    "datenSuchen": "Search records: “{begriff}”",
+    "datenLaedt": "Searching records …",
+    "datenFehler": {
+      "anmeldung": "Searching records requires a sign-in.",
+      "nichtVerfuegbar": "Searching records is not available in this view.",
+      "fehler": "The record search failed. Please try again."
+    },
+    "keineDaten": "No page, module or record matches “{begriff}”.",
+    "datenTyp": {
+      "steige": "Crate",
+      "charge": "Batch",
+      "aufgabe": "Picking task",
+      "pfluecker": "Picker",
+      "block": "Row block",
+      "dokument": "Document",
+      "kunde": "Customer"
+    }
   },
   "dashboard": {
     "notifications": "Notifications",

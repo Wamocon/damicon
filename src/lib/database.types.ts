@@ -4029,6 +4029,16 @@ export type Database = {
           wirkstoff: string
         }[]
       }
+      search_everything: {
+        Args: { max_rows?: number; q: string }
+        Returns: {
+          treffer_id: string
+          treffer_rang: number
+          treffer_titel: string
+          treffer_typ: string
+          treffer_untertitel: string
+        }[]
+      }
       sync_aufgabe_status_setzen: {
         Args: {
           p_aktion_id: string

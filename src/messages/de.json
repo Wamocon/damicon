@@ -344,8 +344,8 @@
   },
   "suche": {
     "titel": "Suche",
-    "platzhalter": "Seite oder Modul suchen …",
-    "eingabe": "Seite oder Modul suchen",
+    "platzhalter": "Seite, Modul oder Code suchen …",
+    "eingabe": "Seite, Modul oder Code suchen",
     "oeffnen": "Suche öffnen",
     "schliessen": "Suche schließen",
     "bedienung": "Pfeiltasten wählen einen Treffer, die Eingabetaste öffnet ihn, Esc schließt die Suche.",
@@ -353,10 +353,28 @@
     "gruppeTreffer": "Seiten und Module",
     "gruppeZuletzt": "Zuletzt geöffnet",
     "gruppeErwaehnt": "Erwähnt in",
-    "leer": "Namen eines Bereichs, Moduls oder einer Seite eingeben.",
+    "leer": "Namen eines Bereichs, Moduls oder einer Seite eingeben, oder einen Code wie eine Chargen-Nummer.",
     "keineTreffer": "Keine Seite und kein Modul zu „{begriff}“.",
     "anzahl": "{anzahl, plural, one {# Treffer} other {# Treffer}}",
-    "kiFragen": "KI fragen: {begriff}"
+    "kiFragen": "KI fragen: {begriff}",
+    "gruppeDaten": "Datensätze",
+    "datenSuchen": "In Daten suchen: „{begriff}“",
+    "datenLaedt": "Datensätze werden gesucht …",
+    "datenFehler": {
+      "anmeldung": "Die Datensuche braucht eine Anmeldung.",
+      "nichtVerfuegbar": "Die Datensuche ist in dieser Ansicht nicht verfügbar.",
+      "fehler": "Die Datensuche ist fehlgeschlagen. Bitte noch einmal versuchen."
+    },
+    "keineDaten": "Keine Seite, kein Modul und kein Datensatz zu „{begriff}“.",
+    "datenTyp": {
+      "steige": "Steige",
+      "charge": "Charge",
+      "aufgabe": "Pflückaufgabe",
+      "pfluecker": "Pflücker",
+      "block": "Reihenblock",
+      "dokument": "Dokument",
+      "kunde": "Kunde"
+    }
   },
   "dashboard": {
     "notifications": "Benachrichtigungen",
