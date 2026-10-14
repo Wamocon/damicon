@@ -72,11 +72,44 @@ export function ohneVerzeichnisse(text: string): string {
     .join("\n");
 }
 
-/**
- * @param ganzesDokument false bei einem Paket eines langen Dokuments: Ein kurzes Paket ist dort normal, "kaumText" gilt nur fuer das Ganze.
- */
-export function bewerteText(text: string, ganzesDokument = true): Guete {
-  const sauber = ohneVerzeichnisse(text.replace(/\r\n?/g, "\n"));
+/** Was die Regeln der Note sehen: die Kennzahlen, die Mengen, ab denen eine Kennzahl etwas aussagt, und ob es das ganze Dokument ist. */
+interface Grundlage {
+  k: Guete["kennzahlen"];
+  /** Woerter ab vier Buchstaben, der Nenner von ohneVokale. */
+  langeWoerter: number;
+  /** Zeilen ab vier Zeichen, der Nenner von wiederholteZeilen. */
+  zeilen: number;
+  ganzesDokument: boolean;
+}
+
+/** Eine Regel der Note: wann ihr Hinweis gilt und ab wann er die Note auf "schlecht" setzt (fehlt: nie). */
+interface Regel {
+  hinweis: GueteHinweis;
+  gilt: (g: Grundlage) => boolean;
+  schlecht?: (g: Grundlage) => boolean;
+}
+
+/** Die Regeln in der Reihenfolge, in der ihre Hinweise erscheinen. */
+const REGELN: readonly Regel[] = [
+  // Ohne Text oder fast ohne Text: bei einem ganzen Dokument ein Scan ohne Textebene.
+  { hinweis: "kaumText", gilt: (g) => g.ganzesDokument && g.k.zeichen < MIN_ZEICHEN, schlecht: () => true },
+  // Zeichensalat: ein Fliesstext besteht zu gut 75 Prozent aus Buchstaben (Satzzeichen, Ziffern und Leerraum machen den Rest). Unter 60 Prozent ist es Muell.
+  { hinweis: "vieleSonderzeichen", gilt: ({ k }) => k.zeichen >= 100 && k.buchstaben < 0.75, schlecht: ({ k }) => k.buchstaben < 0.6 },
+  // Zerhackte Woerter: bei einer guten OCR ist fast kein Wort ein einzelner Buchstabe, ausser den ueblichen Ein-Buchstaben-Woertern.
+  { hinweis: "zerhackteWoerter", gilt: ({ k }) => k.woerter >= 50 && k.einzelbuchstaben > 0.08, schlecht: ({ k }) => k.einzelbuchstaben > 0.2 },
+  // Mittlere Wortlaenge: deutsche und russische Texte liegen bei fuenf bis acht Buchstaben. Darueber klebt etwas zusammen.
+  { hinweis: "ohneLeerzeichen", gilt: ({ k }) => k.woerter >= 50 && k.mittlereWortlaenge > 13, schlecht: () => true },
+  // Viele lange Woerter ohne Vokal gibt es in echtem Text kaum (Abkuerzungen ausgenommen).
+  { hinweis: "ohneVokale", gilt: (g) => g.langeWoerter >= 30 && g.k.ohneVokale > 0.08, schlecht: ({ k }) => k.ohneVokale > 0.25 },
+  { hinweis: "vieleZiffern", gilt: ({ k }) => k.zeichen >= 100 && k.ziffern > 0.25 },
+  { hinweis: "wiederholteZeilen", gilt: (g) => g.zeilen >= 20 && g.k.wiederholteZeilen > 0.15 },
+];
+
+/** Anteil von `teil` an `ganz`; 0, wenn es nichts zu teilen gibt. */
+const anteil = (teil: number, ganz: number): number => (ganz ? teil / ganz : 0);
+
+/** Die Kennzahlen eines bereinigten Textes (siehe Guete["kennzahlen"]) und die Mengen, an denen die Regeln sie messen. */
+function miss(sauber: string, ganzesDokument: boolean): Grundlage {
   const ohneRaum = sauber.replace(/\s+/g, "");
   const woerter = sauber.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) ?? [];
   const buchstaben = (ohneRaum.match(/\p{L}/gu) ?? []).length;
@@ -97,47 +130,33 @@ export function bewerteText(text: string, ganzesDokument = true): Guete {
     woerter: woerter.length,
     buchstaben: buchstaben / nenner,
     ziffern: ziffern / nenner,
-    einzelbuchstaben: nurBuchstabenWoerter.length ? einzeln / nurBuchstabenWoerter.length : 0,
-    mittlereWortlaenge: nurBuchstabenWoerter.length ? nurBuchstabenWoerter.reduce((s, w) => s + w.length, 0) / nurBuchstabenWoerter.length : 0,
-    ohneVokale: lang.length ? ohneVokal / lang.length : 0,
-    wiederholteZeilen: zeilen.length ? wiederholt / zeilen.length : 0,
-    gemischteWoerter: nurBuchstabenWoerter.length ? gemischt / nurBuchstabenWoerter.length : 0,
+    einzelbuchstaben: anteil(einzeln, nurBuchstabenWoerter.length),
+    mittlereWortlaenge: anteil(nurBuchstabenWoerter.reduce((s, w) => s + w.length, 0), nurBuchstabenWoerter.length),
+    ohneVokale: anteil(ohneVokal, lang.length),
+    wiederholteZeilen: anteil(wiederholt, zeilen.length),
+    gemischteWoerter: anteil(gemischt, nurBuchstabenWoerter.length),
   };
+  return { k, langeWoerter: lang.length, zeilen: zeilen.length, ganzesDokument };
+}
 
+/**
+ * @param ganzesDokument false bei einem Paket eines langen Dokuments: Ein kurzes Paket ist dort normal, "kaumText" gilt nur fuer das Ganze.
+ */
+export function bewerteText(text: string, ganzesDokument = true): Guete {
+  const sauber = ohneVerzeichnisse(text.replace(/\r\n?/g, "\n"));
+  const grundlage = miss(sauber, ganzesDokument);
   const hinweise: GueteHinweis[] = [];
   let schlecht = false;
-  // Ohne Text oder fast ohne Text: bei einem ganzen Dokument ein Scan ohne Textebene.
-  if (ganzesDokument && k.zeichen < MIN_ZEICHEN) {
-    hinweise.push("kaumText");
-    schlecht = true;
+  for (const regel of REGELN) {
+    if (!regel.gilt(grundlage)) continue;
+    hinweise.push(regel.hinweis);
+    if (regel.schlecht?.(grundlage)) schlecht = true;
   }
-  // Zeichensalat: ein Fliesstext besteht zu gut 75 Prozent aus Buchstaben (Satzzeichen, Ziffern und Leerraum machen den Rest). Unter 60 Prozent ist es Muell.
-  if (k.zeichen >= 100 && k.buchstaben < 0.75) {
-    hinweise.push("vieleSonderzeichen");
-    if (k.buchstaben < 0.6) schlecht = true;
-  }
-  // Zerhackte Woerter: bei einer guten OCR ist fast kein Wort ein einzelner Buchstabe, ausser den ueblichen Ein-Buchstaben-Woertern.
-  if (k.woerter >= 50 && k.einzelbuchstaben > 0.08) {
-    hinweise.push("zerhackteWoerter");
-    if (k.einzelbuchstaben > 0.2) schlecht = true;
-  }
-  // Mittlere Wortlaenge: deutsche und russische Texte liegen bei fuenf bis acht Buchstaben. Darueber klebt etwas zusammen.
-  if (k.woerter >= 50 && k.mittlereWortlaenge > 13) {
-    hinweise.push("ohneLeerzeichen");
-    schlecht = true;
-  }
-  // Viele lange Woerter ohne Vokal gibt es in echtem Text kaum (Abkuerzungen ausgenommen).
-  if (lang.length >= 30 && k.ohneVokale > 0.08) {
-    hinweise.push("ohneVokale");
-    if (k.ohneVokale > 0.25) schlecht = true;
-  }
-  if (k.zeichen >= 100 && k.ziffern > 0.25) hinweise.push("vieleZiffern");
-  if (zeilen.length >= 20 && k.wiederholteZeilen > 0.15) hinweise.push("wiederholteZeilen");
 
   // "pruefen", sobald ein Hinweis da ist, der die Suche beeintraechtigen kann. Kopf- und Fusszeilen allein sind nur ein Rauschen.
   const beeintraechtigend = hinweise.filter((h) => h !== "wiederholteZeilen" && h !== "vieleZiffern");
   const note: GueteNote = schlecht ? "schlecht" : beeintraechtigend.length > 0 ? "pruefen" : "gut";
-  return { note, hinweise, prozent: textProzent(k, note), kennzahlen: k };
+  return { note, hinweise, prozent: textProzent(grundlage.k, note), kennzahlen: grundlage.k };
 }
 
 const zwischen = (x: number): number => Math.min(1, Math.max(0, x));
