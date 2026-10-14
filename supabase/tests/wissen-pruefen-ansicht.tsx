@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
-import { bewerteSeitenAngabe, PruefVorschau, SeitenAbdeckung, WissenPruefenKnopf } from "../../src/components/db/wissen-verwaltung";
+import { PruefVorschau, SeitenAbdeckung, WissenPruefenKnopf } from "../../src/components/db/wissen-verwaltung";
+import { bewerteSeitenAngabe } from "../../src/lib/wissen/seiten-bestaetigung";
 import type { WissenDokumentZeile } from "../../src/lib/wissen/dokumente-liste";
 import { imMarkup, pruefer, rendere, SPRACHEN, texteVon } from "./hilfen/ansicht-probe";
 

@@ -22,7 +22,7 @@ import { WissenBestandspflege } from "@/components/db/wissen-bestandspflege";
 import { WissenOriginal } from "@/components/db/wissen-original";
 import { AnsichtSchalter, AufklappPfeil, useAnsicht, useAufgeklappt, type Ansicht } from "@/components/db/ansicht-schalter";
 import { WissenSeitenNachladen } from "@/components/db/wissen-nachladen";
-import { leseSeitenzahlen, lueckenAusStellen, pruefeAbdeckung, zaehleFehlend } from "@/lib/wissen/seiten-bestaetigung";
+import { bewerteSeitenAngabe } from "@/lib/wissen/seiten-bestaetigung";
 import { beschreibeLuecken } from "@/lib/wissen/seitenverlauf";
 import { qualitaetTon } from "@/lib/wissen/qualitaet";
 import { WissenUmordnenKnopf } from "@/components/db/wissen-umordnen";
@@ -485,21 +485,6 @@ export function WissenPruefenKnopf({
 
 /** Die Vorschau im Prüffenster: null vor dem Öffnen, "laedt" bis zur Antwort, danach der Anfang des Textes oder ein Fehler. */
 type Vorschau = "laedt" | { text: string; fehler: boolean } | null;
-
-/**
- * Fehlende Seiten im Prüffenster. Fehlen im Scan Seiten, gibt die prüfende Person die gedruckten Seitenzahlen an, die KORREKT fehlen (Leerseiten).
- * Sie müssen ALLE offenen Lücken abdecken, sonst fehlt echter Inhalt: keine Freigabe, die Seiten werden nachgeladen oder das Buch wird neu
- * hochgeladen. Ablehnen geht immer. Bei der Wiedervorlage zählen Lücken nicht mehr. Der Server prüft dasselbe.
- */
-export function bewerteSeitenAngabe(dokument: WissenDokumentZeile, erneut: boolean, bestaetigt: string) {
-  const luecken = !erneut && dokument.seitenOffen > 0;
-  const gelesen = lueckenAusStellen(dokument.seitenOffenStellen ?? dokument.seitenStellen);
-  const unbekannt = Math.max(0, dokument.seitenOffen - zaehleFehlend(gelesen.luecken));
-  const angabe = leseSeitenzahlen(bestaetigt);
-  const abdeckung = pruefeAbdeckung({ luecken: gelesen.luecken, weitere: unbekannt }, angabe.seiten);
-  const seitenOk = !luecken || (!angabe.fehler && angabe.seiten.length > 0 && abdeckung.ok);
-  return { luecken, gelesen, unbekannt, angabe, abdeckung, seitenOk };
-}
 
 type SeitenBewertung = ReturnType<typeof bewerteSeitenAngabe>;
 

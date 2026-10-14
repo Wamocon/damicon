@@ -1,4 +1,5 @@
 import type { SeitenLuecke } from "@/lib/wissen/seitenverlauf";
+import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 
 // Fehlende Seiten im Scan: Was ist offen, was ist als "korrekt fehlend" bestätigt, was wurde nachgeladen? Reine Funktionen ohne Datenbank, sie laufen
 // im Browser (Prüffenster, Anzeige) und auf dem Server (Freigabe, Qualität) und kommen zum selben Ergebnis.
@@ -241,4 +242,19 @@ export function offenerStand(s: SeitenStand): OffenerStand {
   const unbekannt = Math.max(0, s.fehlendBeimHochladen - bekannt);
   const rest = ziehSeitenAb(gelesen.luecken, s.nachgeladen).rest;
   return { luecken: rest, fehlend: zaehleFehlend(rest) + unbekannt, unbekannt };
+}
+
+/**
+ * Fehlende Seiten im Prüffenster. Fehlen im Scan Seiten, gibt die prüfende Person die gedruckten Seitenzahlen an, die KORREKT fehlen (Leerseiten).
+ * Sie müssen ALLE offenen Lücken abdecken, sonst fehlt echter Inhalt: keine Freigabe, die Seiten werden nachgeladen oder das Buch wird neu
+ * hochgeladen. Ablehnen geht immer. Bei der Wiedervorlage zählen Lücken nicht mehr. Der Server prüft dasselbe.
+ */
+export function bewerteSeitenAngabe(dokument: WissenDokumentZeile, erneut: boolean, bestaetigt: string) {
+  const luecken = !erneut && dokument.seitenOffen > 0;
+  const gelesen = lueckenAusStellen(dokument.seitenOffenStellen ?? dokument.seitenStellen);
+  const unbekannt = Math.max(0, dokument.seitenOffen - zaehleFehlend(gelesen.luecken));
+  const angabe = leseSeitenzahlen(bestaetigt);
+  const abdeckung = pruefeAbdeckung({ luecken: gelesen.luecken, weitere: unbekannt }, angabe.seiten);
+  const seitenOk = !luecken || (!angabe.fehler && angabe.seiten.length > 0 && abdeckung.ok);
+  return { luecken, gelesen, unbekannt, angabe, abdeckung, seitenOk };
 }

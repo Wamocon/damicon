@@ -1,4 +1,5 @@
-import { bewerteUmordnung, WissenUmordnenKnopf } from "../../src/components/db/wissen-umordnen";
+import { WissenUmordnenKnopf } from "../../src/components/db/wissen-umordnen";
+import { bewerteUmordnung } from "../../src/lib/wissen/umordnen-bewertung";
 import type { WissenDokumentZeile } from "../../src/lib/wissen/dokumente-liste";
 import { imMarkup, pruefer, rendere, SPRACHEN, texteVon } from "./hilfen/ansicht-probe";
 
