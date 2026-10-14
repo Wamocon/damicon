@@ -10,7 +10,6 @@
 export type Rechtsgrundlage = "einwilligung" | "vertrag" | "gesetzliche_pflicht";
 export type EinwilligungKanal = "papier" | "app" | "web" | "sms";
 export type VorfallArt = "unbefugter_zugriff" | "verlust" | "offenlegung" | "sonstiges";
-export type Zugriffsaktion = "lesen" | "export" | "druck" | "uebermittlung";
 
 export interface VerarbeitungszweckZeile {
   id: string;

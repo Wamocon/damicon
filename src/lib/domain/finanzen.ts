@@ -348,8 +348,6 @@ export function ledgerTypAusText(wert: string | undefined): LedgerTyp | undefine
 // eine Abfrage ueber den gesamten Bestand aus, ohne Untergrenze liesse sich die
 // Tabelle auf null Zeilen stellen.
 export const ZEILEN_STANDARD = 10;
-/** Am Handy sind nur die ersten fuenf sichtbar, siehe .startzeilen in globals.css. */
-export const ZEILEN_HANDY = 5;
 export const ZEILEN_SCHRITT = 25;
 export const ZEILEN_HOECHSTENS = 500;
 

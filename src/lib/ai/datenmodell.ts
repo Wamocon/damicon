@@ -118,7 +118,6 @@ export async function ladeDatenmodell(): Promise<Map<string, TabellenInfo>> {
 }
 
 export const FILTER_OPERATOREN = ["gleich", "ungleich", "groesser", "groesserGleich", "kleiner", "kleinerGleich", "enthaelt", "istLeer", "istNichtLeer"] as const;
-export type FilterOperator = (typeof FILTER_OPERATOREN)[number];
 
 /** Kuerzt lange Texte, damit ein einzelnes Freitextfeld die Antwort nicht sprengt. */
 export function kuerzeWert(wert: unknown): unknown {
