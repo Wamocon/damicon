@@ -55,8 +55,10 @@ export function useKiChatAnfrage({ einwilligung, modus, pfad, rolle, sprache, pr
   // letzte Frage davor: alte Fragen zu anderen Seiten liessen Himbi sonst frueher
   // gezeigte Bereiche wieder oeffnen (Rueckmeldung vom 25.09.2026).
   const sprachStart = useRef<number | null>(null);
-  // Der Transport ruft prepareSendMessagesRequest erst beim Senden, nie beim Rendern. Seit der Hook klein genug ist,
-  // dass der React Compiler ihn prüft, meldet er die Refs darin; das Verhalten bleibt bewusst unverändert.
+  // Der Transport ruft prepareSendMessagesRequest erst beim Senden, nie beim Rendern; react-hooks/refs hält das Lesen
+  // der Refs darin trotzdem für einen Zugriff beim Rendern (ohne die Ausnahme meldet ESLint hier einen Fehler). Im alten
+  // KiChat fiel das nicht auf: der React Compiler überspringt jede Funktion, in der eine react-hooks-Regel abgeschaltet
+  // ist, und KiChat hatte mehrere Ausnahmen für exhaustive-deps. Das Verhalten bleibt bewusst unverändert.
   const transport = useMemo(
     () =>
       // eslint-disable-next-line react-hooks/refs

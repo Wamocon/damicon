@@ -49,22 +49,31 @@ import { cn } from "@/lib/utils";
 //
 // Welche Ansicht offen ist, die Breite fuer die Pruefung und das Verhalten als
 // Blatt auf dem Handy stehen in ki-pane-zustand.ts.
-
-type Uebersetzer = ReturnType<typeof useTranslations>;
+//
+// Jede Teilkomponente holt ihre Texte selbst (useTranslations) und nennt die
+// Schluessel fest: nur so prueft npm run test:schluessel sie gegen de.json.
 
 /** Die Ansichten neben dem Chat: Knopf im Kopf (Schreibtisch) oder Zeile der Mehr-Ansicht (Handy). */
 type Zusatz = "pruefung" | "einstellungen" | "hilfe";
-const ZUSATZ: Record<Zusatz, { Symbol: LucideIcon; text: (t: Uebersetzer, tp: Uebersetzer) => string }> = {
-  pruefung: { Symbol: Scale, text: (_t, tp) => tp("knopf") },
-  einstellungen: { Symbol: Settings2, text: (t) => t("einstellungen") },
-  hilfe: { Symbol: LifeBuoy, text: (t) => t("eskalationKnopf") },
-};
+const ZUSATZ_SYMBOL: Record<Zusatz, LucideIcon> = { pruefung: Scale, einstellungen: Settings2, hilfe: LifeBuoy };
 const ZUSATZ_FOLGE: readonly Zusatz[] = ["pruefung", "einstellungen", "hilfe"];
 
+/** Die Beschriftung einer Zusatzansicht. */
+function useZusatzText(): (zusatz: Zusatz) => string {
+  const t = useTranslations("kiAssistentAnsicht");
+  const tp = useTranslations("pruefung");
+  const texte: Record<Zusatz, () => string> = {
+    pruefung: () => tp("knopf"),
+    einstellungen: () => t("einstellungen"),
+    hilfe: () => t("eskalationKnopf"),
+  };
+  return (zusatz) => texte[zusatz]();
+}
+
 /** Der Knopf für die Darstellung: auf der Bühne andocken, angedockt in die Mitte holen. */
-const DARSTELLUNG_KNOPF: Record<KiDarstellung, { ziel: KiDarstellung; text: "andocken" | "buehne"; Symbol: LucideIcon }> = {
-  buehne: { ziel: "seite", text: "andocken", Symbol: PanelRight },
-  seite: { ziel: "buehne", text: "buehne", Symbol: Maximize2 },
+const DARSTELLUNG_KNOPF: Record<KiDarstellung, { ziel: KiDarstellung; Symbol: LucideIcon }> = {
+  buehne: { ziel: "seite", Symbol: PanelRight },
+  seite: { ziel: "buehne", Symbol: Maximize2 },
 };
 
 function ModusEinstellung() {
@@ -118,8 +127,6 @@ function ModusEinstellung() {
 const PruefungAnsicht = dynamic(() => import("@/components/pruefung/pruefung-ansicht").then((m) => m.PruefungAnsicht), { ssr: false });
 
 interface KopfEigenschaften {
-  t: Uebersetzer;
-  tp: Uebersetzer;
   handy: boolean;
   agentAktiv: boolean;
   darstellung: KiDarstellung;
@@ -131,29 +138,26 @@ interface KopfEigenschaften {
 }
 
 /** Schreibtisch: Darstellung und je Zusatzansicht ein Knopf, der sie öffnet und beim zweiten Klick zum Chat zurückführt. */
-function SchreibtischKnoepfe({ t, tp, darstellung, sichtbar, zusaetze, schalteUm, setDarstellung }: KopfEigenschaften) {
+function SchreibtischKnoepfe({ darstellung, sichtbar, zusaetze, schalteUm, setDarstellung }: KopfEigenschaften) {
+  const t = useTranslations("kiAssistentAnsicht");
+  const zusatzText = useZusatzText();
   const knopf = DARSTELLUNG_KNOPF[darstellung];
+  const knopfText = darstellung === "buehne" ? t("andocken") : t("buehne");
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setDarstellung(knopf.ziel)}
-        aria-label={t(knopf.text)}
-        title={t(knopf.text)}
-        className="ki-pane__knopf"
-      >
+      <button type="button" onClick={() => setDarstellung(knopf.ziel)} aria-label={knopfText} title={knopfText} className="ki-pane__knopf">
         <knopf.Symbol className="h-4 w-4" />
       </button>
       {zusaetze.map((zusatz) => {
-        const { Symbol, text } = ZUSATZ[zusatz];
+        const Symbol = ZUSATZ_SYMBOL[zusatz];
         return (
           <button
             key={zusatz}
             type="button"
             onClick={() => schalteUm(zusatz)}
             aria-pressed={sichtbar === zusatz}
-            aria-label={text(t, tp)}
-            title={text(t, tp)}
+            aria-label={zusatzText(zusatz)}
+            title={zusatzText(zusatz)}
             className="ki-pane__knopf"
           >
             <Symbol className="h-4 w-4" />
@@ -165,7 +169,8 @@ function SchreibtischKnoepfe({ t, tp, darstellung, sichtbar, zusaetze, schalteUm
 }
 
 function KiPaneKopf(eigenschaften: KopfEigenschaften) {
-  const { t, handy, agentAktiv, sichtbar, schalteUm, onSchliessen } = eigenschaften;
+  const { handy, agentAktiv, sichtbar, schalteUm, onSchliessen } = eigenschaften;
+  const t = useTranslations("kiAssistentAnsicht");
   return (
     <header className="ki-pane__kopf">
       <div className="ki-pane__titel">
@@ -218,8 +223,6 @@ function verborgenSolange(nichtVorn: boolean, klasse: string) {
 }
 
 function KiPaneKoerper({
-  t,
-  tp,
   sichtbar,
   agentFaehig,
   handy,
@@ -230,8 +233,6 @@ function KiPaneKoerper({
   zusaetze,
   zeige,
 }: {
-  t: Uebersetzer;
-  tp: Uebersetzer;
   sichtbar: Ansicht;
   agentFaehig: boolean;
   handy: boolean;
@@ -242,6 +243,8 @@ function KiPaneKoerper({
   zusaetze: readonly Zusatz[];
   zeige: (ziel: Ansicht) => void;
 }) {
+  const t = useTranslations("kiAssistentAnsicht");
+  const zusatzText = useZusatzText();
   return (
     <div className="ki-pane__koerper">
       <div {...verborgenSolange(sichtbar !== "chat", "ki-pane__ansicht")}>
@@ -261,8 +264,8 @@ function KiPaneKoerper({
       {sichtbar === "mehr" ? (
         <div className="ki-pane__ansicht space-y-2 overflow-y-auto p-4">
           {zusaetze.map((zusatz) => {
-            const { Symbol, text } = ZUSATZ[zusatz];
-            return <BlattZeile key={zusatz} symbol={<Symbol className="h-5 w-5" />} text={text(t, tp)} onClick={() => zeige(zusatz)} />;
+            const Symbol = ZUSATZ_SYMBOL[zusatz];
+            return <BlattZeile key={zusatz} symbol={<Symbol className="h-5 w-5" />} text={zusatzText(zusatz)} onClick={() => zeige(zusatz)} />;
           })}
         </div>
       ) : null}
@@ -287,7 +290,6 @@ function KiPaneKoerper({
 
 /** Die Hülle des Panels: zu (verborgen, nicht bedienbar), offen, als Dialog auf der Bühne oder als Spalte neben der Seite. */
 function KiPaneHuelle({
-  t,
   phase,
   offen,
   aufBuehne,
@@ -296,7 +298,6 @@ function KiPaneHuelle({
   handyGross,
   children,
 }: {
-  t: Uebersetzer;
   /** Zustand von Himbi (haustier-kontext.tsx), für die Farben der Hülle. */
   phase: string;
   offen: boolean;
@@ -306,6 +307,7 @@ function KiPaneHuelle({
   handyGross: boolean;
   children: ReactNode;
 }) {
+  const t = useTranslations("kiAssistentAnsicht");
   return (
     <aside
       aria-label={t("chatTitel")}
@@ -337,7 +339,8 @@ function KiPaneHuelle({
 }
 
 /** Handy: der Griff oben macht das Blatt groß oder wieder halb so hoch. */
-function HandyGriff({ t, gross, onUmschalten }: { t: Uebersetzer; gross: boolean; onUmschalten: () => void }) {
+function HandyGriff({ gross, onUmschalten }: { gross: boolean; onUmschalten: () => void }) {
+  const t = useTranslations("kiAssistentAnsicht");
   return (
     <button
       type="button"
@@ -371,7 +374,6 @@ export function KiPane({
   const t = useTranslations("kiAssistentAnsicht");
   const { verfuegbar, offen, setOffen, modus, darstellung, setDarstellung, anstoss } = useKiPane();
   const { phase } = useHaustierStatus();
-  const tp = useTranslations("pruefung");
   const { ansicht, pruefungGeladen, schalteUm, zeige } = useKiPaneAnsicht(anstoss);
   usePruefungsBreite(ansicht, offen);
 
@@ -413,7 +415,6 @@ export function KiPane({
         )}
       />
       <KiPaneHuelle
-        t={t}
         phase={phase}
         offen={offen}
         aufBuehne={aufBuehne}
@@ -422,10 +423,8 @@ export function KiPane({
         handyGross={handyGross}
       >
         {aufBuehne ? null : <KiPaneGriff />}
-        {handy && !aufBuehne ? <HandyGriff t={t} gross={handyGross} onUmschalten={() => setHandyGross((v) => !v)} /> : null}
+        {handy && !aufBuehne ? <HandyGriff gross={handyGross} onUmschalten={() => setHandyGross((v) => !v)} /> : null}
         <KiPaneKopf
-          t={t}
-          tp={tp}
           handy={handy}
           agentAktiv={agentAktiv}
           darstellung={darstellung}
@@ -436,8 +435,6 @@ export function KiPane({
           onSchliessen={() => setOffen(false)}
         />
         <KiPaneKoerper
-          t={t}
-          tp={tp}
           sichtbar={sichtbar}
           agentFaehig={agentFaehig}
           handy={handy}

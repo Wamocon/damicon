@@ -4,9 +4,11 @@
 // reine Darstellung: der leere Anfang mit Vorschlägen, die Karte für einen
 // Klick, den der Agent freigeben lassen will, die Statuszeile, solange er
 // arbeitet, und die Fehlermeldung je Fehlerart (lib/ai/chat-fehler.ts).
+// Jede Darstellung holt ihre Texte selbst (kiAssistentAnsicht) und nennt die
+// Schlüssel fest: nur so prüft npm run test:schluessel sie gegen de.json.
 
 import { useMemo, type ReactNode } from "react";
-import type { useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Check, MousePointerClick } from "lucide-react";
 import { Himbeere } from "@/components/ki/himbeere";
 import { waehleVorschlaege } from "@/components/ki/ki-chat-segmente";
@@ -17,17 +19,13 @@ import { chatFehlerArt, type ChatFehlerArt } from "@/lib/ai/chat-fehler";
 import { modules } from "@/lib/modules";
 import { hasPermission, type Role } from "@/lib/rbac";
 
-type Uebersetzer = ReturnType<typeof useTranslations>;
-
 /** Der leere Verlauf: Himbi, was die Rolle hier kann, und Vorschläge zum Anfangen. */
 export function KiChatLeer({
-  t,
   rolle,
   modus,
   gesperrt,
   onVorschlag,
 }: {
-  t: Uebersetzer;
   rolle: Role;
   /** Der eingestellte Modus (nicht der Sprachmodus): danach richten sich Text und Vorschläge. */
   modus: KiModus;
@@ -35,6 +33,7 @@ export function KiChatLeer({
   gesperrt: boolean;
   onVorschlag: (vorschlag: string) => void;
 }) {
+  const t = useTranslations("kiAssistentAnsicht");
   const vorschlaege = useMemo(() => waehleVorschlaege(rolle, modus), [rolle, modus]);
   const zaehler = useMemo(
     () => ({
@@ -74,7 +73,8 @@ export function KiChatLeer({
 }
 
 /** Der Agent möchte etwas anklicken, das Daten sendet, löscht oder hinausführt (ki-chat-werkzeuge.ts). */
-export function KiChatKlickKarte({ anfrage, t }: { anfrage: KlickAnfrageMitEntscheidung; t: Uebersetzer }) {
+export function KiChatKlickKarte({ anfrage }: { anfrage: KlickAnfrageMitEntscheidung }) {
+  const t = useTranslations("kiAssistentAnsicht");
   return (
     <div className="ki-aktion ki-aktion--freigabe">
       <div className="ki-aktion__kopf">
@@ -124,39 +124,33 @@ export function KiChatStatus({ text }: { text: string }) {
   );
 }
 
-interface FehlerEigenschaften {
-  t: Uebersetzer;
-  sprache: string;
-  onNeuBeginnen: () => void;
-}
-
-/** Was je Fehlerart in der Meldung steht. */
-const FEHLER_INHALT: Record<ChatFehlerArt, (p: FehlerEigenschaften) => ReactNode> = {
-  sitzung: ({ t, sprache }) => (
-    <>
-      {t("fehler.sitzung")}{" "}
-      <a className="ki-fehler__link" href={`/${sprache}/login?weiter=${encodeURIComponent(window.location.pathname)}`}>
-        {t("fehler.anmelden")}
-      </a>
-    </>
-  ),
-  berechtigung: ({ t }) => t("fehler.berechtigung"),
-  zulang: ({ t, onNeuBeginnen }) => (
-    <>
-      {t("fehler.zuLang")}{" "}
-      <button type="button" className="ki-fehler__link" onClick={onNeuBeginnen}>
-        {t("fehler.neuBeginnen")}
-      </button>
-    </>
-  ),
-  allgemein: ({ t }) => t("fallback.antwort"),
-};
-
 /** Die Meldung zum letzten Fehler des Chats. */
-export function KiChatFehler({ error, ...eigenschaften }: FehlerEigenschaften & { error: Error }) {
+export function KiChatFehler({ error, sprache, onNeuBeginnen }: { error: Error; sprache: string; onNeuBeginnen: () => void }) {
+  const t = useTranslations("kiAssistentAnsicht");
+  // Was je Fehlerart in der Meldung steht; gebaut wird nur die eine, die gilt.
+  const inhalt: Record<ChatFehlerArt, () => ReactNode> = {
+    sitzung: () => (
+      <>
+        {t("fehler.sitzung")}{" "}
+        <a className="ki-fehler__link" href={`/${sprache}/login?weiter=${encodeURIComponent(window.location.pathname)}`}>
+          {t("fehler.anmelden")}
+        </a>
+      </>
+    ),
+    berechtigung: () => t("fehler.berechtigung"),
+    zulang: () => (
+      <>
+        {t("fehler.zuLang")}{" "}
+        <button type="button" className="ki-fehler__link" onClick={onNeuBeginnen}>
+          {t("fehler.neuBeginnen")}
+        </button>
+      </>
+    ),
+    allgemein: () => t("fallback.antwort"),
+  };
   return (
     <p className="ki-fehler" role="alert">
-      {FEHLER_INHALT[chatFehlerArt(error) ?? "allgemein"](eigenschaften)}
+      {inhalt[chatFehlerArt(error) ?? "allgemein"]()}
     </p>
   );
 }

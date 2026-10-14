@@ -199,7 +199,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     leereFeld,
   });
   useErgebnisFolgen({ messages, router, zugModus, takt, fuehreZu, oeffneZiel, beschriftung });
-  useFreigabeMeldung({ klickAnfrage, messages, t, freigabe });
+  useFreigabeMeldung({ klickAnfrage, messages, freigabe });
 
   const laufenderSchritt = useMemo(() => laufenderSchrittVon(messages), [messages]);
   // Was der Agent gerade tut: Statuszeile im Chat und Text an Himbi (nur, solange er arbeitet).
@@ -259,7 +259,6 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
         <div ref={scrollRef} onScroll={beiScroll} className="ki-chat__verlauf">
           {istErsteNachricht ? (
             <KiChatLeer
-              t={t}
               rolle={rolle}
               modus={panelModus}
               gesperrt={einwilligungFehlt || beschaeftigt}
@@ -275,7 +274,6 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                 sprache={sprache}
                 vorlesen={vorlesen}
                 fuehrung={fuehrung}
-                t={t}
                 beschriftung={beschriftung}
                 onFreigabe={freigabe}
                 onZielOeffnen={oeffneZiel}
@@ -283,14 +281,13 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             ))
           )}
 
-          {klickAnfrage ? <KiChatKlickKarte anfrage={klickAnfrage} t={t} /> : null}
+          {klickAnfrage ? <KiChatKlickKarte anfrage={klickAnfrage} /> : null}
 
           {beschaeftigt && !klickAnfrage ? <KiChatStatus text={statusText} /> : null}
 
           {error ? (
             <KiChatFehler
               error={error}
-              t={t}
               sprache={sprache}
               onNeuBeginnen={() => {
                 // Nur die Ansicht und der Kontext dieser Sitzung beginnen neu; der gespeicherte Verlauf bleibt.
@@ -309,7 +306,6 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
       </div>
 
       <KiChatComposer
-        t={t}
         onSubmit={absenden}
         pruefBezug={pruefBezug}
         onBezugEntfernen={entferneBezug}

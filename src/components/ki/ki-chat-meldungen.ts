@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo } from "react";
 import { isDynamicToolUIPart, isToolUIPart, type UIMessage } from "ai";
-import type { useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useHaustierAktionen } from "@/components/haustier/haustier-kontext";
 import { segmentiere, textVonNachricht, type AktionsKarte } from "@/components/ki/ki-chat-segmente";
 import type { useKiChatSprache, Vorlesen } from "@/components/ki/ki-chat-sprache";
@@ -16,7 +16,6 @@ import type { useSprachTakt } from "@/components/ki/sprach-takt";
 import { meldeChatStand, meldeFreigabeAnfrage, registriereEntsperren, registriereGerade } from "@/components/ki/sprachmodus-bus";
 import { agentPhase, stimmungAusAntwort } from "@/lib/haustier";
 
-type Uebersetzer = ReturnType<typeof useTranslations>;
 type Live = ReturnType<typeof useKiChatSprache>["live"];
 type TaktRefs = ReturnType<typeof useSprachTakt>;
 
@@ -62,27 +61,16 @@ export function useTaktVerdrahtung({
   }, [sprachmodus, aktivRef]);
 }
 
-/** Der Text einer Aktionskarte für den Sprachmodus: Titel und die ausgefüllten Felder. */
-function aktionsFreigabeText(karte: AktionsKarte, t: Uebersetzer): string {
-  const felder = Object.entries(karte.eingabe)
-    .filter(([, wert]) => wert !== undefined && wert !== null && wert !== "")
-    .map(([schluessel, wert]) => `${t.has(`aktion.felder.${schluessel}`) ? t(`aktion.felder.${schluessel}`) : schluessel}: ${String(wert)}`)
-    .join(", ");
-  const titel = t(`aktion.titel.${karte.name}`);
-  return felder ? `${titel}: ${felder}` : titel;
-}
-
 export function useFreigabeMeldung({
   klickAnfrage,
   messages,
-  t,
   freigabe,
 }: {
   klickAnfrage: KlickAnfrageMitEntscheidung | null;
   messages: UIMessage[];
-  t: Uebersetzer;
   freigabe: (karte: AktionsKarte, erlaubt: boolean) => void;
 }) {
+  const t = useTranslations("kiAssistentAnsicht");
   // Eine Aktion, die gerade auf Freigabe wartet (Kartenzustand "freigabe") -
   // wie freigabeOffen in useHimbiMeldung: nur auf der letzten Nachricht, aus demselben Grund.
   const anstehendeAktion = useMemo(() => {
@@ -99,6 +87,15 @@ export function useFreigabeMeldung({
   // liest die Meldung dann. Derselbe Text wie auf der sichtbaren Karte, aus
   // denselben Uebersetzungen (t, "kiAssistentAnsicht").
   useEffect(() => {
+    /** Der Text einer Aktionskarte für den Sprachmodus: Titel und die ausgefüllten Felder. */
+    const aktionsFreigabeText = (karte: AktionsKarte) => {
+      const felder = Object.entries(karte.eingabe)
+        .filter(([, wert]) => wert !== undefined && wert !== null && wert !== "")
+        .map(([schluessel, wert]) => `${t.has(`aktion.felder.${schluessel}`) ? t(`aktion.felder.${schluessel}`) : schluessel}: ${String(wert)}`)
+        .join(", ");
+      const titel = t(`aktion.titel.${karte.name}`);
+      return felder ? `${titel}: ${felder}` : titel;
+    };
     if (klickAnfrage) {
       meldeFreigabeAnfrage(`${t("klick.titel")}: ${klickAnfrage.absicht} – ${klickAnfrage.label}`, (erlaubt) =>
         klickAnfrage.entscheide(erlaubt),
@@ -107,7 +104,7 @@ export function useFreigabeMeldung({
     }
     if (anstehendeAktion) {
       const karte = anstehendeAktion;
-      meldeFreigabeAnfrage(aktionsFreigabeText(karte, t), (erlaubt) => freigabe(karte, erlaubt));
+      meldeFreigabeAnfrage(aktionsFreigabeText(karte), (erlaubt) => freigabe(karte, erlaubt));
       return;
     }
     meldeFreigabeAnfrage(null, null);

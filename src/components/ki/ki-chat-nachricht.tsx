@@ -7,7 +7,7 @@
 
 import type { ComponentType, ReactNode } from "react";
 import type { UIMessage } from "ai";
-import type { useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   ArrowRight,
   BookOpenCheck,
@@ -48,7 +48,6 @@ import { istClientWerkzeug } from "@/lib/ai/client-werkzeuge-meta";
 import { zitierteKennungen } from "@/lib/wissen/belege";
 import { cn } from "@/lib/utils";
 
-type Uebersetzer = ReturnType<typeof useTranslations>;
 type Beschriftung = ReturnType<typeof erstelleBeschriftungen>["beschriftung"];
 
 const werkzeugIcon: Record<string, ComponentType<{ className?: string }>> = {
@@ -87,12 +86,12 @@ const ZUSTAND_ENDE: Record<Schritt["zustand"], ReactNode> = {
 
 interface SchrittEigenschaften {
   fuehrung: KiFuehrung | null;
-  t: Uebersetzer;
   beschriftung: Beschriftung;
   onZielOeffnen: (ziel: string, label: string) => void;
 }
 
-function KiChatSchritt({ schritt, fuehrung, t, beschriftung, onZielOeffnen }: SchrittEigenschaften & { schritt: Schritt }) {
+function KiChatSchritt({ schritt, fuehrung, beschriftung, onZielOeffnen }: SchrittEigenschaften & { schritt: Schritt }) {
+  const t = useTranslations("kiAssistentAnsicht");
   const Icon = werkzeugIcon[schritt.name] ?? Radar;
   const klickbar = schritt.zustand === "fertig" && schritt.ziel !== null;
   const teile = { bereich: schritt.bereich, tabelle: schritt.tabelle, absicht: schritt.absicht };
