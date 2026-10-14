@@ -385,7 +385,18 @@ const kurzVerlauf = (k: Record<string, unknown> | null) =>
     (m) => `${m.role}: ${m.parts.map((p) => (p.type === "text" ? p.text : `${p.type}${p.state ? `(${p.state})` : ""}`)).join(" / ")}`,
   );
 
-const ohneSvg = (html: string) => html.replace(/<svg\b[^>]*?\bclass="([^"]*)"[^>]*>[\s\S]*?<\/svg>/g, '<svg class="$1"/>');
+// Ein Symbol (lucide) nur mit seiner Klasse vergleichen, ohne Pfade. Groß- und Kleinschreibung egal, wiederholt bis nichts mehr
+// passt; ein schon gekürztes <svg class="..."/> passt nicht mehr (kein Ende mit "/>").
+const SVG_MIT_INHALT = /<svg\b[^>]*?\bclass="([^"]*)"[^>]*(?<!\/)>[\s\S]*?<\/svg\s*>/gi;
+const ohneSvg = (html: string) => {
+  let vorher: string;
+  let jetzt = html;
+  do {
+    vorher = jetzt;
+    jetzt = vorher.replace(SVG_MIT_INHALT, '<svg class="$1"/>');
+  } while (jetzt !== vorher);
+  return jetzt;
+};
 const html = (el: Element | null | undefined) => (el ? ohneSvg(el.outerHTML) : null);
 const nachrichten = () => [...document.querySelectorAll(".ki-nachricht")].map((n) => html(n));
 const feld = () => document.querySelector("textarea")!;
