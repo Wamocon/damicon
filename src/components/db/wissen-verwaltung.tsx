@@ -404,7 +404,7 @@ function DokumentAngaben({ dokument, ansicht }: { dokument: WissenDokumentZeile;
 
 // Pruefen mit Bestaetigungsfenster (natives <dialog>, modal). Zeigt, was freigegeben wird: Titel, Bereich, Quellenart,
 // Link, Rollen und den Anfang des Textes. Dafuer ist die Vorschau da: Wer freigibt, soll gelesen haben, was er freigibt.
-function WissenPruefenKnopf({
+export function WissenPruefenKnopf({
   dokument,
   bereichName,
   artName,

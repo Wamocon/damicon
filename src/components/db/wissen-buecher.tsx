@@ -533,7 +533,7 @@ export function WissenBuecher({ beiFertig }: { beiFertig: () => void }) {
 }
 
 /** Ein Eintrag der Auflistung beim Hochladen: Kopf mit Titel und Zustand, darunter (in der Liste aufklappbar) Analyse, Seitenverlauf und Hinweise. */
-function BuchEintrag({
+export function BuchEintrag({
   e,
   ansicht,
   offen,
