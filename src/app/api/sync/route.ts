@@ -29,6 +29,11 @@ interface SyncAnfrage {
   nutzlast: Record<string, unknown>;
 }
 
+/** Ein Warteschlangen-Eintrag, aus JSON oder multipart/form-data auf dieselbe Form gebracht. */
+interface SyncEintrag extends SyncAnfrage {
+  datei: File | null;
+}
+
 interface SyncAntwort {
   ergebnis: "angewendet" | "konflikt" | "fehler";
   meldung: string;
@@ -54,145 +59,154 @@ function json(antwort: SyncAntwort, status: number) {
   return NextResponse.json(antwort, { status });
 }
 
-export async function POST(request: Request) {
-  try {
-    await requireAal2Aktuell();
-  } catch {
-    // Kein Redirect wie in proxy.ts moeglich/sinnvoll fuer einen
-    // JSON-Endpunkt - stattdessen 403, die Warteschlange bleibt bestehen und
-    // der naechste Sync-Versuch (nach abgeschlossener MFA-Bestaetigung im
-    // normalen Dashboard) greift erneut.
-    return json({ ergebnis: "fehler", meldung: "fehler.angemeldet" }, 403);
-  }
+const eingabeFehler = () => json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
 
-  // Fotobeleg (Phase 6) traegt eine Bilddatei mit - JSON kann das nicht ohne
-  // Base64-Aufblaehung (~33% groesser, relevant bei Vercels
-  // Route-Handler-Payloadgrenze). sync-engine.ts sendet einen Eintrag mit
-  // Datei deshalb als multipart/form-data, alle anderen Aktionstypen weiterhin
-  // als JSON - hier entsprechend verzweigt, auf dieselbe interne Form gebracht.
-  let aktionId: string;
-  let aktionTyp: string;
-  let geraetZeitpunkt: string | null;
-  let nutzlast: Record<string, unknown>;
-  let datei: File | null = null;
-
+// Fotobeleg (Phase 6) traegt eine Bilddatei mit - JSON kann das nicht ohne
+// Base64-Aufblaehung (~33% groesser, relevant bei Vercels
+// Route-Handler-Payloadgrenze). sync-engine.ts sendet einen Eintrag mit
+// Datei deshalb als multipart/form-data, alle anderen Aktionstypen weiterhin
+// als JSON - hier entsprechend verzweigt, auf dieselbe interne Form gebracht.
+// null heisst: der Koerper laesst sich nicht lesen (400).
+async function leseEintrag(request: Request): Promise<SyncEintrag | null> {
   const contentType = request.headers.get("content-type") ?? "";
-  if (contentType.includes("multipart/form-data")) {
-    let form: FormData;
-    try {
-      form = await request.formData();
-    } catch {
-      return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
-    }
-    aktionId = String(form.get("aktionId") ?? "");
-    aktionTyp = String(form.get("aktionTyp") ?? "");
-    geraetZeitpunkt = (form.get("geraetZeitpunkt") as string | null) || null;
-    const nutzlastRoh = form.get("nutzlast");
-    try {
-      nutzlast = typeof nutzlastRoh === "string" ? JSON.parse(nutzlastRoh) : {};
-    } catch {
-      return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
-    }
-    const dateiRoh = form.get("datei");
-    datei = dateiRoh instanceof File ? dateiRoh : null;
-  } else {
-    let anfrage: SyncAnfrage;
-    try {
-      anfrage = await request.json();
-    } catch {
-      return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
-    }
-    aktionId = anfrage.aktionId;
-    aktionTyp = anfrage.aktionTyp;
-    geraetZeitpunkt = anfrage.geraetZeitpunkt;
-    nutzlast = anfrage.nutzlast;
+  return contentType.includes("multipart/form-data") ? leseFormular(request) : leseJson(request);
+}
+
+async function leseFormular(request: Request): Promise<SyncEintrag | null> {
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return null;
   }
-
-  if (!aktionId || !aktionTyp || typeof nutzlast !== "object" || nutzlast === null) {
-    return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
+  const nutzlastRoh = form.get("nutzlast");
+  let nutzlast: Record<string, unknown>;
+  try {
+    nutzlast = typeof nutzlastRoh === "string" ? JSON.parse(nutzlastRoh) : {};
+  } catch {
+    return null;
   }
+  const dateiRoh = form.get("datei");
+  return {
+    aktionId: String(form.get("aktionId") ?? ""),
+    aktionTyp: String(form.get("aktionTyp") ?? ""),
+    geraetZeitpunkt: (form.get("geraetZeitpunkt") as string | null) || null,
+    nutzlast,
+    datei: dateiRoh instanceof File ? dateiRoh : null,
+  };
+}
 
-  let kernErgebnis: KernErgebnis<unknown>;
+async function leseJson(request: Request): Promise<SyncEintrag | null> {
+  let anfrage: SyncAnfrage;
+  try {
+    anfrage = await request.json();
+  } catch {
+    return null;
+  }
+  // Bewusst ausserhalb des try: ein Koerper "null" wirft hier wie bisher (kein 400).
+  return {
+    aktionId: anfrage.aktionId,
+    aktionTyp: anfrage.aktionTyp,
+    geraetZeitpunkt: anfrage.geraetZeitpunkt,
+    nutzlast: anfrage.nutzlast,
+    datei: null,
+  };
+}
 
-  switch (aktionTyp) {
-    case "kuehlmessung_erfassen":
-      kernErgebnis = await kuehlmessungKern({
-        aufgabeId: antwortText(nutzlast, "aufgabe_id"),
-        temperaturC: antwortZahl(nutzlast, "temperatur_c"),
-        geraetZeitpunkt: geraetZeitpunkt || null,
-        aktionId,
-      });
-      break;
-    case "steige_erfassen":
-      kernErgebnis = await steigeKern({
-        aufgabeId: antwortText(nutzlast, "aufgabe_id"),
-        pflueckerId: antwortText(nutzlast, "pfluecker_id"),
-        gewichtKg: antwortZahl(nutzlast, "gewicht_kg"),
-        geraetZeitpunkt: geraetZeitpunkt || null,
-        aktionId,
-      });
-      break;
-    case "arbeitszeit_erfassen":
-      kernErgebnis = await arbeitszeitKern({
-        aufgabeId: antwortText(nutzlast, "aufgabe_id"),
-        pflueckerId: antwortText(nutzlast, "pfluecker_id"),
-        minuten: antwortZahl(nutzlast, "minuten"),
-        geraetZeitpunkt: geraetZeitpunkt || null,
-        aktionId,
-      });
-      break;
-    case "aufgabe_annehmen":
-      kernErgebnis = await aufgabeStatusKern({
-        aufgabeId: antwortText(nutzlast, "id"),
+/** Je Aktionstyp der Aufruf der Kernfunktion mit der umgesetzten Nutzlast. Eine Map, damit nur
+ *  eigene Eintraege zaehlen (ein Typ wie "constructor" ist unbekannt, wie zuvor im switch). */
+type KernAufruf = (e: SyncEintrag) => Promise<KernErgebnis<unknown>> | Response;
+const KERN_AUFRUFE = new Map<string, KernAufruf>([
+  [
+    "kuehlmessung_erfassen",
+    (e) =>
+      kuehlmessungKern({
+        aufgabeId: antwortText(e.nutzlast, "aufgabe_id"),
+        temperaturC: antwortZahl(e.nutzlast, "temperatur_c"),
+        geraetZeitpunkt: e.geraetZeitpunkt || null,
+        aktionId: e.aktionId,
+      }),
+  ],
+  [
+    "steige_erfassen",
+    (e) =>
+      steigeKern({
+        aufgabeId: antwortText(e.nutzlast, "aufgabe_id"),
+        pflueckerId: antwortText(e.nutzlast, "pfluecker_id"),
+        gewichtKg: antwortZahl(e.nutzlast, "gewicht_kg"),
+        geraetZeitpunkt: e.geraetZeitpunkt || null,
+        aktionId: e.aktionId,
+      }),
+  ],
+  [
+    "arbeitszeit_erfassen",
+    (e) =>
+      arbeitszeitKern({
+        aufgabeId: antwortText(e.nutzlast, "aufgabe_id"),
+        pflueckerId: antwortText(e.nutzlast, "pfluecker_id"),
+        minuten: antwortZahl(e.nutzlast, "minuten"),
+        geraetZeitpunkt: e.geraetZeitpunkt || null,
+        aktionId: e.aktionId,
+      }),
+  ],
+  [
+    "aufgabe_annehmen",
+    (e) =>
+      aufgabeStatusKern({
+        aufgabeId: antwortText(e.nutzlast, "id"),
         neuerStatus: "angenommen",
         arbeitsbeginnGeraetZeitpunkt: null,
-        aktionId,
-      });
-      break;
-    case "aufgabe_arbeit_starten":
-      kernErgebnis = await aufgabeStatusKern({
-        aufgabeId: antwortText(nutzlast, "id"),
+        aktionId: e.aktionId,
+      }),
+  ],
+  [
+    "aufgabe_arbeit_starten",
+    (e) =>
+      aufgabeStatusKern({
+        aufgabeId: antwortText(e.nutzlast, "id"),
         neuerStatus: "in_arbeit",
-        arbeitsbeginnGeraetZeitpunkt: geraetZeitpunkt || null,
-        aktionId,
-      });
-      break;
-    case "menge_melden":
-      kernErgebnis = await mengeMeldenKern({
-        aufgabeId: antwortText(nutzlast, "id"),
-        istMengeKg: antwortZahl(nutzlast, "ist_menge_kg"),
-        ausschussKg: antwortZahl(nutzlast, "ausschuss_kg"),
-        pflueckerAnzahl: antwortZahl(nutzlast, "pfluecker_anzahl"),
-        aktionId,
-      });
-      break;
-    case "beleg_hochladen":
-      if (!datei) {
-        return json({ ergebnis: "fehler", meldung: "fehler.keineDatei" }, 400);
-      }
-      kernErgebnis = await belegKern({
-        aufgabeId: antwortText(nutzlast, "aufgabe_id"),
-        art: antwortText(nutzlast, "art"),
-        hinweis: antwortText(nutzlast, "hinweis") || null,
-        geraetZeitpunkt: geraetZeitpunkt || null,
-        datei,
-        aktionId,
-      });
-      break;
-    default:
-      return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
-  }
+        arbeitsbeginnGeraetZeitpunkt: e.geraetZeitpunkt || null,
+        aktionId: e.aktionId,
+      }),
+  ],
+  [
+    "menge_melden",
+    (e) =>
+      mengeMeldenKern({
+        aufgabeId: antwortText(e.nutzlast, "id"),
+        istMengeKg: antwortZahl(e.nutzlast, "ist_menge_kg"),
+        ausschussKg: antwortZahl(e.nutzlast, "ausschuss_kg"),
+        pflueckerAnzahl: antwortZahl(e.nutzlast, "pfluecker_anzahl"),
+        aktionId: e.aktionId,
+      }),
+  ],
+  [
+    "beleg_hochladen",
+    (e) =>
+      e.datei
+        ? belegKern({
+            aufgabeId: antwortText(e.nutzlast, "aufgabe_id"),
+            art: antwortText(e.nutzlast, "art"),
+            hinweis: antwortText(e.nutzlast, "hinweis") || null,
+            geraetZeitpunkt: e.geraetZeitpunkt || null,
+            datei: e.datei,
+            aktionId: e.aktionId,
+          })
+        : json({ ergebnis: "fehler", meldung: "fehler.keineDatei" }, 400),
+  ],
+]);
 
-  // `erledigt`, nicht `status.stand`, entscheidet ueber "angewendet": eine
-  // Kuehlmessung mit Kuehlketten-Verstoss wurde erfolgreich geschrieben
-  // (status.stand ist trotzdem "fehler", weil das ein fachlicher Alarm fuer
-  // die Oberflaeche ist, kein technischer Fehlschlag) - siehe Kommentar in
-  // src/lib/actions/nachweiskette.ts bei KernErgebnis.
-  //
-  // Bei den drei UPDATE-Workflows (Phase 4) signalisiert die Meldung
-  // "fehler.zustand" gezielt einen echten Konflikt (CAS-Guard fehlgeschlagen,
-  // sync_protokoll bestaetigt: kein eigener Retry) - der Client soll diesen
-  // Eintrag NICHT automatisch erneut senden, sondern als Konflikt anzeigen.
+// `erledigt`, nicht `status.stand`, entscheidet ueber "angewendet": eine
+// Kuehlmessung mit Kuehlketten-Verstoss wurde erfolgreich geschrieben
+// (status.stand ist trotzdem "fehler", weil das ein fachlicher Alarm fuer
+// die Oberflaeche ist, kein technischer Fehlschlag) - siehe Kommentar in
+// src/lib/actions/nachweiskette.ts bei KernErgebnis.
+//
+// Bei den drei UPDATE-Workflows (Phase 4) signalisiert die Meldung
+// "fehler.zustand" gezielt einen echten Konflikt (CAS-Guard fehlgeschlagen,
+// sync_protokoll bestaetigt: kein eigener Retry) - der Client soll diesen
+// Eintrag NICHT automatisch erneut senden, sondern als Konflikt anzeigen.
+function syncAntwort(kernErgebnis: KernErgebnis<unknown>) {
   const ergebnis: SyncAntwort["ergebnis"] = kernErgebnis.erledigt
     ? "angewendet"
     : kernErgebnis.status.meldung === "fehler.zustand"
@@ -207,4 +221,30 @@ export async function POST(request: Request) {
     },
     200,
   );
+}
+
+export async function POST(request: Request) {
+  try {
+    await requireAal2Aktuell();
+  } catch {
+    // Kein Redirect wie in proxy.ts moeglich/sinnvoll fuer einen
+    // JSON-Endpunkt - stattdessen 403, die Warteschlange bleibt bestehen und
+    // der naechste Sync-Versuch (nach abgeschlossener MFA-Bestaetigung im
+    // normalen Dashboard) greift erneut.
+    return json({ ergebnis: "fehler", meldung: "fehler.angemeldet" }, 403);
+  }
+
+  const eintrag = await leseEintrag(request);
+  if (!eintrag) return eingabeFehler();
+  const { aktionId, aktionTyp, nutzlast } = eintrag;
+  if (!aktionId || !aktionTyp || typeof nutzlast !== "object" || nutzlast === null) {
+    return eingabeFehler();
+  }
+
+  const kernAufruf = KERN_AUFRUFE.get(aktionTyp);
+  if (!kernAufruf) return eingabeFehler();
+  const kernErgebnis = await kernAufruf(eintrag);
+  // Beleg ohne Datei: die Antwort steht schon fest (fehler.keineDatei).
+  if (kernErgebnis instanceof Response) return kernErgebnis;
+  return syncAntwort(kernErgebnis);
 }
