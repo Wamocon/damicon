@@ -145,6 +145,11 @@ export interface Uhr {
   offen(): { zeitgeber: number; intervalle: number; bilder: number };
   /** Die offenen Zeitgeber: in wie vielen ms fällig, mit welcher Verzögerung angelegt, ob Intervall. */
   zeitgeber(): { inMs: number; ms: number; intervall: boolean }[];
+  /** Die offenen Zeitgeber in der Reihenfolge des Anlegens (aufsteigende Nummer; Zeitgeber und Bilder zählen gemeinsam). Zeigt,
+   *  welcher Effekt zuerst angelegt hat und ob ein alter Zeitgeber neben dem neuen noch offen ist. */
+  zeitgeberMitId(): { id: number; inMs: number; ms: number; intervall: boolean }[];
+  /** Die Nummern der offenen Bilder (requestAnimationFrame) in der Reihenfolge des Anlegens. */
+  bilderIds(): number[];
   /** Stellt die echten Zeitgeber, performance und Date wieder her. */
   deinstalliere(): void;
 }
@@ -308,6 +313,9 @@ export function installiereUhr(optionen: UhrOptionen = {}): Uhr {
       [...zeitgeber.values()]
         .sort((a, b) => a.faellig - b.faellig || a.id - b.id)
         .map((z) => ({ inMs: z.faellig - jetzt, ms: z.ms, intervall: z.intervall })),
+    zeitgeberMitId: () =>
+      [...zeitgeber.values()].sort((x, y) => x.id - y.id).map((z) => ({ id: z.id, inMs: z.faellig - jetzt, ms: z.ms, intervall: z.intervall })),
+    bilderIds: () => [...bilder.keys()].sort((x, y) => x - y),
     deinstalliere() {
       for (const [ziel, name, beschreibung] of gesichert.reverse()) {
         if (beschreibung) Object.defineProperty(ziel, name, beschreibung);

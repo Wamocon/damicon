@@ -109,6 +109,14 @@ async function pruefeUhr(): Promise<void> {
   pruefe("Uhr: ein Zeitgeber aus einem Zeitgeber läuft im selben Vorstellen", folge.at(-1) === "innen@105", folge.at(-1));
   setTimeout(() => folge.push("spaet"), 5000);
   pruefe("Uhr: zeitgeber() nennt Fälligkeit und Verzögerung", json(uhr.zeitgeber()) === json([{ inMs: 5000, ms: 5000, intervall: false }]));
+  setTimeout(() => undefined, 3000);
+  const bildNummer = requestAnimationFrame(() => undefined);
+  const mitNummer = uhr.zeitgeberMitId();
+  pruefe(
+    "Uhr: zeitgeberMitId() ordnet nach Anlegen mit Nummer, bilderIds() nennt die offenen Bilder",
+    mitNummer.length === 2 && mitNummer[0]!.ms === 5000 && mitNummer[1]!.ms === 3000 && mitNummer[0]!.id < mitNummer[1]!.id && json(uhr.bilderIds()) === json([bildNummer]),
+    json({ mitNummer, bilder: uhr.bilderIds() }),
+  );
   await uhr.laufeAlle();
   pruefe("Uhr: laufeAlle arbeitet alle Zeitgeber ab", folge.at(-1) === "spaet" && uhr.jetzt() === 5105 && json(uhr.offen()) === json({ zeitgeber: 0, intervalle: 0, bilder: 0 }));
   uhr.deinstalliere();

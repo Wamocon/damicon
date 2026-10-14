@@ -37,8 +37,11 @@ import type { AgentPhase, HaustierZustand, Inventar, Stimmung } from "@/lib/haus
 // lib/rbac.ts laufen echt.
 // Nach jedem Schritt wird festgehalten: die neuen Zeilen des Protokolls (Aufrufe an die Aktionen der Kontexte, Zeigerfang,
 // scrollIntoView, Hörer an window und document samt Optionen), das ganze HTML des Dokuments (wenn es sich geändert hat), localStorage
-// und sessionStorage (wenn sie sich geändert haben) und die offenen Zeitgeber und Bilder der Uhr. Die Folge je Fall wird mit der
-// Folge des Codes vor dem Zerlegen verglichen (fixtures/haustier-ansicht-golden.json, Stand 1fb29cf1); ein Unterschied meldet die
+// und sessionStorage (wenn sie sich geändert haben), der Fokus (wenn er sich geändert hat) und die offenen Zeitgeber mit Nummer in
+// der Reihenfolge des Anlegens samt den offenen Bildern der Uhr. Im Protokoll stehen auch jedes setProperty einer CSS-Variablen, jeder
+// Zugriff auf localStorage und sessionStorage (auch Lesen) und jedes focus() und blur(). Dazu kommen Fälle zur Reihenfolge der
+// Effekte, zum wiederholten Halten, zum Ziehen an den Rand und drei Zufallsfolgen mit fester Saat. Die Folge je Fall wird mit der
+// Folge des Codes vor dem Zerlegen verglichen (fixtures/haustier-ansicht-golden.json, Stand 97e849b2); ein Unterschied meldet die
 // erste abweichende Zeile. Dazu prüfen ausgeschriebene Regeln die wichtigsten Stellen. Die Vergleichswerte neu schreiben nur mit
 // einem Code, dessen Verhalten gewollt ist:
 //   npx --yes tsx supabase/tests/haustier-ansicht.tsx --golden-schreiben
@@ -252,10 +255,61 @@ interface Lauf {
   gelesen: number;
   html: string;
   speicher: string;
+  fokus: string;
 }
 let lauf: Lauf;
 const DATUM = "2026-10-14T06:30:00Z";
 const echtLesen = fenster.Storage.prototype.getItem;
+
+// ---- Stil, Speicher und Fokus -------------------------------------------------------------------------------------------------
+// Was am Ende eines Schritts im HTML nicht mehr zu sehen ist, steht im Protokoll: jedes style.setProperty und removeProperty für eine
+// CSS-Variable (--hx, --bx, --hb-neigung ...), jeder Aufruf an localStorage und sessionStorage (auch Lesen, auch gesperrte) und
+// jedes focus() und blur(). Die Zeilen der Tests selbst (Vorbereitung, Prüfung) stehen ebenfalls darin; sie sind bei altem und
+// neuem Code gleich.
+const beschreibeElement = (el: Element | null): string =>
+  el ? `${el.localName}${el.id ? `#${el.id}` : ""}${typeof el.className === "string" && el.className ? `.${el.className.split(" ")[0]}` : ""}` : "-";
+
+function beobachteStilSpeicherFokus(): void {
+  const stil = fenster.CSSStyleDeclaration.prototype;
+  const setzeStil = stil.setProperty;
+  const entferneStil = stil.removeProperty;
+  stil.setProperty = function (this: CSSStyleDeclaration, name: string, wert: string | null, prioritaet?: string) {
+    if (name.startsWith("--")) notiere("stil", `${name}=${wert}`);
+    return setzeStil.call(this, name, wert, prioritaet);
+  };
+  stil.removeProperty = function (this: CSSStyleDeclaration, name: string) {
+    if (name.startsWith("--")) notiere("stil", `${name} entfernt`);
+    return entferneStil.call(this, name);
+  };
+  const ablage = fenster.Storage.prototype;
+  const welche = (s: Storage) => (s === fenster.localStorage ? "local" : "session");
+  const setzeEintrag = ablage.setItem;
+  const entferneEintrag = ablage.removeItem;
+  ablage.getItem = function (this: Storage, schluessel: string) {
+    notiere("speicher", `get ${welche(this)} ${schluessel}`);
+    return echtLesen.call(this, schluessel);
+  };
+  ablage.setItem = function (this: Storage, schluessel: string, wert: string) {
+    notiere("speicher", `set ${welche(this)} ${schluessel}`);
+    return setzeEintrag.call(this, schluessel, wert);
+  };
+  ablage.removeItem = function (this: Storage, schluessel: string) {
+    notiere("speicher", `remove ${welche(this)} ${schluessel}`);
+    return entferneEintrag.call(this, schluessel);
+  };
+  const element = fenster.HTMLElement.prototype;
+  const fokussiere = element.focus;
+  const entferne = element.blur;
+  element.focus = function (this: HTMLElement, optionen?: FocusOptions) {
+    notiere("fokus", `focus ${beschreibeElement(this)}`);
+    return fokussiere.call(this, optionen);
+  };
+  element.blur = function (this: HTMLElement) {
+    notiere("fokus", `blur ${beschreibeElement(this)}`);
+    return entferne.call(this);
+  };
+}
+beobachteStilSpeicherFokus();
 
 function speicherInhalt(): string {
   const lies = (ablage: Storage) => {
@@ -270,7 +324,7 @@ function neuerFall(name: string): Uhr {
   lage = { ...LAGE };
   navigation.setzePfad("/dashboard");
   const uhr = installiereUhr({ datum: DATUM });
-  lauf = { name, uhr, folge: [], gelesen: 0, html: "", speicher: speicherInhalt() };
+  lauf = { name, uhr, folge: [], gelesen: 0, html: "", speicher: speicherInhalt(), fokus: beschreibeElement(document.activeElement) };
   return uhr;
 }
 
@@ -286,7 +340,10 @@ function halte(schritt: string): void {
   const speicher = speicherInhalt();
   if (speicher !== l.speicher) l.folge.push(`speicher ${speicher}`);
   l.speicher = speicher;
-  l.folge.push(`zeitgeber ${json(l.uhr.zeitgeber())} bilder ${l.uhr.offen().bilder}`);
+  const fokus = beschreibeElement(document.activeElement);
+  if (fokus !== l.fokus) l.folge.push(`fokus ${fokus}`);
+  l.fokus = fokus;
+  l.folge.push(`zeitgeber ${json(l.uhr.zeitgeberMitId())} bilder ${json(l.uhr.bilderIds())}`);
 }
 
 function unterschied(ist: string | undefined, soll: string | undefined): string {
@@ -320,7 +377,8 @@ function sperreSpeicher(methoden: ("getItem" | "setItem" | "removeItem")[]): () 
   const proto = fenster.Storage.prototype as unknown as Record<string, unknown>;
   const alt = methoden.map((m) => [m, proto[m]] as const);
   for (const m of methoden)
-    proto[m] = () => {
+    proto[m] = (schluessel: string) => {
+      notiere("speicher", `${m} ${schluessel} gesperrt`);
       throw new Error(`${m} gesperrt`);
     };
   notiere("test", `speicher gesperrt ${methoden.join(",")}`);
@@ -1461,6 +1519,410 @@ async function dashboardWegschicken(): Promise<void> {
   await abbauen(ansicht);
 }
 
+// ---- Reihenfolge der Effekte, wiederholtes Halten, Ziehen an den Rand, Führung --------------------------------------------------
+// Fälle aus der Nacharbeit zum Zerlegen (14.10.2026): die Vergleichswerte zeigen, in welcher Reihenfolge die Effekte ihre Zeitgeber und
+// Bilder anlegen (Nummern in "zeitgeber ... bilder ..."), welche Zeitgeber nach einem erneuten Drücken noch offen sind und was an
+// Stil und Speicher geschrieben wird.
+async function huelleMountMitFuehrung(): Promise<void> {
+  const uhr = neuerFall("huelle-mount-fuehrung");
+  const ziel = document.createElement("section");
+  ziel.id = "ziel";
+  document.body.append(ziel);
+  setzeRechteck(ziel, { left: 100, top: 100, width: 300, height: 200 });
+  const { ansicht, neu: neuProps } = zeigeHuelle({ blickZiel: ziel, positionFolgtBlick: true, weg: WEG });
+  halte("gemountet mit Blickziel und positionFolgtBlick");
+  const zeitgeber = uhr.zeitgeberMitId();
+  const bilder = uhr.bilderIds();
+  const intervall = zeitgeber.find((z) => z.intervall);
+  pruefe(
+    "Hülle: beim Mount mit Führung legen Platz, Augen und Folgen ihre drei Bilder an, danach der Schlaf sein Intervall",
+    bilder.length === 3 && !!intervall && Math.max(...bilder) < intervall.id,
+    json({ zeitgeber, bilder }),
+  );
+  await uhr.bild();
+  halte("erstes Bild: die Figur zieht zum Ziel");
+  const amZiel = versatz();
+  pruefe("Hülle: beim Mount mit Führung steht die Figur nach dem ersten Bild am Ziel", amZiel !== "0,0", amZiel);
+  await ausloesen(() => fireEvent.pointerMove(window, { clientX: 1000, clientY: 0 }));
+  await uhr.vor(500);
+  halte("Zeiger bewegt: das Blickziel gewinnt");
+  neuProps({ weg: WEG, blickZiel: null, positionFolgtBlick: true });
+  halte("Führung vorbei: zurück in die Ecke");
+  pruefe("Hülle: endet die Führung, geht die Figur zurück in die Ecke", versatz() === "0,0", versatz());
+  fireEvent.pointerDown(griff(), { button: 0, pointerId: 1, clientX: 950, clientY: 660 });
+  fireEvent.pointerMove(griff(), { pointerId: 1, clientX: 900, clientY: 600, movementX: -5 });
+  fireEvent.pointerUp(griff(), { pointerId: 1, clientX: 900, clientY: 600 });
+  halte("danach gezogen");
+  const gezogen = versatz();
+  neuProps({ weg: WEG, blickZiel: null, positionFolgtBlick: false });
+  halte("positionFolgtBlick aus: die gezogene Position bleibt");
+  neuProps({ weg: WEG, blickZiel: ziel, positionFolgtBlick: false });
+  halte("Blickziel ohne positionFolgtBlick: die gezogene Position bleibt");
+  pruefe("Hülle: nach dem Ende der Führung setzt ein weiterer Wechsel die gezogene Position nicht zurück", gezogen !== "0,0" && versatz() === gezogen, `${gezogen} ${versatz()}`);
+  neuProps({ weg: WEG, blickZiel: ziel, positionFolgtBlick: true });
+  halte("Führung wieder: die Figur folgt");
+  await uhr.bild();
+  halte("zieht wieder zum Ziel");
+  ansicht.unmount();
+  halte("abgebaut");
+  pruefe("Hülle: beim Abbau bleiben weder Zeitgeber noch Bilder", uhr.offen().zeitgeber === 0 && uhr.offen().intervalle === 0 && uhr.offen().bilder === 0, json(uhr.offen()));
+  schliesse();
+}
+
+async function huelleHaltenWiederholt(): Promise<void> {
+  const uhr = neuerFall("huelle-halten-wiederholt");
+  const { ansicht } = zeigeHuelle({ weg: WEG });
+  await uhr.bild();
+  halte("bereit");
+  const druecke = (id: number) => fireEvent.pointerDown(griff(), { button: 0, pointerId: id, clientX: 950, clientY: 660 });
+  const haltZeitgeber = () => uhr.zeitgeber().filter((z) => !z.intervall && z.ms !== 620);
+  druecke(1);
+  await uhr.vor(100);
+  halte("100 ms gehalten");
+  druecke(2);
+  halte("erneut gedrückt: die Zeitgeber beginnen neu");
+  pruefe("Hülle: erneutes Drücken lässt nur ein Paar Halte-Zeitgeber offen (380 und 1280 ms)", haltZeitgeber().length === 2 && haltZeitgeber().every((z) => z.inMs === z.ms), json(uhr.zeitgeberMitId()));
+  await uhr.vor(379);
+  halte("379 ms nach dem zweiten Druck");
+  pruefe("Hülle: gerechnet ab dem zweiten Druck gibt es vor 380 ms noch kein Halten", daten("halten") === "false");
+  await uhr.vor(1);
+  halte("380 ms nach dem zweiten Druck: Halten");
+  fireEvent.pointerUp(griff(), { pointerId: 2 });
+  halte("losgelassen: erleichtert");
+  pruefe(
+    "Hülle: nach dem Halten losgelassen ist Himbi erleichtert, es bleibt nur der Zeitgeber für das Ende (1100 ms)",
+    daten("zustand") === "fertig" && haltZeitgeber().length === 1 && haltZeitgeber()[0]!.ms === 1100,
+    json(uhr.zeitgeberMitId()),
+  );
+  await uhr.vor(300);
+  halte("300 ms erleichtert");
+  druecke(3);
+  await uhr.vor(400);
+  halte("wieder gehalten");
+  fireEvent.pointerUp(griff(), { pointerId: 3 });
+  halte("zum zweiten Mal erleichtert: der erste Zeitgeber ist ersetzt");
+  pruefe("Hülle: noch einmal erleichtert hat nur einen Zeitgeber für das Ende (1100 ms)", haltZeitgeber().filter((z) => z.ms === 1100).length === 1, json(uhr.zeitgeberMitId()));
+  await uhr.vor(399);
+  halte("399 ms später");
+  await uhr.vor(1);
+  halte("400 ms später: der erste Zeitgeber wäre jetzt fällig");
+  pruefe("Hülle: zum Ende des ersten Zeitgebers bleibt Himbi erleichtert, es zählt der zweite", daten("zustand") === "fertig");
+  await uhr.vor(700);
+  halte("1100 ms nach dem zweiten Loslassen: wieder Ruhe");
+  pruefe("Hülle: 1100 ms nach dem zweiten Loslassen wieder Ruhe", daten("zustand") === "ruhe");
+  ansicht.unmount();
+  halte("abgebaut");
+  schliesse();
+}
+
+async function huelleZiehenAnDenRand(): Promise<void> {
+  const uhr = neuerFall("huelle-ziehen-rand");
+  const { ansicht } = zeigeHuelle({ weg: WEG });
+  await uhr.bild();
+  halte("bereit");
+  fireEvent.pointerDown(griff(), { button: 0, pointerId: 1, clientX: 950, clientY: 660 });
+  fireEvent.pointerMove(griff(), { pointerId: 1, clientX: 990, clientY: 700, movementX: 4 });
+  halte("zieht");
+  platziere({ left: 1000, top: 700, width: 100, height: 120 });
+  fireEvent.pointerUp(griff(), { pointerId: 1, clientX: 990, clientY: 700 });
+  halte("losgelassen: über den Rand hinaus, geklemmt vor dem Speichern");
+  pruefe(
+    "Hülle: nach dem Ziehen wird an den Rand geklemmt und die geklemmte Position gespeichert",
+    versatz() === "-44,-20" && localStorage.getItem("damicon-haustier-pos") === json({ x: -44, y: -20 }) && daten("seite") === "rechts" && daten("hoehe") === "oben",
+    `${versatz()} ${localStorage.getItem("damicon-haustier-pos")}`,
+  );
+  fireEvent.pointerDown(griff(), { button: 0, pointerId: 2, clientX: 950, clientY: 660 });
+  fireEvent.pointerMove(griff(), { pointerId: 2, clientX: 900, clientY: 620, movementX: -3 });
+  platziere({ left: -30, top: 100, width: 100, height: 120 });
+  fireEvent.pointerCancel(griff(), { pointerId: 2 });
+  halte("abgebrochen links oben hinaus: geklemmt, Seite links, Blase unten");
+  pruefe("Hülle: nach dem Abbrechen wird ebenso geklemmt, Seite und Höhe folgen", daten("seite") === "links" && daten("hoehe") === "unten", `${versatz()} ${daten("seite")} ${daten("hoehe")}`);
+  ansicht.unmount();
+  halte("abgebaut");
+  schliesse();
+}
+
+// Dashboard: Reihenfolge der Hooks, Abhängigkeiten der Effekte und was "ruhig genug" heißt.
+async function dashboardTippUndAnstupser(): Promise<void> {
+  const uhr = neuerFall("dashboard-tipp-und-anstupser");
+  sessionStorage.setItem(BEFINDEN, "1");
+  navigation.setzePfad("/dashboard/feld/standort");
+  const ansicht = zeigeDashboard();
+  halte("auf einer Modulseite, nichts gefragt");
+  const anstupser = uhr.zeitgeberMitId().find((z) => z.ms === 90000);
+  const tipp = uhr.zeitgeberMitId().find((z) => z.ms === 7000);
+  pruefe(
+    "Dashboard: Anstupser (90 s) und Tipp (7 s) werden in der Reihenfolge der Hooks geplant, erst der Anstupser",
+    !!anstupser && !!tipp && anstupser.id < tipp.id,
+    json(uhr.zeitgeberMitId()),
+  );
+  await uhr.vor(7000);
+  halte("7 s: Tipp zum Modul");
+  klicke("Später");
+  halte("Später beim Tipp");
+  await uhr.vor(83000);
+  halte("90 s: Anstupser");
+  pruefe("Dashboard: nach 90 s Ruhe kommt der Anstupser, der Tipp ist schon gemerkt", blasenText()?.startsWith("Soll ich dir zeigen, was sich heute") === true, blasenText() ?? "");
+  await abbauen(ansicht);
+}
+
+async function dashboardGrussNutzerWechsel(): Promise<void> {
+  const uhr = neuerFall("dashboard-gruss-nutzerwechsel");
+  ohneFragen();
+  setze({ tagesbeginnAn: true });
+  const ansicht = zeigeDashboard();
+  await uhr.vor(2500);
+  halte("2,5 s: Tagesgruß für nutzer-1");
+  const erster = localStorage.getItem("damicon-himbi-tagesbeginn") ?? "";
+  pruefe("Dashboard: der Tagesgruß wird für den Nutzer gemerkt", erster.includes('"nutzer-1"'), erster);
+  await uhr.vor(10000);
+  halte("10 s später");
+  await lageNeu({ nutzerId: "nutzer-2" });
+  halte("anderer Nutzer: der Gruß wird für ihn gemerkt, die Anzeigedauer beginnt neu");
+  const zweiter = localStorage.getItem("damicon-himbi-tagesbeginn") ?? "";
+  pruefe("Dashboard: wechselt der Nutzer bei gezeigtem Gruß, wird er für den neuen Nutzer gemerkt", zweiter.includes('"nutzer-2"'), zweiter);
+  await uhr.vor(44999);
+  halte("44999 ms nach dem Wechsel: Gruß noch da");
+  pruefe("Dashboard: die Anzeigedauer zählt ab dem Wechsel", blasenText()?.startsWith("Guten Tag, Anna!") === true, blasenText() ?? "");
+  await uhr.vor(1);
+  halte("45 s nach dem Wechsel: Gruß weg");
+  await abbauen(ansicht);
+}
+
+async function dashboardTippOhneMerker(): Promise<void> {
+  const uhr = neuerFall("dashboard-tipp-ohne-merker");
+  ohneFragen();
+  navigation.setzePfad("/dashboard/feld/standort");
+  const ansicht = zeigeDashboard();
+  const frei = sperreSpeicher(["setItem"]);
+  await uhr.vor(7000);
+  halte("7 s: Tipp, nicht gemerkt (Speicher gesperrt)");
+  await uhr.vor(14999);
+  halte("14999 ms Tipp");
+  await uhr.vor(1);
+  halte("15 s: Tipp abgelaufen, neue Wartezeit");
+  pruefe("Dashboard: ohne Merker plant der abgelaufene Tipp eine neue Wartezeit", blasenText() === null && uhr.zeitgeber().some((z) => z.ms === 7000));
+  await uhr.vor(7000);
+  halte("7 s später: der Tipp kommt wieder");
+  pruefe("Dashboard: ohne Merker kommt der Tipp wieder", blasenText()?.startsWith("Du bist bei „Standort-Hierarchie“") === true, blasenText() ?? "");
+  frei();
+  await abbauen(ansicht);
+}
+
+async function dashboardUngelesenNichtRuhig(): Promise<void> {
+  const uhr = neuerFall("dashboard-ungelesen-nicht-ruhig");
+  sessionStorage.setItem(BEFINDEN, "1");
+  navigation.setzePfad("/dashboard/feld/standort");
+  const ansicht = zeigeDashboard();
+  await uhr.bild();
+  await lageNeu({ phase: "arbeitet" });
+  await lageNeu({ phase: "ruhe" });
+  halte("Antwort kam bei geschlossenem Panel");
+  await uhr.vor(9000);
+  halte("9 s: Blase weg, die Antwort bleibt ungelesen");
+  pruefe(
+    "Dashboard: eine ungelesene Antwort ist nicht ruhig, auch wenn ihre Blase vorbei ist: kein Tipp- und kein Anstupser-Zeitgeber",
+    blasenText() === null && daten("zustand") === "fertig" && !uhr.zeitgeber().some((z) => z.ms === 7000 || z.ms === 90000),
+    json(uhr.zeitgeberMitId()),
+  );
+  await uhr.vor(120000);
+  halte("2 min später: nichts von selbst");
+  pruefe("Dashboard: bei ungelesener Antwort kommt weder Tipp noch Anstupser", blasenText() === null);
+  await lageNeu({ offen: true });
+  halte("Panel auf: gelesen");
+  await lageNeu({ offen: false });
+  halte("Panel zu: jetzt ist Ruhe, die Wartezeiten beginnen");
+  pruefe("Dashboard: nach dem Lesen beginnen die Wartezeiten", uhr.zeitgeber().some((z) => z.ms === 7000) && uhr.zeitgeber().some((z) => z.ms === 90000), json(uhr.zeitgeberMitId()));
+  await abbauen(ansicht);
+}
+
+// ---- Zufallsfolgen mit fester Saat -------------------------------------------------------------------------------------------------
+// Je Schritt wählt ein Zufallsgenerator mit fester Saat eine Operation (Zeiger, Ziehen, Halten und Loslassen, Tasten, Sprünge der
+// Uhr, Wechsel der Eigenschaften oder der Lage, Sichtbarkeit, Abbauen). Gleiche Saat, gleiche Folge; der Stand wird nach jedem
+// Schritt wie in den übrigen Fällen festgehalten.
+/** Kleiner Zufallsgenerator (mulberry32). */
+function zufallsfolge(saat: number): () => number {
+  let s = saat >>> 0;
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function waehle<T>(zufall: () => number, liste: readonly T[]): T {
+  return liste[Math.floor(zufall() * liste.length)]!;
+}
+const ZEITSPRUENGE = [0, 1, 16, 100, 379, 380, 381, 619, 620, 899, 900, 1099, 1100, 1249, 1250, 1279, 1280, 2000, 2001, 40000, 44000];
+const DASHBOARD_SPRUENGE = [1, 100, 2500, 3200, 7000, 9000, 15000, 18000, 25000, 45000, 90000];
+
+type Operation = [name: string, tu: () => unknown];
+
+/** Wählt je Schritt eine Operation, führt sie aus (danach `nachher`) und hält den Stand fest. */
+async function spieleOperationen(operationen: Operation[], zufall: () => number, schritte: number, nachher?: () => void): Promise<void> {
+  for (let i = 0; i < schritte; i++) {
+    const [name, tu] = waehle(zufall, operationen);
+    await tu();
+    nachher?.();
+    halte(`${i} ${name}`);
+  }
+}
+
+async function huelleZufall(name: string, saat: number, schritte: number): Promise<void> {
+  const uhr = neuerFall(name);
+  const zufall = zufallsfolge(saat);
+  const zahl = (von: number, bis: number) => von + Math.floor(zufall() * (bis - von + 1));
+  const pane = document.createElement("div");
+  pane.className = "ki-pane";
+  pane.innerHTML = `<textarea id="frage"></textarea>`;
+  document.body.append(pane);
+  const feld = pane.querySelector("textarea")!;
+  setzeRechteck(feld, { left: 600, top: 300, width: 300, height: 100 });
+  const ziele = [
+    { id: "ziel-a", rechteck: { left: 100, top: 100, width: 200, height: 300 } },
+    { id: "ziel-b", rechteck: { left: 700, top: 500, width: 250, height: 200 } },
+  ].map(({ id, rechteck }) => {
+    const el = document.createElement("section");
+    el.id = id;
+    document.body.append(el);
+    setzeRechteck(el, rechteck);
+    return el;
+  });
+  const lose = document.createElement("div");
+  let props: Partial<HaustierHuelleProps> = { zustand: "ruhe", weg: WEG };
+  let h: ReturnType<typeof zeigeHuelle> | null = zeigeHuelle(props);
+  let zeigerId = 0;
+  let huepf = 0;
+  const aendere = (teil: Partial<HaustierHuelleProps>) => {
+    props = { ...props, ...teil };
+    h?.neu(props);
+  };
+  const amGriff = (tu: (g: HTMLElement) => void) => {
+    const g = document.querySelector<HTMLElement>(".haustier__griff");
+    if (g) tu(g);
+  };
+  const operationen: Operation[] = [
+    ["Zeiger irgendwo", () => ausloesen(() => fireEvent.pointerMove(window, { clientX: zahl(0, 1024), clientY: zahl(0, 768) }))],
+    ["Zeiger nah", () => ausloesen(() => fireEvent.pointerMove(window, { clientX: zahl(900, 1000), clientY: zahl(600, 720) }))],
+    ["drücken", () => amGriff((g) => fireEvent.pointerDown(g, { button: 0, pointerId: ++zeigerId, clientX: 950, clientY: 660 }))],
+    ["drücken", () => amGriff((g) => fireEvent.pointerDown(g, { button: 0, pointerId: ++zeigerId, clientX: 950, clientY: 660 }))],
+    ["rechte Taste", () => amGriff((g) => fireEvent.pointerDown(g, { button: 2, pointerId: ++zeigerId, clientX: 950, clientY: 660 }))],
+    ["bewegen", () => amGriff((g) => fireEvent.pointerMove(g, { pointerId: zeigerId, clientX: zahl(800, 1020), clientY: zahl(500, 760), movementX: zahl(-12, 12) }))],
+    ["loslassen", () => amGriff((g) => fireEvent.pointerUp(g, { pointerId: zeigerId, clientX: 950, clientY: 660 }))],
+    ["loslassen", () => amGriff((g) => fireEvent.pointerUp(g, { pointerId: zeigerId, clientX: 950, clientY: 660 }))],
+    ["abbrechen", () => amGriff((g) => fireEvent.pointerCancel(g, { pointerId: zeigerId }))],
+    ["Doppelklick", () => amGriff((g) => fireEvent.doubleClick(g))],
+    ["Taste am Griff", () => amGriff((g) => fireEvent.keyDown(g, { key: waehle(zufall, ["Enter", " ", "Delete", "Backspace", "a"]) }))],
+    ["Taste am Fenster", () => ausloesen(() => fireEvent.keyDown(window, { key: "x" }))],
+    ["Uhr vor", () => uhr.vor(waehle(zufall, ZEITSPRUENGE))],
+    ["Uhr vor", () => uhr.vor(waehle(zufall, ZEITSPRUENGE))],
+    ["Uhr vor", () => uhr.vor(waehle(zufall, ZEITSPRUENGE))],
+    ["Zustand", () => aendere({ zustand: waehle(zufall, ["ruhe", "ruhe", "denkt", "spricht", "fertig", "freigabe", "fehler"] as const) })],
+    ["Wegschicken an oder aus", () => aendere({ weg: props.weg ? undefined : WEG })],
+    ["Blase an oder aus", () => aendere({ blase: props.blase ? null : <p className="probe-blase">Hallo</p> })],
+    ["Panel", () => aendere({ paneOffen: !props.paneOffen })],
+    ["Bühne", () => aendere({ buehne: !props.buehne })],
+    ["verborgen", () => aendere({ verborgen: !props.verborgen })],
+    ["Hüpfer", () => aendere({ huepf: ++huepf })],
+    ["Blickziel", () => aendere({ blickZiel: waehle(zufall, [undefined, null, ziele[0], ziele[1], lose] as const) })],
+    ["positionFolgtBlick", () => aendere({ positionFolgtBlick: !props.positionFolgtBlick })],
+    ["Rechteck des Griffs", () => platziere({ left: zahl(-60, 1000), top: zahl(-40, 700), width: 100, height: 120 })],
+    ["Rechteck eines Ziels", () => setzeRechteck(waehle(zufall, ziele), { left: zahl(0, 900), top: zahl(0, 600), width: zahl(40, 300), height: zahl(40, 300) })],
+    ["scrollen", () => scrolle()],
+    ["Fenstergröße", () => groesse()],
+    ["Fokus ins Feld", () => ausloesen(() => feld.focus())],
+    ["Fokus weg", () => ausloesen(() => feld.blur())],
+    [
+      "abbauen und neu mounten",
+      () => {
+        h?.ansicht.unmount();
+        h = zeigeHuelle(props);
+      },
+    ],
+  ];
+  halte("start");
+  await spieleOperationen(operationen, zufall, schritte);
+  h?.ansicht.unmount();
+  halte("abgebaut");
+  pruefe(`${name}: beim Abbau bleiben weder Zeitgeber noch Bilder`, uhr.offen().zeitgeber === 0 && uhr.offen().intervalle === 0 && uhr.offen().bilder === 0, json(uhr.offen()));
+  schliesse();
+}
+
+async function dashboardZufall(name: string, saat: number, schritte: number, gefragt: boolean): Promise<void> {
+  const uhr = neuerFall(name);
+  const zufall = zufallsfolge(saat);
+  if (gefragt) ohneFragen();
+  const anker = document.createElement("div");
+  anker.id = "compliance-live-lauf";
+  document.body.append(anker);
+  setzeRechteck(anker, { left: 100, top: 100, width: 300, height: 200 });
+  const station = document.createElement("section");
+  station.id = "station";
+  document.body.append(station);
+  setzeRechteck(station, { left: 200, top: 300, width: 400, height: 200 });
+  setze({ tagesbeginnAn: true });
+  navigation.setzePfad("/dashboard/feld/standort");
+  const ansicht = zeigeDashboard();
+  let huepf = 0;
+  const pfade = ["/dashboard", "/dashboard/feld/standort", "/dashboard/feld/reihenbloecke", "/dashboard/feld/pflanzenschutz", "/dashboard/uebersicht", "/dashboard/hof/lieferschein-esf"];
+  const touren: TourLage[] = [
+    TOUR_AUS,
+    { ...TOUR_AUS, frageBereit: true, frageBlase: "Tour starten?" },
+    { ...TOUR_AUS, aktiv: true, tourBlase: "Station", tourZustand: "spricht", tourZiel: station, huepf: 1 },
+  ];
+  const operationen: Operation[] = [
+    ["Phase", () => lageNeu({ phase: waehle(zufall, ["ruhe", "ruhe", "arbeitet", "freigabe", "fehler"] as const), text: waehle(zufall, ["", "Prüfe MwSt-Status …"]) })],
+    ["Antwort kommt", async () => {
+      await lageNeu({ phase: "arbeitet" });
+      await lageNeu({ phase: "ruhe" });
+    }],
+    ["Panel", () => lageNeu({ offen: !lage.offen })],
+    ["Darstellung", () => lageNeu({ darstellung: lage.darstellung === "seite" ? "buehne" : "seite" })],
+    ["an oder aus", () => lageNeu({ an: !lage.an })],
+    ["weg oder da", () => lageNeu({ weg: !lage.weg })],
+    ["Handy", () => lageNeu({ handy: !lage.handy })],
+    ["Sprachmodus", () => lageNeu({ sprachmodus: !lage.sprachmodus })],
+    ["Nutzer", () => lageNeu({ nutzerId: waehle(zufall, ["nutzer-1", "nutzer-2", null] as const) })],
+    ["Rolle", () => lageNeu({ role: waehle(zufall, ["admin", "picker"] as const) })],
+    ["Tagesbeginn", () => lageNeu({ tagesbeginnAn: !lage.tagesbeginnAn })],
+    ["Prüfung", () => lageNeu({ ceo: waehle(zufall, [null, { phase: "laeuft" }, { phase: "fertig" }] as const) as Lage["ceo"] })],
+    ["Tour", () => lageNeu({ tour: { ...waehle(zufall, touren), huepf: ++huepf } })],
+    ["Stimmung", () => lageNeu({ stimmung: waehle(zufall, ["neutral", "gut", "warnung"] as const) })],
+    ["Seite", () => ausloesen(() => navigation.setzePfad(waehle(zufall, pfade)))],
+    ["Sichtbarkeit", () => ausloesen(() => setzeSichtbarkeit(document.visibilityState === "visible" ? "hidden" : "visible"))],
+    ["Uhr vor", () => uhr.vor(waehle(zufall, DASHBOARD_SPRUENGE))],
+    ["Uhr vor", () => uhr.vor(waehle(zufall, DASHBOARD_SPRUENGE))],
+    ["Uhr vor", () => uhr.vor(waehle(zufall, DASHBOARD_SPRUENGE))],
+    ["Knopf", () => {
+      const knoepfe = [...document.querySelectorAll("button")];
+      if (knoepfe.length > 0) fireEvent.click(waehle(zufall, knoepfe));
+    }],
+    ["Knopf", () => {
+      const knoepfe = [...document.querySelectorAll("button")];
+      if (knoepfe.length > 0) fireEvent.click(waehle(zufall, knoepfe));
+    }],
+    ["Himbi klicken", () => {
+      const g = document.querySelector<HTMLElement>(".haustier__griff");
+      if (!g) return;
+      fireEvent.pointerDown(g, { button: 0, pointerId: 1, clientX: 950, clientY: 660 });
+      fireEvent.pointerUp(g, { pointerId: 1, clientX: 950, clientY: 660 });
+    }],
+    ["Taste an Himbi", () => {
+      const g = document.querySelector<HTMLElement>(".haustier__griff");
+      if (g) fireEvent.keyDown(g, { key: waehle(zufall, ["Enter", " ", "Delete"]) });
+    }],
+    ["Escape", () => ausloesen(() => fireEvent.keyDown(window, { key: "Escape" }))],
+  ];
+  halte("start");
+  await spieleOperationen(operationen, zufall, schritte, () => platziere());
+  await abbauen(ansicht);
+}
+
+const dashboardZufallA = () => dashboardZufall("dashboard-zufall-a", 4711, 60, false);
+const dashboardZufallB = () => dashboardZufall("dashboard-zufall-b", 20261013, 60, true);
+const huelleZufallA = () => huelleZufall("huelle-zufall-a", 20261014, 70);
+
 const FAELLE = [
   huellePlatz,
   huelleSpeicher,
@@ -1492,6 +1954,16 @@ const FAELLE = [
   dashboardAbzeichen,
   dashboardBuehne,
   dashboardWegschicken,
+  huelleMountMitFuehrung,
+  huelleHaltenWiederholt,
+  huelleZiehenAnDenRand,
+  dashboardTippUndAnstupser,
+  dashboardGrussNutzerWechsel,
+  dashboardTippOhneMerker,
+  dashboardUngelesenNichtRuhig,
+  huelleZufallA,
+  dashboardZufallA,
+  dashboardZufallB,
 ];
 
 async function main(): Promise<void> {
@@ -1502,7 +1974,7 @@ async function main(): Promise<void> {
   konsole.stoppe();
   pruefe("Konsole: keine Fehler und Warnungen von React (etwa Updates außerhalb von act)", konsole.fehler.length === 0 && konsole.warnungen.length === 0, json([...konsole.fehler, ...konsole.warnungen]).slice(0, 600));
   if (schreiben) {
-    writeFileSync(GOLDEN, `${JSON.stringify({ stand: "Code vor dem Zerlegen (1fb29cf1)", ...neu }, null, 1)}\n`);
+    writeFileSync(GOLDEN, `${JSON.stringify({ stand: "Code vor dem Zerlegen (97e849b2)", ...neu }, null, 1)}\n`);
     console.log(`Vergleichswerte geschrieben: ${GOLDEN}`);
   } else {
     const fehlend = Object.keys(golden).filter((k) => k !== "stand" && !(k in neu));

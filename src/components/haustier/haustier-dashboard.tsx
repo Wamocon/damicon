@@ -67,7 +67,10 @@ export function HaustierDashboard() {
   const handy = useIstHandy();
   const seiteSichtbar = useSyncExternalStore(abonniereSeitenSichtbarkeit, seiteImVordergrund, seiteAufDemServer);
 
-  // Die Hooks in dieser Reihenfolge: so laufen ihre Effekte wie vorher, als sie hier standen.
+  // Die Hooks in dieser Reihenfolge: so laufen ihre Effekte wie vorher, als sie hier standen. Das gilt für die Folge der Hooks
+  // untereinander, nicht für den Doppellauf der Effekte im StrictMode (nur im Entwicklungsmodus, ohne Folgen für den Zustand):
+  // Hülle und Abzeichen hängen jetzt unter HimbiImDashboard und laufen dort in einem Durchgang (Hülle aus, Dialog aus, Hülle ein,
+  // Dialog ein), vorher je Geschwister für sich (Hülle aus, Hülle ein, Dialog aus, Dialog ein).
   const { willkommen, begruesse } = useWillkommen();
   const live = useLiveHinweis({ an, weg, ceoStand, pfad });
   const meldung = useFertigMeldung(phase, offen);

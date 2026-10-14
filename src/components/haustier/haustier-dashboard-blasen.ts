@@ -250,7 +250,8 @@ export function useAnstupser(ruhigGenug: boolean) {
     const zeigen = window.setTimeout(() => setAnstupser(naechste), ANSTUPSER_VERZOEGERUNG_MS);
     return () => window.clearTimeout(zeigen);
   }, [ruhigGenug]);
-  // "Spaeter" zaehlt als Absage, wie das Verstreichen der Anzeigedauer (anstupserGezeigt in useBlasenMerker).
+  // "Spaeter" zaehlt als Absage, wie das Verstreichen der Anzeigedauer (anstupserGezeigt in useBlasenMerker). sageAb ist nicht
+  // stabil: sie wird in jedem Render neu erzeugt und steht deshalb in keiner Abhängigkeitsliste, sondern nur im Klick.
   const sageAb = () => {
     absagen.current += 1;
     setAnstupser(null);
