@@ -75,6 +75,10 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // (fehler.regel), sonst zeigt die Oberflaeche faelschlich "Wartezeit
       // ist noch nicht abgelaufen", obwohl genau das nicht die Ursache ist.
       return fehler("fehler.reihenblockGesperrt");
+    case "DA011":
+      // profil_letzter_admin_schuetzen() (WMCNL-1441): die Rolle admin laesst sich
+      // einem Konto nur entziehen, solange mindestens ein anderes sie behaelt.
+      return fehler("fehler.letzterAdmin");
     case "DA006":
       // pflueckaufgabe_freigabe_pruefen() (WMCNL-2492): der Abschluss
       // verlangt einen Fotobeleg. Eigener Code statt der ueberladenen

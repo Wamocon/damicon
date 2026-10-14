@@ -19,6 +19,7 @@ import { LogistikAnsicht } from "@/components/db/logistik-ansicht";
 import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
 import { PersonalAnsicht } from "@/components/db/personal-ansicht";
 import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
+import { RollenZuweisungAnsicht } from "@/components/db/rollen-zuweisung-ansicht";
 import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
 import { WetterAnsicht } from "@/components/db/wetter-ansicht";
 import { KanaeleAnsicht } from "@/components/db/kanaele-ansicht";
@@ -160,6 +161,7 @@ export function serverModulAnsicht(
       return (
         <div className="space-y-6">
           <RollenDemo />
+          <RollenZuweisungAnsicht />
           <EinladungenAnsicht />
         </div>
       );

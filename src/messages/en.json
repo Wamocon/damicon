@@ -705,7 +705,7 @@
       "navTitle": "Roles and permissions",
       "description": "Eight core roles, from the CEO and administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client, with a permission matrix over resources and actions.",
       "summary": "Sets out who may see and change what. A new role can be added without changing anything in the modules.",
-      "todo": "User management, role assignment, fine-grained access rules per resource."
+      "todo": "Creating and blocking staff accounts, fine-grained access rules per resource."
     },
     "finanzen": {
       "title": "Contribution margin and finance",
@@ -970,7 +970,8 @@
       "wissenSammelFreigegeben": "Approved and searchable: {wert} documents (details in the window).",
       "wissenSammelAbgelehnt": "Rejected: {wert} documents. They stay blocked and can be deleted.",
       "wissenUmgeordnet": "Classification of “{wert}” changed.",
-      "wissenNachgeladen": "Pages {wert} loaded and inserted into the book."
+      "wissenNachgeladen": "Pages {wert} loaded and inserted into the book.",
+      "rolleGeaendert": "Role of “{wert}” changed."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1054,7 +1055,11 @@
       "wissenSeitenNichtBestaetigt": "This book has open missing pages. To approve it, enter the printed page numbers that are correctly missing. Please approve it individually in the review window, not in the bulk approval.",
       "wissenSeitenNichtAbgedeckt": "The pages entered do not cover all missing pages. Open: {wert}. Real content is missing, so the book cannot be approved. Please load the pages later or delete the book and upload it again.",
       "wissenNachtragUngueltig": "The loaded pages do not match any open gap of this book. Nothing was inserted.",
-      "zeitraum": "The validity period does not fit: the end is before the start, or a document without expiry has an end date."
+      "zeitraum": "The validity period does not fit: the end is before the start, or a document without expiry has an end date.",
+      "eigeneRolle": "Your own role cannot be changed here. Please ask another administrator.",
+      "kundenkonto": "Customer accounts are managed through invitations, not through role assignment.",
+      "rolleUnveraendert": "The account already has this role.",
+      "letzterAdmin": "The last administrator keeps the role. Appoint another administrator first."
     },
     "einladungen": {
       "erfolg": {
@@ -4508,5 +4513,21 @@
       },
       "schwellen": "Level high from {hoch} points, medium from {mittel}. A conflict with the waiting-period lock is always high."
     }
+  },
+  "rollenZuweisung": {
+    "titel": "Accounts and roles",
+    "lead": "An account's role decides what it may see and do. A change applies from the next page the account opens.",
+    "col": {
+      "name": "Name",
+      "email": "Email",
+      "rolle": "Role",
+      "aendern": "Change"
+    },
+    "knopf": "Save",
+    "kundeHinweis": "Customer account, managed through invitations",
+    "eigenesKonto": "Your own account",
+    "nurAdministration": "Only administration assigns roles.",
+    "leer": "No accounts visible.",
+    "hinweis": "The last administrator keeps the role. Your own role cannot be changed here."
   }
 }
