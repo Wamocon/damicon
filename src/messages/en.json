@@ -5077,7 +5077,7 @@
       "abschnittRegel": "Cold chain rule",
       "abschnittErgebnis": "Result per pickup",
       "abschnittHinweise": "Notes",
-      "regel": "From the start of picking the clock runs until the produce is in the cold store. Up to {warnung} minutes the pickup counts as fine, up to {verstoss} minutes as a warning, beyond that as a violation. The neighbouring farm states when picking began. If it is missing, the pickup counts as a warning.",
+      "regel": "From the start of picking the clock runs until the produce is in the cold store. Up to {warnung} minutes the pickup counts as fine, up to {rot} minutes as a warning, beyond that as a violation. The neighbouring farm states when picking began. If it is missing, the pickup counts as a warning.",
       "keineStopps": "This round has no stops.",
       "keineAbholung": "Nothing was collected.",
       "verstossTitel": "Violation of the 60-minute rule",
@@ -5272,7 +5272,7 @@
       "route": "Route {km} km, {minuten} minutes in total",
       "keineRoute": "No route calculated: addresses are missing, or the routing service was not reachable.",
       "abErstem": "{minuten} minutes of driving from the first stop to the cold store",
-      "ergebnisse": "{ok} fine, {warnung} warnings, {verstoss} violations",
+      "ergebnisse": "{ok} fine, {warnung} warnings, {rot} violations",
       "auftrag": "Pickup order (PDF)",
       "abgeschlossenTitel": "Completed rounds ({anzahl})",
       "abgeschlossenLead": "Completed rounds no longer change. They are the evidence for the 60-minute rule."

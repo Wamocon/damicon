@@ -115,7 +115,7 @@ function RundeKarte({ runde, t, format, darfPlanen, darfErfassen, mitKarte }: { 
           <StatusPill tone={kuehlErgebnisTon[z.schlechtestes] ?? "neutral"}>
             {z.schlechtestes === "ok" ? t("ergebnis.ok") : z.schlechtestes === "warnung" ? t("ergebnis.warnung") : t("ergebnis.verstoss")}
           </StatusPill>
-          <span className="text-muted-foreground">{t("runde.ergebnisse", { ok: z.ergebnisse.ok, warnung: z.ergebnisse.warnung, verstoss: z.ergebnisse.verstoss })}</span>
+          <span className="text-muted-foreground">{t("runde.ergebnisse", { ok: z.ergebnisse.ok, warnung: z.ergebnisse.warnung, rot: z.ergebnisse.verstoss })}</span>
         </p>
       ) : null}
 

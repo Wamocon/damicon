@@ -51,7 +51,7 @@ export function baueAbholauftragDokument(runde: AbholRundeZeile, x: DokumentKont
 
   const abschnitte = [
     { titel: t("abschnittStopps"), html: stoppZeilen.length > 0 ? tabelle([t("col.nr"), t("col.betrieb"), t("col.erwartet"), t("col.abgeholt"), t("col.status")], stoppZeilen, [2, 3]) : leerHinweis(t("keineStopps")) },
-    { titel: t("abschnittRegel"), html: absatz(t("regel", { warnung: WARNUNG_AB_MINUTEN, verstoss: VERSTOSS_AB_MINUTEN })) + (abgeschlossen ? "" : absatz(planungText)) },
+    { titel: t("abschnittRegel"), html: absatz(t("regel", { warnung: WARNUNG_AB_MINUTEN, rot: VERSTOSS_AB_MINUTEN })) + (abgeschlossen ? "" : absatz(planungText)) },
     ...(abgeschlossen
       ? [
           {

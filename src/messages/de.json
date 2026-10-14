@@ -5077,7 +5077,7 @@
       "abschnittRegel": "Regel der Kühlkette",
       "abschnittErgebnis": "Ergebnis je Abholung",
       "abschnittHinweise": "Hinweise",
-      "regel": "Ab dem Pflückbeginn zählt die Uhr, bis die Ware im Kühlhaus ist. Bis {warnung} Minuten gilt die Abholung als in Ordnung, bis {verstoss} Minuten als Warnung, darüber als Verstoß. Den Pflückbeginn nennt der Nachbarbetrieb. Fehlt er, gilt die Abholung als Warnung.",
+      "regel": "Ab dem Pflückbeginn zählt die Uhr, bis die Ware im Kühlhaus ist. Bis {warnung} Minuten gilt die Abholung als in Ordnung, bis {rot} Minuten als Warnung, darüber als Verstoß. Den Pflückbeginn nennt der Nachbarbetrieb. Fehlt er, gilt die Abholung als Warnung.",
       "keineStopps": "Diese Runde hat keine Stopps.",
       "keineAbholung": "Es wurde nichts abgeholt.",
       "verstossTitel": "Verstoß gegen die 60-Minuten-Regel",
@@ -5272,7 +5272,7 @@
       "route": "Route {km} km, {minuten} Minuten insgesamt",
       "keineRoute": "Keine Route berechnet: Anschriften fehlen, oder der Routendienst war nicht erreichbar.",
       "abErstem": "{minuten} Minuten Fahrt vom ersten Stopp ins Kühlhaus",
-      "ergebnisse": "{ok} in Ordnung, {warnung} Warnungen, {verstoss} Verstöße",
+      "ergebnisse": "{ok} in Ordnung, {warnung} Warnungen, {rot} Verstöße",
       "auftrag": "Abholauftrag (PDF)",
       "abgeschlossenTitel": "Abgeschlossene Runden ({anzahl})",
       "abgeschlossenLead": "Abgeschlossene Runden ändern sich nicht mehr. Sie sind der Nachweis der 60-Minuten-Regel."
