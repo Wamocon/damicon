@@ -204,6 +204,47 @@ export async function warteBisRuhig(maxMs = 3200, ruheMs = 380): Promise<void> {
 // Seite waeren fuer ihn eine.
 const adresse = () => `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
+/** Erwartetes Format der Datums- und Zeitfelder, wie der Agent es in fuelleFeld schreiben soll. */
+const FORMATE: Record<string, string> = { "datetime-local": "JJJJ-MM-TTTHH:MM (z. B. 2026-09-19T08:30)", date: "JJJJ-MM-TT", time: "HH:MM", month: "JJJJ-MM" };
+
+/** Der aktuelle Wert eines Elements: angehakt bei Kontrollkasten und Option, Wert und Optionen bei einer Auswahl, sonst der Text. */
+function ergaenzeWert(info: ElementInfo, el: HTMLElement): void {
+  if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) info.angehakt = el.checked;
+  else if (el instanceof HTMLSelectElement) {
+    info.wert = bereinigt(el.selectedOptions[0]?.textContent);
+    info.optionen = Array.from(el.options).slice(0, 25).map((o) => bereinigt(o.textContent, 40));
+  } else if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) info.wert = bereinigt(el.value, 60);
+}
+
+/** Was der Agent ueber ein bedienbares Element erfaehrt. Vergibt dabei die Referenz (refFuer). */
+function elementInfo(el: HTMLElement, label: string, gruppe: string | null): ElementInfo {
+  const ref = refFuer(el);
+  const info: ElementInfo = { ref, typ: typVon(el), label: label || "(ohne Beschriftung)", gruppe };
+  if (el instanceof HTMLAnchorElement) info.ziel = el.pathname + el.search + el.hash;
+  ergaenzeWert(info, el);
+  if ((el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) && el.required) info.pflicht = true;
+  if (el instanceof HTMLInputElement && FORMATE[el.type]) info.format = FORMATE[el.type];
+  if ("disabled" in el && (el as HTMLButtonElement).disabled) info.deaktiviert = true;
+  if (el.getAttribute("aria-pressed") === "true" || el.getAttribute("aria-selected") === "true") info.aktiv = true;
+  return info;
+}
+
+/** Die sichtbaren, bedienbaren Elemente des Inhaltsbereichs (ohne Passwortfelder), auf das Stichwort eingegrenzt.
+ *  Hoechstens MAX_ELEMENTE; ein Element darueber hinaus bekommt keine Referenz mehr und setzt abgeschnitten. */
+function elementeDer(haupt: HTMLElement, stichwort: string | undefined): { elemente: ElementInfo[]; abgeschnitten: boolean } {
+  const elemente: ElementInfo[] = [];
+  for (const el of Array.from(haupt.querySelectorAll<HTMLElement>(INTERAKTIV))) {
+    if (!sichtbar(el)) continue;
+    if (el instanceof HTMLInputElement && el.type === "password") continue;
+    const label = labelVon(el);
+    const gruppe = gruppeVon(el);
+    if (stichwort && !`${label} ${gruppe ?? ""}`.toLowerCase().includes(stichwort)) continue;
+    if (elemente.length >= MAX_ELEMENTE) return { elemente, abgeschnitten: true };
+    elemente.push(elementInfo(el, label, gruppe));
+  }
+  return { elemente, abgeschnitten: false };
+}
+
 export async function schnappschuss(fokus?: string): Promise<Schnappschuss> {
   await warteBisRuhig(1800, 250);
   const haupt = wurzel();
@@ -211,38 +252,7 @@ export async function schnappschuss(fokus?: string): Promise<Schnappschuss> {
   const url = adresse();
   if (!haupt) return { url, titel: document.title, ueberschriften: [], text: "", elemente: [], abschnitte: [], hinweis: "Kein Inhaltsbereich gefunden." };
 
-  const stichwort = fokus?.trim().toLowerCase();
-  const elemente: ElementInfo[] = [];
-  let abgeschnitten = false;
-
-  for (const el of Array.from(haupt.querySelectorAll<HTMLElement>(INTERAKTIV))) {
-    if (!sichtbar(el)) continue;
-    if (el instanceof HTMLInputElement && el.type === "password") continue;
-    const label = labelVon(el);
-    const gruppe = gruppeVon(el);
-    if (stichwort && !`${label} ${gruppe ?? ""}`.toLowerCase().includes(stichwort)) continue;
-    if (elemente.length >= MAX_ELEMENTE) {
-      abgeschnitten = true;
-      break;
-    }
-    const ref = refFuer(el);
-    const info: ElementInfo = { ref, typ: typVon(el), label: label || "(ohne Beschriftung)", gruppe };
-    if (el instanceof HTMLAnchorElement) info.ziel = el.pathname + el.search + el.hash;
-    if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) info.angehakt = el.checked;
-    else if (el instanceof HTMLSelectElement) {
-      info.wert = bereinigt(el.selectedOptions[0]?.textContent);
-      info.optionen = Array.from(el.options).slice(0, 25).map((o) => bereinigt(o.textContent, 40));
-    } else if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) info.wert = bereinigt(el.value, 60);
-    if ((el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) && el.required) info.pflicht = true;
-    if (el instanceof HTMLInputElement) {
-      const formate: Record<string, string> = { "datetime-local": "JJJJ-MM-TTTHH:MM (z. B. 2026-09-19T08:30)", date: "JJJJ-MM-TT", time: "HH:MM", month: "JJJJ-MM" };
-      if (formate[el.type]) info.format = formate[el.type];
-    }
-    if ("disabled" in el && (el as HTMLButtonElement).disabled) info.deaktiviert = true;
-    if (el.getAttribute("aria-pressed") === "true" || el.getAttribute("aria-selected") === "true") info.aktiv = true;
-    elemente.push(info);
-  }
-
+  const { elemente, abgeschnitten } = elementeDer(haupt, fokus?.trim().toLowerCase());
   const text = bereinigt(haupt.innerText, MAX_TEXT + 1);
   return {
     url,
