@@ -1004,7 +1004,12 @@
       "abholrundeGestartet": "Runde gestartet.",
       "abholungErfasst": "Abholung erfasst.",
       "stoppEntfallen": "Stopp als entfallen erfasst.",
-      "abholrundeAbgeschlossen": "Runde abgeschlossen. Die Ankunft im Kühlhaus ist festgehalten."
+      "abholrundeAbgeschlossen": "Runde abgeschlossen. Die Ankunft im Kühlhaus ist festgehalten.",
+      "integrationGespeichert": "Konfiguration gespeichert.",
+      "integrationGespeichertOhneGeheimnis": "Konfiguration gespeichert. Die Umgebungsvariable {wert} ist auf dem Server noch nicht gesetzt, bis dahin wird nichts ausgeliefert.",
+      "integrationWiederholt": "Der Eintrag wartet wieder auf die Auslieferung.",
+      "auslieferung": "{versucht} versucht: {zugestellt} zugestellt, {wiederholen} warten auf die Wiederholung, {gescheitert} gescheitert.",
+      "auslieferungNichts": "Nichts fällig."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1134,7 +1139,14 @@
       "arBemerkung": "Die Bemerkung darf höchstens 500 Zeichen haben.",
       "arBetriebFehlt": "Ein gewählter Nachbarbetrieb wurde nicht gefunden. Bitte die Seite neu laden.",
       "abholrundeAbgeschlossen": "Das geht nicht mehr: die Runde oder der Stopp ist schon abgeschlossen oder erledigt.",
-      "abholrundeNichtGestartet": "Dazu muss die Runde laufen. Zum Abschließen darf außerdem kein Stopp mehr offen sein."
+      "abholrundeNichtGestartet": "Dazu muss die Runde laufen. Zum Abschließen darf außerdem kein Stopp mehr offen sein.",
+      "integrationAdapter": "Bitte „manuell“ oder „Webhook“ wählen.",
+      "integrationUrl": "Bitte eine gültige https-Adresse angeben, ohne Zugangsdaten, höchstens 500 Zeichen.",
+      "integrationUrlIntern": "Diese Adresse zeigt ins eigene Netz oder auf die eigene Maschine. Ziele müssen öffentlich erreichbar sein.",
+      "integrationGeheimnis": "Bitte nur den Namen der Umgebungsvariable angeben: Großbuchstaben, Ziffern und Unterstriche, beginnend mit einem Buchstaben, 3 bis 64 Zeichen. Nicht das Geheimnis selbst.",
+      "integrationUnvollstaendig": "Aktiv gibt es nur als Webhook mit Adresse und dem Namen des Geheimnisses.",
+      "integrationNichtGescheitert": "Nur ein gescheiterter Eintrag lässt sich erneut versuchen.",
+      "auslieferung": "Die Auslieferung ist fehlgeschlagen. Details stehen im Server-Log."
     },
     "einladungen": {
       "erfolg": {
@@ -5313,6 +5325,59 @@
       "label": "Anschrift",
       "platzhalter": "Straße, Ort",
       "knopf": "Anschrift speichern"
+    }
+  },
+  "integrationAuslieferung": {
+    "titel": "Auslieferung an Partnersysteme",
+    "lead": "Soll ein Ereignis an ein anderes System gehen, zum Beispiel ein ausgestellter ЭСФ-Beleg an die Buchhaltung, stellt Damicon es in eine Warteschlange und liefert es als signierten Webhook aus. Ohne ausdrückliche Aktivierung verlässt kein Datensatz das System.",
+    "stand": "Die staatlichen Portale selbst (Stufe 2 von ЭСФ und ЕСУТД) brauchen den Zugang der Behörde. Diese Auslieferung ist der Rahmen dafür und für einen Partner wie die Buchhaltung.",
+    "cron": "Der Cron-Dienst ruft /api/integrationen/ausliefern auf, mit dem Geheimnis CRON_SECRET. Ohne Cron liefert der Knopf unten aus.",
+    "nurAdmin": "Konfigurieren und wiederholen dürfen Administration und Geschäftsführung.",
+    "integrationen": {
+      "titel": "Integrationen",
+      "adapter": {
+        "manuell": "manuell",
+        "webhook": "Webhook"
+      },
+      "keinZiel": "kein Ziel",
+      "aktiv": "aktiv",
+      "aus": "aus",
+      "geheimnisGesetzt": "Geheimnis gesetzt",
+      "geheimnisFehlt": "Geheimnis fehlt ({name})",
+      "aendern": "Konfigurieren"
+    },
+    "form": {
+      "adapter": "Art der Anbindung",
+      "adapterManuell": "manuell (Eingabe im Zielsystem von Hand)",
+      "adapterWebhook": "Webhook (signierter POST)",
+      "url": "Adresse des Ziels",
+      "urlHinweis": "Nur https, keine Adresse im eigenen Netz.",
+      "geheimnis": "Name der Umgebungsvariable mit dem Geheimnis",
+      "geheimnisHinweis": "Der Wert steht nie in der Datenbank, nur sein Name, zum Beispiel DAMICON_HOOK_ESF. Gesetzt wird er in der Umgebung des Servers.",
+      "aktiv": "Auslieferung aktiv",
+      "knopf": "Speichern"
+    },
+    "warteschlange": {
+      "titel": "Warteschlange",
+      "leer": "Noch kein Ereignis in der Warteschlange.",
+      "col": {
+        "ereignis": "Ereignis",
+        "ziel": "Ziel",
+        "status": "Status",
+        "versuche": "Versuche",
+        "naechster": "Nächster Versuch oder Abschluss"
+      },
+      "status": {
+        "pending": "wartet",
+        "sent": "zugestellt",
+        "acked": "bestätigt",
+        "failed": "gescheitert"
+      },
+      "ohneEreignis": "ohne Ereignis",
+      "ohneIntegration": "keiner Integration zugeordnet, wird nicht ausgeliefert",
+      "versucheVon": "{versuche} von {max}",
+      "wiederholen": "Erneut versuchen",
+      "jetzt": "Jetzt ausliefern"
     }
   }
 }

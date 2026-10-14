@@ -1004,7 +1004,12 @@
       "abholrundeGestartet": "Round started.",
       "abholungErfasst": "Pickup recorded.",
       "stoppEntfallen": "Stop recorded as cancelled.",
-      "abholrundeAbgeschlossen": "Round completed. The arrival at the cold store is recorded."
+      "abholrundeAbgeschlossen": "Round completed. The arrival at the cold store is recorded.",
+      "integrationGespeichert": "Configuration saved.",
+      "integrationGespeichertOhneGeheimnis": "Configuration saved. The environment variable {wert} is not yet set on the server, so nothing is delivered until then.",
+      "integrationWiederholt": "The entry is waiting for delivery again.",
+      "auslieferung": "{versucht} attempted: {zugestellt} delivered, {wiederholen} waiting for retry, {gescheitert} failed.",
+      "auslieferungNichts": "Nothing due."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1134,7 +1139,14 @@
       "arBemerkung": "The remark may have at most 500 characters.",
       "arBetriebFehlt": "A chosen neighbouring farm was not found. Please reload the page.",
       "abholrundeAbgeschlossen": "That is no longer possible: the round or the stop is already completed or done.",
-      "abholrundeNichtGestartet": "The round has to be running for that. To complete it, no stop may be open any more."
+      "abholrundeNichtGestartet": "The round has to be running for that. To complete it, no stop may be open any more.",
+      "integrationAdapter": "Please choose \"manual\" or \"webhook\".",
+      "integrationUrl": "Please enter a valid https address without credentials, at most 500 characters.",
+      "integrationUrlIntern": "This address points into the own network or to the own machine. Targets must be publicly reachable.",
+      "integrationGeheimnis": "Please enter only the name of the environment variable: capital letters, digits and underscores, starting with a letter, 3 to 64 characters. Not the secret itself.",
+      "integrationUnvollstaendig": "Active exists only as a webhook with an address and the name of the secret.",
+      "integrationNichtGescheitert": "Only a failed entry can be tried again.",
+      "auslieferung": "The delivery failed. Details are in the server log."
     },
     "einladungen": {
       "erfolg": {
@@ -5313,6 +5325,59 @@
       "label": "Address",
       "platzhalter": "Street, town",
       "knopf": "Save address"
+    }
+  },
+  "integrationAuslieferung": {
+    "titel": "Delivery to partner systems",
+    "lead": "If an event is to go to another system, for example an issued ЭСФ invoice to accounting, Damicon puts it in a queue and delivers it as a signed webhook. Without explicit activation no record leaves the system.",
+    "stand": "The state portals themselves (stage 2 of ЭСФ and ЕСУТД) need the authority's access. This delivery is the framework for them and for a partner such as accounting.",
+    "cron": "The cron service calls /api/integrationen/ausliefern with the secret CRON_SECRET. Without cron, the button below delivers.",
+    "nurAdmin": "Administration and CEO can configure and retry.",
+    "integrationen": {
+      "titel": "Integrations",
+      "adapter": {
+        "manuell": "manual",
+        "webhook": "webhook"
+      },
+      "keinZiel": "no target",
+      "aktiv": "active",
+      "aus": "off",
+      "geheimnisGesetzt": "secret set",
+      "geheimnisFehlt": "secret missing ({name})",
+      "aendern": "Configure"
+    },
+    "form": {
+      "adapter": "Type of connection",
+      "adapterManuell": "manual (entered by hand in the target system)",
+      "adapterWebhook": "webhook (signed POST)",
+      "url": "Address of the target",
+      "urlHinweis": "https only, no address in the own network.",
+      "geheimnis": "Name of the environment variable holding the secret",
+      "geheimnisHinweis": "The value is never in the database, only its name, for example DAMICON_HOOK_ESF. It is set in the server environment.",
+      "aktiv": "Delivery active",
+      "knopf": "Save"
+    },
+    "warteschlange": {
+      "titel": "Queue",
+      "leer": "No event in the queue yet.",
+      "col": {
+        "ereignis": "Event",
+        "ziel": "Target",
+        "status": "Status",
+        "versuche": "Attempts",
+        "naechster": "Next attempt or completion"
+      },
+      "status": {
+        "pending": "waiting",
+        "sent": "delivered",
+        "acked": "acknowledged",
+        "failed": "failed"
+      },
+      "ohneEreignis": "no event",
+      "ohneIntegration": "not assigned to an integration, will not be delivered",
+      "versucheVon": "{versuche} of {max}",
+      "wiederholen": "Try again",
+      "jetzt": "Deliver now"
     }
   }
 }

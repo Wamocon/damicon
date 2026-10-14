@@ -22,6 +22,7 @@ const OEFFENTLICH = new Map([
   ["src/app/[locale]/login/actions.ts abmelden", "Abmeldung"],
   ["src/app/[locale]/login/mfa/actions.ts mfaAnmeldenBestaetigen", "zweiter Faktor der Anmeldung (Sitzung aus Schritt 1)"],
   ["src/lib/actions/einladungen.ts einladungEinloesen", "Einladungscode statt Anmeldung, Digest-Prüfung im Rumpf"],
+  ["src/app/api/integrationen/ausliefern/route.ts GET", "Cron-Dienst ohne Sitzung: Bearer-Geheimnis CRON_SECRET, zeitkonstanter Vergleich, ohne Geheimnis 503"],
 ]);
 
 function bloecke(text) {

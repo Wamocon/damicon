@@ -1315,9 +1315,14 @@ export type Database = {
       }
       integration_outbox: {
         Row: {
+          antwort_status: number | null
           created_at: string
+          ereignis: string | null
           id: string
+          idempotenz_schluessel: string | null
+          integration_id: string | null
           letzter_fehler: string | null
+          naechster_versuch_am: string
           payload: Json
           richtung: string
           status: Database["public"]["Enums"]["outbox_status"]
@@ -1327,9 +1332,14 @@ export type Database = {
           ziel_system: string
         }
         Insert: {
+          antwort_status?: number | null
           created_at?: string
+          ereignis?: string | null
           id?: string
+          idempotenz_schluessel?: string | null
+          integration_id?: string | null
           letzter_fehler?: string | null
+          naechster_versuch_am?: string
           payload?: Json
           richtung?: string
           status?: Database["public"]["Enums"]["outbox_status"]
@@ -1339,9 +1349,14 @@ export type Database = {
           ziel_system: string
         }
         Update: {
+          antwort_status?: number | null
           created_at?: string
+          ereignis?: string | null
           id?: string
+          idempotenz_schluessel?: string | null
+          integration_id?: string | null
           letzter_fehler?: string | null
+          naechster_versuch_am?: string
           payload?: Json
           richtung?: string
           status?: Database["public"]["Enums"]["outbox_status"]
@@ -1350,35 +1365,55 @@ export type Database = {
           versuche?: number
           ziel_system?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "integration_outbox_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrationen"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       integrationen: {
         Row: {
+          adapter: string
+          aktiv: boolean
           created_at: string
+          geheimnis_name: string | null
           id: string
           key: string
           name: string
           status: Database["public"]["Enums"]["integration_status"]
           system: string
           updated_at: string
+          ziel_url: string | null
         }
         Insert: {
+          adapter?: string
+          aktiv?: boolean
           created_at?: string
+          geheimnis_name?: string | null
           id?: string
           key: string
           name: string
           status?: Database["public"]["Enums"]["integration_status"]
           system: string
           updated_at?: string
+          ziel_url?: string | null
         }
         Update: {
+          adapter?: string
+          aktiv?: boolean
           created_at?: string
+          geheimnis_name?: string | null
           id?: string
           key?: string
           name?: string
           status?: Database["public"]["Enums"]["integration_status"]
           system?: string
           updated_at?: string
+          ziel_url?: string | null
         }
         Relationships: []
       }

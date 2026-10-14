@@ -2,6 +2,7 @@ import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { Download } from "lucide-react";
 import { Section, StatusPill, DataTable } from "@/components/ui/kit";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
+import { IntegrationAuslieferungAnsicht } from "@/components/db/integration-auslieferung-ansicht";
 import {
   EsutdAbschlussFormular,
   EsutdEntfernenKnopf,
@@ -153,6 +154,9 @@ export async function IntegrationenAnsicht() {
           <EsutdEreignisFormular vertraege={vertragsAuswahl} artLabel={{ aenderung: t("art.aenderung"), beendigung: t("art.beendigung") }} />
         </div>
       ) : null}
+
+      {/* Auslieferung der Warteschlange an Partnersysteme (WMCNL-1627): der Rahmen fuer die Stufe 2, standardmaessig aus. */}
+      <IntegrationAuslieferungAnsicht />
     </div>
   );
 }
