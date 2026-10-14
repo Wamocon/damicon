@@ -459,46 +459,70 @@ export type Database = {
       }
       dokumente: {
         Row: {
+          b2b_kunde_id: string | null
           bezug: string | null
           charge_id: string | null
           created_at: string
           foerderdossier_id: string | null
+          gueltig_bis: string | null
+          gueltig_von: string | null
           id: string
           kategorie: Database["public"]["Enums"]["dokument_kategorie"]
+          nachbarbetrieb_id: string | null
           name: string
+          rechtsgrundlage: string | null
           reihenblock_id: string | null
           stand: string | null
           status: Database["public"]["Enums"]["dokument_status"]
           storage_path: string | null
+          unbefristet: boolean
           updated_at: string
+          verantwortlich_id: string | null
+          warnung_tage: number
         }
         Insert: {
+          b2b_kunde_id?: string | null
           bezug?: string | null
           charge_id?: string | null
           created_at?: string
           foerderdossier_id?: string | null
+          gueltig_bis?: string | null
+          gueltig_von?: string | null
           id?: string
           kategorie?: Database["public"]["Enums"]["dokument_kategorie"]
+          nachbarbetrieb_id?: string | null
           name: string
+          rechtsgrundlage?: string | null
           reihenblock_id?: string | null
           stand?: string | null
           status?: Database["public"]["Enums"]["dokument_status"]
           storage_path?: string | null
+          unbefristet?: boolean
           updated_at?: string
+          verantwortlich_id?: string | null
+          warnung_tage?: number
         }
         Update: {
+          b2b_kunde_id?: string | null
           bezug?: string | null
           charge_id?: string | null
           created_at?: string
           foerderdossier_id?: string | null
+          gueltig_bis?: string | null
+          gueltig_von?: string | null
           id?: string
           kategorie?: Database["public"]["Enums"]["dokument_kategorie"]
+          nachbarbetrieb_id?: string | null
           name?: string
+          rechtsgrundlage?: string | null
           reihenblock_id?: string | null
           stand?: string | null
           status?: Database["public"]["Enums"]["dokument_status"]
           storage_path?: string | null
+          unbefristet?: boolean
           updated_at?: string
+          verantwortlich_id?: string | null
+          warnung_tage?: number
         }
         Relationships: [
           {
@@ -527,6 +551,27 @@ export type Database = {
             columns: ["reihenblock_id"]
             isOneToOne: false
             referencedRelation: "reihenbloecke"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_b2b_kunde_id_fkey"
+            columns: ["b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_nachbarbetrieb_id_fkey"
+            columns: ["nachbarbetrieb_id"]
+            isOneToOne: false
+            referencedRelation: "nachbarbetriebe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_verantwortlich_id_fkey"
+            columns: ["verantwortlich_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3792,6 +3837,69 @@ export type Database = {
         }
         Relationships: []
       }
+      v_dokumente: {
+        Row: {
+          b2b_kunde_id: string | null
+          bezug: string | null
+          charge_id: string | null
+          created_at: string | null
+          foerderdossier_id: string | null
+          gueltig_bis: string | null
+          gueltig_von: string | null
+          id: string | null
+          kategorie: Database["public"]["Enums"]["dokument_kategorie"] | null
+          nachbarbetrieb_id: string | null
+          nachweis_status: string | null
+          name: string | null
+          rechtsgrundlage: string | null
+          reihenblock_id: string | null
+          stand: string | null
+          status_manuell: Database["public"]["Enums"]["dokument_status"] | null
+          storage_path: string | null
+          tage_bis_ablauf: number | null
+          unbefristet: boolean | null
+          updated_at: string | null
+          verantwortlich_id: string | null
+          warnung_tage: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dokumente_b2b_kunde_id_fkey"
+            columns: ["b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_nachbarbetrieb_id_fkey"
+            columns: ["nachbarbetrieb_id"]
+            isOneToOne: false
+            referencedRelation: "nachbarbetriebe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_verantwortlich_id_fkey"
+            columns: ["verantwortlich_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_reihenblock_id_fkey"
+            columns: ["reihenblock_id"]
+            isOneToOne: false
+            referencedRelation: "reihenbloecke"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "chargen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       abrechnung_je_nachbarbetrieb: {
@@ -3855,6 +3963,10 @@ export type Database = {
           vorkuehlung_zeitpunkt: string
           wartezeit_eingehalten: boolean
         }[]
+      }
+      heute_almaty: {
+        Args: never
+        Returns: string
       }
       ki_anbieter_standard_setzen: {
         Args: { p_id: string }
@@ -3982,6 +4094,16 @@ export type Database = {
         }[]
       }
       mwst_umsatz_12_monate: { Args: { p_stichtag?: string }; Returns: number }
+      nachweis_status: {
+        Args: {
+          p_gueltig_bis: string
+          p_gueltig_von: string
+          p_stichtag: string
+          p_unbefristet: boolean
+          p_warnung_tage: number
+        }
+        Returns: string
+      }
       nummernart_fuer_rechtsform: {
         Args: { p_rechtsform: Database["public"]["Enums"]["rechtsform"] }
         Returns: string

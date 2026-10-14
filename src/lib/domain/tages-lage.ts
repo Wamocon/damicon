@@ -152,7 +152,9 @@ export function quellenFuerRolle(rolle: Role | null | undefined): TagesQuelle[] 
 
 /**
  * Wer das Risiko-Radar bekommt: wer mindestens eine seiner drei Rechtsgrundlagen sieht
- * (MwSt ueber stammdaten, ESUTD ueber personal, Datenschutz ueber compliance). Dieselbe
+ * (MwSt ueber stammdaten, ESUTD ueber personal, Datenschutz ueber compliance). Die
+ * Nachweise (dokumente) zaehlen hier bewusst nicht: erzeuger und kunde haben im RBAC
+ * dokumente:view, die Zeilensicherheit laesst sie aber nichts lesen. Dieselbe
  * Regel fuer das Werkzeug risikoRadarAbrufen (lib/ai/tools.ts) und die Frist-Quelle der
  * Tageslage. Bis zum 28.09.2026 stand der Ausdruck an beiden Stellen (Fund 61); eine
  * vierte Rechtsgrundlage haette nur eine von beiden erreicht. Welche Teilquelle wirklich

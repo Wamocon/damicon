@@ -731,9 +731,9 @@
     "dokumente": {
       "title": "Dokumentenverwaltung",
       "navTitle": "Dokumente",
-      "description": "Geschützte Ablage für Spritzmittelprotokolle, ЕСУТД-Nachweise, Liefer- und Rahmenverträge, Förderdossiers und Zertifikate - verknüpft mit Reihenblock und Charge.",
-      "summary": "Kategorisierte, geschützte Dokumentenablage mit Verknüpfung zu Reihenblock und Charge.",
-      "todo": "Versionen je Dokument, Ablauffristen mit Erinnerung."
+      "description": "Geschützte Ablage und Nachweisregister für Zertifikate, Verträge, Genehmigungen, Versicherungen, Spritzmittelprotokolle, ЕСУТД-Nachweise und Förderdossiers - mit Gültigkeitszeitraum, automatischem Ablaufstatus und Verantwortlichem, verknüpft mit Reihenblock, Charge und Partnern.",
+      "summary": "Kategorisierte, geschützte Dokumentenablage mit automatischem Ablaufstatus, Verantwortlichem und Verknüpfung zu Reihenblock, Charge und Partnern.",
+      "todo": "Versionen je Dokument."
     },
     "compliance": {
       "title": "Compliance-Cockpit",
@@ -1053,7 +1053,8 @@
       "wissenKeineAenderung": "Es wurde nichts geändert: Die gewählten Angaben entsprechen der bisherigen Einordnung.",
       "wissenSeitenNichtBestaetigt": "Dieses Buch hat offene fehlende Seiten. Zum Freigeben sind die gedruckten Seitenzahlen anzugeben, die korrekt fehlen. Bitte einzeln im Prüffenster freigeben, nicht in der Sammelfreigabe.",
       "wissenSeitenNichtAbgedeckt": "Die angegebenen Seiten decken nicht alle fehlenden Seiten ab. Offen: {wert}. Es fehlt echter Inhalt, das Buch lässt sich nicht freigeben. Bitte die Seiten nachladen oder das Buch löschen und neu hochladen.",
-      "wissenNachtragUngueltig": "Die nachgeladenen Seiten passen zu keiner offenen Lücke dieses Buchs. Es wurde nichts eingereiht."
+      "wissenNachtragUngueltig": "Die nachgeladenen Seiten passen zu keiner offenen Lücke dieses Buchs. Es wurde nichts eingereiht.",
+      "zeitraum": "Der Gültigkeitszeitraum passt nicht: Das Ende liegt vor dem Beginn, oder ein unbefristetes Dokument hat ein Enddatum."
     },
     "einladungen": {
       "erfolg": {
@@ -1159,14 +1160,27 @@
       "stand": "Stand",
       "status": "Status",
       "datei": "Datei",
-      "foerderdossier": "Fördermitteldossier"
+      "foerderdossier": "Fördermitteldossier",
+      "gueltigVon": "Gültig ab",
+      "gueltigBis": "Gültig bis",
+      "unbefristet": "Unbefristet gültig",
+      "warnungTage": "Vorwarnung (Tage vor Ablauf)",
+      "verantwortlich": "Verantwortlich",
+      "partner": "Partner",
+      "rechtsgrundlage": "Rechtsgrundlage"
     },
     "beispiel": {
-      "name": "Spritzprotokoll KW 37 - Parzelle Nord"
+      "name": "Spritzprotokoll KW 37 - Parzelle Nord",
+      "rechtsgrundlage": "z. B. Auflage des Abnehmers"
     },
     "keinDossier": "kein Dossier",
     "aendernKnopf": "Speichern",
-    "linkNichtVerfuegbar": "Datei vorhanden, Link momentan nicht verfügbar"
+    "linkNichtVerfuegbar": "Datei vorhanden, Link momentan nicht verfügbar",
+    "hinweis": {
+      "warnungTage": "{min} bis {max} Tage, Vorgabe 60."
+    },
+    "keinVerantwortlicher": "niemand festgelegt",
+    "keinPartner": "kein Partner"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "Ohne Brigade",
@@ -1581,19 +1595,22 @@
     },
     "risikoRadar": {
       "titel": "Risiko-Radar",
-      "lead": "Alle offenen gesetzlichen Fristen aus Steuer-, Arbeits- und Datenschutzrecht an einer Stelle - nach Dringlichkeit sortiert.",
+      "lead": "Alle offenen gesetzlichen Fristen aus Steuer-, Arbeits- und Datenschutzrecht und abgelaufene oder bald ablaufende Nachweise an einer Stelle - nach Dringlichkeit sortiert.",
       "anzahlOffen": "{anzahl} offene Frist(en)",
-      "alleErledigt": "Keine offene Frist - Steuer-, Arbeits- und Datenschutzrecht sind aktuell im Plan.",
+      "alleErledigt": "Keine offene Frist - Steuer-, Arbeits- und Datenschutzrecht und die Nachweise sind aktuell im Plan.",
       "ansehen": "Ansehen →",
       "kategorie": {
         "steuer": "Steuerrecht",
         "arbeit": "Arbeitsrecht",
-        "datenschutz": "Datenschutz"
+        "datenschutz": "Datenschutz",
+        "nachweis": "Nachweise"
       },
       "labelMwst": "MwSt-Registrierung nach Schwellenüberschreitung",
       "labelEsutd": "ESUTD-Meldung für {name}",
       "labelVorfall": "Meldung eines Datenschutzvorfalls an die Behörde",
-      "labelDrittweitergabe": "Benachrichtigung über Weitergabe an {empfaenger}"
+      "labelDrittweitergabe": "Benachrichtigung über Weitergabe an {empfaenger}",
+      "labelNachweisAbgelaufen": "Nachweis abgelaufen: {name}",
+      "labelNachweisLaeuftAb": "Nachweis läuft ab: {name}"
     },
     "stat": {
       "einwilligungenAktiv": "Aktive Einwilligungen",
@@ -4426,5 +4443,24 @@
         "description": "Dokumente in die Wissensbasis laden, nach Cluster, Quellenart und Stufe einordnen und von einer zweiten Person freigeben lassen. Der Assistent durchsucht sie bei Recht-, Steuer-, Compliance-, Audit- und Risikofragen."
       }
     }
+  },
+  "nachweisregister": {
+    "status": {
+      "gueltig": "gültig",
+      "laeuft_ab": "läuft ab",
+      "abgelaufen": "abgelaufen",
+      "offen": "offen"
+    },
+    "col": {
+      "gueltigBis": "Gültig bis",
+      "verantwortlich": "Verantwortlich"
+    },
+    "unbefristet": "unbefristet",
+    "keinZeitraum": "kein Zeitraum erfasst",
+    "inTagen": "{tage, plural, one {in # Tag} other {in # Tagen}}",
+    "vorTagen": "{tage, plural, one {vor # Tag} other {vor # Tagen}}",
+    "zaehlung": "Stand des Registers",
+    "bearbeiten": "Bearbeiten",
+    "heute": "heute"
   }
 }

@@ -731,9 +731,9 @@
     "dokumente": {
       "title": "Document management",
       "navTitle": "Documents",
-      "description": "A secure store for spray records, ЕСУТД evidence, supply and framework contracts, grant dossiers and certificates - linked to the row block and the batch.",
-      "summary": "A categorised, secure document store linked to the row block and the batch.",
-      "todo": "Versions per document, expiry dates with a reminder."
+      "description": "A secure store and evidence register for certificates, contracts, permits, insurance, spray records, ЕСУТД evidence and grant dossiers - with validity period, automatic expiry status and a responsible person, linked to the row block, the batch and partners.",
+      "summary": "A categorised, secure document store with automatic expiry status, a responsible person and links to row block, batch and partners.",
+      "todo": "Versions per document."
     },
     "compliance": {
       "title": "Compliance cockpit",
@@ -1053,7 +1053,8 @@
       "wissenKeineAenderung": "Nothing was changed: the chosen values match the current classification.",
       "wissenSeitenNichtBestaetigt": "This book has open missing pages. To approve it, enter the printed page numbers that are correctly missing. Please approve it individually in the review window, not in the bulk approval.",
       "wissenSeitenNichtAbgedeckt": "The pages entered do not cover all missing pages. Open: {wert}. Real content is missing, so the book cannot be approved. Please load the pages later or delete the book and upload it again.",
-      "wissenNachtragUngueltig": "The loaded pages do not match any open gap of this book. Nothing was inserted."
+      "wissenNachtragUngueltig": "The loaded pages do not match any open gap of this book. Nothing was inserted.",
+      "zeitraum": "The validity period does not fit: the end is before the start, or a document without expiry has an end date."
     },
     "einladungen": {
       "erfolg": {
@@ -1159,14 +1160,27 @@
       "stand": "As of",
       "status": "Status",
       "datei": "File",
-      "foerderdossier": "Funding dossier"
+      "foerderdossier": "Funding dossier",
+      "gueltigVon": "Valid from",
+      "gueltigBis": "Valid until",
+      "unbefristet": "Valid without expiry",
+      "warnungTage": "Early warning (days before expiry)",
+      "verantwortlich": "Responsible",
+      "partner": "Partner",
+      "rechtsgrundlage": "Legal basis"
     },
     "beispiel": {
-      "name": "Spray record week 37 - North plot"
+      "name": "Spray record week 37 - North plot",
+      "rechtsgrundlage": "e.g. requirement of the buyer"
     },
     "keinDossier": "no dossier",
     "aendernKnopf": "Save",
-    "linkNichtVerfuegbar": "file exists, link currently unavailable"
+    "linkNichtVerfuegbar": "file exists, link currently unavailable",
+    "hinweis": {
+      "warnungTage": "{min} to {max} days, default 60."
+    },
+    "keinVerantwortlicher": "nobody assigned",
+    "keinPartner": "no partner"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "No brigade",
@@ -1579,19 +1593,22 @@
     },
     "risikoRadar": {
       "titel": "Risk radar",
-      "lead": "Every open statutory deadline from tax, labor and data-protection law in one place - sorted by urgency.",
+      "lead": "Every open statutory deadline from tax, labor and data-protection law, plus expired or expiring evidence, in one place - sorted by urgency.",
       "anzahlOffen": "{anzahl} open deadline(s)",
-      "alleErledigt": "No open deadline - tax, labor and data-protection obligations are all on track right now.",
+      "alleErledigt": "No open deadline - tax, labor and data-protection obligations and all evidence are on track right now.",
       "ansehen": "View →",
       "kategorie": {
         "steuer": "Tax law",
         "arbeit": "Labor law",
-        "datenschutz": "Data protection"
+        "datenschutz": "Data protection",
+        "nachweis": "Evidence"
       },
       "labelMwst": "VAT registration after crossing the threshold",
       "labelEsutd": "ESUTD filing for {name}",
       "labelVorfall": "Reporting a data-protection incident to the authority",
-      "labelDrittweitergabe": "Notification about disclosure to {empfaenger}"
+      "labelDrittweitergabe": "Notification about disclosure to {empfaenger}",
+      "labelNachweisAbgelaufen": "Evidence expired: {name}",
+      "labelNachweisLaeuftAb": "Evidence expiring: {name}"
     },
     "cockpitTitle": "Compliance cockpit",
     "cockpitLead": "Processing purposes, consents, data incidents and third-party disclosures from the database - under the 2026 Kazakhstani legal framework.",
@@ -4426,5 +4443,24 @@
         "description": "Load documents into the knowledge base, classify them by cluster, source type and level, and have a second person approve them. The assistant searches them for legal, tax, compliance, audit and risk questions."
       }
     }
+  },
+  "nachweisregister": {
+    "status": {
+      "gueltig": "valid",
+      "laeuft_ab": "expiring",
+      "abgelaufen": "expired",
+      "offen": "open"
+    },
+    "col": {
+      "gueltigBis": "Valid until",
+      "verantwortlich": "Responsible"
+    },
+    "unbefristet": "no expiry",
+    "keinZeitraum": "no period recorded",
+    "inTagen": "{tage, plural, one {in # day} other {in # days}}",
+    "vorTagen": "{tage, plural, one {# day ago} other {# days ago}}",
+    "zaehlung": "State of the register",
+    "bearbeiten": "Edit",
+    "heute": "today"
   }
 }

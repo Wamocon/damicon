@@ -1,3 +1,7 @@
+import type { NachweisFrist } from "./nachweise";
+import { betriebsZeitzone } from "./tageszeit";
+import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
+
 // Risiko-Radar: die EINE Stelle, an der alle gesetzlichen Fristen aus
 // unterschiedlichen Fachdomaenen (MwSt, ESUTD, Datenschutz) zusammenlaufen.
 // Reine Typen/Sortierlogik ohne Server-Import, damit compliance-ansicht.tsx
@@ -5,7 +9,7 @@
 // (ESUTD-Fristen) unabhaengig bleiben - diese Datei fuegt nur zusammen, was
 // anderswo bereits geladen wurde, sie laedt selbst nichts.
 
-export type RisikoKategorie = "steuer" | "arbeit" | "datenschutz";
+export type RisikoKategorie = "steuer" | "arbeit" | "datenschutz" | "nachweis";
 
 export interface RisikoEintrag {
   id: string;
@@ -65,6 +69,18 @@ export interface RisikoRohdaten {
   esutdFristen: { id: string; pfluecker: string; meldefristAm: string }[];
   vorfaelleUeberfaellig: { id: string; meldefristAm: string | null }[];
   drittweitergabenUeberfaellig: { id: string; empfaenger: string; benachrichtigungsfristAm: string | null }[];
+  /** Abgelaufene und bald ablaufende Nachweise aus dem Register (WMCNL-1469). */
+  nachweise: NachweisFrist[];
+}
+
+/**
+ * Der Nachweis gilt bis einschliesslich seines letzten Tages, die Frist endet
+ * also mit dem Ende dieses Tages in der Betriebszeitzone, nicht um Mitternacht
+ * davor: sonst stuende ein Zertifikat, das heute noch gilt, schon als
+ * ueberfaellig im Radar.
+ */
+export function nachweisFaelligkeit(gueltigBis: string): string {
+  return wandzeitZuUtc(`${gueltigBis}T23:59:59`, betriebsZeitzone)?.toISOString() ?? `${gueltigBis}T23:59:59Z`;
 }
 
 export async function baueRisikoEintraege(rohdaten: RisikoRohdaten): Promise<RisikoEintrag[]> {
@@ -108,6 +124,13 @@ export async function baueRisikoEintraege(rohdaten: RisikoRohdaten): Promise<Ris
         faelligkeit: d.benachrichtigungsfristAm as string,
         ziel: "/dashboard/buero/compliance#drittweitergaben",
       })),
+    ...rohdaten.nachweise.map((n) => ({
+      id: `nachweis-${n.id}`,
+      kategorie: "nachweis" as const,
+      label: t(n.status === "abgelaufen" ? "labelNachweisAbgelaufen" : "labelNachweisLaeuftAb", { name: n.name }),
+      faelligkeit: nachweisFaelligkeit(n.gueltigBis),
+      ziel: "/dashboard/buero/dokumente",
+    })),
   ];
 }
 

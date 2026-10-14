@@ -11,10 +11,14 @@ import {
   type AktionsStatus,
 } from "@/lib/actions/status";
 import { text, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
+import { partnerAusWert, warnungTageAus, zeitraumFehler } from "@/lib/domain/nachweise";
+import { istUuid } from "@/lib/utils";
 
-// Dokumentenverwaltung (Meilenstein B). Die Datei ist optional: ein Dokument
-// darf zuerst als Eintrag entstehen und die Datei spaeter bekommen - so
-// arbeitet das Buero auch, wenn der Scan noch fehlt.
+// Nachweisregister (Meilenstein B, WMCNL-1469). Die Datei ist optional: ein
+// Dokument darf zuerst als Eintrag entstehen und die Datei spaeter bekommen -
+// so arbeitet das Buero auch, wenn der Scan noch fehlt. Der Status eines
+// Dokuments wird nicht mehr gesetzt, er folgt aus dem Gueltigkeitszeitraum
+// (public.nachweis_status, Sicht v_dokumente).
 
 const kategorien = [
   "spritzmittelprotokoll",
@@ -25,8 +29,65 @@ const kategorien = [
   "sonstiges",
 ] as const;
 
-const statusWerte = ["gueltig", "prueflauf", "abgelaufen"] as const;
 const maxDateigroesse = 16 * 1024 * 1024;
+const MAX_RECHTSGRUNDLAGE = 300;
+
+// Die Felder des Registers, die beim Anlegen und beim Aendern gleich sind.
+// Eine Stelle fuer die Pruefung, damit beide Wege dieselben Eingaben
+// annehmen und dieselben ablehnen.
+function leseNachweisfelder(
+  formData: FormData,
+):
+  | { ok: true; felder: NachweisFelder }
+  | { ok: false; status: AktionsStatus } {
+  const name = text(formData, "name");
+  const gueltigVon = text(formData, "gueltig_von") || null;
+  const gueltigBis = text(formData, "gueltig_bis") || null;
+  const unbefristet = formData.get("unbefristet") === "on";
+  const warnungTage = warnungTageAus(text(formData, "warnung_tage"));
+  const verantwortlichId = text(formData, "verantwortlich_id") || null;
+  const rechtsgrundlage = text(formData, "rechtsgrundlage") || null;
+  const partner = partnerAusWert(text(formData, "partner"));
+
+  if (!name || warnungTage === null || partner === null) return { ok: false, status: fehler("fehler.eingabe") };
+  if (verantwortlichId && !istUuid(verantwortlichId)) return { ok: false, status: fehler("fehler.eingabe") };
+  if (rechtsgrundlage && rechtsgrundlage.length > MAX_RECHTSGRUNDLAGE) {
+    return { ok: false, status: fehler("fehler.eingabe") };
+  }
+  const zeitraum = zeitraumFehler({ gueltigVon, gueltigBis, unbefristet });
+  if (zeitraum) return { ok: false, status: fehler(`fehler.${zeitraum}`) };
+
+  return {
+    ok: true,
+    felder: {
+      name,
+      bezug: text(formData, "bezug") || null,
+      stand: text(formData, "stand") || null,
+      gueltig_von: gueltigVon,
+      gueltig_bis: gueltigBis,
+      unbefristet,
+      warnung_tage: warnungTage,
+      verantwortlich_id: verantwortlichId,
+      rechtsgrundlage,
+      b2b_kunde_id: partner !== "keiner" && partner.art === "kunde" ? partner.id : null,
+      nachbarbetrieb_id: partner !== "keiner" && partner.art === "nachbar" ? partner.id : null,
+    },
+  };
+}
+
+interface NachweisFelder {
+  name: string;
+  bezug: string | null;
+  stand: string | null;
+  gueltig_von: string | null;
+  gueltig_bis: string | null;
+  unbefristet: boolean;
+  warnung_tage: number;
+  verantwortlich_id: string | null;
+  rechtsgrundlage: string | null;
+  b2b_kunde_id: string | null;
+  nachbarbetrieb_id: string | null;
+}
 
 export async function dokumentAnlegen(
   _status: AktionsStatus,
@@ -39,13 +100,11 @@ export async function dokumentAnlegen(
     return zugriffsFehler(error);
   }
 
-  const name = text(formData, "name");
   const kategorie = text(formData, "kategorie");
-  const status = text(formData, "status");
-
-  if (!name || !(kategorien as readonly string[]).includes(kategorie)) {
-    return fehler("fehler.eingabe");
-  }
+  const gelesen = leseNachweisfelder(formData);
+  if (!gelesen.ok) return gelesen.status;
+  if (!(kategorien as readonly string[]).includes(kategorie)) return fehler("fehler.eingabe");
+  const { felder } = gelesen;
 
   const supabase = await createClient();
   const datei = formData.get("datei");
@@ -76,13 +135,8 @@ export async function dokumentAnlegen(
   const { data, error } = await supabase
     .from("dokumente")
     .insert({
-      name,
+      ...felder,
       kategorie: kategorie as (typeof kategorien)[number],
-      bezug: text(formData, "bezug") || null,
-      stand: text(formData, "stand") || null,
-      status: ((statusWerte as readonly string[]).includes(status)
-        ? status
-        : "gueltig") as (typeof statusWerte)[number],
       storage_path: storagePfad,
       foerderdossier_id: dossierId,
     })
@@ -97,6 +151,8 @@ export async function dokumentAnlegen(
   await protokolliere(profil, "dokument.angelegt", "dokumente", data.id, {
     name: data.name,
     kategorie,
+    gueltig_bis: felder.gueltig_bis,
+    unbefristet: felder.unbefristet,
     datei: Boolean(storagePfad),
     foerderdossier_id: dossierId,
   });
@@ -106,11 +162,11 @@ export async function dokumentAnlegen(
   return ok("ok.dokument", data.name);
 }
 
-// Metadaten und Status eines Dokuments nachfuehren. Die UPDATE-Policy
+// Metadaten und Gueltigkeit eines Dokuments nachfuehren. Die UPDATE-Policy
 // dokumente_update_buero (20260905120000) gab es von Anfang an, nur rief sie
 // niemand auf: bis hierher liess sich ein einmal aufgenommenes Dokument weder
-// umbenennen noch von "prueflauf" auf "gueltig" setzen. Die Datei selbst
-// bleibt unangetastet (Ersetzen ist ein eigener Vorgang, siehe Modulnotiz).
+// umbenennen noch verlaengern. Die Datei selbst bleibt unangetastet
+// (Ersetzen ist ein eigener Vorgang, siehe Modulnotiz).
 export async function dokumentAendern(
   _status: AktionsStatus,
   formData: FormData,
@@ -123,21 +179,15 @@ export async function dokumentAendern(
   }
 
   const id = text(formData, "id");
-  const name = text(formData, "name");
-  const status = text(formData, "status");
-  if (!id || !name || !(statusWerte as readonly string[]).includes(status)) {
-    return fehler("fehler.eingabe");
-  }
+  const gelesen = leseNachweisfelder(formData);
+  if (!id || !istUuid(id)) return fehler("fehler.eingabe");
+  if (!gelesen.ok) return gelesen.status;
+  const { felder } = gelesen;
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("dokumente")
-    .update({
-      name,
-      bezug: text(formData, "bezug") || null,
-      stand: text(formData, "stand") || null,
-      status: status as (typeof statusWerte)[number],
-    })
+    .update(felder)
     .eq("id", id)
     .select("id, name")
     .maybeSingle();
@@ -148,7 +198,8 @@ export async function dokumentAendern(
 
   await protokolliere(profil, "dokument.geaendert", "dokumente", data.id, {
     name: data.name,
-    status,
+    gueltig_bis: felder.gueltig_bis,
+    unbefristet: felder.unbefristet,
   });
 
   aktualisiere(formData);
