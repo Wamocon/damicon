@@ -112,63 +112,25 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
 
     // ---- Freigabe (Vier-Augen-Prinzip, siehe freigabe.ts) ----
     async ladeFreigabeInfo(quelleId) {
-      const zaehle = async (bedingung: (q: ReturnType<typeof basis>) => ReturnType<typeof basis>) => {
-        const { count, error } = await bedingung(basis());
-        SCHREIB_FEHLER("Freigabe (zaehlen)", error);
-        return count ?? 0;
-      };
-      const basis = () => db.from("wissen_chunks").select("id", { count: "exact", head: true }).eq("quelle_id", quelleId);
-      const [anzahl, upload, ungeprueft, freigegeben, abgelehnt] = await Promise.all([
-        zaehle((q) => q),
-        zaehle((q) => q.like("quelle_id", UPLOAD_QUELLE_MUSTER).eq("extra->>quelle", UPLOAD_QUELLE)),
-        zaehle((q) => q.eq("pruefstatus", "ungeprueft")),
-        zaehle((q) => q.eq("pruefstatus", "freigegeben")),
-        zaehle((q) => q.eq("pruefstatus", "abgelehnt")),
-      ]);
-      const status: FreigabeInfo["pruefstatus"] =
-        anzahl === 0 ? null : ungeprueft === anzahl ? "ungeprueft" : freigegeben === anzahl ? "freigegeben" : abgelehnt === anzahl ? "abgelehnt" : "gemischt";
-      const { data, error } = await db
-        .from("wissen_chunks")
-        .select("titel, bereich, quellenart, pruefen_bis, hochgeladen_von:extra->>hochgeladen_von, seiten_fehlend:extra->seiten_pruefung->>fehlend, seiten_stellen:extra->seiten_pruefung->>stellen, seiten_orte:extra->seiten_pruefung->>orte")
-        .eq("quelle_id", quelleId)
-        .limit(1);
-      SCHREIB_FEHLER("Freigabe (lesen)", error);
-      const erste = ((data ?? []) as unknown as Array<{ titel: string | null; bereich: string | null; quellenart: string | null; pruefen_bis: string | null; hochgeladen_von: string | null; seiten_fehlend: string | null; seiten_stellen: string | null; seiten_orte: string | null }>)[0];
-
-      // Nachgeladene Seiten (Nachtraege): die gedruckten Seitenzahlen, in der Reihenfolge der Nachtraege
-      const { data: nachtraege, error: nachtragFehler } = await db.from("wissen_seiten_nachtrag").select("seiten").eq("quelle_id", quelleId).order("nr");
-      SCHREIB_FEHLER("Freigabe (Nachtraege)", nachtragFehler);
-      const nachgeladen = ((nachtraege ?? []) as unknown as { seiten: string }[]).map((n) => n.seiten).join(", ");
-
-      // Vollstaendigkeit eines Buchs: Welche Paketnummern gibt es, und wie viele sollten es sein? In Seiten gelesen, nur die zwei kleinen Felder.
-      const nummern = new Set<number>();
-      let gesamt = 0;
-      for (let von = 0; von < anzahl; von += SEITE) {
-        const { data: seite, error: seitenFehler } = await db
-          .from("wissen_chunks")
-          .select("paket:extra->>paket, gesamt:extra->>pakete_gesamt")
-          .eq("quelle_id", quelleId)
-          .order("id")
-          .range(von, von + SEITE - 1);
-        SCHREIB_FEHLER("Freigabe (Pakete)", seitenFehler);
-        for (const z of (seite ?? []) as unknown as { paket: string | null; gesamt: string | null }[]) {
-          if (z.paket !== null && z.paket !== undefined) nummern.add(Number(z.paket));
-          if (z.gesamt) gesamt = Math.max(gesamt, Number(z.gesamt));
-        }
-      }
+      // Erst die Zaehlungen (gleichzeitig), dann nacheinander erste Zeile, Nachtraege und Pakete.
+      const zahlen = await zaehleFreigabe(db, quelleId);
+      const status = gemeinsamerStatus(zahlen);
+      const erste: Partial<ErsteFreigabeZeile> = (await ladeErsteFreigabeZeile(db, quelleId)) ?? {};
+      const nachgeladen = await ladeNachgeladeneSeiten(db, quelleId);
+      const unvollstaendig = await fehlenPakete(db, quelleId, zahlen.anzahl);
       return {
-        anzahl,
-        fremd: anzahl - upload,
-        titel: erste?.titel ?? null,
-        bereich: erste?.bereich ?? null,
-        quellenart: erste?.quellenart ?? null,
+        anzahl: zahlen.anzahl,
+        fremd: zahlen.anzahl - zahlen.upload,
+        titel: erste.titel ?? null,
+        bereich: erste.bereich ?? null,
+        quellenart: erste.quellenart ?? null,
         pruefstatus: status,
-        hochgeladenVon: erste?.hochgeladen_von ?? null,
-        pruefenBis: erste?.pruefen_bis ?? null,
-        unvollstaendig: gesamt > 0 && nummern.size < gesamt,
-        seitenFehlend: Number(erste?.seiten_fehlend ?? 0) || 0,
-        seitenStellen: erste?.seiten_stellen ?? null,
-        seitenOrte: erste?.seiten_orte ?? null,
+        hochgeladenVon: erste.hochgeladen_von ?? null,
+        pruefenBis: erste.pruefen_bis ?? null,
+        unvollstaendig,
+        seitenFehlend: Number(erste.seiten_fehlend ?? 0) || 0,
+        seitenStellen: erste.seiten_stellen ?? null,
+        seitenOrte: erste.seiten_orte ?? null,
         seitenNachgeladen: nachgeladen || null,
       };
     },
@@ -226,4 +188,90 @@ export function supabaseSpeicher(db: SupabaseClient): WissenSpeicher {
       return n <= 4 ? gekuerzt.join("\n\n") : gekuerzt.join("\n\n[...]\n\n");
     },
   };
+}
+
+// ---- Teile von ladeFreigabeInfo ----
+
+/** Zeilen eines Dokuments: alle, die mit beiden Upload-Kennzeichen und je Pruefstatus. */
+interface FreigabeZaehlung {
+  anzahl: number;
+  upload: number;
+  ungeprueft: number;
+  freigegeben: number;
+  abgelehnt: number;
+}
+
+/** Die erste Zeile eines Dokuments mit Kopfangaben und dem Ergebnis der Seitenverlauf-Pruefung (extra.seiten_pruefung). */
+interface ErsteFreigabeZeile {
+  titel: string | null;
+  bereich: string | null;
+  quellenart: string | null;
+  pruefen_bis: string | null;
+  hochgeladen_von: string | null;
+  seiten_fehlend: string | null;
+  seiten_stellen: string | null;
+  seiten_orte: string | null;
+}
+
+/** In dieser Reihenfolge wird geprueft, ob alle Zeilen denselben Status haben. */
+const EINHEITLICHER_STATUS = ["ungeprueft", "freigegeben", "abgelehnt"] as const;
+
+async function zaehleFreigabe(db: SupabaseClient, quelleId: string): Promise<FreigabeZaehlung> {
+  const basis = () => db.from("wissen_chunks").select("id", { count: "exact", head: true }).eq("quelle_id", quelleId);
+  const zaehle = async (bedingung: (q: ReturnType<typeof basis>) => ReturnType<typeof basis>) => {
+    const { count, error } = await bedingung(basis());
+    SCHREIB_FEHLER("Freigabe (zaehlen)", error);
+    return count ?? 0;
+  };
+  const [anzahl, upload, ungeprueft, freigegeben, abgelehnt] = await Promise.all([
+    zaehle((q) => q),
+    zaehle((q) => q.like("quelle_id", UPLOAD_QUELLE_MUSTER).eq("extra->>quelle", UPLOAD_QUELLE)),
+    zaehle((q) => q.eq("pruefstatus", "ungeprueft")),
+    zaehle((q) => q.eq("pruefstatus", "freigegeben")),
+    zaehle((q) => q.eq("pruefstatus", "abgelehnt")),
+  ]);
+  return { anzahl, upload, ungeprueft, freigegeben, abgelehnt };
+}
+
+/** Der Status, den alle Zeilen haben, sonst "gemischt"; null, wenn das Dokument keine Zeilen hat. */
+function gemeinsamerStatus(z: FreigabeZaehlung): FreigabeInfo["pruefstatus"] {
+  if (z.anzahl === 0) return null;
+  return EINHEITLICHER_STATUS.find((s) => z[s] === z.anzahl) ?? "gemischt";
+}
+
+async function ladeErsteFreigabeZeile(db: SupabaseClient, quelleId: string): Promise<ErsteFreigabeZeile | undefined> {
+  const { data, error } = await db
+    .from("wissen_chunks")
+    .select("titel, bereich, quellenart, pruefen_bis, hochgeladen_von:extra->>hochgeladen_von, seiten_fehlend:extra->seiten_pruefung->>fehlend, seiten_stellen:extra->seiten_pruefung->>stellen, seiten_orte:extra->seiten_pruefung->>orte")
+    .eq("quelle_id", quelleId)
+    .limit(1);
+  SCHREIB_FEHLER("Freigabe (lesen)", error);
+  return ((data ?? []) as unknown as ErsteFreigabeZeile[])[0];
+}
+
+/** Nachgeladene Seiten (Nachtraege): die gedruckten Seitenzahlen, in der Reihenfolge der Nachtraege */
+async function ladeNachgeladeneSeiten(db: SupabaseClient, quelleId: string): Promise<string> {
+  const { data: nachtraege, error: nachtragFehler } = await db.from("wissen_seiten_nachtrag").select("seiten").eq("quelle_id", quelleId).order("nr");
+  SCHREIB_FEHLER("Freigabe (Nachtraege)", nachtragFehler);
+  return ((nachtraege ?? []) as unknown as { seiten: string }[]).map((n) => n.seiten).join(", ");
+}
+
+/** Vollstaendigkeit eines Buchs: Welche Paketnummern gibt es, und wie viele sollten es sein? In Seiten gelesen, nur die zwei kleinen Felder. */
+async function fehlenPakete(db: SupabaseClient, quelleId: string, anzahl: number): Promise<boolean> {
+  const nummern = new Set<number>();
+  let gesamt = 0;
+  for (let von = 0; von < anzahl; von += SEITE) {
+    const { data: seite, error: seitenFehler } = await db
+      .from("wissen_chunks")
+      .select("paket:extra->>paket, gesamt:extra->>pakete_gesamt")
+      .eq("quelle_id", quelleId)
+      .order("id")
+      .range(von, von + SEITE - 1);
+    SCHREIB_FEHLER("Freigabe (Pakete)", seitenFehler);
+    for (const z of (seite ?? []) as unknown as { paket: string | null; gesamt: string | null }[]) {
+      if (z.paket !== null && z.paket !== undefined) nummern.add(Number(z.paket));
+      if (z.gesamt) gesamt = Math.max(gesamt, Number(z.gesamt));
+    }
+  }
+  return gesamt > 0 && nummern.size < gesamt;
 }
