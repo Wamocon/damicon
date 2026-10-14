@@ -1,4 +1,4 @@
-import { WissenUmordnenKnopf } from "../../src/components/db/wissen-umordnen";
+import { bewerteUmordnung, WissenUmordnenKnopf } from "../../src/components/db/wissen-umordnen";
 import type { WissenDokumentZeile } from "../../src/lib/wissen/dokumente-liste";
 import { imMarkup, pruefer, rendere, SPRACHEN, texteVon } from "./hilfen/ansicht-probe";
 
@@ -123,7 +123,32 @@ const wirkung = (html: string) => html.match(/<p class="text-\[11px\] ([^"]*)">D
   pruefe("Andere Person: dasselbe Fenster, Speichern frei", fremd.html === fenster(basis, null).html && !speichern(fremd.html).includes('disabled=""'));
 }
 
-// ---- 6. Alle Sprachen --------------------------------------------------------------------------------------------------------------
+// ---- 6. Die Bewertung der Wahl als reine Funktion (seit dem Zerlegen, 14.10.2026) ---------------------------------------------------
+// Was erst nach einer Änderung im Fenster entsteht: Vier-Augen-Sperre, neue Wiedervorlage, fremder Bereich.
+{
+  type Wert = Parameters<typeof bewerteUmordnung>[1];
+  const wie = (d: WissenDokumentZeile, teil: Partial<Wert> = {}): Wert => ({ cluster: d.cluster ?? "", bereich: d.bereich === "legal" ? "recht" : d.bereich, quellenart: d.quellenart ?? "", textgrundlage: d.textgrundlage ?? "original", ...teil });
+  const b = (d: WissenDokumentZeile, teil: Partial<Wert> = {}, ichId: string | null = "u-anna") => bewerteUmordnung(d, wie(d, teil), ichId);
+
+  const unveraendert = b(basis);
+  pruefe("Bewertung: unverändert ist gültig, ohne Sperre, ohne neue Wiedervorlage", unveraendert.gueltig && !unveraendert.gesperrtDurchVierAugen && unveraendert.wiedervorlage === null && unveraendert.art === "fachliteratur" && unveraendert.stufe === 4 && unveraendert.nutzung === "ja" && unveraendert.bereichSteht && !unveraendert.urlFehlt);
+  pruefe("Vier Augen: eigene Person ändert Bereich, Quellenart oder Textgrundlage eines freigegebenen Uploads", b(basis, { bereich: "steuer" }).gesperrtDurchVierAugen && b(basis, { quellenart: "praxisbeitrag" }).gesperrtDurchVierAugen && b(basis, { textgrundlage: "original" }).gesperrtDurchVierAugen);
+  pruefe("Vier Augen: der Cluster allein sperrt nicht", !b(basis, { cluster: "publikationen" }).gesperrtDurchVierAugen && b(basis, { cluster: "publikationen" }).gueltig);
+  pruefe("Vier Augen: eine andere Person, ohne Anmeldung, ein ungeprüfter Upload oder Bestand sperren nicht", !b(basis, { bereich: "steuer" }, "u-bert").gesperrtDurchVierAugen && !b(basis, { bereich: "steuer" }, null).gesperrtDurchVierAugen && !b({ ...basis, pruefstatus: "ungeprueft" }, { bereich: "steuer" }).gesperrtDurchVierAugen && !b({ ...basis, herkunft: "skript" }, { bereich: "steuer" }).gesperrtDurchVierAugen);
+  pruefe("Wiedervorlage: neue Art mit Frist bei einem freigegebenen Upload (Praxisbeitrag 24 Monate, Internetquelle 12)", b(basis, { quellenart: "praxisbeitrag", cluster: "publikationen" }).wiedervorlage === 24 && b(basis, { quellenart: "internetquelle", cluster: "internet" }).wiedervorlage === 12);
+  pruefe("Wiedervorlage: keine bei Art ohne Frist, bei gleicher Art, bei ungeprüftem Upload oder ohne Art", b(basis, { quellenart: "rechtsnorm" }).wiedervorlage === null && b({ ...basis, quellenart: "praxisbeitrag" }).wiedervorlage === null && b({ ...basis, pruefstatus: "ungeprueft" }, { quellenart: "praxisbeitrag" }).wiedervorlage === null && b(basis, { quellenart: "" }).wiedervorlage === null);
+  const fremderBereich = b(basis, { bereich: "amtlich" });
+  pruefe("Bereich: ein fremder Korpusbereich steht nicht, Nutzung gilt dann als ja, nicht gültig", !fremderBereich.bereichSteht && fremderBereich.nutzung === "ja" && !fremderBereich.gueltig);
+  const eigenerKorpus = b({ ...basis, herkunft: "skript", bereich: "fachquellen", quellenart: "internetquelle", cluster: "internet", url: "https://x.example" });
+  pruefe("Bereich: der eigene Korpusbereich steht, mit der strengsten Nutzung der Art", eigenerKorpus.bereichSteht && eigenerKorpus.nutzung === "notfalls" && eigenerKorpus.gueltig);
+  const ohneArt = b({ ...basis, stufe: 3 }, { quellenart: "" });
+  pruefe("Ohne Art: Stufe des Dokuments, Nutzung ja, nicht gültig", ohneArt.art === null && ohneArt.stufe === 3 && ohneArt.nutzung === "ja" && !ohneArt.gueltig);
+  pruefe("Pflicht-Link: fehlt ohne Link und bei Freitext, Groß- und Kleinschreibung egal", b(basis, { quellenart: "forum", cluster: "internet" }).urlFehlt && b({ ...basis, url: "forum.example" }, { quellenart: "forum", cluster: "internet" }).urlFehlt && !b({ ...basis, url: "HTTPS://forum.example" }, { quellenart: "forum", cluster: "internet" }).urlFehlt && b({ ...basis, url: "https://forum.example" }, { quellenart: "forum", cluster: "internet" }).gueltig);
+  pruefe("Cluster: ohne Cluster oder unpassend nicht gültig", !b(basis, { cluster: "" }).gueltig && !b({ ...basis, url: "https://x.example" }, { quellenart: "internetquelle", cluster: "buecher" }).gueltig);
+  pruefe("Nutzung: Norm im Recht nur als Hinweis, gültig", b(basis, { quellenart: "standard" }).nutzung === "hinweis" && b(basis, { quellenart: "standard" }).gueltig && b(basis, { quellenart: "standard" }).stufe === 3);
+}
+
+// ---- 7. Alle Sprachen --------------------------------------------------------------------------------------------------------------
 for (const loc of SPRACHEN) {
   const zustaende: [string, WissenDokumentZeile][] = [
     ["Upload", basis],
