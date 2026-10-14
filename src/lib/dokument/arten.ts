@@ -10,6 +10,7 @@ import { baueLieferungDokument } from "@/lib/dokument/lieferung";
 import { baueNachweiseDokument } from "@/lib/dokument/nachweise";
 import { baueLieferplanDokument } from "@/lib/dokument/lieferplan";
 import { baueWirtschaftlichkeitDokument } from "@/lib/dokument/wirtschaftlichkeit";
+import { baueAbholauftragDokument } from "@/lib/dokument/abholauftrag";
 import { ladeEsutdMeldungen, ladeEsutdOptionen } from "@/lib/data/esutd";
 import { ladeEsfUebersicht } from "@/lib/data/esf";
 import { ladeFoerdermittel } from "@/lib/data/foerdermittel";
@@ -18,6 +19,7 @@ import { ladeLieferungen } from "@/lib/data/lieferungen";
 import { ladeDokumente } from "@/lib/data/dokumente";
 import { ladeLieferplanQuelle } from "@/lib/data/lieferplan";
 import { ladeStand, ladeWirtschaftlichkeit } from "@/lib/data/wirtschaftlichkeit";
+import { ladeAbholrunde } from "@/lib/data/abholrunden";
 import { tagInZone } from "@/lib/domain/tageszeit";
 
 // Die Dokumente, die das System im Damicon-Layout herausgibt: je Art ein Recht, die Namensraeume der Texte und das Laden der
@@ -112,6 +114,16 @@ export const DOKUMENT_ARTEN: Record<string, DokumentArt> = {
         tagInZone(x.jetzt),
         x,
       );
+    },
+  },
+  abholauftrag: {
+    namensraeume: ["dokument.abholauftrag", "abholrundenAnsicht"],
+    // Wie die Abholrunden selbst: das Buero und die Brigade (Matrix: logistik, die Brigade nur lesend und erfassend).
+    erlaubt: (rolle) => hasPermission(rolle, "logistik", "update"),
+    baue: async ({ parameter, x }) => {
+      const id = parameterId(parameter, "runde");
+      const runde = id ? await ladeAbholrunde(id) : null;
+      return runde ? baueAbholauftragDokument(runde, x) : null;
     },
   },
   wirtschaftlichkeit: {

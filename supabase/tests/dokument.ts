@@ -19,12 +19,14 @@ import { baueLieferungDokument } from "@/lib/dokument/lieferung";
 import { baueNachweiseDokument, type NachweisZeile } from "@/lib/dokument/nachweise";
 import { baueLieferplanDokument, lieferplanZeilen } from "@/lib/dokument/lieferplan";
 import { baueWirtschaftlichkeitDokument } from "@/lib/dokument/wirtschaftlichkeit";
+import { baueAbholauftragDokument } from "@/lib/dokument/abholauftrag";
 import { DOKUMENT_ARTEN } from "@/lib/dokument/arten";
 import { roles, type Role } from "@/lib/rbac";
 import type { EsutdMeldung } from "@/lib/domain/esutd";
 import type { EsfBelegZeile, EsfUebersicht } from "@/lib/data/esf";
 import type { LieferungZeile } from "@/lib/domain/lieferungen";
 import { modellAnnahmen, modellPosten, type IstEintrag } from "@/lib/domain/wirtschaftlichkeit-erfassung";
+import type { AbholRundeZeile, AbholStoppZeile } from "@/lib/domain/abholrunden";
 
 let fehler = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -114,6 +116,22 @@ const WIRT_IST: IstEintrag[] = [{ id: "i1", monat: "2026-11-01", kategorie: "sch
 const WIRT_ANNAHMEN = { ...modellAnnahmen(), echtbetriebBeginn: "2026-11-01" };
 const WIRT = { posten: WIRT_POSTEN, ist: WIRT_IST, annahmen: WIRT_ANNAHMEN, menge: null, quelle: "erfasst" as const, heute: HEUTE };
 
+const ABHOL_STOPP = (id: string, extra: Partial<AbholStoppZeile>): AbholStoppZeile => ({
+  id, nachbarbetriebId: `n-${id}`, nachbarbetrieb: `Nachbar <${id}>`, ort: "Talgar", adresse: "Abay 5, Talgar", kontakt: "+7 700 000 00 00", breitengrad: null, laengengrad: null,
+  reihenfolge: 0, mengeGeplantKg: 120, sorte: null, status: "geplant", mengeIstKg: null, pflueckbeginn: null, abgeholtAm: null, bemerkung: null,
+  minutenBisKuehlung: null, ergebnis: null, ...extra,
+});
+const ABHOL_RUNDE = (status: AbholRundeZeile["status"], stopps: AbholStoppZeile[]): AbholRundeZeile => ({
+  id: "r1", datum: "2026-10-14", status, fahrzeug: "Kuehlwagen 1", notiz: null, distanzKm: 38.4, dauerMinuten: 62, abErstemStoppMinuten: 40, geometrie: null,
+  gestartetAm: status === "geplant" ? null : "2026-10-14T06:00:00Z", kuehlhausAn: status === "abgeschlossen" ? "2026-10-14T08:30:00Z" : null, stopps,
+});
+const ABHOL_OFFEN = ABHOL_RUNDE("geplant", [ABHOL_STOPP("a", {}), ABHOL_STOPP("b", { reihenfolge: 1, mengeGeplantKg: 80 })]);
+const ABHOL_FERTIG = ABHOL_RUNDE("abgeschlossen", [
+  ABHOL_STOPP("a", { status: "abgeholt", mengeIstKg: 110, pflueckbeginn: "2026-10-14T07:50:00Z", abgeholtAm: "2026-10-14T07:20:00Z", minutenBisKuehlung: 40, ergebnis: "ok", reihenfolge: 0 }),
+  ABHOL_STOPP("b", { status: "abgeholt", mengeIstKg: 70, pflueckbeginn: "2026-10-14T07:00:00Z", abgeholtAm: "2026-10-14T07:50:00Z", minutenBisKuehlung: 90, ergebnis: "verstoss", reihenfolge: 1 }),
+  ABHOL_STOPP("c", { status: "entfallen", reihenfolge: 2 }),
+]);
+
 // --- 1. Rahmen -------------------------------------------------------------------------------------------------------------------
 {
   const x = kontext("de");
@@ -157,6 +175,8 @@ const FAELLE: Fall[] = [
   { name: "Wirtschaftlichkeit, ohne Posten", baue: (x) => baueWirtschaftlichkeitDokument({ ...WIRT, posten: [], ist: [] }, x), inhalt: [/<table/] },
   { name: "Wirtschaftlichkeit, Modellrechnung", baue: (x) => baueWirtschaftlichkeitDokument({ ...WIRT, quelle: "modell", ist: [] }, x), inhalt: [/Hosting/] },
   { name: "Wirtschaftlichkeit, Stand", baue: (x) => baueWirtschaftlichkeitDokument({ ...WIRT, quelle: "stand", stand: { name: "Stand <Januar>", standAm: "2027-01-15T08:00:00Z" }, standId: "s1" }, x), inhalt: [/Stand &lt;Januar&gt;/] },
+  { name: "Abholauftrag, geplant", baue: (x) => baueAbholauftragDokument(ABHOL_OFFEN, x), inhalt: [/Nachbar &lt;a&gt;/, /Talgar/] },
+  { name: "Abholauftrag, abgeschlossen", baue: (x) => baueAbholauftragDokument(ABHOL_FERTIG, x), inhalt: [/Nachbar &lt;b&gt;/, /class="kasten"/] },
   { name: "Lieferplan, Buero", baue: (x) => baueLieferplanDokument(PLAN, HEUTE, true, x), inhalt: [/Gastro/, /Markt/] },
   { name: "Lieferplan, Kunde", baue: (x) => baueLieferplanDokument(PLAN, HEUTE, false, x), inhalt: [/kg/] },
 ];
@@ -207,6 +227,12 @@ for (const fall of FAELLE) {
   const kurs2 = baueWirtschaftlichkeitDokument({ ...WIRT, annahmen: { ...WIRT_ANNAHMEN, kurse: { eurTenge: 480, rubTenge: 5 }, kursStichtag: "2027-01-15" } }, x);
   check("Wirtschaftlichkeit: ein anderer Kurs ergibt ein anderes Siegel", kurs2.siegel !== wirt.siegel && wirt.siegel === baueWirtschaftlichkeitDokument(WIRT, { ...x, jetzt: new Date("2026-10-14T18:00:00Z") }).siegel);
 
+  const abholOffen = baueAbholauftragDokument(ABHOL_OFFEN, x);
+  check("Abholauftrag: geplant mit zwei Stopps, 200 kg erwartet, zwei offen, Fahrzeit ab dem ersten Stopp als Hinweis", abholOffen.kennzahlen?.map((k) => k.wert).join(",").startsWith("2,200") === true && abholOffen.kennzahlen?.[2].wert === "2" && abholOffen.abschnitte[1].html.includes("40 Minuten") && abholOffen.titel === "Abholauftrag", abholOffen.kennzahlen?.map((k) => k.wert).join(","));
+  const abholFertig = baueAbholauftragDokument(ABHOL_FERTIG, x);
+  check("Abholauftrag: abgeschlossen zeigt Ergebnis je Abholung, den Verstoss als Kasten und den Nachweis im Titel", abholFertig.titel === "Nachweis der Abholrunde" && abholFertig.abschnitte.some((a) => a.html.includes("Verstoß")) && abholFertig.abschnitte.at(-1)?.html.includes('class="kasten"') === true && abholFertig.kennzahlen?.[2].ton === "schlecht");
+  check("Abholauftrag: Fahrer und Betriebsleitung unterschreiben, jede Aenderung der Runde aendert das Siegel", abholFertig.freigabe?.length === 2 && abholFertig.siegel !== abholOffen.siegel && abholFertig.siegel === baueAbholauftragDokument(ABHOL_FERTIG, { ...x, jetzt: new Date("2026-10-14T18:00:00Z") }).siegel);
+
   const zeilen = lieferplanZeilen(PLAN, HEUTE);
   check("Lieferplan: Tour vor Wunsch, Doppelung und Vergangenes fehlen", zeilen.length === 2 && zeilen[0].art === "lieferung" && zeilen[0].datum === "2026-10-15" && zeilen[1].art === "vorbestellung" && zeilen[1].datum === "2026-10-20", JSON.stringify(zeilen.map((z) => [z.datum, z.art])));
   const kunde = baueLieferplanDokument(PLAN, HEUTE, false, x);
@@ -223,6 +249,7 @@ for (const fall of FAELLE) {
     nachweise: ["admin", "ceo", "betriebsleitung", "buchhaltung", "erzeuger", "kunde"],
     lieferplan: ["admin", "ceo", "betriebsleitung", "buchhaltung", "erzeuger", "kunde"],
     wirtschaftlichkeit: ["admin", "ceo", "betriebsleitung", "buchhaltung"],
+    abholauftrag: ["admin", "ceo", "betriebsleitung", "brigade"],
   };
   for (const [art, rollen] of Object.entries(erwartet)) {
     const ist = roles.filter((r) => DOKUMENT_ARTEN[art].erlaubt(r));

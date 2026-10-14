@@ -39,6 +39,141 @@ export type Database = {
   }
   public: {
     Tables: {
+      abholrunden: {
+        Row: {
+          ab_erstem_stopp_minuten: number | null
+          ankunft_geraet_zeitpunkt: string | null
+          created_at: string
+          datum: string
+          dauer_minuten: number | null
+          distanz_km: number | null
+          erstellt_von_profil_id: string | null
+          fahrzeug: string | null
+          gestartet_am: string | null
+          id: string
+          kuehlhaus_an: string | null
+          notiz: string | null
+          routen_geometrie: Json | null
+          status: Database["public"]["Enums"]["tour_status"]
+          updated_at: string
+        }
+        Insert: {
+          ab_erstem_stopp_minuten?: number | null
+          ankunft_geraet_zeitpunkt?: string | null
+          created_at?: string
+          datum: string
+          dauer_minuten?: number | null
+          distanz_km?: number | null
+          erstellt_von_profil_id?: string | null
+          fahrzeug?: string | null
+          gestartet_am?: string | null
+          id?: string
+          kuehlhaus_an?: string | null
+          notiz?: string | null
+          routen_geometrie?: Json | null
+          status?: Database["public"]["Enums"]["tour_status"]
+          updated_at?: string
+        }
+        Update: {
+          ab_erstem_stopp_minuten?: number | null
+          ankunft_geraet_zeitpunkt?: string | null
+          created_at?: string
+          datum?: string
+          dauer_minuten?: number | null
+          distanz_km?: number | null
+          erstellt_von_profil_id?: string | null
+          fahrzeug?: string | null
+          gestartet_am?: string | null
+          id?: string
+          kuehlhaus_an?: string | null
+          notiz?: string | null
+          routen_geometrie?: Json | null
+          status?: Database["public"]["Enums"]["tour_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "abholrunden_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      abholstopps: {
+        Row: {
+          abgeholt_am: string | null
+          bemerkung: string | null
+          created_at: string
+          geraet_zeitpunkt: string | null
+          id: string
+          menge_geplant_kg: number
+          menge_ist_kg: number | null
+          nachbarbetrieb_id: string
+          pflueckbeginn: string | null
+          reihenfolge: number
+          runde_id: string
+          sorte_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          abgeholt_am?: string | null
+          bemerkung?: string | null
+          created_at?: string
+          geraet_zeitpunkt?: string | null
+          id?: string
+          menge_geplant_kg: number
+          menge_ist_kg?: number | null
+          nachbarbetrieb_id: string
+          pflueckbeginn?: string | null
+          reihenfolge?: number
+          runde_id: string
+          sorte_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          abgeholt_am?: string | null
+          bemerkung?: string | null
+          created_at?: string
+          geraet_zeitpunkt?: string | null
+          id?: string
+          menge_geplant_kg?: number
+          menge_ist_kg?: number | null
+          nachbarbetrieb_id?: string
+          pflueckbeginn?: string | null
+          reihenfolge?: number
+          runde_id?: string
+          sorte_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "abholstopps_runde_id_fkey"
+            columns: ["runde_id"]
+            isOneToOne: false
+            referencedRelation: "abholrunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "abholstopps_nachbarbetrieb_id_fkey"
+            columns: ["nachbarbetrieb_id"]
+            isOneToOne: false
+            referencedRelation: "nachbarbetriebe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "abholstopps_sorte_id_fkey"
+            columns: ["sorte_id"]
+            isOneToOne: false
+            referencedRelation: "sorten"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       aggregator_einstellungen: {
         Row: {
           id: string
@@ -2237,33 +2372,45 @@ export type Database = {
       }
       nachbarbetriebe: {
         Row: {
+          adresse: string | null
+          breitengrad: number | null
           created_at: string
+          geokodiert_am: string | null
           id: string
           identifikationsnummer: string | null
           identitaets_digest: string | null
           kontakt: string | null
+          laengengrad: number | null
           name: string
           ort: string | null
           rechtsform: Database["public"]["Enums"]["rechtsform"] | null
           updated_at: string
         }
         Insert: {
+          adresse?: string | null
+          breitengrad?: number | null
           created_at?: string
+          geokodiert_am?: string | null
           id?: string
           identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
+          laengengrad?: number | null
           name: string
           ort?: string | null
           rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Update: {
+          adresse?: string | null
+          breitengrad?: number | null
           created_at?: string
+          geokodiert_am?: string | null
           id?: string
           identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
+          laengengrad?: number | null
           name?: string
           ort?: string | null
           rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
@@ -4257,6 +4404,17 @@ export type Database = {
           titel: string | null
         }
         Relationships: []
+      }
+      v_abholstopps_kuehlkette: {
+        Row: {
+          ergebnis: Database["public"]["Enums"]["kuehlkette_ergebnis"] | null
+          kuehlhaus_an: string | null
+          minuten_bis_kuehlung: number | null
+          runde_id: string | null
+          stopp_id: string | null
+        }
+        Relationships: [
+        ]
       }
       v_block_risiko: {
         Row: {

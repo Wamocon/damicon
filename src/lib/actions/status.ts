@@ -93,6 +93,14 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
     case "DA014":
       // esf_beleg_pruefen() (WMCNL-1440): einen Beleg gibt es nur zu einer zugestellten Lieferung.
       return fehler("fehler.esfLieferungOffen");
+    case "DA015":
+      // abholrunde_pruefen() und abholstopp_pruefen() (WMCNL-1577): die Runde oder der Stopp ist abgeschlossen oder erledigt,
+      // oder der Statuswechsel ist nicht vorgesehen.
+      return fehler("fehler.abholrundeAbgeschlossen");
+    case "DA016":
+      // abholrunde_pruefen() und abholstopp_pruefen() (WMCNL-1577): die Runde ist noch nicht gestartet (Abholung), oder es sind
+      // noch Stopps offen (Abschluss).
+      return fehler("fehler.abholrundeNichtGestartet");
     case "DA012":
       // vorbestellung_nachricht_vorbereiten() (WMCNL-1472): zu einer stornierten
       // Vorbestellung gibt es keine neuen Nachrichten.

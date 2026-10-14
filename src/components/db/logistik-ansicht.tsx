@@ -11,6 +11,7 @@ import {
 } from "@/components/db/lieferungen-formulare";
 import { TourErstellenFormular, TourLoeschenFormular } from "@/components/db/tourenplanung-formulare";
 import { TourKarte } from "@/components/db/tour-karte";
+import { AbholrundenAnsicht } from "@/components/db/abholrunden-ansicht";
 import {
   ladeB2bKundeOptionenFuerLieferung,
   ladeChargeOptionenFuerLieferung,
@@ -243,6 +244,9 @@ export async function LogistikAnsicht() {
           <p className="text-[11px] leading-4 text-muted-foreground">{tt("hinweis")}</p>
         </Section>
       ) : null}
+
+      {/* Abholrunden bei Nachbarbetrieben (WMCNL-1577): die Gegenrichtung zur Tourenplanung, mit der 60-Minuten-Regel der Kuehlkette. */}
+      {siehtTouren ? <AbholrundenAnsicht /> : null}
 
       <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{t("note")}</Card>
     </div>

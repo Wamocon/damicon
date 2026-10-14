@@ -682,9 +682,9 @@
     "logistik": {
       "title": "Abholrunden und Tourenplanung",
       "navTitle": "Abholrunden",
-      "description": "Feste Abholrunden im Feld, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung nach den Lieferfenstern der Kunden.",
+      "description": "Abholrunden bei Nachbarbetrieben mit der 60-Minuten-Regel der Kühlkette, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung der Auslieferung.",
       "summary": "Übergabequittung mit Mengen- und Temperaturabgleich (Vorkühlung und Transport), lückenloser Kühlkettennachweis bis zum Kunden.",
-      "todo": "Tourenliste je Fahrzeug und Lieferzeitfenster fehlen noch."
+      "todo": "Fahrzeugkapazität und Lieferzeitfenster der Kunden fehlen noch."
     },
     "qr_steigen": {
       "title": "QR-Steigenkennung",
@@ -997,7 +997,14 @@
       "wiIstEntfernt": "Ist-Wert entfernt.",
       "wiAnnahmenGespeichert": "Annahmen gespeichert.",
       "wiStandFestgehalten": "Stand festgehalten.",
-      "wiModellUebernommen": "Modellwerte übernommen."
+      "wiModellUebernommen": "Modellwerte übernommen.",
+      "abholrundeErstellt": "Abholrunde angelegt, die Stopps sind nach der kürzesten Strecke geordnet.",
+      "abholrundeOhneRoute": "Abholrunde angelegt. Ohne Route oder ohne Anschrift stehen die Stopps in der gewählten Reihenfolge.",
+      "abholrundeVerworfen": "Abholrunde verworfen.",
+      "abholrundeGestartet": "Runde gestartet.",
+      "abholungErfasst": "Abholung erfasst.",
+      "stoppEntfallen": "Stopp als entfallen erfasst.",
+      "abholrundeAbgeschlossen": "Runde abgeschlossen. Die Ankunft im Kühlhaus ist festgehalten."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1116,7 +1123,18 @@
       "wiStandName": "Bitte eine Bezeichnung für den Stand mit 1 bis 120 Zeichen angeben.",
       "wiStandLeer": "Ohne erfasste Posten gibt es nichts festzuhalten.",
       "wiNichtGefunden": "Der Eintrag wurde nicht gefunden.",
-      "wiModellNichtLeer": "Es sind schon Posten erfasst. Die Modellwerte lassen sich nur auf eine leere Liste übernehmen."
+      "wiModellNichtLeer": "Es sind schon Posten erfasst. Die Modellwerte lassen sich nur auf eine leere Liste übernehmen.",
+      "arDatum": "Bitte ein gültiges Datum angeben.",
+      "arFahrzeug": "Das Fahrzeug darf höchstens 60 Zeichen haben.",
+      "arNotiz": "Die Notiz darf höchstens 500 Zeichen haben.",
+      "arStopps": "Bitte mindestens einen Nachbarbetrieb wählen.",
+      "arMenge": "Bitte eine Menge in Kilogramm angeben, größer als 0 (bei der Abholung 0 oder mehr).",
+      "arDoppelt": "Ein Nachbarbetrieb kann nur einmal in einer Runde stehen.",
+      "arVorlauf": "Bitte den Pflückbeginn in Minuten vor der Abholung angeben, höchstens 1440, oder das Feld leer lassen.",
+      "arBemerkung": "Die Bemerkung darf höchstens 500 Zeichen haben.",
+      "arBetriebFehlt": "Ein gewählter Nachbarbetrieb wurde nicht gefunden. Bitte die Seite neu laden.",
+      "abholrundeAbgeschlossen": "Das geht nicht mehr: die Runde oder der Stopp ist schon abgeschlossen oder erledigt.",
+      "abholrundeNichtGestartet": "Dazu muss die Runde laufen. Zum Abschließen darf außerdem kein Stopp mehr offen sein."
     },
     "einladungen": {
       "erfolg": {
@@ -5032,6 +5050,52 @@
         "geschaetzt": "Geschätzt, weil sie an Annahmen hängen, die der Betrieb noch nicht belegt hat: {liste}.",
         "offen": "Offen, weil Angaben fehlen: {liste}."
       }
+    },
+    "abholauftrag": {
+      "art": "Abholrunde · Auftrag",
+      "titel": "Abholauftrag",
+      "titelNachweis": "Nachweis der Abholrunde",
+      "dateiname": "Abholauftrag-{datum}",
+      "unbekannt": "unbekannt",
+      "planungOffen": "Für diese Runde wurde keine Route berechnet, deshalb gibt es keine Fahrzeitschätzung.",
+      "planungOk": "Geschätzte Fahrt vom ersten Stopp ins Kühlhaus: {minuten} Minuten. Das passt in die 60 Minuten.",
+      "planungKnapp": "Geschätzte Fahrt vom ersten Stopp ins Kühlhaus: {minuten} Minuten. Das ist knapp: die Uhr läuft schon ab dem Pflückbeginn, also vor dem Eintreffen des Fahrzeugs.",
+      "planungZuLang": "Geschätzte Fahrt vom ersten Stopp ins Kühlhaus: {minuten} Minuten. Das überschreitet die 60 Minuten, auch ohne Wartezeit beim Nachbarbetrieb. Die Runde sollte geteilt werden.",
+      "abschnittStopps": "Stopps",
+      "abschnittRegel": "Regel der Kühlkette",
+      "abschnittErgebnis": "Ergebnis je Abholung",
+      "abschnittHinweise": "Hinweise",
+      "regel": "Ab dem Pflückbeginn zählt die Uhr, bis die Ware im Kühlhaus ist. Bis {warnung} Minuten gilt die Abholung als in Ordnung, bis {verstoss} Minuten als Warnung, darüber als Verstoß. Den Pflückbeginn nennt der Nachbarbetrieb. Fehlt er, gilt die Abholung als Warnung.",
+      "keineStopps": "Diese Runde hat keine Stopps.",
+      "keineAbholung": "Es wurde nichts abgeholt.",
+      "verstossTitel": "Verstoß gegen die 60-Minuten-Regel",
+      "verstossText": "Mindestens eine Abholung hat die Grenze von {grenze} Minuten bis zum Kühlhaus überschritten. Die Ware ist nach den Regeln der Kühlkette zu prüfen, bevor sie weiterverarbeitet oder verkauft wird.",
+      "col": {
+        "nr": "Nr.",
+        "betrieb": "Nachbarbetrieb",
+        "erwartet": "Erwartet",
+        "abgeholt": "Abgeholt",
+        "status": "Stand",
+        "pflueckbeginn": "Pflückbeginn",
+        "abholung": "Abholung",
+        "minuten": "Minuten bis Kühlhaus",
+        "ergebnis": "Ergebnis"
+      },
+      "meta": {
+        "datum": "Datum",
+        "fahrzeug": "Fahrzeug",
+        "status": "Status",
+        "ankunft": "Ankunft im Kühlhaus"
+      },
+      "kennzahl": {
+        "stopps": "Stopps",
+        "erwartet": "Erwartete Menge",
+        "abgeholt": "Abgeholte Menge",
+        "offen": "Offene Stopps"
+      },
+      "zusammenfassungAbgeschlossen": "Die Runde ist abgeschlossen: {abgeholt} Abholungen, {entfallen} entfallen. Das Dokument ändert sich nicht mehr.",
+      "zusammenfassungOffen": "Auftrag für {anzahl} Stopps. Der Fahrer erfasst jede Abholung mit der Menge und dem Pflückbeginn, den der Nachbarbetrieb nennt.",
+      "fahrer": "Fahrer"
     }
   },
   "wirtschaftlichkeitErfassung": {
@@ -5163,6 +5227,92 @@
       "name": "Bezeichnung des Standes",
       "nameBeispiel": "z. B. Quartalsstand Q1 2027",
       "festhalten": "Stand festhalten"
+    }
+  },
+  "abholrundenAnsicht": {
+    "titel": "Abholrunden bei Nachbarbetrieben",
+    "lead": "Ein Fahrzeug holt Ware bei Nachbarbetrieben ab und bringt sie ins Kühlhaus. Das ist die Gegenrichtung zur Tourenplanung der Auslieferung.",
+    "regel": "Ab dem Pflückbeginn zählt die 60-Minuten-Regel der Kühlkette, bis die Ware im Kühlhaus ist: bis 45 Minuten in Ordnung, bis 60 Minuten Warnung, darüber Verstoß. Den Pflückbeginn nennt der Nachbarbetrieb, der Fahrer trägt ihn bei der Abholung ein. Ohne Angabe gilt die Abholung als Warnung.",
+    "nurLesen": "Planen dürfen Administration, Geschäftsführung, Betriebsleitung und Buchhaltung. Den Ablauf erfassen zusätzlich die Fahrer der Brigade.",
+    "leer": "Noch keine Abholrunde geplant.",
+    "status": {
+      "geplant": "geplant",
+      "unterwegs": "unterwegs",
+      "abgeschlossen": "abgeschlossen"
+    },
+    "stoppStatus": {
+      "geplant": "offen",
+      "abgeholt": "abgeholt",
+      "entfallen": "entfallen"
+    },
+    "ergebnis": {
+      "ok": "in Ordnung",
+      "warnung": "Warnung",
+      "verstoss": "Verstoß"
+    },
+    "runde": {
+      "ohneFahrzeug": "ohne Fahrzeug",
+      "stopps": "{anzahl, plural, one {# Stopp} other {# Stopps}}",
+      "plan": "erwartet {menge} kg",
+      "ist": "abgeholt {menge} kg",
+      "gestartet": "gestartet {zeit}",
+      "ankunft": "im Kühlhaus {zeit}",
+      "route": "Route {km} km, {minuten} Minuten insgesamt",
+      "keineRoute": "Keine Route berechnet: Anschriften fehlen, oder der Routendienst war nicht erreichbar.",
+      "abErstem": "{minuten} Minuten Fahrt vom ersten Stopp ins Kühlhaus",
+      "ergebnisse": "{ok} in Ordnung, {warnung} Warnungen, {verstoss} Verstöße",
+      "auftrag": "Abholauftrag (PDF)",
+      "abgeschlossenTitel": "Abgeschlossene Runden ({anzahl})",
+      "abgeschlossenLead": "Abgeschlossene Runden ändern sich nicht mehr. Sie sind der Nachweis der 60-Minuten-Regel."
+    },
+    "planung": {
+      "ok": "Fahrt passt",
+      "knapp": "Fahrt knapp",
+      "zuLang": "Fahrt zu lang"
+    },
+    "stopp": {
+      "plan": "erwartet {menge} kg",
+      "ist": "abgeholt {menge} kg",
+      "pflueckbeginn": "Pflückbeginn {zeit}",
+      "pflueckUnbekannt": "Pflückbeginn unbekannt, als Warnung gewertet",
+      "abgeholtAm": "abgeholt {zeit}",
+      "minuten": "{minuten} Minuten bis zum Kühlhaus"
+    },
+    "aktion": {
+      "starten": "Runde starten",
+      "verwerfen": "Runde verwerfen",
+      "entfaellt": "Entfällt"
+    },
+    "abholung": {
+      "titel": "Abholung erfassen",
+      "menge": "Abgeholte Menge (kg)",
+      "pflueckVor": "Pflückbeginn vor wie vielen Minuten?",
+      "pflueckVorHinweis": "Seit wann pflückt der Nachbarbetrieb diese Ware? Leer lassen, wenn unbekannt.",
+      "bemerkung": "Bemerkung (optional)",
+      "knopf": "Abholung speichern"
+    },
+    "abschluss": {
+      "titel": "Ankunft im Kühlhaus",
+      "offen": "Es sind noch {anzahl, plural, one {# Stopp} other {# Stopps}} offen. Jeder Stopp ist abgeholt oder entfallen, bevor die Runde endet.",
+      "bereit": "Alle Stopps sind erledigt. Die Runde kann abgeschlossen werden.",
+      "knopf": "Ankunft im Kühlhaus melden"
+    },
+    "planen": {
+      "titel": "Abholrunde planen",
+      "lead": "Datum, Fahrzeug und die Nachbarbetriebe mit der erwarteten Menge. Mit Anschrift ordnet das System die Stopps nach der kürzesten Strecke.",
+      "datum": "Datum",
+      "fahrzeug": "Fahrzeug (optional)",
+      "fahrzeugBeispiel": "z. B. Kühlwagen 1",
+      "notiz": "Notiz (optional)",
+      "menge": "Menge (kg)",
+      "keineBetriebe": "Es sind noch keine Nachbarbetriebe angelegt. Sie entstehen im Aggregator-Modul.",
+      "keineKoordinaten": "Ohne Anschrift, kommt ans Ende",
+      "knopf": "Abholrunde anlegen"
+    },
+    "adresse": {
+      "label": "Anschrift",
+      "platzhalter": "Straße, Ort",
+      "knopf": "Anschrift speichern"
     }
   }
 }

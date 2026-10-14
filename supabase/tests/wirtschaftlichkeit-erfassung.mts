@@ -9,6 +9,10 @@ import { starte } from "./hilfen/pglite-rollen.mjs";
 const t = await starte();
 const { db, check, als, mussScheitern } = t;
 
+// mussScheitern() setzt die Rolle danach zurueck: mehrere Pruefungen hintereinander im selben als()-Block liefen ab der zweiten
+// als Superuser. Deshalb bekommt jede Pruefung ihren eigenen Rollenwechsel.
+const alsScheitert = (rolle: string, name: string, sql: string, params: unknown[], code?: string) => als(rolle, () => mussScheitern(name, sql, params, code));
+
 const posten = (art: string, kategorie: string, betrag: number) =>
   db.query<{ id: string }>(
     `insert into public.wirtschaftlichkeit_posten (art, kategorie, bezeichnung, betrag) values ($1, $2, 'Testposten', $3) returning id;`,
@@ -119,10 +123,8 @@ await als("buchhaltung", async () => {
   check("Stand: die Buchhaltung darf einen Stand festhalten", rows.length === 1);
 });
 for (const rolle of ["admin", "buchhaltung"]) {
-  await als(rolle, async () => {
-    await mussScheitern(`Stand: ${rolle} darf ihn nicht aendern`, `update public.wirtschaftlichkeit_staende set bezeichnung = 'anders' where id = $1;`, [standId]);
-    await mussScheitern(`Stand: ${rolle} darf ihn nicht loeschen`, `delete from public.wirtschaftlichkeit_staende where id = $1;`, [standId]);
-  });
+  await alsScheitert(rolle, `Stand: ${rolle} darf ihn nicht aendern`, `update public.wirtschaftlichkeit_staende set bezeichnung = 'anders' where id = $1;`, [standId]);
+  await alsScheitert(rolle, `Stand: ${rolle} darf ihn nicht loeschen`, `delete from public.wirtschaftlichkeit_staende where id = $1;`, [standId]);
 }
 // Auch ohne Rechte-Huerde (als Superuser) bleibt der Trigger.
 await mussScheitern("Stand: auch der Superuser kann ihn nicht aendern (Trigger)", `update public.wirtschaftlichkeit_staende set bezeichnung = 'anders' where id = $1;`, [standId]);

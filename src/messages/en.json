@@ -682,9 +682,9 @@
     "logistik": {
       "title": "Collection rounds and route planning",
       "navTitle": "Collection rounds",
-      "description": "Fixed collection rounds in the field so filled crates do not sit in the sun, plus route planning by the clients' delivery windows.",
+      "description": "Pickup rounds at neighbouring farms with the 60-minute cold chain rule, so that filled crates do not stand in the sun, plus delivery tour planning.",
       "summary": "Handover receipt with volume and temperature reconciliation (pre-cooling and transport), unbroken cold-chain evidence all the way to the customer.",
-      "todo": "Route list per vehicle and delivery time windows are still missing."
+      "todo": "Vehicle capacity and customer delivery time windows are still missing."
     },
     "qr_steigen": {
       "title": "QR crate identification",
@@ -997,7 +997,14 @@
       "wiIstEntfernt": "Actual value removed.",
       "wiAnnahmenGespeichert": "Assumptions saved.",
       "wiStandFestgehalten": "Snapshot saved.",
-      "wiModellUebernommen": "Model values taken over."
+      "wiModellUebernommen": "Model values taken over.",
+      "abholrundeErstellt": "Pickup round created, the stops are ordered by the shortest route.",
+      "abholrundeOhneRoute": "Pickup round created. Without a route or without an address, the stops stay in the chosen order.",
+      "abholrundeVerworfen": "Pickup round discarded.",
+      "abholrundeGestartet": "Round started.",
+      "abholungErfasst": "Pickup recorded.",
+      "stoppEntfallen": "Stop recorded as cancelled.",
+      "abholrundeAbgeschlossen": "Round completed. The arrival at the cold store is recorded."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1116,7 +1123,18 @@
       "wiStandName": "Please enter a name for the snapshot of 1 to 120 characters.",
       "wiStandLeer": "Without recorded items there is nothing to save.",
       "wiNichtGefunden": "The entry was not found.",
-      "wiModellNichtLeer": "Items are already recorded. The model values can only be taken over onto an empty list."
+      "wiModellNichtLeer": "Items are already recorded. The model values can only be taken over onto an empty list.",
+      "arDatum": "Please enter a valid date.",
+      "arFahrzeug": "The vehicle may have at most 60 characters.",
+      "arNotiz": "The note may have at most 500 characters.",
+      "arStopps": "Please choose at least one neighbouring farm.",
+      "arMenge": "Please enter a quantity in kilograms above 0 (at pickup 0 or more).",
+      "arDoppelt": "A neighbouring farm can only appear once in a round.",
+      "arVorlauf": "Please enter the start of picking in minutes before the pickup, at most 1440, or leave the field empty.",
+      "arBemerkung": "The remark may have at most 500 characters.",
+      "arBetriebFehlt": "A chosen neighbouring farm was not found. Please reload the page.",
+      "abholrundeAbgeschlossen": "That is no longer possible: the round or the stop is already completed or done.",
+      "abholrundeNichtGestartet": "The round has to be running for that. To complete it, no stop may be open any more."
     },
     "einladungen": {
       "erfolg": {
@@ -5032,6 +5050,52 @@
         "geschaetzt": "Estimated, because they depend on assumptions that operations have not yet evidenced: {liste}.",
         "offen": "Open, because information is missing: {liste}."
       }
+    },
+    "abholauftrag": {
+      "art": "Pickup round · Order",
+      "titel": "Pickup order",
+      "titelNachweis": "Record of the pickup round",
+      "dateiname": "Pickup-order-{datum}",
+      "unbekannt": "unknown",
+      "planungOffen": "No route was calculated for this round, so there is no driving time estimate.",
+      "planungOk": "Estimated drive from the first stop to the cold store: {minuten} minutes. That fits into the 60 minutes.",
+      "planungKnapp": "Estimated drive from the first stop to the cold store: {minuten} minutes. That is tight: the clock already runs from the start of picking, before the vehicle arrives.",
+      "planungZuLang": "Estimated drive from the first stop to the cold store: {minuten} minutes. That exceeds the 60 minutes even without waiting time at the neighbouring farm. The round should be split.",
+      "abschnittStopps": "Stops",
+      "abschnittRegel": "Cold chain rule",
+      "abschnittErgebnis": "Result per pickup",
+      "abschnittHinweise": "Notes",
+      "regel": "From the start of picking the clock runs until the produce is in the cold store. Up to {warnung} minutes the pickup counts as fine, up to {verstoss} minutes as a warning, beyond that as a violation. The neighbouring farm states when picking began. If it is missing, the pickup counts as a warning.",
+      "keineStopps": "This round has no stops.",
+      "keineAbholung": "Nothing was collected.",
+      "verstossTitel": "Violation of the 60-minute rule",
+      "verstossText": "At least one pickup exceeded the limit of {grenze} minutes to the cold store. The produce is to be checked under the cold chain rules before it is processed or sold.",
+      "col": {
+        "nr": "No.",
+        "betrieb": "Neighbouring farm",
+        "erwartet": "Expected",
+        "abgeholt": "Collected",
+        "status": "State",
+        "pflueckbeginn": "Picking began",
+        "abholung": "Pickup",
+        "minuten": "Minutes to cold store",
+        "ergebnis": "Result"
+      },
+      "meta": {
+        "datum": "Date",
+        "fahrzeug": "Vehicle",
+        "status": "Status",
+        "ankunft": "Arrival at the cold store"
+      },
+      "kennzahl": {
+        "stopps": "Stops",
+        "erwartet": "Expected quantity",
+        "abgeholt": "Collected quantity",
+        "offen": "Open stops"
+      },
+      "zusammenfassungAbgeschlossen": "The round is completed: {abgeholt} pickups, {entfallen} cancelled. This document no longer changes.",
+      "zusammenfassungOffen": "Order for {anzahl} stops. The driver records each pickup with the quantity and the start of picking that the neighbouring farm states.",
+      "fahrer": "Driver"
     }
   },
   "wirtschaftlichkeitErfassung": {
@@ -5163,6 +5227,92 @@
       "name": "Name of the snapshot",
       "nameBeispiel": "e.g. quarterly snapshot Q1 2027",
       "festhalten": "Save snapshot"
+    }
+  },
+  "abholrundenAnsicht": {
+    "titel": "Pickup rounds at neighbouring farms",
+    "lead": "A vehicle collects produce at neighbouring farms and brings it to the cold store. This is the opposite direction of the delivery tour planning.",
+    "regel": "From the start of picking, the 60-minute cold chain rule counts until the produce is in the cold store: up to 45 minutes fine, up to 60 minutes a warning, beyond that a violation. The neighbouring farm states when picking began, and the driver enters it at pickup. Without it, the pickup counts as a warning.",
+    "nurLesen": "Administration, CEO, operations management and accounting can plan. The drivers of the crew also record the progress.",
+    "leer": "No pickup round planned yet.",
+    "status": {
+      "geplant": "planned",
+      "unterwegs": "on the road",
+      "abgeschlossen": "completed"
+    },
+    "stoppStatus": {
+      "geplant": "open",
+      "abgeholt": "collected",
+      "entfallen": "cancelled"
+    },
+    "ergebnis": {
+      "ok": "fine",
+      "warnung": "warning",
+      "verstoss": "violation"
+    },
+    "runde": {
+      "ohneFahrzeug": "no vehicle",
+      "stopps": "{anzahl, plural, one {# stop} other {# stops}}",
+      "plan": "expected {menge} kg",
+      "ist": "collected {menge} kg",
+      "gestartet": "started {zeit}",
+      "ankunft": "at the cold store {zeit}",
+      "route": "Route {km} km, {minuten} minutes in total",
+      "keineRoute": "No route calculated: addresses are missing, or the routing service was not reachable.",
+      "abErstem": "{minuten} minutes of driving from the first stop to the cold store",
+      "ergebnisse": "{ok} fine, {warnung} warnings, {verstoss} violations",
+      "auftrag": "Pickup order (PDF)",
+      "abgeschlossenTitel": "Completed rounds ({anzahl})",
+      "abgeschlossenLead": "Completed rounds no longer change. They are the evidence for the 60-minute rule."
+    },
+    "planung": {
+      "ok": "Drive fits",
+      "knapp": "Drive tight",
+      "zuLang": "Drive too long"
+    },
+    "stopp": {
+      "plan": "expected {menge} kg",
+      "ist": "collected {menge} kg",
+      "pflueckbeginn": "picking began {zeit}",
+      "pflueckUnbekannt": "picking start unknown, counted as a warning",
+      "abgeholtAm": "collected {zeit}",
+      "minuten": "{minuten} minutes to the cold store"
+    },
+    "aktion": {
+      "starten": "Start round",
+      "verwerfen": "Discard round",
+      "entfaellt": "Cancelled"
+    },
+    "abholung": {
+      "titel": "Record pickup",
+      "menge": "Collected quantity (kg)",
+      "pflueckVor": "Picking began how many minutes ago?",
+      "pflueckVorHinweis": "Since when has the neighbouring farm been picking this produce? Leave empty if unknown.",
+      "bemerkung": "Remark (optional)",
+      "knopf": "Save pickup"
+    },
+    "abschluss": {
+      "titel": "Arrival at the cold store",
+      "offen": "{anzahl, plural, one {# stop is} other {# stops are}} still open. Every stop is collected or cancelled before the round ends.",
+      "bereit": "All stops are done. The round can be completed.",
+      "knopf": "Report arrival at the cold store"
+    },
+    "planen": {
+      "titel": "Plan a pickup round",
+      "lead": "Date, vehicle and the neighbouring farms with the expected quantity. With an address, the system orders the stops by the shortest route.",
+      "datum": "Date",
+      "fahrzeug": "Vehicle (optional)",
+      "fahrzeugBeispiel": "e.g. refrigerated truck 1",
+      "notiz": "Note (optional)",
+      "menge": "Quantity (kg)",
+      "keineBetriebe": "No neighbouring farms are set up yet. They are created in the aggregator module.",
+      "keineKoordinaten": "No address, goes to the end",
+      "knopf": "Create pickup round"
+    },
+    "adresse": {
+      "label": "Address",
+      "platzhalter": "Street, town",
+      "knopf": "Save address"
     }
   }
 }

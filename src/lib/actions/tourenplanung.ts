@@ -5,7 +5,7 @@ import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 import { geokodiereAdresse } from "@/lib/tourenplanung/nominatim-client";
-import { berechneOptimierteTour } from "@/lib/tourenplanung/osrm-client";
+import { berechneOptimierteTour, stoppPositionen } from "@/lib/tourenplanung/osrm-client";
 import { WETTER_BREITENGRAD, WETTER_LAENGENGRAD } from "@/lib/domain/wetter";
 import type { Json } from "@/lib/database.types";
 
@@ -118,11 +118,10 @@ export async function tourErstellen(
   // Planungsreihenfolge erhalten statt eines falsch sortierten Ratens.
   const reihenfolgeNachLieferung = new Map<string, number>();
   if (trip) {
-    trip.reihenfolge
-      .filter((wegpunktIndex) => wegpunktIndex > 0)
-      .forEach((wegpunktIndex, position) => {
-        reihenfolgeNachLieferung.set(mitKoordinaten[wegpunktIndex - 1].id, position);
-      });
+    // waypoint_index ist die Position des Eingabepunkts in der Route (nicht umgekehrt): stoppPositionen() liest es richtig.
+    stoppPositionen(trip.reihenfolge).forEach((position, i) => {
+      reihenfolgeNachLieferung.set(mitKoordinaten[i].id, position);
+    });
   } else {
     mitKoordinaten.forEach((l, position) => reihenfolgeNachLieferung.set(l.id, position));
   }
