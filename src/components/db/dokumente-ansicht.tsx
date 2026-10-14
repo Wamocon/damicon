@@ -1,6 +1,7 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Download } from "lucide-react";
 import { Aufklapper, Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
+import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import { DokumentAendernFormular, DokumentFormular } from "@/components/db/dokumente-formular";
 import { ladeDokumente, ladeNachweisOptionen, type DokumentZeile } from "@/lib/data/dokumente";
@@ -65,11 +66,12 @@ export async function DokumenteAnsicht() {
     // Anforderung 4.12: Auswahl, an welches Foerderdossier der Nachweis haengt.
     ladeDossierOptionen(),
   ]);
-  const [k, v, n, format] = await Promise.all([
+  const [k, v, n, format, dk] = await Promise.all([
     getTranslations("dokumentKategorie"),
     getTranslations("dokumenteVerwaltung"),
     getTranslations("nachweisregister"),
     getFormatter(),
+    getTranslations("dokument.knopf"),
   ]);
 
   const live = liste.quelle === "db";
@@ -80,7 +82,13 @@ export async function DokumenteAnsicht() {
 
   return (
     <div className="space-y-6">
-      <Section title={t("listTitle")} description={t("listLead")} action={<DatenquelleBadge quelle={liste.quelle} />}>
+      <Section title={t("listTitle")} description={t("listLead")} action={
+          <div className="flex flex-wrap items-center gap-2">
+            <DokumentKnopf art="nachweise" label={dk("register")} />
+            <DatenquelleBadge quelle={liste.quelle} />
+          </div>
+        }
+      >
         <div className="mb-3 flex flex-wrap gap-1.5" aria-label={n("zaehlung")}>
           {NACHWEIS_STATUS.filter((s) => zaehlung[s] > 0).map((s) => (
             <StatusPill key={s} tone={nachweisTon[s]}>

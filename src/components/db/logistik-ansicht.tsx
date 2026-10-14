@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, Section, StatusPill, type Tone } from "@/components/ui/kit";
+import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   LieferungAnlegenFormular,
@@ -42,6 +43,7 @@ export async function LogistikAnsicht() {
     getTranslations("lieferungenAnsicht"),
   ]);
   const kkT = await getTranslations("nachweiskette");
+  const dk = await getTranslations("dokument.knopf");
   const tt = await getTranslations("tourenplanungAnsicht");
   const format = await getFormatter();
 
@@ -131,6 +133,10 @@ export async function LogistikAnsicht() {
                     </div>
                   ) : null}
                 </dl>
+
+                <div className="mt-2">
+                  <DokumentKnopf art="lieferung" parameter={{ lieferung: l.id }} label={dk("lieferung")} klein />
+                </div>
 
                 {l.transportMessungen.length > 0 ? (
                   <div className="mt-2 border-t border-border pt-2">

@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Aufklapper, Section, StatusPill } from "@/components/ui/kit";
+import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import {
   CheckpunktAnlegenFormular,
   CheckpunktEntfernenKnopf,
@@ -44,7 +45,7 @@ function PunktZeile({ punkt, heute, darfAendern, t, tag }: { punkt: Checkpunkt; 
 }
 
 export async function FoerdermittelCheckliste({ dossiers, darfAendern }: { dossiers: readonly FoerderdossierZeile[]; darfAendern: boolean }) {
-  const [punkteJeDossier, t, format] = await Promise.all([ladeCheckpunkte(), getTranslations("foerdermittelCheckliste"), getFormatter()]);
+  const [punkteJeDossier, t, format, dk] = await Promise.all([ladeCheckpunkte(), getTranslations("foerdermittelCheckliste"), getFormatter(), getTranslations("dokument.knopf")]);
   const heute = tagInZone(new Date());
   const tag = (iso: string) => format.dateTime(new Date(`${iso}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
 
@@ -75,6 +76,7 @@ export async function FoerdermittelCheckliste({ dossiers, darfAendern }: { dossi
                 </ul>
                 {stand.vollstaendig ? <p className="text-xs font-semibold text-success">{t("vollstaendig")}</p> : null}
                 {darfAendern ? <CheckpunktAnlegenFormular dossierId={d.id} /> : null}
+                <DokumentKnopf art="foerderung" parameter={{ dossier: d.id }} label={dk("checkliste")} klein />
               </div>
             </Aufklapper>
           );

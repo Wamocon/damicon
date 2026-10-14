@@ -1,6 +1,7 @@
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { Download } from "lucide-react";
 import { Section, StatusPill, DataTable } from "@/components/ui/kit";
+import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import {
   EsutdAbschlussFormular,
   EsutdEntfernenKnopf,
@@ -45,13 +46,14 @@ function Detail({ m, t, belegName }: { m: EsutdMeldung; t: Uebersetzer; belegNam
 }
 
 export async function IntegrationenAnsicht() {
-  const [meldungen, optionen, profil, t, format, sprache] = await Promise.all([
+  const [meldungen, optionen, profil, t, format, sprache, dk] = await Promise.all([
     ladeEsutdMeldungen(),
     ladeEsutdOptionen(),
     getSessionProfile(),
     getTranslations("esutdAnsicht"),
     getFormatter(),
     getLocale(),
+    getTranslations("dokument.knopf"),
   ]);
   const darfAendern = hasPermission(profil?.role, "personal", "update");
   const heute = tagInZone(new Date());
@@ -91,6 +93,8 @@ export async function IntegrationenAnsicht() {
               <Download className="h-3.5 w-3.5" />
               {t("export.knopf")}
             </a>
+            <DokumentKnopf art="esutd" parameter={{ status: "offen" }} label={dk("offen")} />
+            <DokumentKnopf art="esutd" parameter={{ status: "alle" }} label={dk("alle")} />
             <span className="text-[11px] text-muted-foreground">{t("export.hinweis")}</span>
           </div>
         ) : null}

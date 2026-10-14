@@ -1,6 +1,7 @@
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { Download } from "lucide-react";
 import { Aufklapper, Section } from "@/components/ui/kit";
+import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { NachrichtFormular } from "@/components/db/nachricht-formular";
 import { ladeNachrichten } from "@/lib/data/nachrichten";
 import type { NachrichtZeile } from "@/lib/domain/nachrichten";
@@ -21,8 +22,9 @@ function reihenfolge(vorbestellungen: readonly VorbestellungZeile[], nachrichten
 }
 
 export async function LieferplanDownload() {
-  const [t, sprache] = await Promise.all([getTranslations("nachrichten.download"), getLocale()]);
+  const [t, sprache, dk] = await Promise.all([getTranslations("nachrichten.download"), getLocale(), getTranslations("dokument.knopf")]);
   return (
+    <>
     <a
       href={`/api/lieferplan?sprache=${sprache}`}
       download="damicon-lieferplan.ics"
@@ -32,6 +34,8 @@ export async function LieferplanDownload() {
       <Download className="h-3.5 w-3.5" />
       {t("knopf")}
     </a>
+    <DokumentKnopf art="lieferplan" label={dk("lieferplan")} />
+    </>
   );
 }
 

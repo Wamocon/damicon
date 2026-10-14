@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Aufklapper, Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
+import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { EsfEntwurfKnopf, EsfEntwurfVerwerfenKnopf, EsfSchrittFormular } from "@/components/db/esf-formulare";
 import { ladeEsfUebersicht, type EsfBelegZeile, type EsfOffeneLieferung } from "@/lib/data/esf";
 import { ESF_STATUS, esfTon, zaehleBelege, type EsfEntwurf } from "@/lib/domain/esf";
@@ -103,7 +104,7 @@ function offenKnopfLabel(l: EsfOffeneLieferung, t: Uebersetzer): string {
 }
 
 export async function EsfAnsicht() {
-  const [uebersicht, profil, t, format] = await Promise.all([ladeEsfUebersicht(), getSessionProfile(), getTranslations("esfAnsicht"), getFormatter()]);
+  const [uebersicht, profil, t, format, dk] = await Promise.all([ladeEsfUebersicht(), getSessionProfile(), getTranslations("esfAnsicht"), getFormatter(), getTranslations("dokument.knopf")]);
   const darfAendern = hasPermission(profil?.role, "integrationen", "update");
   const heute = tagInZone(new Date());
   const tag = (iso: string) => format.dateTime(new Date(`${tagInZone(new Date(iso))}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
@@ -125,6 +126,9 @@ export async function EsfAnsicht() {
         </div>
         <p className="mt-3 text-xs leading-5 text-muted-foreground">{t("stufeHinweis")}</p>
         {!darfAendern ? <p className="mt-1 text-xs text-muted-foreground">{t("nurLesen")}</p> : null}
+        <div className="mt-3">
+          <DokumentKnopf art="esf" label={dk("register")} />
+        </div>
       </Section>
 
       <Section title={t("offen.titel")} description={t("offen.lead")}>
@@ -175,6 +179,7 @@ export async function EsfAnsicht() {
                   ) : (
                     <p className="text-xs text-muted-foreground">{t("entwurf.unlesbar")}</p>
                   )}
+                  <DokumentKnopf art="esf" parameter={{ beleg: b.id }} klein />
                   {darfAendern ? <BelegAktionen beleg={b} heute={heute} t={t} /> : null}
                 </div>
               </Aufklapper>

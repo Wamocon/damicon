@@ -14,6 +14,7 @@ import { leer } from "@/lib/actions/status";
 import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, StornoKnopf, SubmitKnopf } from "@/components/db/formular-kit";
 import type { AuswahlZeile } from "@/lib/domain/lieferungen";
 import { formularZiel } from "@/lib/formular-ziele";
+import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 
 // Formulare der Uebergabequittung (Anforderung 3.5 Teil 2). Anlegen einer
 // geplanten Lieferung wie finanzen-formulare.tsx, die Uebergabe selbst nach
@@ -168,6 +169,7 @@ export function TransportMessungFormular({ lieferungId }: { lieferungId: string 
 export function TransportLoggerFormular({ lieferungId }: { lieferungId: string }) {
   const [status, action] = useActionState(transportLoggerImportieren, leer);
   const t = useTranslations("lieferungenAnsicht.loggerImport");
+  const tDok = useTranslations("dokument.knopf");
 
   return (
     <details className="mt-2 border-t border-border pt-2">
@@ -190,6 +192,7 @@ export function TransportLoggerFormular({ lieferungId }: { lieferungId: string }
           <SubmitKnopf label={t("knopf")} status={status} />
           <AktionsMeldung status={status} />
         </div>
+        <DokumentKnopf art="lieferung" parameter={{ lieferung: lieferungId }} label={tDok("lieferung")} klein />
       </form>
     </details>
   );

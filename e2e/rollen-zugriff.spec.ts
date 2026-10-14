@@ -103,3 +103,56 @@ test.describe("Schnittstellen mit eigener Rechtepruefung", () => {
     }
   }
 });
+
+test.describe("Dokumente im Damicon-Layout", () => {
+  // Je Art: wer sie bekommt, und was ohne Kennung (Beleg, Dossier, Lieferung) herauskommt: das Register, oder 404.
+  const ARTEN: { art: string; darf: (rolle: Role) => boolean; ohneKennung: 200 | 404 }[] = [
+    { art: "esutd", darf: (r) => hasPermission(r, "personal", "update"), ohneKennung: 200 },
+    { art: "esf", darf: (r) => hasPermission(r, "integrationen", "view"), ohneKennung: 200 },
+    { art: "nachweise", darf: (r) => hasPermission(r, "dokumente", "view"), ohneKennung: 200 },
+    { art: "lieferplan", darf: (r) => hasPermission(r, "b2b_portal", "view"), ohneKennung: 200 },
+    { art: "foerderung", darf: (r) => hasPermission(r, "foerdermittel", "view"), ohneKennung: 404 },
+    { art: "lieferung", darf: (r) => hasPermission(r, "logistik", "view") || hasPermission(r, "b2b_portal", "view"), ohneKennung: 404 },
+  ];
+
+  test("ohne Anmeldung 401, eine unbekannte Art 404", async ({ page, request }) => {
+    expect((await request.get("/api/dokument/esutd")).status()).toBe(401);
+    await anmelden(page, "admin");
+    expect((await page.request.get("/api/dokument/gibt-es-nicht")).status()).toBe(404);
+    expect((await page.request.get("/api/dokument/__proto__")).status()).toBe(404);
+  });
+
+  for (const rolle of ROLLEN) {
+    test(`${rolle}: jede Dokumentart antwortet nach der Rechtematrix`, async ({ page }) => {
+      await anmelden(page, rolle);
+      for (const { art, darf, ohneKennung } of ARTEN) {
+        const antwort = await page.request.get(`/api/dokument/${art}?sprache=de`);
+        const erwartet = darf(RBAC_ROLLE[rolle]) ? ohneKennung : 403;
+        expect(antwort.status(), `${rolle}: ${art}`).toBe(erwartet);
+        if (erwartet === 200) {
+          expect(antwort.headers()["content-type"]).toContain("text/html");
+          expect(antwort.headers()["cache-control"]).toBe("no-store");
+          const html = await antwort.text();
+          expect(html, `${rolle}: ${art}`).toContain('class="deck"');
+          expect(html).toContain("SHA-256");
+        }
+      }
+    });
+  }
+
+  test("eine Kennung, die es nicht gibt oder die keine ist, ergibt 404", async ({ page }) => {
+    await anmelden(page, "admin");
+    for (const pfad of ["foerderung?dossier=00000000-0000-4000-8000-000000000000", "lieferung?lieferung=kein-uuid", "esf?beleg=00000000-0000-4000-8000-000000000000"]) {
+      expect((await page.request.get(`/api/dokument/${pfad}`)).status(), pfad).toBe(404);
+    }
+  });
+
+  test("die Sprache steuert die Texte, eine unbekannte Sprache faellt auf Deutsch zurueck", async ({ page }) => {
+    await anmelden(page, "admin");
+    const ru = await (await page.request.get("/api/dokument/nachweise?sprache=ru")).text();
+    expect(ru).toContain('lang="ru"');
+    expect(ru).toContain("Реестр подтверждений");
+    const unbekannt = await (await page.request.get("/api/dokument/nachweise?sprache=fr")).text();
+    expect(unbekannt).toContain('lang="de"');
+  });
+});

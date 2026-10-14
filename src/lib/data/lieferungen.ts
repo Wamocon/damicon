@@ -34,7 +34,7 @@ export async function ladeLieferungen(): Promise<LieferungenUebersicht> {
        b2b_kunden ( id, name ),
        chargen ( code, kuehlketten_messungen ( temperatur_c, minuten_seit_pfluecken, ergebnis, gemessen_am ) ),
        vorbestellungen ( menge_kg ),
-       transport_temperatur_messungen ( id, temperatur_c, ergebnis, gemessen_am )`,
+       transport_temperatur_messungen ( id, temperatur_c, ergebnis, gemessen_am, quelle, logger_kennung )`,
     )
     .order("created_at", { ascending: false });
 
@@ -76,6 +76,8 @@ export async function ladeLieferungen(): Promise<LieferungenUebersicht> {
           temperaturC: Number(m.temperatur_c),
           ergebnis: m.ergebnis,
           gemessenAm: m.gemessen_am,
+          quelle: m.quelle === "logger" ? ("logger" as const) : ("manuell" as const),
+          loggerKennung: m.logger_kennung,
         }))
         .sort((a, b) => a.gemessenAm.localeCompare(b.gemessenAm)),
     };

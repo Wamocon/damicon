@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
+import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   VorbestellungAnlegenFormular,
@@ -58,6 +59,7 @@ export async function B2bPortalAnsicht() {
   ]);
   const lt = await getTranslations("lieferungenAnsicht");
   const kkT = await getTranslations("nachweiskette");
+  const dk = await getTranslations("dokument.knopf");
   const kg = await getTranslations("kundengruppen");
   const format = await getFormatter();
 
@@ -130,6 +132,11 @@ export async function B2bPortalAnsicht() {
                         {m.temperaturC} °C
                       </StatusPill>
                     ))}
+                  </div>
+                ) : null}
+                {l.status === "zugestellt" ? (
+                  <div className="mt-2 border-t border-border pt-2">
+                    <DokumentKnopf art="lieferung" parameter={{ lieferung: l.id }} label={dk("lieferung")} klein />
                   </div>
                 ) : null}
               </Card>
