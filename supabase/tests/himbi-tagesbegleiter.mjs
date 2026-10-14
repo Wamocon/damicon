@@ -284,7 +284,8 @@ console.log("\n3. Begruessung im Sprachmodus, Sprechblase, Kontext");
   const pane = lies("src/components/ki/ki-pane-kontext.tsx");
   pruefe("KI-Kontext: nutzerId steht im Kontextwert (nicht nur als Prop)", pane.includes("nutzerId: string | null;") && pane.includes("nutzerId: nutzerId ?? null,") && pane.includes("  nutzerId: null,\n"));
 
-  const dash = lies("src/components/haustier/haustier-dashboard.tsx");
+  // Seit dem 14.10.2026 stehen Zeitgeber, Wahl und Merker der Blasen in haustier-dashboard-blasen.ts; gelesen werden beide Dateien.
+  const dash = ["haustier-dashboard.tsx", "haustier-dashboard-blasen.ts"].map((datei) => lies(`src/components/haustier/${datei}`)).join("\n");
   pruefe("Blase: nicht auf dem Handy, nicht wenn Himbi weg oder aus, nicht im Sprachmodus, nur bei Ruhe, nur mit Einstellung", dash.includes("const grussMoeglich = verfuegbar && !handy && an && !weg && !sprachmodus && tagesbeginnAn && ruhigGenug;") && blaseBei({ tagesgruss: true }) === "tagesgruss" && blaseBei({ tagesgruss: true, sprachmodus: true }) === null && blaseBei({ tagesgruss: true, ruhigGenug: false }) === null && blaseBei({ tagesgruss: true, tagesbeginnAn: false }) === null);
   // Befund vom 28.09.2026: der Timer merkte den Gruss, auch wenn Tour-Frage, laufende Tour oder
   // Live-Hinweis vor ihm standen oder der Tab im Hintergrund lag; der Gruss verfiel dann
