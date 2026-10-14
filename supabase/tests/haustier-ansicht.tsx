@@ -1291,14 +1291,15 @@ async function dashboardTipp(): Promise<void> {
   halte("zurück: der Tipp ist wieder da");
   klicke("Später");
   halte("Später");
-  await ausloesen(() => navigation.setzePfad("/dashboard/hof/lieferschein-esf"));
+  // Ein Modul im Reifegrad "in-entwicklung": seit WMCNL-1440 ist das ЭСФ-Register angebunden, uebrig ist die Wirtschaftlichkeit.
+  await ausloesen(() => navigation.setzePfad("/dashboard/buero/wirtschaftlichkeit"));
   await uhr.vor(8000);
   halte("Modul in Entwicklung: kein Tipp");
   await lageNeu({ role: "picker" });
   await ausloesen(() => navigation.setzePfad("/dashboard/hof/kuehlkette"));
   await uhr.vor(8000);
   halte("Rolle ohne Recht: kein Tipp");
-  pruefe("Dashboard: kein Tipp auf Platzhalterseiten und ohne Leserecht", blasenText() === null && sessionStorage.getItem("damicon-haustier-tipp:esf") === null && sessionStorage.getItem("damicon-haustier-tipp:kuehlkette") === null);
+  pruefe("Dashboard: kein Tipp auf Platzhalterseiten und ohne Leserecht", blasenText() === null && sessionStorage.getItem("damicon-haustier-tipp:wirtschaftlichkeit") === null && sessionStorage.getItem("damicon-haustier-tipp:kuehlkette") === null);
   await lageNeu({ role: "admin" });
   await ausloesen(() => setzeSichtbarkeit("hidden"));
   await uhr.vor(7000);

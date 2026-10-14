@@ -1,5 +1,6 @@
 "use server";
 
+import type { PostgrestError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
@@ -106,46 +107,47 @@ export async function esutdMeldungErfassen(_status: AktionsStatus, formData: For
   return ok("ok.esutdErfasst");
 }
 
-/** Nimmt eine Erledigung zurueck (Korrektur): die Datenbank leert Datum, Bestaetigung und Beleg. */
-export async function esutdMeldungOeffnen(_status: AktionsStatus, formData: FormData): Promise<AktionsStatus> {
-  const z = await zugriff();
-  if ("status" in z) return z.status;
+type Ergebnis = { data: { id: string } | null; error: PostgrestError | null };
 
+/** Gemeinsamer Ablauf fuer "wieder oeffnen" und "entfernen": gleiche Eingabepruefung, gleiches Protokoll, gleiche Rueckmeldung. */
+async function meldungBearbeiten(
+  profil: SessionProfile,
+  formData: FormData,
+  protokollAktion: string,
+  okSchluessel: string,
+  bearbeite: (supabase: Awaited<ReturnType<typeof createClient>>, quelle: Quelle, id: string) => PromiseLike<Ergebnis>,
+): Promise<AktionsStatus> {
   const quelle = text(formData, "quelle");
   const id = text(formData, "id");
   if (!istQuelle(quelle) || !istUuid(id)) return fehler("fehler.eingabe");
 
-  const supabase = await createClient();
-  const { data, error } =
-    quelle === "vertrag"
-      ? await supabase.from("esutd_vertraege").update({ status: "offen" }).eq("id", id).eq("status", "erfasst").select("id").maybeSingle()
-      : await supabase.from("esutd_ereignisse").update({ status: "offen" }).eq("id", id).eq("status", "erfasst").select("id").maybeSingle();
+  const { data, error } = await bearbeite(await createClient(), quelle, id);
   if (error) return dbFehler(error);
   if (!data) return fehler("fehler.esutdMeldungFehlt");
 
-  await protokoll(z.profil, "esutd.geoeffnet", id, { quelle });
+  await protokoll(profil, protokollAktion, id, { quelle });
   aktualisiere(formData);
-  return ok("ok.esutdGeoeffnet");
+  return ok(okSchluessel);
+}
+
+/** Nimmt eine Erledigung zurueck (Korrektur): die Datenbank leert Datum, Bestaetigung und Beleg. */
+export async function esutdMeldungOeffnen(_status: AktionsStatus, formData: FormData): Promise<AktionsStatus> {
+  const z = await zugriff();
+  if ("status" in z) return z.status;
+  return meldungBearbeiten(z.profil, formData, "esutd.geoeffnet", "ok.esutdGeoeffnet", (supabase, quelle, id) =>
+    quelle === "vertrag"
+      ? supabase.from("esutd_vertraege").update({ status: "offen" }).eq("id", id).eq("status", "erfasst").select("id").maybeSingle()
+      : supabase.from("esutd_ereignisse").update({ status: "offen" }).eq("id", id).eq("status", "erfasst").select("id").maybeSingle(),
+  );
 }
 
 /** Entfernt eine Meldung, die noch offen ist (zum Beispiel falsch angelegt). Eine erledigte bleibt. */
 export async function esutdMeldungEntfernen(_status: AktionsStatus, formData: FormData): Promise<AktionsStatus> {
   const z = await zugriff();
   if ("status" in z) return z.status;
-
-  const quelle = text(formData, "quelle");
-  const id = text(formData, "id");
-  if (!istQuelle(quelle) || !istUuid(id)) return fehler("fehler.eingabe");
-
-  const supabase = await createClient();
-  const { data, error } =
+  return meldungBearbeiten(z.profil, formData, "esutd.entfernt", "ok.esutdEntfernt", (supabase, quelle, id) =>
     quelle === "vertrag"
-      ? await supabase.from("esutd_vertraege").delete().eq("id", id).eq("status", "offen").select("id").maybeSingle()
-      : await supabase.from("esutd_ereignisse").delete().eq("id", id).eq("status", "offen").select("id").maybeSingle();
-  if (error) return dbFehler(error);
-  if (!data) return fehler("fehler.esutdMeldungFehlt");
-
-  await protokoll(z.profil, "esutd.entfernt", id, { quelle });
-  aktualisiere(formData);
-  return ok("ok.esutdEntfernt");
+      ? supabase.from("esutd_vertraege").delete().eq("id", id).eq("status", "offen").select("id").maybeSingle()
+      : supabase.from("esutd_ereignisse").delete().eq("id", id).eq("status", "offen").select("id").maybeSingle(),
+  );
 }
