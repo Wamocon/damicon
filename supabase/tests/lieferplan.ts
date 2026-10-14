@@ -121,9 +121,11 @@ pruefe("Nachricht: Leerraum an den Enden zaehlt nicht mit", nachrichtFehler("  "
 // --- 7. Route ------------------------------------------------------------------------------------------------------------------
 {
   const route = readFileSync("src/app/api/lieferplan/route.ts", "utf8");
-  pruefe("Route: Anmeldung, Recht und zweiter Faktor werden geprueft", route.includes("getSessionProfile()") && route.includes('hasPermission(profil.role, "b2b_portal", "view")') && route.includes("requireAal2Aktuell()"));
+  const sitzung = readFileSync("src/lib/api/sitzung.ts", "utf8");
+  // Anmeldung, zweiter Faktor und Sprache liegen in der gemeinsamen Sitzungspruefung, das Recht gibt die Route vor.
+  pruefe("Route: Anmeldung, Recht und zweiter Faktor werden geprueft", route.includes("sitzungFuerRoute(request") && route.includes('hasPermission(rolle, "b2b_portal", "view")') && sitzung.includes("getSessionProfile()") && sitzung.includes("requireAal2Aktuell()") && sitzung.includes("erlaubt(profil.role)"));
   pruefe("Route: Download ohne Zwischenspeicher", route.includes('"Cache-Control": "no-store"') && route.includes("attachment;") && route.includes("text/calendar"));
-  pruefe("Route: nur bekannte Sprachen, sonst die Standardsprache", route.includes("routing.locales") && route.includes("routing.defaultLocale"));
+  pruefe("Route: nur bekannte Sprachen, sonst die Standardsprache", sitzung.includes("routing.locales") && sitzung.includes("routing.defaultLocale") && route.includes("const { sprache } = sitzung"));
   pruefe("Route: kein Token in der Adresse (es gibt nur den Sprachparameter)", !/searchParams\.get\("(token|key|schluessel|code)"\)/.test(route));
 }
 
