@@ -5,6 +5,7 @@
 // Aufruf: npm run test:esutd
 
 import { readFileSync } from "node:fs";
+import { csvDatei, csvZelle } from "@/lib/domain/csv";
 import {
   BESCHREIBUNG_MAX_ZEICHEN,
   BESTAETIGUNG_MAX_ZEICHEN,
@@ -72,6 +73,16 @@ check("Beendigung: die Beschreibung ist freiwillig, aber nicht ein oder zwei Zei
 check("Erfassen: Meldedatum nicht in der Zukunft und echt", esutdErfassenFehler({ erfasstAm: HEUTE, bestaetigung: "" }, HEUTE) === null && esutdErfassenFehler({ erfasstAm: "2026-10-15", bestaetigung: "" }, HEUTE) === "esutdDatum" && esutdErfassenFehler({ erfasstAm: "", bestaetigung: "" }, HEUTE) === "esutdDatum" && esutdErfassenFehler({ erfasstAm: "31.12.2025", bestaetigung: "" }, HEUTE) === "esutdDatum");
 check("Erfassen: Bestaetigung optional, hoechstens 100 Zeichen", esutdErfassenFehler({ erfasstAm: HEUTE, bestaetigung: "x".repeat(BESTAETIGUNG_MAX_ZEICHEN) }, HEUTE) === null && esutdErfassenFehler({ erfasstAm: HEUTE, bestaetigung: "x".repeat(BESTAETIGUNG_MAX_ZEICHEN + 1) }, HEUTE) === "esutdBestaetigung");
 
+// --- 3b. CSV ---------------------------------------------------------------------------------------------------------------
+const NL = String.fromCharCode(10);
+const CR = String.fromCharCode(13);
+const TAB = String.fromCharCode(9);
+check("CSV: einfache Werte bleiben unveraendert, leere Zellen sind leer", csvZelle("Name") === "Name" && csvZelle(null) === "" && csvZelle(undefined) === "" && csvZelle(5) === "5");
+check("CSV: Trenner, Anfuehrungszeichen und Zeilenumbruch werden eingefasst", csvZelle("a;b") === '"a;b"' && csvZelle('sagt "ja"') === '"sagt ""ja"""' && csvZelle(`zwei${NL}Zeilen`) === `"zwei${NL}Zeilen"`);
+check("CSV: Formel-Anfaenge werden entschaerft", csvZelle("=1+1") === "'=1+1" && csvZelle("+7701") === "'+7701" && csvZelle("-5") === "'-5" && csvZelle("@SUM(A1)") === "'@SUM(A1)" && csvZelle(`${TAB}Tab`) === `'${TAB}Tab`);
+check("CSV: ein entschaerfter Wert mit Trenner bleibt eingefasst", csvZelle('=HYPERLINK("x";"y")') === `"'=HYPERLINK(""x"";""y"")"`);
+check("CSV: Zeilen enden mit CRLF, kyrillische Namen bleiben erhalten", csvDatei([["Имя", "Ausweis"], ["Қойшыбай М.", "MAL-1"]]) === `Имя;Ausweis${CR}${NL}Қойшыбай М.;MAL-1${CR}${NL}`);
+
 // --- 4. Texte in vier Sprachen -----------------------------------------------------------------------------------------------
 type Baum = { [k: string]: Baum | string };
 const wert = (baum: Baum, pfad: string): unknown => pfad.split(".").reduce<unknown>((b, k) => (typeof b === "object" && b !== null ? (b as Baum)[k] : undefined), baum);
@@ -91,6 +102,8 @@ const noetig = [
   ...["titel", "person", "bitteWaehlen", "keinePersonen", "beginn", "nummer", "knopf"].map((k) => `esutdAnsicht.neu.abschluss.${k}`),
   ...["titel", "vertrag", "keineVertraege", "art", "datum", "beschreibung", "knopf"].map((k) => `esutdAnsicht.neu.ereignis.${k}`),
   "modules.integrationen.description", "modules.integrationen.summary", "modules.integrationen.todo",
+  "esutdAnsicht.export.knopf", "esutdAnsicht.export.hinweis",
+  ...["person", "ausweis", "art", "vertrag", "datum", "frist", "beschreibung", "status", "erfasstAm", "bestaetigung"].map((k) => `esutdAnsicht.export.spalte.${k}`),
 ];
 check("Texte: die Aktionen nennen mindestens fuenf Schluessel", schluesselAusCode.length >= 5, String(schluesselAusCode.length));
 for (const sprache of ["de", "en", "kk", "ru"]) {

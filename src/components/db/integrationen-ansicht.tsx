@@ -1,4 +1,5 @@
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getFormatter, getLocale, getTranslations } from "next-intl/server";
+import { Download } from "lucide-react";
 import { Section, StatusPill, DataTable } from "@/components/ui/kit";
 import {
   EsutdAbschlussFormular,
@@ -44,12 +45,13 @@ function Detail({ m, t, belegName }: { m: EsutdMeldung; t: Uebersetzer; belegNam
 }
 
 export async function IntegrationenAnsicht() {
-  const [meldungen, optionen, profil, t, format] = await Promise.all([
+  const [meldungen, optionen, profil, t, format, sprache] = await Promise.all([
     ladeEsutdMeldungen(),
     ladeEsutdOptionen(),
     getSessionProfile(),
     getTranslations("esutdAnsicht"),
     getFormatter(),
+    getLocale(),
   ]);
   const darfAendern = hasPermission(profil?.role, "personal", "update");
   const heute = tagInZone(new Date());
@@ -79,6 +81,19 @@ export async function IntegrationenAnsicht() {
         </div>
         <p className="mt-3 text-xs leading-5 text-muted-foreground">{t("stufeHinweis")}</p>
         {!darfAendern ? <p className="mt-1 text-xs text-muted-foreground">{t("nurLesen")}</p> : null}
+        {darfAendern ? (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <a
+              href={`/api/esutd/export?sprache=${sprache}&status=offen`}
+              download="damicon-esutd-offen.csv"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-bold text-foreground transition hover:border-primary"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {t("export.knopf")}
+            </a>
+            <span className="text-[11px] text-muted-foreground">{t("export.hinweis")}</span>
+          </div>
+        ) : null}
       </Section>
 
       <Section title={t("liste.titel")}>

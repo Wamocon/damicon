@@ -4797,6 +4797,22 @@
         "beschreibung": "Was ändert sich? (bei Beendigung freiwillig)",
         "knopf": "Anlegen"
       }
+    },
+    "export": {
+      "knopf": "Offene Meldungen als CSV",
+      "hinweis": "Die Datei enthält Namen und Ausweisnummern. Nur für die Eingabe im staatlichen System verwenden und danach löschen. Ein amtliches Importformat gibt es hier nicht, die Datei ist eine einfache Tabelle.",
+      "spalte": {
+        "person": "Person",
+        "ausweis": "Ausweis",
+        "art": "Art",
+        "vertrag": "Vertragsnummer",
+        "datum": "Datum",
+        "frist": "Frist",
+        "beschreibung": "Beschreibung",
+        "status": "Status",
+        "erfasstAm": "Gemeldet am",
+        "bestaetigung": "Bestätigungsnummer"
+      }
     }
   }
 }

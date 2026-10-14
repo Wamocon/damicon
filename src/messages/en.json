@@ -4797,6 +4797,22 @@
         "beschreibung": "What changes? (optional for a termination)",
         "knopf": "Create"
       }
+    },
+    "export": {
+      "knopf": "Open reports as CSV",
+      "hinweis": "The file contains names and ID numbers. Use it only for entry in the state system and delete it afterwards. There is no official import format here, the file is a plain table.",
+      "spalte": {
+        "person": "Person",
+        "ausweis": "ID",
+        "art": "Type",
+        "vertrag": "Contract number",
+        "datum": "Date",
+        "frist": "Deadline",
+        "beschreibung": "Description",
+        "status": "Status",
+        "erfasstAm": "Reported on",
+        "bestaetigung": "Confirmation number"
+      }
     }
   }
 }
