@@ -73,10 +73,14 @@ export function useErgebnisFolgen({
     }
   }, [messages, router]);
 
-  // Agent- und Sprachmodus: jedes Werkzeugergebnis des LAUFENDEN Zuges oeffnet seine
-  // Ansicht im Hauptfenster. zugModus wird beim Absenden festgehalten - wer
-  // mitten in einer Antwort auf Agent umschaltet, bekommt keine Nachtour fuer
-  // Schritte, die im Assistent-Modus begonnen wurden.
+  // Agent- und Sprachmodus: jedes Werkzeugergebnis der letzten Antwort öffnet seine
+  // Ansicht im Hauptfenster. zugModus wird beim Absenden und bei jeder Freigabe
+  // festgehalten (ki-chat-zug.ts). Wer mitten in einer Antwort auf Agent umschaltet,
+  // bekommt deshalb vorerst keine Tour. Gibt er danach im Agent-Modus eine Aktion
+  // dieser Antwort frei, holt die Tour auch die Schritte mit Ziel nach, die noch im
+  // Assistent-Modus fertig wurden: als gefolgt gilt ein Ergebnis erst, wenn es in
+  // einem Zug im Agent- oder Sprachmodus gesehen wurde (npm run test:ki-chat, Fall
+  // "moduswechsel").
   useEffect(() => {
     const modus = zugModus.current;
     if (modus !== "agent" && modus !== "sprache") return;

@@ -24,8 +24,9 @@ import {
   type StromAttrappe,
   type Uhr,
 } from "./hilfen/dom-umgebung";
-import { useEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
+import { StrictMode, useEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
 import {
+  abonniereSprachBus,
   entscheideFreigabe,
   entsperreTon,
   leseChatStand,
@@ -57,6 +58,10 @@ import type { Role } from "@/lib/rbac";
 //   15. Abbau: Stand, Takt und Bus werden freigegeben.
 //   16. bis 21. KiPane: verfügbar, zu und offen, Kopfknöpfe und Ansichten, Agent-Schalter, Bühne, Handy (Mehr, Griff, Escape,
 //       Sperre), vorübergehende Breite für die Prüfung, Anstoss holt den Chat, ohne Agent-Anbieter.
+//   22. bis 28. (seit der Gegenprüfung vom 14.10.2026, gegen veraltete Closures und vertauschte Effekte): Moduswechsel zwischen
+//       Frage und Freigabe per Klick und Bus, Ziel, Aktion und neue Freigabekarte in einem Drosseltakt (Reihenfolge der Effekte),
+//       Stopp mit offenem Werkzeug und die Frage danach, Scrollen bei Freigabe und jeder Abhängigkeit, Sprachmodus (Leerzustand,
+//       Statuszeile, Ausschnitt des Verlaufs vor und nach einem Neubeginn) und ein Durchlauf unter React.StrictMode.
 // Festgehalten werden DOM-Ausschnitte (Klassen, data- und aria-Attribute), Texte, die Aufruffolgen an die Nachbarn (KI-Pane-Kontext,
 // Sprache, Takt, Haustier, ui-steuerung, Router) und die Anfragen an /api/ki-assistent in Reihenfolge und Inhalt. Ersetzt sind
 // nur Nachbarn: ki-pane-kontext, ki-chat-sprache, sprach-takt, ui-steuerung, sprachausgabe, Haustier, Persona, Mikrofon, Quellen,
@@ -65,7 +70,14 @@ import type { Role } from "@/lib/rbac";
 // Aufruf: npm run test:ki-chat
 
 const { pruefe, ende } = pruefer();
-const json = (wert: unknown) => JSON.stringify(wert);
+// Eine Funktion würde sonst zu null (im Array) oder verschwände (im Objekt), und ein DOM-Element bräche JSON.stringify mit
+// "Converting circular structure" ab: beide erscheinen benannt, so dass ein Vergleich mit null scheitert statt zu bestehen.
+const json = (wert: unknown) =>
+  JSON.stringify(wert, (_, w: unknown) => {
+    if (typeof w === "function") return `[Funktion ${w.name || "ohne Namen"}]`;
+    if (w instanceof fenster.Element) return `[Element ${w.tagName.toLowerCase()}]`;
+    return w;
+  });
 const gleich = (name: string, ist: unknown, soll: unknown) => pruefe(name, json(ist) === json(soll), json(ist) === json(soll) ? "" : `ist ${json(ist)}`);
 const notiere = (quelle: string, text: string) => protokoll.notiere(quelle, text);
 /** Die Folge seit der letzten Leerung, nur aus den genannten Quellen. */
@@ -313,6 +325,21 @@ ersetzeModule({
   },
 });
 
+// Reihenfolge der Folgen eines Zuges: nur in den Fällen, die sie einschalten, schreiben auch das Neuladen der Seite (Router) und
+// jeder Wechsel der offenen Freigabe am Sprachmodus-Bus ins Protokoll, zwischen die Tour (pane) und den Takt.
+const reihenfolge = { an: false, freigabe: leseFreigabeAnfrage() };
+abonniereSprachBus(() => {
+  const jetzt = leseFreigabeAnfrage();
+  if (jetzt === reihenfolge.freigabe) return;
+  reihenfolge.freigabe = jetzt;
+  if (reihenfolge.an) notiere("bus", `freigabe ${jetzt?.text ?? "-"}`);
+});
+const neuLaden = navigation.router.refresh;
+navigation.router.refresh = () => {
+  neuLaden();
+  if (reihenfolge.an) notiere("router", "refresh");
+};
+
 // jsdom kennt scrollTo an Elementen nicht: hier ins Protokoll.
 const beschreibe = (el: Element) => `${el.tagName.toLowerCase()}${el.classList[0] ? `.${el.classList[0]}` : ""}`;
 fenster.HTMLElement.prototype.scrollTo = function (this: HTMLElement, optionen?: unknown) {
@@ -340,9 +367,10 @@ const id = (nr: number) => `aaaaaaaa-0000-4000-8000-${String(nr).padStart(12, "0
 const KURZ = [zeile("n1", "nutzer", "Hallo"), zeile(id(1), "assistent", "Hallo! Wie kann ich helfen?")];
 
 let uhr: Uhr;
-async function zeigeChat(verlauf: KiChatNachrichtZeile[] = []) {
+/** `streng`: unter React.StrictMode (Effekte laufen beim Einhängen zweimal, mit Aufräumen dazwischen). */
+async function zeigeChat(verlauf: KiChatNachrichtZeile[] = [], streng = false) {
   uhr = installiereUhr({ datum: ZEIT });
-  const ansicht = rendereMitTexten(<KiChat verlauf={verlauf} />);
+  const ansicht = rendereMitTexten(streng ? <StrictMode><KiChat verlauf={verlauf} /></StrictMode> : <KiChat verlauf={verlauf} />);
   await abwarten();
   return ansicht;
 }
@@ -428,6 +456,7 @@ async function neuerFall(): Promise<void> {
   mikro.props = null;
   navigation.verlauf.length = 0;
   meldeFreigabeAnfrage(null, null);
+  reihenfolge.an = false;
   protokoll.leere();
 }
 
@@ -663,7 +692,7 @@ async function pruefeKlickFreigabe(): Promise<void> {
   await abwarten();
   await uhr.vor(100);
   gleich("Klick: nach dem Bestätigen geht das Ergebnis automatisch zurück", [folge("fetch"), kurzVerlauf(koerper(2)), (koerper(2)?.messages as { parts: unknown[] }[]).at(-1)?.parts.at(-1)], [["fetch POST /api/ki-assistent"],["user: Hallo","assistant: Hallo! Wie kann ich helfen?","user: Speicher das Formular","assistant: step-start / tool-klicke(output-available)"],{"type":"tool-klicke","toolCallId":"c1","state":"output-available","input":{"ref":"e5","absicht":"Formular absenden"},"output":{"ok":true,"geklickt":"e5"}}]);
-  gleich("Klick: Karte weg, Meldung zurückgezogen", [document.querySelector(".ki-aktion--freigabe"), leseFreigabeAnfrage()], [null,null]);
+  gleich("Klick: Karte weg, Meldung zurückgezogen", [!!document.querySelector(".ki-aktion--freigabe"), leseFreigabeAnfrage()], [false,null]);
   await stuecke(strom2, { type: "start-step" }, ...text("t1", "Gespeichert."), ...ENDE);
   await schliesse(strom2);
   gleich("Klick: Schritt fertig in der Antwort", html(document.querySelector(".ki-schritte")), "<ol class=\"ki-schritte\"><li><button type=\"button\" disabled=\"\" class=\"ki-schritt\"><svg class=\"lucide lucide-mouse-pointer-click ki-schritt__icon h-3.5 w-3.5\"/><span class=\"ki-schritt__text\">Geklickt: Formular absenden</span><span class=\"ki-schritt__ende\"><svg class=\"lucide lucide-check h-3 w-3\"/></span></button></li></ol>");
@@ -677,7 +706,7 @@ async function pruefeKlickFreigabe(): Promise<void> {
   await ausloesen(() => entscheideFreigabe(false));
   await abwarten();
   await uhr.vor(100);
-  gleich("Klick: Absage über den Bus", [document.querySelector(".ki-aktion--freigabe"), (koerper(4)?.messages as { parts: unknown[] }[]).at(-1)?.parts.at(-1)], [null,{"type":"tool-klicke","toolCallId":"c2","state":"output-available","input":{"ref":"e5","absicht":"Nochmal"},"output":{"ok":false,"geklickt":null}}]);
+  gleich("Klick: Absage über den Bus", [!!document.querySelector(".ki-aktion--freigabe"), (koerper(4)?.messages as { parts: unknown[] }[]).at(-1)?.parts.at(-1)], [false,{"type":"tool-klicke","toolCallId":"c2","state":"output-available","input":{"ref":"e5","absicht":"Nochmal"},"output":{"ok":false,"geklickt":null}}]);
   await stuecke(strom4, { type: "start-step" }, ...text("t1", "Gut."), ...ENDE);
   await schliesse(strom4);
 }
@@ -911,7 +940,7 @@ async function pruefeScrollen(): Promise<void> {
   gleich("Scrollen: weit oben erscheint der Knopf", html(document.querySelector(".ki-nach-unten")), "<button type=\"button\" class=\"ki-nach-unten\" aria-label=\"Zum Neuesten\"><svg class=\"lucide lucide-arrow-down h-4 w-4\"/></button>");
   const strom = antwortStrom();
   await frage("Weiter");
-  gleich("Scrollen: eine eigene Frage klebt wieder unten und blendet den Knopf aus", [folge("dom"), document.querySelector(".ki-nach-unten")], [["dom scrollTo div.ki-chat__verlauf {\"top\":1000,\"behavior\":\"auto\"}"],null]);
+  gleich("Scrollen: eine eigene Frage klebt wieder unten und blendet den Knopf aus", [folge("dom"), !!document.querySelector(".ki-nach-unten")], [["dom scrollTo div.ki-chat__verlauf {\"top\":1000,\"behavior\":\"auto\"}"],false]);
   await stuecke(strom, ...anfang(id(13)), ...text("t1", "Mehr."), ...ENDE);
   await schliesse(strom);
   protokoll.leere();
@@ -919,10 +948,10 @@ async function pruefeScrollen(): Promise<void> {
   await setze({ haustierPhase: "arbeitet", offen: false });
   gleich("Scrollen: nach oben gescrollt folgt der Chat nicht mehr", folge("dom"), []);
   fireEvent.click(knopf("Zum Neuesten"));
-  gleich("Scrollen: der Knopf scrollt weich ans Ende und verschwindet", [folge("dom"), document.querySelector(".ki-nach-unten")], [["dom scrollTo div.ki-chat__verlauf {\"top\":1000,\"behavior\":\"smooth\"}"],null]);
+  gleich("Scrollen: der Knopf scrollt weich ans Ende und verschwindet", [folge("dom"), !!document.querySelector(".ki-nach-unten")], [["dom scrollTo div.ki-chat__verlauf {\"top\":1000,\"behavior\":\"smooth\"}"],false]);
   oben = 650;
   fireEvent.scroll(flaeche);
-  gleich("Scrollen: nah am Ende kein Knopf", document.querySelector(".ki-nach-unten"), null);
+  gleich("Scrollen: nah am Ende kein Knopf", !!document.querySelector(".ki-nach-unten"), false);
 }
 
 // ---- 15. Abbau --------------------------------------------------------------------------------------------------------------------
@@ -933,10 +962,11 @@ async function pruefeAbbau(): Promise<void> {
   protokoll.leere();
   unmount();
   await ausloesen(() => entsperreTon());
+  // Ausdrücklich === null: über JSON sähe eine stehengebliebene Funktion im Array genauso aus wie null.
   gleich(
     "Abbau: Stand nicht mehr bereit, Takt und Bus freigegeben",
-    [vorher, leseChatStand(), taktSpeicher.refs!.halte.current, taktSpeicher.refs!.stand.current, leseGerade(), ohneEingang()],
-    [[true,true,true],{"beschaeftigt":false,"spricht":false,"laedt":false,"antwort":"","einwilligungFehlt":false,"fehler":false,"bereit":false},null,null,null,[]],
+    [vorher, leseChatStand(), taktSpeicher.refs!.halte.current === null, taktSpeicher.refs!.stand.current === null, leseGerade() === null, ohneEingang()],
+    [[true,true,true],{"beschaeftigt":false,"spricht":false,"laedt":false,"antwort":"","einwilligungFehlt":false,"fehler":false,"bereit":false},true,true,true,[]],
   );
 }
 
@@ -1128,6 +1158,231 @@ async function pruefePaneOhneAgent(): Promise<void> {
   gleich("Ohne Agent: Einstellungen nur mit Haustier", [!!document.querySelector(".ki-einstellung"), !!document.querySelector(".haustier-einstellung-attrappe")], [false,true]);
 }
 
+// ---- 22. Moduswechsel zwischen Frage und Freigabe --------------------------------------------------------------------------------
+/** Eine Antwort mit einem Schritt mit Ziel (r<nr>) und einer Aktionskarte (g<nr>), die auf Freigabe wartet. */
+async function schrittUndFreigabe(nachricht: string, frageText: string, nr: number): Promise<void> {
+  const strom = antwortStrom();
+  await frage(frageText);
+  await stuecke(
+    strom,
+    ...anfang(nachricht),
+    { type: "tool-input-available", toolCallId: `r${nr}`, toolName: "risikoRadarAbrufen", input: { bereich: "kuehlkette" } },
+    { type: "tool-output-available", toolCallId: `r${nr}`, output: { ziel: "/dashboard/risiko", bereich: "kuehlkette" } },
+    ...text("t1", "Ich lege sie an."),
+    { type: "tool-input-available", toolCallId: `g${nr}`, toolName: "aufgabeAnlegen", input: { reihenblockCode: "RB-1" } },
+    { type: "tool-approval-request", approvalId: `f${nr}`, toolCallId: `g${nr}` },
+    ...ENDE,
+  );
+  await schliesse(strom);
+}
+/** Die Folgeanfrage nach der Freigabe: die Aktion gelingt und nennt ihr Ziel. */
+async function aktionGelingt(strom: StromAttrappe, nr: number): Promise<void> {
+  await stuecke(
+    strom,
+    { type: "start-step" },
+    { type: "tool-output-available", toolCallId: `g${nr}`, output: { ok: true, text: "Angelegt.", ziel: "/dashboard/aufgaben" } },
+    ...text("t2", "Fertig."),
+    ...ENDE,
+  );
+  await schliesse(strom);
+}
+
+async function pruefeModuswechsel(): Promise<void> {
+  await zeigeChat(KURZ);
+  await schrittUndFreigabe(id(30), "Leg eine Aufgabe an", 1);
+  gleich("Moduswechsel: im Assistent-Modus keine Tour, die Karte wartet", [folge("pane"), !!document.querySelector(".ki-aktion--freigabe")], [[],true]);
+  // Umschalten zwischen Frage und Freigabe, danach ein weiterer Render, der mit dem Modus nichts zu tun hat.
+  await setze({ modus: "agent" });
+  await setze({ haustierPhase: "arbeitet" });
+  const strom = antwortStrom();
+  protokoll.leere();
+  fireEvent.click(knopf("Bestätigen"));
+  await abwarten();
+  // Die Freigabe hält den Modus fest, in dem sie erteilt wird: der Zug läuft als Agent weiter, und die Tour holt auch den
+  // Schritt mit Ziel nach, der vor dem Umschalten in derselben Antwort fertig wurde.
+  gleich("Moduswechsel per Klick: die Freigabe gilt im neuen Modus, mit Nachtour für den Schritt davor", [folge("pane"), koerper(2)?.modus], [["pane fuehreZu /dashboard/risiko | Risiko-Radar"],"agent"]);
+  await aktionGelingt(strom, 1);
+  gleich("Moduswechsel per Klick: das Ergebnis der Aktion öffnet seine Ansicht, die Seite lädt neu", [folge("pane"), navigation.verlauf], [["pane fuehreZu /dashboard/risiko | Risiko-Radar","pane fuehreZu /dashboard/aufgaben | Pflückaufgaben"],["refresh"]]);
+
+  // Jetzt umgekehrt und über den Sprachmodus-Bus: gefragt als Agent, freigegeben als Assistent.
+  protokoll.leere();
+  await schrittUndFreigabe(id(31), "Noch eine Aufgabe", 2);
+  gleich("Moduswechsel: im Agent-Modus folgt die Tour sofort", folge("pane"), ["pane fuehreZu /dashboard/risiko | Risiko-Radar"]);
+  await setze({ modus: "assistent" });
+  await setze({ haustierPhase: "ruhe" });
+  const strom2 = antwortStrom();
+  protokoll.leere();
+  await ausloesen(() => entscheideFreigabe(true, leseFreigabeAnfrage()!.nr));
+  await abwarten();
+  await aktionGelingt(strom2, 2);
+  gleich("Moduswechsel per Bus: als Assistent freigegeben keine Tour, die Seite lädt neu", [folge("pane"), koerper(4)?.modus, navigation.verlauf], [[],"assistent",["refresh","refresh"]]);
+}
+
+// ---- 23. Ziel, Aktion und neue Freigabekarte in einem Takt -----------------------------------------------------------------------
+async function pruefeDrosseltakt(): Promise<void> {
+  await zeigeChat(KURZ);
+  await setze({ modus: "agent" });
+  reihenfolge.an = true;
+  const strom = antwortStrom();
+  await frage("Leg an und melde");
+  await stuecke(strom, ...anfang(id(32)), { type: "text-start", id: "t1" }, { type: "text-delta", id: "t1", delta: "Ich lege an" });
+  protokoll.leere();
+  // Alles nach dem ersten Stück fällt in dieselbe Drosselung (80 ms) und damit in denselben Render.
+  await stuecke(
+    strom,
+    { type: "text-delta", id: "t1", delta: " und melde." },
+    { type: "text-end", id: "t1" },
+    { type: "tool-input-available", toolCallId: "k1", toolName: "aufgabeAnlegen", input: { reihenblockCode: "RB-1" } },
+    { type: "tool-output-available", toolCallId: "k1", output: { ok: true, text: "Angelegt.", ziel: "/dashboard/aufgaben" } },
+    { type: "tool-input-available", toolCallId: "k2", toolName: "reklamationAnlegen", input: { betreff: "Druck" } },
+    { type: "tool-approval-request", approvalId: "f2", toolCallId: "k2" },
+  );
+  gleich("Drosseltakt: erst Neuladen, dann Tour, dann die neue Karte an den Sprachmodus", folge("router", "pane", "bus"), ["router refresh","pane fuehreZu /dashboard/aufgaben | Pflückaufgaben","bus freigabe Reklamation melden: Betreff: Druck"]);
+  await stuecke(strom, ...ENDE);
+  await schliesse(strom);
+  gleich("Drosseltakt: danach nichts doppelt", folge("router", "pane", "bus"), ["router refresh","pane fuehreZu /dashboard/aufgaben | Pflückaufgaben","bus freigabe Reklamation melden: Betreff: Druck"]);
+}
+
+// ---- 24. Stopp mit offenem Werkzeug, danach eine neue Frage ---------------------------------------------------------------------
+async function pruefeStoppMitWerkzeug(): Promise<void> {
+  await zeigeChat(KURZ);
+  await setze({ modus: "agent" });
+  let freigeben = () => {};
+  const tor = new Promise<void>((weiter) => (freigeben = weiter));
+  lage.uiWerkzeug = async (_name, eingabe, umgebung) => {
+    await tor;
+    const ja = await umgebung.bestaetigen({ absicht: String(eingabe.absicht), label: "Löschen", grund: "senden" });
+    return { ok: ja };
+  };
+  const strom = antwortStrom();
+  await frage("Lösch den Eintrag");
+  await stuecke(strom, ...anfang(id(33)), { type: "tool-input-available", toolCallId: "c1", toolName: "klicke", input: { ref: "e7", absicht: "Eintrag löschen" } }, ...ENDE);
+  await schliesse(strom);
+  protokoll.leere();
+  await ausloesen(() => freigeben());
+  gleich("Stopp: die Klickkarte erscheint, der Chat läuft zu ihr, Stoppen bleibt", [!!document.querySelector(".ki-aktion--freigabe"), folge("dom"), !!screen.queryByRole("button", { name: "Stoppen" })], [true,["dom scrollTo div.ki-chat__verlauf {\"top\":0,\"behavior\":\"auto\"}"],true]);
+  protokoll.leere();
+  fireEvent.click(knopf("Stoppen"));
+  await abwarten();
+  await uhr.vor(100);
+  gleich(
+    "Stopp mit offenem Werkzeug: die Karte gilt als abgelehnt, nichts geht zurück, der Chat ist frei",
+    [!!document.querySelector(".ki-aktion--freigabe"), leseFreigabeAnfrage(), netz.aufrufe.length, !!screen.queryByRole("button", { name: "Stoppen" }), ohneEingang()],
+    [false,null,1,false,["sprache stoppeAlles","takt neuerZug","dom scrollTo div.ki-chat__verlauf {\"top\":0,\"behavior\":\"auto\"}","haustier ruhe |  | neutral"]],
+  );
+  // Eine neue Frage gibt die Werkzeuge wieder frei (Schleifenschutz und Abbruch zurückgesetzt).
+  lage.uiWerkzeug = async () => ({ ok: true, text: "Seite gelesen" });
+  const strom2 = antwortStrom();
+  await frage("Was steht auf der Seite?");
+  protokoll.leere();
+  await stuecke(strom2, ...anfang(id(34)), { type: "tool-input-available", toolCallId: "s1", toolName: "seiteLesen", input: {} }, ...ENDE);
+  const strom3 = antwortStrom();
+  await schliesse(strom2);
+  await uhr.vor(200);
+  gleich(
+    "Nach dem Stopp: das Werkzeug der neuen Frage läuft, sein Ergebnis geht zurück",
+    [folge("takt", "ui", "fetch"), (koerper(3)?.messages as { parts: unknown[] }[] | undefined)?.at(-1)?.parts.at(-1)],
+    [["takt vorAusfuehrung seiteLesen","ui seiteLesen {} agentModus=true","fetch POST /api/ki-assistent"],{"type":"tool-seiteLesen","toolCallId":"s1","state":"output-available","input":{},"output":{"ok":true,"text":"Seite gelesen"}}],
+  );
+  await stuecke(strom3, { type: "start-step" }, ...text("t1", "Eine Tabelle."), ...ENDE);
+  await schliesse(strom3);
+}
+
+// ---- 25. Scrollen bei Freigabe und bei jedem Wechsel der Abhängigkeiten -----------------------------------------------------------
+async function pruefeScrollAbhaengigkeiten(): Promise<void> {
+  await zeigeChat(KURZ);
+  const flaeche = document.querySelector<HTMLElement>(".ki-chat__verlauf")!;
+  let oben = 700;
+  Object.defineProperty(flaeche, "scrollHeight", { configurable: true, value: 1000 });
+  Object.defineProperty(flaeche, "clientHeight", { configurable: true, value: 300 });
+  Object.defineProperty(flaeche, "scrollTop", { configurable: true, get: () => oben, set: (w: number) => (oben = w) });
+  protokoll.leere();
+  await setze({ offen: false });
+  await setze({ offen: true });
+  gleich("Scrollen: Panel zu und wieder auf läuft jedes Mal ans Ende", folge("dom"), ["dom scrollTo div.ki-chat__verlauf {\"top\":1000,\"behavior\":\"auto\"}","dom scrollTo div.ki-chat__verlauf {\"top\":1000,\"behavior\":\"auto\"}"]);
+  await aktionBisFreigabe();
+  oben = 100;
+  fireEvent.scroll(flaeche);
+  const strom = antwortStrom();
+  protokoll.leere();
+  fireEvent.click(knopf("Bestätigen"));
+  await abwarten();
+  gleich("Scrollen: die Freigabe holt den Chat ans Ende zurück (der Knopf bleibt, bis gescrollt wird)", [folge("dom"), !!document.querySelector(".ki-nach-unten")], [["dom scrollTo div.ki-chat__verlauf {\"top\":1000,\"behavior\":\"auto\"}","dom scrollTo div.ki-chat__verlauf {\"top\":1000,\"behavior\":\"auto\"}"],true]);
+  await stuecke(strom, { type: "start-step" }, { type: "tool-output-available", toolCallId: "g1", output: { ok: true, text: "Angelegt." } }, ...text("t2", "Fertig."), ...ENDE);
+  await schliesse(strom);
+  netz.antworte("POST /api/ki-assistent", { status: 500, text: "kaputt" }, { einmal: true });
+  oben = 700;
+  fireEvent.scroll(flaeche);
+  protokoll.leere();
+  await frage("Und jetzt?");
+  await uhr.vor(100);
+  gleich("Scrollen: Senden und jeder Wechsel des Status bis zum Fehler laufen ans Ende", [folge("dom"), !!fehler()], [["dom scrollTo div.ki-chat__verlauf {\"top\":1000,\"behavior\":\"auto\"}","dom scrollTo div.ki-chat__verlauf {\"top\":1000,\"behavior\":\"auto\"}"],true]);
+}
+
+// ---- 26. und 27. Sprachmodus: Leerzustand, Statustext, Ausschnitt des Verlaufs ----------------------------------------------------
+async function pruefeSprachmodusLeer(): Promise<void> {
+  const { textFehler } = await zeigeChat();
+  await setze({ modus: "agent", sprachmodus: true });
+  gleich("Sprachmodus leer: Text und Vorschläge des eingestellten Modus, nicht des Sprachmodus", [document.querySelector(".ki-leer__text")?.textContent, vorschlaege()], ["Stellen Sie eine Frage oder geben Sie eine Aufgabe: Der Agent öffnet die passenden Seiten, liest sie, klickt, füllt Felder aus und erklärt unterwegs. Alles, was etwas absendet oder löscht, bestätigen Sie vorher.",["Mach einen vollständigen Risiko-Check und zeig mir alles|true","Lege eine Pflückaufgabe für den ersten freien Reihenblock an: 100 kg, morgen fällig|true","Berechne die Löhne für den letzten Monat|true","Ich möchte reklamieren: Die Beeren kamen matschig an|true"]]);
+  pruefe("Sprachmodus leer: keine fehlenden Texte", textFehler.length === 0, json(textFehler));
+}
+
+async function pruefeSprachmodusAusschnitt(): Promise<void> {
+  // Die letzte Frage vor dem Sprachmodus blieb ohne Antwort: so unterscheiden sich eine und zwei Nachrichten "von davor".
+  await zeigeChat([zeile("u0", "nutzer", "Frage eins"), zeile(id(40), "assistent", "Antwort eins"), zeile("u2", "nutzer", "Frage zwei")]);
+  await setze({ modus: "agent", sprachmodus: true });
+  const strom = antwortStrom();
+  await ausloesen(() => stelleSprachFrage("Frage A", ["de"]));
+  await abwarten();
+  gleich("Sprachmodus: Statuszeile wie im Assistent-Modus, auch wenn der Agent eingestellt ist", [status(), folge("haustier").at(-1)], ["Assistent sucht die reifsten Fakten …","haustier arbeitet | Assistent sucht die reifsten Fakten … | neutral"]);
+  gleich("Sprachmodus: von vor seinem Beginn gehen zwei Nachrichten mit, ab einer Frage", kurzVerlauf(koerper(1)), ["user: Frage eins","assistant: Antwort eins","user: Frage zwei","user: Frage A"]);
+  await stuecke(strom, ...anfang(id(41)), ...text("t1", "Antwort A"), ...ENDE);
+  await schliesse(strom);
+  // Sprachmodus aus, eine getippte Frage, Sprachmodus wieder an: das neue Gespräch beginnt bei der Zahl der Nachrichten jetzt.
+  await setze({ sprachmodus: false });
+  const strom2 = antwortStrom();
+  await frage("Frage B");
+  await stuecke(strom2, ...anfang(id(42)), ...text("t1", "Antwort B"), ...ENDE);
+  await schliesse(strom2);
+  gleich("Sprachmodus aus: der ganze Verlauf geht mit", kurzVerlauf(koerper(2)), ["user: Frage eins","assistant: Antwort eins","user: Frage zwei","user: Frage A","assistant: step-start / Antwort A","user: Frage B"]);
+  await setze({ sprachmodus: true });
+  const strom3 = antwortStrom();
+  await ausloesen(() => stelleSprachFrage("Frage C", ["de"]));
+  await abwarten();
+  gleich("Sprachmodus wieder an: der Ausschnitt beginnt neu", kurzVerlauf(koerper(3)), ["user: Frage B","assistant: step-start / Antwort B","user: Frage C"]);
+  await stuecke(strom3, ...anfang(id(43)), ...text("t1", "Antwort C"), ...ENDE);
+  await schliesse(strom3);
+}
+
+// ---- 28. Unter React.StrictMode -------------------------------------------------------------------------------------------------
+async function pruefeStrictMode(): Promise<void> {
+  const { unmount } = await zeigeChat(KURZ, true);
+  await setze({ modus: "agent" });
+  reihenfolge.an = true;
+  gleich("StrictMode: Stand, Takt und Bus nach dem doppelten Einhängen", [leseChatStand().bereit, taktSpeicher.refs!.halte.current === LIVE.halte, taktSpeicher.refs!.stand.current === LIVE.gerade, leseGerade() !== null], [true,true,true,true]);
+  const strom = antwortStrom();
+  await frage("Leg an und melde");
+  await stuecke(
+    strom,
+    ...anfang(id(35)),
+    { type: "tool-input-available", toolCallId: "k1", toolName: "aufgabeAnlegen", input: { reihenblockCode: "RB-1" } },
+    { type: "tool-output-available", toolCallId: "k1", output: { ok: true, text: "Angelegt.", ziel: "/dashboard/aufgaben" } },
+    { type: "tool-input-available", toolCallId: "k2", toolName: "reklamationAnlegen", input: { betreff: "Druck" } },
+    { type: "tool-approval-request", approvalId: "f2", toolCallId: "k2" },
+    ...ENDE,
+  );
+  await schliesse(strom);
+  const strom2 = antwortStrom();
+  await ausloesen(() => entscheideFreigabe(true, leseFreigabeAnfrage()!.nr));
+  await abwarten();
+  await stuecke(strom2, { type: "start-step" }, { type: "tool-output-available", toolCallId: "k2", output: { ok: true, text: "Gemeldet.", ziel: "/dashboard/reklamationen" } }, ...text("t1", "Erledigt."), ...ENDE);
+  await schliesse(strom2);
+  gleich("StrictMode: jede Folge genau einmal", [folge("router", "pane", "bus", "fetch"), koerper(2)?.modus], [["fetch POST /api/ki-assistent","router refresh","pane fuehreZu /dashboard/aufgaben | Pflückaufgaben","bus freigabe Reklamation melden: Betreff: Druck","bus freigabe -","fetch POST /api/ki-assistent","router refresh","pane fuehreZu /dashboard/reklamationen | Reklamationen"],"agent"]);
+  protokoll.leere();
+  unmount();
+  gleich("StrictMode: Abbau gibt Stand, Takt und Bus frei", [leseChatStand().bereit, taktSpeicher.refs!.halte.current === null, taktSpeicher.refs!.stand.current === null, leseGerade() === null], [false,true,true,true]);
+}
+
 async function main(): Promise<void> {
   ({ KiChat } = await import("@/components/ki/ki-chat"));
   ({ KiPane } = await import("@/components/ki/ki-pane"));
@@ -1154,6 +1409,13 @@ async function main(): Promise<void> {
     ["pane-handy", pruefePaneHandy],
     ["pane-breite", pruefePaneBreite],
     ["pane-ohne-agent", pruefePaneOhneAgent],
+    ["moduswechsel", pruefeModuswechsel],
+    ["drosseltakt", pruefeDrosseltakt],
+    ["stopp-werkzeug", pruefeStoppMitWerkzeug],
+    ["scroll-abhaengigkeiten", pruefeScrollAbhaengigkeiten],
+    ["sprachmodus-leer", pruefeSprachmodusLeer],
+    ["sprachmodus-ausschnitt", pruefeSprachmodusAusschnitt],
+    ["strictmode", pruefeStrictMode],
   ];
   for (const [name, fall] of faelle) {
     if (process.env.FALL && process.env.FALL !== name) continue;

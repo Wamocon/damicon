@@ -141,9 +141,22 @@ import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/dom
 import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, NUTZER_SCHLUESSEL, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
 import { agentSeitenansichtAn, diktatLiveAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
 import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { register } from "node:module";
 import { beobachteZeitgeber, erzeugeAudioKontext, erzeugeFakeWS, pcm, warte, wortweise as wortweiseZerlegt } from "./hilfen/attrappen.mjs";
+
+/** Alle Teile des KI-Chats (src/components/ki/ki-chat*.ts und .tsx): seit der Zerlegung vom 14.10.2026 über viele Dateien verteilt. */
+function kiChatTeile() {
+  const ordner = new URL("../../src/components/ki/", import.meta.url);
+  return readdirSync(ordner)
+    .filter((datei) => /^ki-chat.*\.tsx?$/.test(datei))
+    .map((datei) => ({ datei, text: readFileSync(new URL(datei, ordner), "utf8") }));
+}
+/** Der Aufruf, mit dem KiChat (ki-chat.tsx) einen Hook seiner Teile verdrahtet: genau dieser Text muss dort stehen. */
+const KI_CHAT_AUFRUFE = {
+  taktVerdrahtung: "useTaktVerdrahtung({ stimmeRef: takt.stimme, aktivRef: takt.aktiv, standRef: takt.stand, halteRef: takt.halte, live, vorlesen, sprachmodus });",
+  chatStand: "useChatStandMeldung({ live, beschaeftigt, vorlesen, messages, istErsteNachricht, einwilligung, error });",
+};
 
 // Seit 28.09.2026 holen domain/sprachausgabe.ts, domain/antwortsprache.ts und
 // wissen/chunker.ts die Spracherkennung ueber den Alias (@/lib/text/sprache-erkennen,
@@ -2660,7 +2673,7 @@ for (const [name, kaputteAntwort] of [
     }
     pruefe("Sprecher: stand() schaetzt den klingenden Satz aus der gespielten Tondauer, kalibriert an fertigen Stroemen", stromQuelle.includes("stand()") && stromQuelle.includes("fertigSekunden += puffer.duration") && stromQuelle.includes("gemesseneRate") && stromQuelle.includes("satzBeiPosition("));
     pruefe("Sprecher: der angezeigte Satz geht mit (Mitlesen braucht die Woerter der Seite, nicht die Sprechfassung)", stromQuelle.includes("anzeige?: string") && liveQuelle.includes("sprich(zumSprechen(a.text, sprache), sprache, a.text, a.gebunden ?? null)"));
-    pruefe("Mitlesen: der Chat meldet die Stimme an den Bus, der Sprachmodus zeigt das Ziel der Sprechmarke", bus.includes("registriereGerade") && chatMeldungen.includes("registriereGerade(geradeSprechend)") && modus.includes("const jetzt = leseGerade();") && modus.includes("loeseSprechZiel(jetzt.ziel)") && modus.includes("zeigeSprechStelle(stelle)"));
+    pruefe("Mitlesen: der Chat meldet die Stimme an den Bus, der Sprachmodus zeigt das Ziel der Sprechmarke", bus.includes("registriereGerade") && chatMeldungen.includes("const geradeSprechend = live.gerade;") && chatMeldungen.includes("registriereGerade(geradeSprechend)") && chat.includes(KI_CHAT_AUFRUFE.taktVerdrahtung) && modus.includes("const jetzt = leseGerade();") && modus.includes("loeseSprechZiel(jetzt.ziel)") && modus.includes("zeigeSprechStelle(stelle)"));
     pruefe("Mitlesen: kein Wortvergleich mehr, ohne Marke nur eine woertlich genannte Ueberschrift, und nur solange keine Marke kam", !mitlesen.includes("bestesZiel") && mitlesen.includes("export function ueberschriftImSatz") && modus.includes("if (markeGesehen || !jetzt.satz) return;"));
     pruefe("Mitlesen: Ziele werden beim Eintreffen des Satzes gebunden, nicht erst beim Sprechen", lies3("components/ki/ki-chat-sprache.ts").includes("gebunden: bindeSprechZiel(roh.ziele)") && mitlesen.includes("if (g.el && g.el.isConnected) return g.el;"));
     pruefe("Mitlesen: zugeklappte Stellen werden aufgeklappt (details, aria-expanded, data-offen), nur was ohne Rueckfrage klickbar ist", steuer.includes("export function klappeAuf") && steuer.includes('details:not([open])') && steuer.includes("aria-expanded='false'") && steuer.includes('klickStufe(knopf).stufe === "erlaubt"') && steuer.includes('stelle.getAttribute("data-offen") === "false"') && mitlesen.includes("const aufgeklappt = klappeAuf(stelle);"));
@@ -3146,7 +3159,7 @@ for (const [name, kaputteAntwort] of [
   const chatNachricht = lies("components/ki/ki-chat-nachricht.tsx");
   const chatMeldungen = lies("components/ki/ki-chat-meldungen.ts");
   pruefe("Chat: Knopf auch an der Antwort, die gerade entsteht, wenn sie schon vorgelesen wird (dann Stopp)", chatNachricht.includes("(vorlesen.liest(nachricht.id) || !(beschaeftigt && nachricht.id === letzteId))"));
-  pruefe("Chat: Sprachmodus meldet Sprechen/Laden aus der einen Instanz", chatMeldungen.includes('spricht: vorlesen.phase === "spricht",') && chatMeldungen.includes('laedt: vorlesen.phase === "laedt",'));
+  pruefe("Chat: Sprachmodus meldet Sprechen/Laden aus der einen Instanz", chatMeldungen.includes('spricht: vorlesen.phase === "spricht",') && chatMeldungen.includes('laedt: vorlesen.phase === "laedt",') && lies("components/ki/ki-chat.tsx").includes(KI_CHAT_AUFRUFE.chatStand));
   const composer = lies("components/ki/ki-chat-composer.tsx");
   pruefe("Eingabefeld: leeres Feld -> Senden-Knopf ist der Sprachmodus (Punkt 2)", composer.includes(") : !eingabe.trim() && sprachmodusMoeglich ? (") && composer.includes('aria-label={t("sprachmodus.starten")}') && composer.includes("onClick={onSprachmodus}"));
   pruefe("Eingabefeld: Sprachmodus-Knopf gesperrt, solange die Zustimmung fehlt", /onClick=\{onSprachmodus\}\s*disabled=\{einwilligungFehlt\}/.test(composer));
@@ -3883,7 +3896,25 @@ for (const [name, kaputteAntwort] of [
   }
   pruefe("Sprechmarken: zielAusMarke erkennt e-, a-, Anker- und Textziele", marken.zielAusMarke("E12") === "e12" && marken.zielAusMarke(" a3 ") === "a3" && marken.zielAusMarke("#compliance-kachel-audit") === "#compliance-kachel-audit" && marken.zielAusMarke("Risiko-Radar") === "t:Risiko-Radar" && marken.zielAusMarke("<script>") === null);
   pruefe("Sprechmarken: erfundene Referenzen fallen weg, Anker und Texte bleiben", JSON.stringify(marken.nurBekannteZiele(["a3", "e99", "#x", "t:Y"], new Set(["a3"]))) === JSON.stringify(["a3", "#x", "t:Y"]) && marken.nurBekannteZiele(["e1"], null).length === 1);
-  pruefe("Sprechmarken: ausserhalb des Sprachmodus bleibt Text mit [[...]] unberuehrt (kein Filter in Anzeige und Speicher)", ["ki-chat.tsx", "ki-chat-nachricht.tsx", "ki-chat-markdown.tsx", "ki-chat-meldungen.ts", "ki-chat-anfrage.ts", "ki-chat-zug.ts"].every((datei) => !lies4(`components/ki/${datei}`).includes("ohneSprechmarken")));
+  {
+    // Alle Teile des Chats, nicht nur eine Auswahl: ein neuer Teil mit Filter fiele sonst nicht auf.
+    const teile = kiChatTeile();
+    const namen = teile.map((teil) => teil.datei);
+    const mitFilter = teile.filter((teil) => teil.text.includes("ohneSprechmarken")).map((teil) => teil.datei);
+    pruefe(
+      "Sprechmarken: ausserhalb des Sprachmodus bleibt Text mit [[...]] unberuehrt (kein Filter in Anzeige und Speicher)",
+      ["ki-chat.tsx", "ki-chat-nachricht.tsx", "ki-chat-markdown.tsx", "ki-chat-meldungen.ts", "ki-chat-anfrage.ts", "ki-chat-zug.ts"].every((datei) => namen.includes(datei)) && mitFilter.length === 0,
+      `${namen.length} Teile${mitFilter.length ? `, mit Filter: ${mitFilter.join(", ")}` : ""}`,
+    );
+    // Die Hooks der Teile wirken nur, wenn KiChat sie aufruft: jeder Hook, den ein Teil exportiert, steht als Aufruf in ki-chat.tsx.
+    const chat = teile.find((teil) => teil.datei === "ki-chat.tsx")?.text ?? "";
+    const hooks = teile
+      .filter((teil) => teil.datei !== "ki-chat.tsx")
+      .flatMap((teil) => [...teil.text.matchAll(/^export function (use[A-Z]\w*)\(/gm)].map((treffer) => treffer[1]));
+    const ohneAufruf = hooks.filter((hook) => !chat.includes(`${hook}(`));
+    pruefe("KI-Chat: ki-chat.tsx ruft jeden Hook seiner Teile auf", hooks.length >= 14 && ohneAufruf.length === 0, `${hooks.length} Hooks${ohneAufruf.length ? `, ohne Aufruf: ${ohneAufruf.join(", ")}` : ""}`);
+    pruefe("KI-Chat: Stimme, Takt und Stand des Sprachmodus sind mit derselben Vorlese-Instanz verdrahtet", chat.includes(KI_CHAT_AUFRUFE.taktVerdrahtung) && chat.includes(KI_CHAT_AUFRUFE.chatStand));
+  }
   pruefe("Sprechmarken: ohneSprechmarken fuer gespeicherte und angezeigte Texte", sa.ohneSprechmarken("[[a3]] Im Radar [[e2]]. Und hier [[a4]] weiter [[a5") === "Im Radar. Und hier weiter");
   pruefe("Sprechmarken: werden nie gesprochen (textFuerSprachausgabe, auch der Platzhalter)", sa.textFuerSprachausgabe("Im [[a3]] Radar.") === "Im Radar." && !sa.textFuerSprachausgabe("A \uE000 B.").includes("\uE000"));
 
