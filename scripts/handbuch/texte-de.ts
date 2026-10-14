@@ -319,9 +319,49 @@ export const de: HandbuchTexte = {
           "Ein Temperaturlogger im Fahrzeug zeichnet die Temperatur der Fahrt auf. Das Portal übernimmt seine Datei, statt dass die Werte von Hand abgetippt werden.",
         schritte: [
           "Hof → Abholrunden öffnen und bei der geplanten Lieferung „Logger-Datei importieren“ aufklappen.",
-          "Die CSV-Datei des Loggers wählen: Zeit und Temperatur je Zeile, Trenner Komma, Semikolon oder Tabulator, Dezimalkomma oder Dezimalpunkt, bis 2 MB. Optional Seriennummer oder Fahrzeug als Kennung eintragen.",
+          "Die Datei des Loggers wählen. CSV: Zeit und Temperatur je Zeile, Trenner Komma, Semikolon oder Tabulator, Dezimalkomma oder Dezimalpunkt, bis 2 MB. Optional Seriennummer oder Fahrzeug als Kennung eintragen. JSON: eine Liste mit Zeit und Temperatur je Eintrag, die Zeit als Text oder als Unix-Zeit.",
           "Zeiten ohne Zeitzone gelten als Almaty-Zeit. Übernommen werden Werte der letzten 24 Stunden. Ältere, solche in der Zukunft, doppelte und nicht lesbare Zeilen lässt das Portal aus und nennt die Zahlen nach dem Import.",
           "Jeder Wert wird wie eine Handmessung bewertet (bis 4 Grad in Ordnung, bis 8 Grad Warnung, darüber Verstoß) und trägt die Herkunft „logger“. Eine zugestellte oder stornierte Lieferung nimmt keine Werte mehr an.",
+        ],
+      },
+      {
+        id: "wirtschaftlichkeit",
+        titel: "Die Wirtschaftlichkeit der Einführung führen",
+        einleitung:
+          "Die Seite rechnet aus Posten, die erfasst werden. Was nicht erfasst ist, bleibt offen, statt als Null zu erscheinen.",
+        schritte: [
+          "Büro → Wirtschaftlichkeit öffnen. Auf einer leeren Seite „Modellwerte übernehmen“ wählen, um mit den Werten der Kennzahlenliste vom 23.09.2026 zu beginnen: Investition und laufende Kosten als belegt, der Jahresnutzen als geschätzt.",
+          "Unter „Posten der Rechnung“ „Posten erfassen“ aufklappen: Art (Investition einmalig, Betrieb je Jahr, Nutzen je Jahr), Kategorie, Bezeichnung, Betrag, Währung (Euro, Tenge, Rubel), Datum und ob der Betrag belegt oder geschätzt ist. Jede Zeile lässt sich ändern und entfernen.",
+          "Unter „Annahmen“ den Kalkulationszins, den Wechselkurs mit Stichtag und Quelle, die Vollkosten je kg, die Jahresmenge und den ersten Monat des Echtbetriebs setzen. Die Jahresmenge kommt aus den Lieferungen, sobald diese ein volles Jahr abdecken.",
+          "Unter „Plan und Ist“ die tatsächlich vermiedenen Kosten je Monat erfassen. Sie stehen gegen den Plan und als Punkte auf den Kurven.",
+          "Mit „Aktuellen Stand festhalten“ wird die Rechnung samt Posten, Annahmen und Kurs eingefroren. Ein Stand ändert sich nie mehr, ein späterer Kurs verändert ihn nicht. „Als Dokument (PDF)“ gibt die Rechnung im Damicon-Layout aus.",
+          "Erfassen dürfen Administration, Geschäftsführung und Buchhaltung. Die Betriebsleitung sieht die Seite.",
+        ],
+      },
+      {
+        id: "abholrunde",
+        titel: "Eine Abholrunde bei Nachbarbetrieben fahren",
+        einleitung:
+          "Ein Fahrzeug holt Ware bei Nachbarbetrieben ab und bringt sie ins Kühlhaus. Ab dem Pflückbeginn zählt die 60-Minuten-Regel der Kühlkette.",
+        schritte: [
+          "Hof → Abholrunden öffnen. Das Büro plant unter „Abholrunde planen“ das Datum, das Fahrzeug, die Nachbarbetriebe und die erwartete Menge. Mit Anschrift ordnet das System die Stopps nach der kürzesten Strecke, ohne Anschrift stehen sie am Ende.",
+          "Der Fahrer öffnet die Runde und wählt „Runde starten“. Erst dann lassen sich Abholungen erfassen.",
+          "Bei jedem Stopp „Abholung erfassen“: die abgeholte Menge und die Antwort des Nachbarbetriebs, vor wie vielen Minuten das Pflücken begann. Fehlt die Angabe, wird die Abholung als Warnung gewertet. Ein Stopp, der nicht stattfindet, wird mit „Entfällt“ erfasst.",
+          "Sind alle Stopps erledigt, meldet der Fahrer die Ankunft im Kühlhaus. Bis 45 Minuten ab Pflückbeginn ist die Abholung in Ordnung, bis 60 Minuten eine Warnung, darüber ein Verstoß.",
+          "Abgeschlossene Runden ändern sich nicht mehr. „Abholauftrag (PDF)“ gibt den Auftrag für den Fahrer aus, nach dem Abschluss den Nachweis, beides im Damicon-Layout.",
+        ],
+      },
+      {
+        id: "auslieferung",
+        titel: "Eine Integration an ein Partnersystem anbinden",
+        einleitung:
+          "Ereignisse wie ein ausgestellter ЭСФ-Beleg lassen sich als signierter Webhook an ein Partnersystem ausliefern, zum Beispiel an die Buchhaltung. Ohne ausdrückliche Aktivierung verlässt kein Datensatz das System.",
+        schritte: [
+          "Als Administration Büro → Integrationen öffnen und unten den Abschnitt „Auslieferung an Partnersysteme“ suchen.",
+          "Bei der Integration „Konfigurieren“ aufklappen: Art „Webhook“, die https-Adresse des Partners und den Namen der Umgebungsvariable, die das gemeinsame Geheimnis hält, zum Beispiel DAMICON_HOOK_ESF. Das Geheimnis selbst steht nie im Portal, es wird in der Umgebung des Servers gesetzt.",
+          "„Auslieferung aktiv“ anhaken und speichern. Fehlt die Variable auf dem Server, sagt das Portal es, und es wird nichts ausgeliefert.",
+          "Das Partnersystem prüft die Signatur im Kopf X-Damicon-Signatur (HMAC-SHA256 über Zeitstempel und Inhalt) und erkennt Wiederholungen am Idempotency-Key.",
+          "Die Warteschlange zeigt jedes Ereignis mit seinem Status. Ein vorläufiger Fehler wird nach 1, 5, 15, 60 und 240 Minuten wiederholt, danach steht der Eintrag auf „gescheitert“. „Erneut versuchen“ und „Jetzt ausliefern“ sind der Administration und der Geschäftsführung vorbehalten.",
         ],
       },
       {

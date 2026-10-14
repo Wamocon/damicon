@@ -561,8 +561,11 @@ mark.treffer-aktiv {
     <a class="toc-link toc-2" href="#anleitung-esutd">4.8 Saisonverträge ins ЕСУТД melden (Meldeprozess)</a>
     <a class="toc-link toc-2" href="#anleitung-nachweis">4.9 Einen Nachweis mit Gültigkeit führen</a>
     <a class="toc-link toc-2" href="#anleitung-logger">4.10 Die Datei eines Temperaturloggers importieren</a>
-    <a class="toc-link toc-2" href="#anleitung-rollen">4.11 Rollen vergeben</a>
-    <a class="toc-link toc-2" href="#anleitung-nachrichten">4.12 Nachrichten zu einer Vorbestellung und Lieferplan</a>
+    <a class="toc-link toc-2" href="#anleitung-wirtschaftlichkeit">4.11 Die Wirtschaftlichkeit der Einführung führen</a>
+    <a class="toc-link toc-2" href="#anleitung-abholrunde">4.12 Eine Abholrunde bei Nachbarbetrieben fahren</a>
+    <a class="toc-link toc-2" href="#anleitung-auslieferung">4.13 Eine Integration an ein Partnersystem anbinden</a>
+    <a class="toc-link toc-2" href="#anleitung-rollen">4.14 Rollen vergeben</a>
+    <a class="toc-link toc-2" href="#anleitung-nachrichten">4.15 Nachrichten zu einer Vorbestellung und Lieferplan</a>
     <a class="toc-link toc-1" href="#referenz">05 Referenz</a>
     <a class="toc-link toc-2" href="#referenz-seiten">5.1 Seiten</a>
     <a class="toc-link toc-2" href="#referenz-rechte">5.2 Rechte je Rolle</a>
@@ -747,7 +750,7 @@ mark.treffer-aktiv {
             <tr><td><strong>Lieferschein (ЭСФ)</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
             <tr><td><strong>Rollen und Rechte</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung</td></tr>
             <tr><td><strong>Finanzen</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb</td></tr>
-            <tr><td><strong>Wirtschaftlichkeit</strong></td><td><span class="pille pille-offen">in Entwicklung</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
+            <tr><td><strong>Wirtschaftlichkeit</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
             <tr><td><strong>Pflückerstamm</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung</td></tr>
             <tr><td><strong>Qualitätsfaktor-Lohn</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Pflücker</td></tr>
             <tr><td><strong>Dokumente</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb, B2B-Kunde</td></tr>
@@ -847,13 +850,13 @@ mark.treffer-aktiv {
       </div>
 
       <h4 id="modul-logistik">3.2.2 Abholrunden und Tourenplanung <span class="pille pille-gut">einsatzbereit</span></h4>
-      <p>Feste Abholrunden im Feld, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung nach den Lieferfenstern der Kunden.</p>
+      <p>Abholrunden bei Nachbarbetrieben mit der 60-Minuten-Regel der Kühlkette, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung der Auslieferung.</p>
       <div class="merkmale">
         <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Übergabequittung mit Mengen- und Temperaturabgleich (Vorkühlung und Transport), lückenloser Kühlkettennachweis bis zum Kunden.</span></div>
         <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/hof/logistik</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
         <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
-        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Tourenliste je Fahrzeug und Lieferzeitfenster fehlen noch.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Fahrzeugkapazität und Lieferzeitfenster der Kunden fehlen noch.</span></div>
       </div>
 
       <h4 id="modul-qr_steigen">3.2.3 QR-Steigenkennung <span class="pille pille-gut">einsatzbereit</span></h4>
@@ -899,14 +902,14 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Kostenarten je Erntetag, B2B-Zahlungsabgleich, Deckungsbeitragsprojektion je Sorte.</span></div>
       </div>
 
-      <h4 id="modul-wirtschaftlichkeit">3.3.3 Wirtschaftlichkeit der Einführung <span class="pille pille-offen">in Entwicklung</span></h4>
-      <p>Investitionsrechnung zur Einführung: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Noch Modellwerte, keine Betriebszahlen.</p>
+      <h4 id="modul-wirtschaftlichkeit">3.3.3 Wirtschaftlichkeit der Einführung <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Investitionsrechnung zur Einführung aus erfassten Posten: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Mit Annahmen, Plan-Ist-Vergleich und festgehaltenen Ständen.</p>
       <div class="merkmale">
-        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung. Modellrechnung, noch nicht aus dem Betrieb.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung, gerechnet aus erfassten Posten, mit Plan-Ist-Vergleich und Ständen.</span></div>
         <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/wirtschaftlichkeit</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
         <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Buchhaltung</span></div>
-        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Erfassung der Investitions-, Betriebs- und Nutzenposten, Historie je Stand, Plan-Ist-Vergleich.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Der Nutzen gilt erst als belegt, wenn der Betrieb Ist-Werte liefert. Bis dahin steht er als geschätzt.</span></div>
       </div>
 
       <h4 id="modul-personal">3.3.4 Pflückerstamm und Brigaden <span class="pille pille-gut">einsatzbereit</span></h4>
@@ -1172,12 +1175,43 @@ mark.treffer-aktiv {
       <p>Ein Temperaturlogger im Fahrzeug zeichnet die Temperatur der Fahrt auf. Das Portal übernimmt seine Datei, statt dass die Werte von Hand abgetippt werden.</p>
       <ol>
           <li>Hof → Abholrunden öffnen und bei der geplanten Lieferung „Logger-Datei importieren“ aufklappen.</li>
-          <li>Die CSV-Datei des Loggers wählen: Zeit und Temperatur je Zeile, Trenner Komma, Semikolon oder Tabulator, Dezimalkomma oder Dezimalpunkt, bis 2 MB. Optional Seriennummer oder Fahrzeug als Kennung eintragen.</li>
+          <li>Die Datei des Loggers wählen. CSV: Zeit und Temperatur je Zeile, Trenner Komma, Semikolon oder Tabulator, Dezimalkomma oder Dezimalpunkt, bis 2 MB. Optional Seriennummer oder Fahrzeug als Kennung eintragen. JSON: eine Liste mit Zeit und Temperatur je Eintrag, die Zeit als Text oder als Unix-Zeit.</li>
           <li>Zeiten ohne Zeitzone gelten als Almaty-Zeit. Übernommen werden Werte der letzten 24 Stunden. Ältere, solche in der Zukunft, doppelte und nicht lesbare Zeilen lässt das Portal aus und nennt die Zahlen nach dem Import.</li>
           <li>Jeder Wert wird wie eine Handmessung bewertet (bis 4 Grad in Ordnung, bis 8 Grad Warnung, darüber Verstoß) und trägt die Herkunft „logger“. Eine zugestellte oder stornierte Lieferung nimmt keine Werte mehr an.</li>
       </ol>
 
-      <h3 id="anleitung-rollen">4.11 Rollen vergeben</h3>
+      <h3 id="anleitung-wirtschaftlichkeit">4.11 Die Wirtschaftlichkeit der Einführung führen</h3>
+      <p>Die Seite rechnet aus Posten, die erfasst werden. Was nicht erfasst ist, bleibt offen, statt als Null zu erscheinen.</p>
+      <ol>
+          <li>Büro → Wirtschaftlichkeit öffnen. Auf einer leeren Seite „Modellwerte übernehmen“ wählen, um mit den Werten der Kennzahlenliste vom 23.09.2026 zu beginnen: Investition und laufende Kosten als belegt, der Jahresnutzen als geschätzt.</li>
+          <li>Unter „Posten der Rechnung“ „Posten erfassen“ aufklappen: Art (Investition einmalig, Betrieb je Jahr, Nutzen je Jahr), Kategorie, Bezeichnung, Betrag, Währung (Euro, Tenge, Rubel), Datum und ob der Betrag belegt oder geschätzt ist. Jede Zeile lässt sich ändern und entfernen.</li>
+          <li>Unter „Annahmen“ den Kalkulationszins, den Wechselkurs mit Stichtag und Quelle, die Vollkosten je kg, die Jahresmenge und den ersten Monat des Echtbetriebs setzen. Die Jahresmenge kommt aus den Lieferungen, sobald diese ein volles Jahr abdecken.</li>
+          <li>Unter „Plan und Ist“ die tatsächlich vermiedenen Kosten je Monat erfassen. Sie stehen gegen den Plan und als Punkte auf den Kurven.</li>
+          <li>Mit „Aktuellen Stand festhalten“ wird die Rechnung samt Posten, Annahmen und Kurs eingefroren. Ein Stand ändert sich nie mehr, ein späterer Kurs verändert ihn nicht. „Als Dokument (PDF)“ gibt die Rechnung im Damicon-Layout aus.</li>
+          <li>Erfassen dürfen Administration, Geschäftsführung und Buchhaltung. Die Betriebsleitung sieht die Seite.</li>
+      </ol>
+
+      <h3 id="anleitung-abholrunde">4.12 Eine Abholrunde bei Nachbarbetrieben fahren</h3>
+      <p>Ein Fahrzeug holt Ware bei Nachbarbetrieben ab und bringt sie ins Kühlhaus. Ab dem Pflückbeginn zählt die 60-Minuten-Regel der Kühlkette.</p>
+      <ol>
+          <li>Hof → Abholrunden öffnen. Das Büro plant unter „Abholrunde planen“ das Datum, das Fahrzeug, die Nachbarbetriebe und die erwartete Menge. Mit Anschrift ordnet das System die Stopps nach der kürzesten Strecke, ohne Anschrift stehen sie am Ende.</li>
+          <li>Der Fahrer öffnet die Runde und wählt „Runde starten“. Erst dann lassen sich Abholungen erfassen.</li>
+          <li>Bei jedem Stopp „Abholung erfassen“: die abgeholte Menge und die Antwort des Nachbarbetriebs, vor wie vielen Minuten das Pflücken begann. Fehlt die Angabe, wird die Abholung als Warnung gewertet. Ein Stopp, der nicht stattfindet, wird mit „Entfällt“ erfasst.</li>
+          <li>Sind alle Stopps erledigt, meldet der Fahrer die Ankunft im Kühlhaus. Bis 45 Minuten ab Pflückbeginn ist die Abholung in Ordnung, bis 60 Minuten eine Warnung, darüber ein Verstoß.</li>
+          <li>Abgeschlossene Runden ändern sich nicht mehr. „Abholauftrag (PDF)“ gibt den Auftrag für den Fahrer aus, nach dem Abschluss den Nachweis, beides im Damicon-Layout.</li>
+      </ol>
+
+      <h3 id="anleitung-auslieferung">4.13 Eine Integration an ein Partnersystem anbinden</h3>
+      <p>Ereignisse wie ein ausgestellter ЭСФ-Beleg lassen sich als signierter Webhook an ein Partnersystem ausliefern, zum Beispiel an die Buchhaltung. Ohne ausdrückliche Aktivierung verlässt kein Datensatz das System.</p>
+      <ol>
+          <li>Als Administration Büro → Integrationen öffnen und unten den Abschnitt „Auslieferung an Partnersysteme“ suchen.</li>
+          <li>Bei der Integration „Konfigurieren“ aufklappen: Art „Webhook“, die https-Adresse des Partners und den Namen der Umgebungsvariable, die das gemeinsame Geheimnis hält, zum Beispiel DAMICON_HOOK_ESF. Das Geheimnis selbst steht nie im Portal, es wird in der Umgebung des Servers gesetzt.</li>
+          <li>„Auslieferung aktiv“ anhaken und speichern. Fehlt die Variable auf dem Server, sagt das Portal es, und es wird nichts ausgeliefert.</li>
+          <li>Das Partnersystem prüft die Signatur im Kopf X-Damicon-Signatur (HMAC-SHA256 über Zeitstempel und Inhalt) und erkennt Wiederholungen am Idempotency-Key.</li>
+          <li>Die Warteschlange zeigt jedes Ereignis mit seinem Status. Ein vorläufiger Fehler wird nach 1, 5, 15, 60 und 240 Minuten wiederholt, danach steht der Eintrag auf „gescheitert“. „Erneut versuchen“ und „Jetzt ausliefern“ sind der Administration und der Geschäftsführung vorbehalten.</li>
+      </ol>
+
+      <h3 id="anleitung-rollen">4.14 Rollen vergeben</h3>
       <p>Die Rolle eines Kontos bestimmt, was es sehen und tun darf. Vergeben kann sie nur die Administration.</p>
       <ol>
           <li>Als Administration Büro → Rollen und Rechte öffnen. Unter „Konten und Rollen“ steht jedes Konto mit seiner Rolle.</li>
@@ -1186,7 +1220,7 @@ mark.treffer-aktiv {
           <li>Der letzte Administrator behält seine Rolle: die Datenbank weist den Entzug ab, auch bei direktem Zugriff. Jede Änderung steht im Protokoll, mit der alten und der neuen Rolle.</li>
       </ol>
 
-      <h3 id="anleitung-nachrichten">4.12 Nachrichten zu einer Vorbestellung und Lieferplan</h3>
+      <h3 id="anleitung-nachrichten">4.15 Nachrichten zu einer Vorbestellung und Lieferplan</h3>
       <p>Absprachen zu Menge und Termin bleiben an der Vorbestellung, statt in Telefonaten und Messengern zu verschwinden.</p>
       <ol>
           <li>Markt → B2B-Portal öffnen. Unter „Nachrichten zu Vorbestellungen“ steht je Vorbestellung ein Verlauf. Der Kunde sieht nur seine eigenen, das Büro alle.</li>

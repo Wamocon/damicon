@@ -561,8 +561,11 @@ mark.treffer-aktiv {
     <a class="toc-link toc-2" href="#anleitung-esutd">4.8 Reporting seasonal contracts to ЕСУТД (reporting process)</a>
     <a class="toc-link toc-2" href="#anleitung-nachweis">4.9 Keeping a proof with a validity period</a>
     <a class="toc-link toc-2" href="#anleitung-logger">4.10 Importing the file of a temperature logger</a>
-    <a class="toc-link toc-2" href="#anleitung-rollen">4.11 Assigning roles</a>
-    <a class="toc-link toc-2" href="#anleitung-nachrichten">4.12 Messages on a pre-order and the delivery schedule</a>
+    <a class="toc-link toc-2" href="#anleitung-wirtschaftlichkeit">4.11 Maintain the business case of the rollout</a>
+    <a class="toc-link toc-2" href="#anleitung-abholrunde">4.12 Drive a pickup round at neighbouring farms</a>
+    <a class="toc-link toc-2" href="#anleitung-auslieferung">4.13 Connect an integration to a partner system</a>
+    <a class="toc-link toc-2" href="#anleitung-rollen">4.14 Assigning roles</a>
+    <a class="toc-link toc-2" href="#anleitung-nachrichten">4.15 Messages on a pre-order and the delivery schedule</a>
     <a class="toc-link toc-1" href="#referenz">05 Reference</a>
     <a class="toc-link toc-2" href="#referenz-seiten">5.1 Pages</a>
     <a class="toc-link toc-2" href="#referenz-rechte">5.2 Permissions by role</a>
@@ -747,7 +750,7 @@ mark.treffer-aktiv {
             <tr><td><strong>Delivery note (ЭСФ)</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
             <tr><td><strong>Roles and permissions</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management</td></tr>
             <tr><td><strong>Finance</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm</td></tr>
-            <tr><td><strong>Business case</strong></td><td><span class="pille pille-offen">in development</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
+            <tr><td><strong>Business case</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
             <tr><td><strong>Picker register</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management</td></tr>
             <tr><td><strong>Quality-factor pay</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Picker</td></tr>
             <tr><td><strong>Documents</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm, B2B client</td></tr>
@@ -847,13 +850,13 @@ mark.treffer-aktiv {
       </div>
 
       <h4 id="modul-logistik">3.2.2 Collection rounds and route planning <span class="pille pille-gut">ready for use</span></h4>
-      <p>Fixed collection rounds in the field so filled crates do not sit in the sun, plus route planning by the clients' delivery windows.</p>
+      <p>Pickup rounds at neighbouring farms with the 60-minute cold chain rule, so that filled crates do not stand in the sun, plus delivery tour planning.</p>
       <div class="merkmale">
         <div class="merkmal"><span class="merkmal-name">In short</span><span>Handover receipt with volume and temperature reconciliation (pre-cooling and transport), unbroken cold-chain evidence all the way to the customer.</span></div>
         <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/hof/logistik</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
         <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
-        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Route list per vehicle and delivery time windows are still missing.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Vehicle capacity and customer delivery time windows are still missing.</span></div>
       </div>
 
       <h4 id="modul-qr_steigen">3.2.3 QR crate identification <span class="pille pille-gut">ready for use</span></h4>
@@ -899,14 +902,14 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Still open</span><span>Cost types per harvest day, B2B payment reconciliation, contribution-margin projection per variety.</span></div>
       </div>
 
-      <h4 id="modul-wirtschaftlichkeit">3.3.3 Business case for the rollout <span class="pille pille-offen">in development</span></h4>
-      <p>Investment appraisal for the rollout: payback period, return in year one and over three years, one-off and recurring cost, net present value. Model figures so far, not yet operational data.</p>
+      <h4 id="modul-wirtschaftlichkeit">3.3.3 Business case for the rollout <span class="pille pille-gut">ready for use</span></h4>
+      <p>Investment appraisal for the rollout from recorded items: payback period, return in year one and over three years, one-off and recurring cost, net present value. With assumptions, plan versus actual and saved snapshots.</p>
       <div class="merkmale">
-        <div class="merkmal"><span class="merkmal-name">In short</span><span>Payback, return, one-off and recurring cost, net present value of the rollout. Model calculation, not yet from operations.</span></div>
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Payback, return, one-off and recurring cost and net present value of the rollout, calculated from recorded items, with plan versus actual and snapshots.</span></div>
         <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/wirtschaftlichkeit</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting</span></div>
         <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Accounting</span></div>
-        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Capture of investment, operating and benefit items, history per revision, plan versus actual.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>The benefit counts as evidenced only once operations deliver actual figures. Until then it is shown as estimated.</span></div>
       </div>
 
       <h4 id="modul-personal">3.3.4 Picker register and brigades <span class="pille pille-gut">ready for use</span></h4>
@@ -1172,12 +1175,43 @@ mark.treffer-aktiv {
       <p>A temperature logger in the vehicle records the temperature of the trip. The portal takes over its file instead of the values being typed in by hand.</p>
       <ol>
           <li>Open Yard → Collection rounds and unfold “Import logger file” at the planned delivery.</li>
-          <li>Choose the logger’s CSV file: time and temperature per line, separator comma, semicolon or tab, decimal comma or decimal point, up to 2 MB. Optionally enter a serial number or vehicle as identifier.</li>
+          <li>Choose the logger’s file, CSV or JSON. CSV: time and temperature per line, separator comma, semicolon or tab, decimal comma or decimal point, up to 2 MB. Optionally enter a serial number or vehicle as identifier. JSON: a list with time and temperature per entry, the time as text or as Unix time.</li>
           <li>Times without a time zone count as Almaty time. Values of the last 24 hours are taken over. Older rows, rows in the future, duplicates and unreadable rows are left out, and the portal gives the numbers after the import.</li>
           <li>Each value is rated like a manual measurement (up to 4 degrees fine, up to 8 degrees warning, above that violation) and carries the origin “logger”. A delivered or cancelled delivery no longer accepts values.</li>
       </ol>
 
-      <h3 id="anleitung-rollen">4.11 Assigning roles</h3>
+      <h3 id="anleitung-wirtschaftlichkeit">4.11 Maintain the business case of the rollout</h3>
+      <p>The page calculates from items that are recorded. What is not recorded stays open instead of appearing as zero.</p>
+      <ol>
+          <li>Open Office → Business case. On an empty page choose &quot;Take over model values&quot; to start with the values of the metric list of 23 September 2026: investment and recurring cost as evidenced, the annual benefit as estimated.</li>
+          <li>Under &quot;Items of the calculation&quot; open &quot;Record an item&quot;: type (investment one-off, operation per year, benefit per year), category, description, amount, currency (euro, tenge, ruble), date and whether the amount is evidenced or estimated. Every line can be changed and removed.</li>
+          <li>Under &quot;Assumptions&quot; set the discount rate, the exchange rate with date and source, the full cost per kg, the annual quantity and the first month of live operation. The annual quantity comes from the deliveries as soon as they cover a full year.</li>
+          <li>Under &quot;Plan and actual&quot; record the cost that was actually avoided per month. It is set against the plan and shown as points on the curves.</li>
+          <li>&quot;Save the current state&quot; freezes the calculation with items, assumptions and exchange rate. A snapshot never changes again, a later rate does not affect it. &quot;As document (PDF)&quot; outputs the calculation in the Damicon layout.</li>
+          <li>Administration, CEO and accounting can record. Operations management sees the page.</li>
+      </ol>
+
+      <h3 id="anleitung-abholrunde">4.12 Drive a pickup round at neighbouring farms</h3>
+      <p>A vehicle collects produce at neighbouring farms and brings it to the cold store. From the start of picking, the 60-minute cold chain rule counts.</p>
+      <ol>
+          <li>Open Yard → Collection rounds. The office plans under &quot;Plan a pickup round&quot; the date, the vehicle, the neighbouring farms and the expected quantity. With an address the system orders the stops by the shortest route, without one they go to the end.</li>
+          <li>The driver opens the round and chooses &quot;Start round&quot;. Only then can pickups be recorded.</li>
+          <li>At each stop &quot;Record pickup&quot;: the collected quantity and the neighbouring farm's answer to how many minutes ago picking began. If it is missing, the pickup counts as a warning. A stop that does not take place is recorded with &quot;Cancelled&quot;.</li>
+          <li>When all stops are done, the driver reports the arrival at the cold store. Up to 45 minutes from the start of picking the pickup is fine, up to 60 minutes a warning, beyond that a violation.</li>
+          <li>Completed rounds no longer change. &quot;Pickup order (PDF)&quot; outputs the order for the driver and, after completion, the record, both in the Damicon layout.</li>
+      </ol>
+
+      <h3 id="anleitung-auslieferung">4.13 Connect an integration to a partner system</h3>
+      <p>Events such as an issued ЭСФ invoice can be delivered as a signed webhook to a partner system, for example to accounting. Without explicit activation no record leaves the system.</p>
+      <ol>
+          <li>As administration open Office → Integrations and find the section &quot;Delivery to partner systems&quot; at the bottom.</li>
+          <li>At the integration open &quot;Configure&quot;: type &quot;webhook&quot;, the https address of the partner and the name of the environment variable that holds the shared secret, for example DAMICON_HOOK_ESF. The secret itself is never in the portal, it is set in the server environment.</li>
+          <li>Tick &quot;Delivery active&quot; and save. If the variable is missing on the server, the portal says so and nothing is delivered.</li>
+          <li>The partner system checks the signature in the header X-Damicon-Signatur (HMAC-SHA256 over timestamp and content) and recognises repetitions by the Idempotency-Key.</li>
+          <li>The queue shows every event with its status. A temporary error is retried after 1, 5, 15, 60 and 240 minutes, after that the entry is &quot;failed&quot;. &quot;Try again&quot; and &quot;Deliver now&quot; are reserved for administration and the CEO.</li>
+      </ol>
+
+      <h3 id="anleitung-rollen">4.14 Assigning roles</h3>
       <p>The role of an account determines what it may see and do. Only administration can assign it.</p>
       <ol>
           <li>As administration open Office → Roles and permissions. Under “Accounts and roles” every account is listed with its role.</li>
@@ -1186,7 +1220,7 @@ mark.treffer-aktiv {
           <li>The last administrator keeps the role: the database rejects the withdrawal, even with direct access. Every change is logged with the old and the new role.</li>
       </ol>
 
-      <h3 id="anleitung-nachrichten">4.12 Messages on a pre-order and the delivery schedule</h3>
+      <h3 id="anleitung-nachrichten">4.15 Messages on a pre-order and the delivery schedule</h3>
       <p>Agreements on quantity and date stay with the pre-order instead of vanishing in phone calls and messengers.</p>
       <ol>
           <li>Open Market → B2B portal. Under “Messages on pre-orders” every pre-order has its thread. The customer sees only their own, the office sees all.</li>

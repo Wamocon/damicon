@@ -315,9 +315,49 @@ export const en: HandbuchTexte = {
           "A temperature logger in the vehicle records the temperature of the trip. The portal takes over its file instead of the values being typed in by hand.",
         schritte: [
           "Open Yard → Collection rounds and unfold “Import logger file” at the planned delivery.",
-          "Choose the logger’s CSV file: time and temperature per line, separator comma, semicolon or tab, decimal comma or decimal point, up to 2 MB. Optionally enter a serial number or vehicle as identifier.",
+          "Choose the logger’s file, CSV or JSON. CSV: time and temperature per line, separator comma, semicolon or tab, decimal comma or decimal point, up to 2 MB. Optionally enter a serial number or vehicle as identifier. JSON: a list with time and temperature per entry, the time as text or as Unix time.",
           "Times without a time zone count as Almaty time. Values of the last 24 hours are taken over. Older rows, rows in the future, duplicates and unreadable rows are left out, and the portal gives the numbers after the import.",
           "Each value is rated like a manual measurement (up to 4 degrees fine, up to 8 degrees warning, above that violation) and carries the origin “logger”. A delivered or cancelled delivery no longer accepts values.",
+        ],
+      },
+      {
+        id: "wirtschaftlichkeit",
+        titel: "Maintain the business case of the rollout",
+        einleitung:
+          "The page calculates from items that are recorded. What is not recorded stays open instead of appearing as zero.",
+        schritte: [
+          "Open Office → Business case. On an empty page choose \"Take over model values\" to start with the values of the metric list of 23 September 2026: investment and recurring cost as evidenced, the annual benefit as estimated.",
+          "Under \"Items of the calculation\" open \"Record an item\": type (investment one-off, operation per year, benefit per year), category, description, amount, currency (euro, tenge, ruble), date and whether the amount is evidenced or estimated. Every line can be changed and removed.",
+          "Under \"Assumptions\" set the discount rate, the exchange rate with date and source, the full cost per kg, the annual quantity and the first month of live operation. The annual quantity comes from the deliveries as soon as they cover a full year.",
+          "Under \"Plan and actual\" record the cost that was actually avoided per month. It is set against the plan and shown as points on the curves.",
+          "\"Save the current state\" freezes the calculation with items, assumptions and exchange rate. A snapshot never changes again, a later rate does not affect it. \"As document (PDF)\" outputs the calculation in the Damicon layout.",
+          "Administration, CEO and accounting can record. Operations management sees the page.",
+        ],
+      },
+      {
+        id: "abholrunde",
+        titel: "Drive a pickup round at neighbouring farms",
+        einleitung:
+          "A vehicle collects produce at neighbouring farms and brings it to the cold store. From the start of picking, the 60-minute cold chain rule counts.",
+        schritte: [
+          "Open Yard → Collection rounds. The office plans under \"Plan a pickup round\" the date, the vehicle, the neighbouring farms and the expected quantity. With an address the system orders the stops by the shortest route, without one they go to the end.",
+          "The driver opens the round and chooses \"Start round\". Only then can pickups be recorded.",
+          "At each stop \"Record pickup\": the collected quantity and the neighbouring farm's answer to how many minutes ago picking began. If it is missing, the pickup counts as a warning. A stop that does not take place is recorded with \"Cancelled\".",
+          "When all stops are done, the driver reports the arrival at the cold store. Up to 45 minutes from the start of picking the pickup is fine, up to 60 minutes a warning, beyond that a violation.",
+          "Completed rounds no longer change. \"Pickup order (PDF)\" outputs the order for the driver and, after completion, the record, both in the Damicon layout.",
+        ],
+      },
+      {
+        id: "auslieferung",
+        titel: "Connect an integration to a partner system",
+        einleitung:
+          "Events such as an issued ЭСФ invoice can be delivered as a signed webhook to a partner system, for example to accounting. Without explicit activation no record leaves the system.",
+        schritte: [
+          "As administration open Office → Integrations and find the section \"Delivery to partner systems\" at the bottom.",
+          "At the integration open \"Configure\": type \"webhook\", the https address of the partner and the name of the environment variable that holds the shared secret, for example DAMICON_HOOK_ESF. The secret itself is never in the portal, it is set in the server environment.",
+          "Tick \"Delivery active\" and save. If the variable is missing on the server, the portal says so and nothing is delivered.",
+          "The partner system checks the signature in the header X-Damicon-Signatur (HMAC-SHA256 over timestamp and content) and recognises repetitions by the Idempotency-Key.",
+          "The queue shows every event with its status. A temporary error is retried after 1, 5, 15, 60 and 240 minutes, after that the entry is \"failed\". \"Try again\" and \"Deliver now\" are reserved for administration and the CEO.",
         ],
       },
       {
