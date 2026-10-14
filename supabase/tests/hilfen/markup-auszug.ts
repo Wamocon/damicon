@@ -32,8 +32,8 @@ function ohneBloecke(html: string): string {
     vorher = jetzt;
     jetzt = jetzt
       .replace(/<!-- -->/g, "")
-      .replace(/<svg\b[\s\S]*?<\/svg\s*>/gi, "")
-      .replace(/<script\b[\s\S]*?<\/script\s*>/gi, "");
+      .replace(/<svg\b[\s\S]*?<\/svg\b[^>]*>/gi, "")
+      .replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, "");
   } while (jetzt !== vorher);
   return jetzt;
 }

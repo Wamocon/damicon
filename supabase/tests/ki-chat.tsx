@@ -415,7 +415,7 @@ const kurzVerlauf = (k: Record<string, unknown> | null) =>
 
 // Ein Symbol (lucide) nur mit seiner Klasse vergleichen, ohne Pfade. Groß- und Kleinschreibung egal, wiederholt bis nichts mehr
 // passt; ein schon gekürztes <svg class="..."/> passt nicht mehr (kein Ende mit "/>").
-const SVG_MIT_INHALT = /<svg\b[^>]*?\bclass="([^"]*)"[^>]*(?<!\/)>[\s\S]*?<\/svg\s*>/gi;
+const SVG_MIT_INHALT = /<svg\b[^>]*?\bclass="([^"]*)"[^>]*(?<!\/)>[\s\S]*?<\/svg\b[^>]*>/gi;
 const ohneSvg = (html: string) => {
   let vorher: string;
   let jetzt = html;
