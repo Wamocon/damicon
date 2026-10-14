@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import {
@@ -15,19 +15,20 @@ import {
   Scale,
   Settings2,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import { Himbeere } from "@/components/ki/himbeere";
 import { HaustierEinstellung } from "@/components/haustier/haustier-einstellung";
 import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { KiChat } from "@/components/ki/ki-chat";
-import { HAUPTSPALTE_MINDESTBREITE, KiPaneGriff, MINIMUM as PANE_BREITE_MINIMUM } from "@/components/ki/ki-pane-griff";
-import { useKiPane } from "@/components/ki/ki-pane-kontext";
+import { KiPaneGriff } from "@/components/ki/ki-pane-griff";
+import { useKiPane, type KiDarstellung } from "@/components/ki/ki-pane-kontext";
+import { useHandyBlatt, useKiPaneAnsicht, usePruefungsBreite, type Ansicht } from "@/components/ki/ki-pane-zustand";
 import { EskalationsFormular, KiChatFenster } from "@/components/db/ki-assistent-formulare";
 import type { KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import { BlattZeile } from "@/components/ui/blatt-zeile";
 import { useIstHandy } from "@/components/ui/handy";
-import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import { cn } from "@/lib/utils";
 
 // Andockbares Seitenpanel (Layout dashboard/layout.tsx): sitzt NEBEN dem
@@ -45,13 +46,26 @@ import { cn } from "@/lib/utils";
 // Einstellung: Standard ist der ruhige Assistent, den Agent-Modus (der das
 // Hauptfenster selbst steuert) schaltet man hier ausdruecklich ein - mit einer
 // Erklaerung beim Ueberfahren, worin der Unterschied besteht.
+//
+// Welche Ansicht offen ist, die Breite fuer die Pruefung und das Verhalten als
+// Blatt auf dem Handy stehen in ki-pane-zustand.ts.
 
-type Ansicht = "chat" | "einstellungen" | "hilfe" | "pruefung" | "mehr";
+type Uebersetzer = ReturnType<typeof useTranslations>;
 
-// Wie breit das Panel fuer die Pruefungsansicht hoechstens wird: enger als das
-// per Griff ziehbare Maximum (ki-pane-griff.tsx) - hier soll nur genug Platz fuer
-// Spuren und Bericht entstehen, nicht die volle vom Nutzer ziehbare Breite.
-const PRUEFUNG_BREITE_MAXIMUM = 600;
+/** Die Ansichten neben dem Chat: Knopf im Kopf (Schreibtisch) oder Zeile der Mehr-Ansicht (Handy). */
+type Zusatz = "pruefung" | "einstellungen" | "hilfe";
+const ZUSATZ: Record<Zusatz, { Symbol: LucideIcon; text: (t: Uebersetzer, tp: Uebersetzer) => string }> = {
+  pruefung: { Symbol: Scale, text: (_t, tp) => tp("knopf") },
+  einstellungen: { Symbol: Settings2, text: (t) => t("einstellungen") },
+  hilfe: { Symbol: LifeBuoy, text: (t) => t("eskalationKnopf") },
+};
+const ZUSATZ_FOLGE: readonly Zusatz[] = ["pruefung", "einstellungen", "hilfe"];
+
+/** Der Knopf für die Darstellung: auf der Bühne andocken, angedockt in die Mitte holen. */
+const DARSTELLUNG_KNOPF: Record<KiDarstellung, { ziel: KiDarstellung; text: "andocken" | "buehne"; Symbol: LucideIcon }> = {
+  buehne: { ziel: "seite", text: "andocken", Symbol: PanelRight },
+  seite: { ziel: "buehne", text: "buehne", Symbol: Maximize2 },
+};
 
 function ModusEinstellung() {
   const t = useTranslations("kiAssistentAnsicht");
@@ -103,6 +117,240 @@ function ModusEinstellung() {
 // Die Compliance-Pruefung ist gross (Ablauf, Bericht) und wird erst geladen, wenn sie zum ersten Mal geoeffnet wird.
 const PruefungAnsicht = dynamic(() => import("@/components/pruefung/pruefung-ansicht").then((m) => m.PruefungAnsicht), { ssr: false });
 
+interface KopfEigenschaften {
+  t: Uebersetzer;
+  tp: Uebersetzer;
+  handy: boolean;
+  agentAktiv: boolean;
+  darstellung: KiDarstellung;
+  sichtbar: Ansicht;
+  zusaetze: readonly Zusatz[];
+  schalteUm: (ziel: Ansicht) => void;
+  setDarstellung: (darstellung: KiDarstellung) => void;
+  onSchliessen: () => void;
+}
+
+/** Schreibtisch: Darstellung und je Zusatzansicht ein Knopf, der sie öffnet und beim zweiten Klick zum Chat zurückführt. */
+function SchreibtischKnoepfe({ t, tp, darstellung, sichtbar, zusaetze, schalteUm, setDarstellung }: KopfEigenschaften) {
+  const knopf = DARSTELLUNG_KNOPF[darstellung];
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setDarstellung(knopf.ziel)}
+        aria-label={t(knopf.text)}
+        title={t(knopf.text)}
+        className="ki-pane__knopf"
+      >
+        <knopf.Symbol className="h-4 w-4" />
+      </button>
+      {zusaetze.map((zusatz) => {
+        const { Symbol, text } = ZUSATZ[zusatz];
+        return (
+          <button
+            key={zusatz}
+            type="button"
+            onClick={() => schalteUm(zusatz)}
+            aria-pressed={sichtbar === zusatz}
+            aria-label={text(t, tp)}
+            title={text(t, tp)}
+            className="ki-pane__knopf"
+          >
+            <Symbol className="h-4 w-4" />
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
+function KiPaneKopf(eigenschaften: KopfEigenschaften) {
+  const { t, handy, agentAktiv, sichtbar, schalteUm, onSchliessen } = eigenschaften;
+  return (
+    <header className="ki-pane__kopf">
+      <div className="ki-pane__titel">
+        <span className="ki-pane__zeichen" aria-hidden>
+          <Himbeere groesse={26} schweben={agentAktiv} />
+        </span>
+        {t("chatTitel")}
+        {agentAktiv ? (
+          <span className="ki-pane__abzeichen" title={t("modus.agent.kurz")}>
+            {t("modus.agent.name")}
+          </span>
+        ) : null}
+      </div>
+      <div className="ki-pane__werkzeuge">
+        {/* Auf dem Handy fuehrt ein Knopf in die Mehr-Ansicht, statt
+            vier Ziele mit 0,15 rem Abstand nebeneinanderzustellen - die
+            lagen enger beieinander als eine Fingerkuppe breit ist. Steht
+            man schon darin, fuehrt derselbe Knopf zurueck. */}
+        {handy ? (
+          <button
+            type="button"
+            onClick={() => schalteUm("mehr")}
+            aria-pressed={sichtbar === "mehr"}
+            aria-label={t("mehr")}
+            title={t("mehr")}
+            className="ki-pane__knopf"
+          >
+            {sichtbar === "chat" ? <MoreHorizontal className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+          </button>
+        ) : (
+          <SchreibtischKnoepfe {...eigenschaften} />
+        )}
+        <button type="button" onClick={onSchliessen} aria-label={t("schliessen")} title={t("schliessen")} className="ki-pane__knopf">
+          {/* Ueber CSS und nicht ueber `handy`: eine Groesse ist keine
+              Frage, fuer die der zweite Renderdurchgang noetig waere,
+              und der Server rendert die Schreibtisch-Fassung - das
+              Kreuz waere auf dem Handy erst klein und spraenge nach der
+              Hydration. Siehe ui/handy.ts: was mit einer Media Query
+              geht, gehoert auch dorthin. */}
+          <X className="h-5 w-5 md:h-4 md:w-4" />
+        </button>
+      </div>
+    </header>
+  );
+}
+
+/** Eine Ansicht, die eingebunden bleibt, aber verborgen und nicht bedienbar ist, solange eine andere vorn ist. */
+function verborgenSolange(nichtVorn: boolean, klasse: string) {
+  return { className: cn(klasse, nichtVorn && "pointer-events-none invisible"), inert: nichtVorn ? true : undefined };
+}
+
+function KiPaneKoerper({
+  t,
+  tp,
+  sichtbar,
+  agentFaehig,
+  handy,
+  hatEinstellungen,
+  verlauf,
+  pruefungGeladen,
+  pruefungBereiche,
+  zusaetze,
+  zeige,
+}: {
+  t: Uebersetzer;
+  tp: Uebersetzer;
+  sichtbar: Ansicht;
+  agentFaehig: boolean;
+  handy: boolean;
+  hatEinstellungen: boolean;
+  verlauf: KiChatNachrichtZeile[];
+  pruefungGeladen: boolean;
+  pruefungBereiche: readonly Pruefbereich[];
+  zusaetze: readonly Zusatz[];
+  zeige: (ziel: Ansicht) => void;
+}) {
+  return (
+    <div className="ki-pane__koerper">
+      <div {...verborgenSolange(sichtbar !== "chat", "ki-pane__ansicht")}>
+        {agentFaehig ? (
+          <KiChat verlauf={verlauf} />
+        ) : (
+          <div className="h-full overflow-y-auto p-4">
+            <KiChatFenster verlauf={verlauf} />
+          </div>
+        )}
+      </div>
+      {pruefungGeladen && pruefungBereiche.length > 0 ? (
+        <div {...verborgenSolange(sichtbar !== "pruefung", "ki-pane__ansicht overflow-y-auto")}>
+          <PruefungAnsicht erlaubt={pruefungBereiche} />
+        </div>
+      ) : null}
+      {sichtbar === "mehr" ? (
+        <div className="ki-pane__ansicht space-y-2 overflow-y-auto p-4">
+          {zusaetze.map((zusatz) => {
+            const { Symbol, text } = ZUSATZ[zusatz];
+            return <BlattZeile key={zusatz} symbol={<Symbol className="h-5 w-5" />} text={text(t, tp)} onClick={() => zeige(zusatz)} />;
+          })}
+        </div>
+      ) : null}
+      {sichtbar === "einstellungen" && hatEinstellungen ? (
+        <div className="ki-pane__ansicht space-y-5 overflow-y-auto p-4">
+          {/* Der Agent-Schalter fehlt auf dem Handy: dort ruht der
+              Modus ohnehin, ein Schalter ohne Wirkung waere
+              irrefuehrend. */}
+          {agentFaehig && !handy ? <ModusEinstellung /> : null}
+          <HaustierEinstellung />
+        </div>
+      ) : null}
+      {sichtbar === "hilfe" ? (
+        <div className="ki-pane__ansicht space-y-3 overflow-y-auto p-4">
+          <p className="text-sm leading-6 text-muted-foreground">{t("eskalationText")}</p>
+          <EskalationsFormular />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Die Hülle des Panels: zu (verborgen, nicht bedienbar), offen, als Dialog auf der Bühne oder als Spalte neben der Seite. */
+function KiPaneHuelle({
+  t,
+  phase,
+  offen,
+  aufBuehne,
+  agentFaehig,
+  agentAktiv,
+  handyGross,
+  children,
+}: {
+  t: Uebersetzer;
+  /** Zustand von Himbi (haustier-kontext.tsx), für die Farben der Hülle. */
+  phase: string;
+  offen: boolean;
+  aufBuehne: boolean;
+  agentFaehig: boolean;
+  agentAktiv: boolean;
+  handyGross: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <aside
+      aria-label={t("chatTitel")}
+      aria-hidden={!offen}
+      aria-modal={aufBuehne && offen ? true : undefined}
+      role={aufBuehne ? "dialog" : undefined}
+      data-phase={phase}
+      inert={!offen ? true : undefined}
+      className={cn(
+        "ki-pane-huelle print:hidden",
+        offen && "ki-pane-huelle--offen",
+        aufBuehne && "ki-pane-huelle--buehne",
+        // Nur wenn der Agent an der Seite steht - sonst bleibt das Blatt,
+        // wie es war.
+        !aufBuehne && agentFaehig && "ki-pane-huelle--agentseite",
+        handyGross && "ki-pane-huelle--gross",
+      )}
+    >
+      {aufBuehne ? (
+        <span className="ki-buehne-aura" aria-hidden>
+          <span className="ki-buehne-aura__blob ki-buehne-aura__blob--1" />
+          <span className="ki-buehne-aura__blob ki-buehne-aura__blob--2" />
+          <span className="ki-buehne-aura__blob ki-buehne-aura__blob--3" />
+        </span>
+      ) : null}
+      <div className={cn("ki-pane", agentAktiv && "ki-pane--agent")}>{children}</div>
+    </aside>
+  );
+}
+
+/** Handy: der Griff oben macht das Blatt groß oder wieder halb so hoch. */
+function HandyGriff({ t, gross, onUmschalten }: { t: Uebersetzer; gross: boolean; onUmschalten: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onUmschalten}
+      aria-label={t(gross ? "kleiner" : "groesser")}
+      title={t(gross ? "kleiner" : "groesser")}
+      className="ki-pane__handygriff"
+    >
+      <span aria-hidden />
+    </button>
+  );
+}
+
 export function KiPane({
   verlauf,
   agentFaehig,
@@ -124,66 +372,15 @@ export function KiPane({
   const { verfuegbar, offen, setOffen, modus, darstellung, setDarstellung, anstoss } = useKiPane();
   const { phase } = useHaustierStatus();
   const tp = useTranslations("pruefung");
-  const [ansicht, setAnsicht] = useState<Ansicht>("chat");
-  // Einmal geoeffnet, bleibt die Pruefung eingebunden (nur ausgeblendet): ein laufender Lauf ueberlebt den Wechsel zum Chat.
-  const [pruefungGeladen, setPruefungGeladen] = useState(false);
-
-  // Eine Frage zum Prüfergebnis (Knopf im Bericht) gehört in den Chat: dorthin wechseln, die Prüfung bleibt eingebunden.
-  // Zustand beim Rendern angleichen (statt in einem Effekt): sobald ein neuer Anstoss da ist, zeigt das Panel den Chat.
-  const [gesehenerAnstoss, setGesehenerAnstoss] = useState(anstoss?.nr ?? 0);
-  if (anstoss && anstoss.nr !== gesehenerAnstoss) {
-    setGesehenerAnstoss(anstoss.nr);
-    setAnsicht("chat");
-  }
-
-  // Die Pruefung braucht Platz (Spuren mit Schritten, Bericht): das Panel wird fuer diese Ansicht vorruebergehend
-  // breiter, ohne die gespeicherte Breite des Nutzers zu ueberschreiben, und geht danach auf den alten Wert zurueck.
-  // Das Hauptfenster behaelt mindestens 680 px (siehe ki-pane-griff.tsx).
-  useEffect(() => {
-    if (ansicht !== "pruefung" || !offen) return;
-    const wurzel = document.documentElement.style;
-    const links = document.getElementById("main")?.getBoundingClientRect().left ?? 0;
-    const ziel = Math.max(PANE_BREITE_MINIMUM, Math.min(PRUEFUNG_BREITE_MAXIMUM, Math.floor(window.innerWidth - links - HAUPTSPALTE_MINDESTBREITE)));
-    const aktuell = document.querySelector(".ki-pane-huelle")?.getBoundingClientRect().width ?? 0;
-    if (aktuell >= ziel - 16) return;
-    const vorher = wurzel.getPropertyValue("--ki-pane-breite");
-    const gesetzt = `${ziel}px`;
-    wurzel.setProperty("--ki-pane-breite", gesetzt);
-    return () => {
-      // Hat der Nutzer inzwischen selbst gezogen, bleibt seine Breite.
-      if (wurzel.getPropertyValue("--ki-pane-breite") !== gesetzt) return;
-      if (vorher) wurzel.setProperty("--ki-pane-breite", vorher);
-      else wurzel.removeProperty("--ki-pane-breite");
-    };
-  }, [ansicht, offen]);
+  const { ansicht, pruefungGeladen, schalteUm, zeige } = useKiPaneAnsicht(anstoss);
+  usePruefungsBreite(ansicht, offen);
 
   const handy = useIstHandy();
   // Auf dem Handy nimmt die Agenten-Seitenansicht nur die untere Haelfte:
   // oben bleibt die Seite sichtbar, um die es gerade geht. Ein Griff macht
   // das Panel gross, wer lesen statt zusehen will.
   const [handyGross, setHandyGross] = useState(false);
-
-  // Esc schliesst, und solange das Blatt offen ist, scrollt die Seite darunter
-  // nicht mit. Beides kannte bisher nur ui/sheet.tsx, obwohl Menue-, Konto- und
-  // KI-Blatt auf dem Handy dieselbe Flaeche sind und gleich aussehen. Die
-  // Sperre ist dieselbe wie dort (ui/scroll-sperre.ts).
-  //
-  // Die Bauweisen bleiben getrennt: ui/sheet.tsx haengt beim Schliessen aus,
-  // dieses Panel muss gemountet bleiben, sonst reisst eine laufende Antwort
-  // ab - und seit der Pruefung auch ein laufender Pruefvorgang. Angeglichen
-  // wird das Verhalten, nicht der Bau.
-  //
-  // Nur unter md: ab dort ist das Panel eine angedockte Spalte neben der Seite,
-  // und die soll weiter scrollen, waehrend man daneben liest.
-  useScrollSperre(offen && handy);
-  useEffect(() => {
-    if (!offen || !handy) return;
-    const beiTaste = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOffen(false);
-    };
-    document.addEventListener("keydown", beiTaste);
-    return () => document.removeEventListener("keydown", beiTaste);
-  }, [offen, handy, setOffen]);
+  useHandyBlatt(offen, handy, setOffen);
 
   if (!verfuegbar) return null;
 
@@ -199,7 +396,8 @@ export function KiPane({
   // waehrend sie offen ist, landet wieder im Gespraech, statt auf einer Seite
   // zu stehen, deren Knopf gerade verschwunden ist.
   const sichtbar: Ansicht = !handy && ansicht === "mehr" ? "chat" : ansicht;
-  const umschalten = (ziel: Ansicht) => setAnsicht((aktuell) => (aktuell === ziel ? "chat" : ziel));
+  const vorhanden: Record<Zusatz, boolean> = { pruefung: pruefungBereiche.length > 0, einstellungen: hatEinstellungen, hilfe: true };
+  const zusaetze = ZUSATZ_FOLGE.filter((zusatz) => vorhanden[zusatz]);
 
   return (
     <>
@@ -214,208 +412,43 @@ export function KiPane({
           aufBuehne && "ki-pane-hintergrund--buehne",
         )}
       />
-      <aside
-        aria-label={t("chatTitel")}
-        aria-hidden={!offen}
-        aria-modal={aufBuehne && offen ? true : undefined}
-        role={aufBuehne ? "dialog" : undefined}
-        data-phase={phase}
-        inert={!offen ? true : undefined}
-        className={cn(
-          "ki-pane-huelle print:hidden",
-          offen && "ki-pane-huelle--offen",
-          aufBuehne && "ki-pane-huelle--buehne",
-          // Nur wenn der Agent an der Seite steht - sonst bleibt das Blatt,
-          // wie es war.
-          !aufBuehne && agentFaehig && "ki-pane-huelle--agentseite",
-          handyGross && "ki-pane-huelle--gross",
-        )}
+      <KiPaneHuelle
+        t={t}
+        phase={phase}
+        offen={offen}
+        aufBuehne={aufBuehne}
+        agentFaehig={agentFaehig}
+        agentAktiv={agentAktiv}
+        handyGross={handyGross}
       >
-        {aufBuehne ? (
-          <span className="ki-buehne-aura" aria-hidden>
-            <span className="ki-buehne-aura__blob ki-buehne-aura__blob--1" />
-            <span className="ki-buehne-aura__blob ki-buehne-aura__blob--2" />
-            <span className="ki-buehne-aura__blob ki-buehne-aura__blob--3" />
-          </span>
-        ) : null}
-        <div className={cn("ki-pane", agentAktiv && "ki-pane--agent")}>
-          {aufBuehne ? null : <KiPaneGriff />}
-          {handy && !aufBuehne ? (
-            <button
-              type="button"
-              onClick={() => setHandyGross((v) => !v)}
-              aria-label={t(handyGross ? "kleiner" : "groesser")}
-              title={t(handyGross ? "kleiner" : "groesser")}
-              className="ki-pane__handygriff"
-            >
-              <span aria-hidden />
-            </button>
-          ) : null}
-          <header className="ki-pane__kopf">
-            <div className="ki-pane__titel">
-              <span className="ki-pane__zeichen" aria-hidden>
-                <Himbeere groesse={26} schweben={agentAktiv} />
-              </span>
-              {t("chatTitel")}
-              {agentAktiv ? (
-                <span className="ki-pane__abzeichen" title={t("modus.agent.kurz")}>
-                  {t("modus.agent.name")}
-                </span>
-              ) : null}
-            </div>
-            <div className="ki-pane__werkzeuge">
-              {/* Auf dem Handy fuehrt ein Knopf in die Mehr-Ansicht, statt
-                  vier Ziele mit 0,15 rem Abstand nebeneinanderzustellen - die
-                  lagen enger beieinander als eine Fingerkuppe breit ist. Steht
-                  man schon darin, fuehrt derselbe Knopf zurueck. */}
-              {handy ? (
-                <button
-                  type="button"
-                  onClick={() => umschalten("mehr")}
-                  aria-pressed={sichtbar === "mehr"}
-                  aria-label={t("mehr")}
-                  title={t("mehr")}
-                  className="ki-pane__knopf"
-                >
-                  {sichtbar === "chat" ? (
-                    <MoreHorizontal className="h-5 w-5" />
-                  ) : (
-                    <ChevronLeft className="h-5 w-5" />
-                  )}
-                </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setDarstellung(aufBuehne ? "seite" : "buehne")}
-                    aria-label={t(aufBuehne ? "andocken" : "buehne")}
-                    title={t(aufBuehne ? "andocken" : "buehne")}
-                    className="ki-pane__knopf"
-                  >
-                    {aufBuehne ? <PanelRight className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                  </button>
-                  {pruefungBereiche.length > 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPruefungGeladen(true);
-                        umschalten("pruefung");
-                      }}
-                      aria-pressed={sichtbar === "pruefung"}
-                      aria-label={tp("knopf")}
-                      title={tp("knopf")}
-                      className="ki-pane__knopf"
-                    >
-                      <Scale className="h-4 w-4" />
-                    </button>
-                  ) : null}
-                  {hatEinstellungen ? (
-                    <button
-                      type="button"
-                      onClick={() => umschalten("einstellungen")}
-                      aria-pressed={sichtbar === "einstellungen"}
-                      aria-label={t("einstellungen")}
-                      title={t("einstellungen")}
-                      className="ki-pane__knopf"
-                    >
-                      <Settings2 className="h-4 w-4" />
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => umschalten("hilfe")}
-                    aria-pressed={sichtbar === "hilfe"}
-                    aria-label={t("eskalationKnopf")}
-                    title={t("eskalationKnopf")}
-                    className="ki-pane__knopf"
-                  >
-                    <LifeBuoy className="h-4 w-4" />
-                  </button>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={() => setOffen(false)}
-                aria-label={t("schliessen")}
-                title={t("schliessen")}
-                className="ki-pane__knopf"
-              >
-                {/* Ueber CSS und nicht ueber `handy`: eine Groesse ist keine
-                    Frage, fuer die der zweite Renderdurchgang noetig waere,
-                    und der Server rendert die Schreibtisch-Fassung - das
-                    Kreuz waere auf dem Handy erst klein und spraenge nach der
-                    Hydration. Siehe ui/handy.ts: was mit einer Media Query
-                    geht, gehoert auch dorthin. */}
-                <X className="h-5 w-5 md:h-4 md:w-4" />
-              </button>
-            </div>
-          </header>
-
-          <div className="ki-pane__koerper">
-            <div
-              className={cn("ki-pane__ansicht", sichtbar !== "chat" && "pointer-events-none invisible")}
-              inert={sichtbar !== "chat" ? true : undefined}
-            >
-              {agentFaehig ? (
-                <KiChat verlauf={verlauf} />
-              ) : (
-                <div className="h-full overflow-y-auto p-4">
-                  <KiChatFenster verlauf={verlauf} />
-                </div>
-              )}
-            </div>
-            {pruefungGeladen && pruefungBereiche.length > 0 ? (
-              <div
-                className={cn("ki-pane__ansicht overflow-y-auto", sichtbar !== "pruefung" && "pointer-events-none invisible")}
-                inert={sichtbar !== "pruefung" ? true : undefined}
-              >
-                <PruefungAnsicht erlaubt={pruefungBereiche} />
-              </div>
-            ) : null}
-            {sichtbar === "mehr" ? (
-              <div className="ki-pane__ansicht space-y-2 overflow-y-auto p-4">
-                {pruefungBereiche.length > 0 ? (
-                  <BlattZeile
-                    symbol={<Scale className="h-5 w-5" />}
-                    text={tp("knopf")}
-                    onClick={() => {
-                      setPruefungGeladen(true);
-                      setAnsicht("pruefung");
-                    }}
-                  />
-                ) : null}
-                {hatEinstellungen ? (
-                  <BlattZeile
-                    symbol={<Settings2 className="h-5 w-5" />}
-                    text={t("einstellungen")}
-                    onClick={() => setAnsicht("einstellungen")}
-                  />
-                ) : null}
-                <BlattZeile
-                  symbol={<LifeBuoy className="h-5 w-5" />}
-                  text={t("eskalationKnopf")}
-                  onClick={() => setAnsicht("hilfe")}
-                />
-              </div>
-            ) : null}
-            {sichtbar === "einstellungen" && hatEinstellungen ? (
-              <div className="ki-pane__ansicht space-y-5 overflow-y-auto p-4">
-                {/* Der Agent-Schalter fehlt auf dem Handy: dort ruht der
-                    Modus ohnehin, ein Schalter ohne Wirkung waere
-                    irrefuehrend. */}
-                {agentFaehig && !handy ? <ModusEinstellung /> : null}
-                <HaustierEinstellung />
-              </div>
-            ) : null}
-            {sichtbar === "hilfe" ? (
-              <div className="ki-pane__ansicht space-y-3 overflow-y-auto p-4">
-                <p className="text-sm leading-6 text-muted-foreground">{t("eskalationText")}</p>
-                <EskalationsFormular />
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </aside>
+        {aufBuehne ? null : <KiPaneGriff />}
+        {handy && !aufBuehne ? <HandyGriff t={t} gross={handyGross} onUmschalten={() => setHandyGross((v) => !v)} /> : null}
+        <KiPaneKopf
+          t={t}
+          tp={tp}
+          handy={handy}
+          agentAktiv={agentAktiv}
+          darstellung={darstellung}
+          sichtbar={sichtbar}
+          zusaetze={zusaetze}
+          schalteUm={schalteUm}
+          setDarstellung={setDarstellung}
+          onSchliessen={() => setOffen(false)}
+        />
+        <KiPaneKoerper
+          t={t}
+          tp={tp}
+          sichtbar={sichtbar}
+          agentFaehig={agentFaehig}
+          handy={handy}
+          hatEinstellungen={hatEinstellungen}
+          verlauf={verlauf}
+          pruefungGeladen={pruefungGeladen}
+          pruefungBereiche={pruefungBereiche}
+          zusaetze={zusaetze}
+          zeige={zeige}
+        />
+      </KiPaneHuelle>
     </>
   );
 }

@@ -105,8 +105,10 @@ pruefe("Routen: Uebersicht und Unterseite sind da, ausserhalb von [zone] (feste 
 // --- 6. Das KI-Panel hat die Verwaltung abgegeben -----------------------------------------------
 {
   const pane = lies("src/components/ki/ki-pane.tsx");
+  // Seit dem 14.10.2026 steht der Zustand des Panels (Ansichten) in ki-pane-zustand.ts: die Prüfung gilt für beide Dateien.
+  const panelTeile = `${pane}\n${lies("src/components/ki/ki-pane-zustand.ts")}`;
   const layout = lies("src/app/[locale]/dashboard/layout.tsx");
-  pruefe("KI-Panel: Anbieter, Ratenlimit und Wissensdokumente stehen nicht mehr in den Einstellungen des Panels", !/ratenlimitVerwaltung|wissenVerwaltung/.test(pane) && !/anbieterVerwaltung\.titel|wissensVerwaltung\.titel/.test(pane));
+  pruefe("KI-Panel: Anbieter, Ratenlimit und Wissensdokumente stehen nicht mehr in den Einstellungen des Panels", !/ratenlimitVerwaltung|wissenVerwaltung/.test(panelTeile) && !/anbieterVerwaltung\.titel|wissensVerwaltung\.titel/.test(panelTeile));
   pruefe("KI-Panel: die Einstellungen (Haustier) bleiben fuer die Administration erreichbar, auch ohne Agent-Anbieter", /einstellungenZeigen/.test(pane) && /einstellungenZeigen=\{istKiAdmin\}/.test(layout));
   pruefe("Layout: laedt die Listen der Verwaltung nicht mehr bei jeder Seite (nur noch die Unterseiten der Administration)", !/ladeKiAnbieterListe|ladeKiRatenlimitEinstellungen|WissenVerwaltung|KiAnbieterVerwaltung/.test(layout));
 }
