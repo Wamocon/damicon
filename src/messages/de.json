@@ -229,7 +229,7 @@
       },
       "stand": {
         "q": "Was ist heute schon gebaut?",
-        "a": "{gesamt} Module in vier Bereichen: {angebunden} an der Datenbank mit echten Schreibvorgängen, {entwicklung} als sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
+        "a": "{gesamt} Module in vier Bereichen: {entwicklung, plural, =0 {alle an der Datenbank mit echten Schreibvorgängen} other {{angebunden} an der Datenbank mit echten Schreibvorgängen, {entwicklung} als sichtbare Menüpunkte in Entwicklung}}. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
       },
       "daten": {
         "q": "Wo liegen die Daten?",
@@ -759,9 +759,9 @@
     "wirtschaftlichkeit": {
       "title": "Wirtschaftlichkeit der Einführung",
       "navTitle": "Wirtschaftlichkeit",
-      "description": "Investitionsrechnung zur Einführung: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Noch Modellwerte, keine Betriebszahlen.",
-      "summary": "Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung. Modellrechnung, noch nicht aus dem Betrieb.",
-      "todo": "Erfassung der Investitions-, Betriebs- und Nutzenposten, Historie je Stand, Plan-Ist-Vergleich."
+      "description": "Investitionsrechnung zur Einführung aus erfassten Posten: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Mit Annahmen, Plan-Ist-Vergleich und festgehaltenen Ständen.",
+      "summary": "Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung, gerechnet aus erfassten Posten, mit Plan-Ist-Vergleich und Ständen.",
+      "todo": "Der Nutzen gilt erst als belegt, wenn der Betrieb Ist-Werte liefert. Bis dahin steht er als geschätzt."
     },
     "sortenkatalog": {
       "title": "Sorten- und Kontingentkatalog",
@@ -990,7 +990,14 @@
       "esutdEreignis": "Meldung angelegt.",
       "esutdErfasst": "Meldung als gemeldet erfasst.",
       "esutdGeoeffnet": "Meldung wieder geöffnet.",
-      "esutdEntfernt": "Meldung entfernt."
+      "esutdEntfernt": "Meldung entfernt.",
+      "wiPostenGespeichert": "Posten gespeichert.",
+      "wiPostenEntfernt": "Posten entfernt.",
+      "wiIstErfasst": "Ist-Wert erfasst.",
+      "wiIstEntfernt": "Ist-Wert entfernt.",
+      "wiAnnahmenGespeichert": "Annahmen gespeichert.",
+      "wiStandFestgehalten": "Stand festgehalten.",
+      "wiModellUebernommen": "Modellwerte übernommen."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1097,7 +1104,19 @@
       "esutdVertragsnummer": "Die Vertragsnummer ist länger als 60 Zeichen.",
       "esutdBeschreibung": "Bitte beschreiben, was sich ändert, mit 3 bis 300 Zeichen.",
       "esutdBestaetigung": "Die Bestätigungsnummer ist länger als 100 Zeichen.",
-      "esutdMeldungFehlt": "Die Meldung wurde nicht gefunden oder hat sich inzwischen geändert."
+      "esutdMeldungFehlt": "Die Meldung wurde nicht gefunden oder hat sich inzwischen geändert.",
+      "wiBezeichnung": "Bitte eine Bezeichnung mit 1 bis 120 Zeichen angeben.",
+      "wiKategorie": "Bitte eine gültige Kategorie angeben, höchstens 60 Zeichen. Beim Nutzen: Schwund, Handarbeit, Audit oder Sonstiges.",
+      "wiBetrag": "Bitte einen Betrag von 0 oder mehr angeben.",
+      "wiWaehrung": "Bitte Euro, Tenge oder Rubel wählen.",
+      "wiDatum": "Bitte ein gültiges Datum angeben.",
+      "wiMonat": "Bitte einen gültigen Monat angeben.",
+      "wiNotiz": "Die Notiz darf höchstens 500 Zeichen haben.",
+      "wiAnnahme": "Bitte die Annahmen prüfen: Zins 0 bis 100 Prozent, Kurse größer als 0, Menge und Vollkosten größer als 0 oder leer, Wochen als Paar, „von“ nicht größer als „bis“.",
+      "wiStandName": "Bitte eine Bezeichnung für den Stand mit 1 bis 120 Zeichen angeben.",
+      "wiStandLeer": "Ohne erfasste Posten gibt es nichts festzuhalten.",
+      "wiNichtGefunden": "Der Eintrag wurde nicht gefunden.",
+      "wiModellNichtLeer": "Es sind schon Posten erfasst. Die Modellwerte lassen sich nur auf eine leere Liste übernehmen."
     },
     "einladungen": {
       "erfolg": {
@@ -1485,10 +1504,11 @@
       "titel": "Vier weitere Kennzahlen",
       "lead": "Amortisationsdauer, Gesamtkosten, vermiedene Kosten und Zeit bis zum Nutzenbeginn."
     },
-    "fussnote": "Rendite, Amortisationsdauer und die Kosten je Kilogramm hängen vollständig am angenommenen Jahresnutzen. Wirkt die gezeigte Senkung je Kilogramm zu hoch, ist der Jahresnutzen zu hoch angesetzt. Sobald die Betriebszahlen erfasst sind, rechnet die Seite aus echten Posten statt aus Konstanten.",
+    "fussnote": "Rendite, Amortisationsdauer und die Kosten je Kilogramm hängen am Jahresnutzen. Wirkt die gezeigte Senkung je Kilogramm zu hoch, ist der Jahresnutzen zu hoch angesetzt. Die Ist-Werte weiter unten zeigen, ob er im Betrieb eintritt.",
     "diagramm": {
       "wert": "Wert",
-      "nulllinie": "Geld zurück"
+      "nulllinie": "Geld zurück",
+      "ist": "Tatsächlich"
     },
     "stapel": {
       "capex": "Einmalig",
@@ -1518,12 +1538,14 @@
       "capex": {
         "label": "Kosten bis Abnahme",
         "frage": "Was kostet der Sprung?",
-        "rechenweg": "Festpreis bis zur Abnahme. Eine Zahl, keine Spanne."
+        "rechenweg": "Festpreis bis zur Abnahme. Eine Zahl, keine Spanne.",
+        "rechenwegErfasst": "Summe der erfassten Investitionsposten."
       },
       "opex": {
         "label": "Laufende Kosten je Jahr",
         "frage": "Was kostet das Besitzen?",
-        "rechenweg": "Hosting, Wartung, Support und Weiterentwicklung."
+        "rechenweg": "Hosting, Wartung, Support und Weiterentwicklung.",
+        "rechenwegErfasst": "Summe der erfassten Betriebsposten je Jahr."
       },
       "tco": {
         "label": "Gesamtkosten über 3 Jahre",
@@ -1533,7 +1555,8 @@
       "vermiedeneKosten": {
         "label": "Vermiedene Kosten je Jahr",
         "frage": "Woher kommt der Nutzen?",
-        "rechenweg": "Schwund, Handarbeit und Auditvorbereitung. Zurückgerechnet aus den vorgegebenen Renditewerten."
+        "rechenweg": "Schwund, Handarbeit und Auditvorbereitung. Zurückgerechnet aus den vorgegebenen Renditewerten.",
+        "rechenwegErfasst": "Summe der erfassten Nutzenposten je Jahr: Schwund, Handarbeit, Auditvorbereitung und Sonstiges."
       },
       "kapitalwert": {
         "label": "Kapitalwert",
@@ -1544,7 +1567,8 @@
         "label": "Kosten je Kilogramm",
         "frage": "Wird der Betrieb günstiger?",
         "rechenweg": "Vollkosten geteilt durch die vermarktete Menge, vorher gegen nachher. Braucht Betriebszahlen.",
-        "rechenwegMitWerten": "Vollkosten geteilt durch die vermarktete Menge. Vorher {vorher} ₸, abzüglich {ersparnis} ₸ Nutzen je Kilogramm bei {menge} kg Jahresmenge."
+        "rechenwegMitWerten": "Vollkosten geteilt durch die vermarktete Menge. Vorher {vorher} ₸, abzüglich {ersparnis} ₸ Nutzen je Kilogramm bei {menge} kg Jahresmenge.",
+        "rechenwegMengeOffen": "Die vermarktete Jahresmenge fehlt noch. Sie kommt aus den Lieferungen, sobald diese ein volles Jahr abdecken, oder von Hand aus den Annahmen."
       },
       "nutzenbeginn": {
         "label": "Zeit bis Nutzenbeginn",
@@ -1555,7 +1579,21 @@
     "jeKilogramm": {
       "vorher": "Vorher",
       "nachher": "Nachher"
-    }
+    },
+    "pille": {
+      "offen": "Teilweise offen",
+      "geschaetzt": "Teilweise geschätzt",
+      "belegt": "Belegt"
+    },
+    "erfasstHinweis": "Die Kennzahlen rechnen aus den {anzahl} erfassten Posten und den Annahmen weiter unten. Was geschätzt ist oder noch fehlt, steht an der Kachel.",
+    "erfasstLeer": "Es ist noch kein Posten erfasst, deshalb stehen alle Kennzahlen auf offen. Unten lassen sich die Posten erfassen oder die Werte der Kennzahlenliste als Startpunkt übernehmen.",
+    "standHinweis": "Festgehaltener Stand „{name}“ vom {datum}. Die Seite zeigt die Rechnung von damals, mit den Posten und dem Kurs von damals.",
+    "standUnbekannt": "Der angeforderte Stand wurde nicht gefunden. Gezeigt wird die laufende Rechnung.",
+    "nurLesen": "Nur Ansicht: erfassen dürfen Administration, Geschäftsführung und Buchhaltung.",
+    "jahresnutzenOffen": "Der Jahresnutzen ist noch nicht erfasst. Ohne ihn bleiben Rendite, Amortisationsdauer, Kapitalwert und die Kosten je Kilogramm offen.",
+    "jahresnutzenGeschaetzt": "Alle Kennzahlen beruhen auf einem Jahresnutzen von {tenge} ({rubel}). Diese Zahl ist geschätzt und noch nicht aus dem Betrieb belegt.",
+    "jahresnutzenBelegt": "Alle Kennzahlen beruhen auf einem Jahresnutzen von {tenge} ({rubel}), als belegt erfasst.",
+    "kursHinweisQuelle": "Umgerechnet zum Kurs vom {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸. Quelle: {quelle}."
   },
   "finanzVorschau": {
     "titel": "Finanzen im laufenden Monat",
@@ -4959,6 +4997,172 @@
       "checkliste": "Checkliste als Dokument",
       "alle": "Alle Meldungen als Dokument",
       "offen": "Offene Meldungen als Dokument"
+    },
+    "wirtschaftlichkeit": {
+      "art": "Wirtschaftlichkeit · Investitionsrechnung",
+      "titel": "Investitionsrechnung zur Einführung",
+      "dateiname": "Wirtschaftlichkeit",
+      "untertitelLaufend": "Laufende Rechnung",
+      "untertitelModell": "Modellrechnung",
+      "untertitelStand": "Festgehaltener Stand „{name}“",
+      "meta": {
+        "stand": "Stand",
+        "kurs": "Kurs",
+        "zins": "Kalkulationszins",
+        "posten": "Erfasste Posten"
+      },
+      "col": {
+        "kennzahl": "Kennzahl",
+        "wert": "Wert",
+        "herkunft": "Herkunft"
+      },
+      "zusammenfassung": "Gerechnet aus {anzahl} erfassten Posten. {geschaetzt} Kennzahlen beruhen auf Schätzungen, {offen} sind noch offen, weil Angaben fehlen.",
+      "zusammenfassungModell": "Modellrechnung nach der Kennzahlenliste der Geschäftsführung vom 23.09.2026, nicht aus dem laufenden Betrieb.",
+      "zusammenfassungLeer": "Es sind noch keine Posten erfasst, deshalb sind alle Kennzahlen offen.",
+      "abschnittKennzahlen": "Kennzahlen",
+      "abschnittPosten": "Posten der Rechnung",
+      "abschnittAnnahmen": "Annahmen",
+      "abschnittPlanIst": "Plan und Ist",
+      "abschnittHinweise": "Hinweise zur Belastbarkeit",
+      "hinweiseTitel": "Bei der Bewertung zu beachten",
+      "leerPosten": "Keine Posten erfasst.",
+      "hinweis": {
+        "modell": "Modellrechnung ohne Datenbankanbindung: Die Werte stammen aus der Kennzahlenliste vom 23.09.2026.",
+        "stand": "Dieses Dokument zeigt einen festgehaltenen Stand. Es rechnet mit den Posten und dem Kurs von damals, nicht mit den heutigen.",
+        "geschaetzt": "Geschätzt, weil sie an Annahmen hängen, die der Betrieb noch nicht belegt hat: {liste}.",
+        "offen": "Offen, weil Angaben fehlen: {liste}."
+      }
+    }
+  },
+  "wirtschaftlichkeitErfassung": {
+    "posten": {
+      "titel": "Posten der Rechnung",
+      "lead": "Einmalige Investition, laufende Betriebskosten und erwarteter Nutzen, je Jahr. Die Kennzahlen oben rechnen aus diesen Zeilen. Fehlt eine Art ganz, bleibt alles offen, was von ihr abhängt.",
+      "art": {
+        "investition": "Investition (einmalig)",
+        "betrieb": "Betrieb (je Jahr)",
+        "nutzen": "Nutzen (je Jahr)"
+      },
+      "col": {
+        "kategorie": "Kategorie",
+        "bezeichnung": "Bezeichnung",
+        "datum": "Datum",
+        "betrag": "Betrag",
+        "herkunft": "Herkunft"
+      },
+      "summe": "Summe {betrag}",
+      "nichtErfasst": "nicht erfasst",
+      "keineZeile": "Noch kein Posten dieser Art erfasst.",
+      "neu": "Posten erfassen",
+      "entfernen": "Entfernen"
+    },
+    "kategorie": {
+      "schwund": "Schwund",
+      "handarbeit": "Handarbeit",
+      "audit": "Auditvorbereitung",
+      "sonstiges": "Sonstiges"
+    },
+    "herkunft": {
+      "belegt": "belegt",
+      "geschaetzt": "geschätzt"
+    },
+    "waehrung": {
+      "EUR": "Euro (EUR)",
+      "KZT": "Tenge (KZT)",
+      "RUB": "Rubel (RUB)"
+    },
+    "form": {
+      "art": "Art",
+      "kategorie": "Kategorie",
+      "kategorieBeispiel": "z. B. Entwicklung, Hosting",
+      "bezeichnung": "Bezeichnung",
+      "betrag": "Betrag",
+      "waehrung": "Währung",
+      "datum": "Datum",
+      "herkunft": "Herkunft",
+      "notiz": "Notiz (optional)",
+      "monat": "Monat",
+      "anlegen": "Posten anlegen",
+      "speichern": "Speichern"
+    },
+    "modell": {
+      "titel": "Mit den Werten der Kennzahlenliste beginnen",
+      "lead": "Noch ist nichts erfasst. Die Werte der Kennzahlenliste vom 23.09.2026 lassen sich als Startpunkt übernehmen: Investition und laufende Kosten als belegt, der zurückgerechnete Jahresnutzen als geschätzt. Danach lässt sich jede Zeile ändern.",
+      "knopf": "Modellwerte übernehmen",
+      "investition": {
+        "bezeichnung": "Einführung Damicon bis zur Abnahme (Festpreis)",
+        "kategorie": "Einführung"
+      },
+      "betrieb": {
+        "bezeichnung": "Hosting, Wartung, Support und Weiterentwicklung",
+        "kategorie": "Betrieb"
+      },
+      "nutzen": {
+        "bezeichnung": "Vermiedene Kosten insgesamt (aus den Renditevorgaben zurückgerechnet)"
+      },
+      "notiz": "Kennzahlenliste der Geschäftsführung vom 23.09.2026"
+    },
+    "annahmen": {
+      "titel": "Annahmen",
+      "lead": "Zins, Kurs, Vollkosten und Menge, mit denen gerechnet wird. Jede Angabe trägt ihre Herkunft. Ein festgehaltener Stand behält seine Werte.",
+      "offen": "offen",
+      "zins": "Kalkulationszins je Jahr",
+      "kurs": "Wechselkurs",
+      "stichtag": "Stand {datum}",
+      "vollkosten": "Vollkosten je kg vor der Einführung",
+      "menge": "Vermarktete Menge je Jahr",
+      "mengeAusAnnahme": "Von Hand gesetzt.",
+      "mengeAusLieferungen": "Summe der zugestellten Lieferungen der letzten 12 Monate.",
+      "mengeZuKurz": "Die Lieferungen reichen erst {tage} Tage zurück ({menge} kg bisher). Eine Jahresmenge gibt es nach einem vollen Jahr oder von Hand unter „Annahmen ändern“.",
+      "mengeKeine": "Noch keine zugestellte Lieferung. Die Menge lässt sich von Hand setzen.",
+      "nutzenbeginn": "Zeit bis Nutzenbeginn",
+      "wochen": "{von} bis {bis} Wochen",
+      "echtbetrieb": "Beginn des Echtbetriebs",
+      "aendern": "Annahmen ändern",
+      "form": {
+        "zins": "Kalkulationszins in Prozent",
+        "herkunft": "Herkunft",
+        "kursEur": "1 EUR in Tenge",
+        "kursRub": "1 RUB in Tenge",
+        "kursStichtag": "Stichtag des Kurses",
+        "kursQuelle": "Quelle des Kurses",
+        "vollkosten": "Vollkosten je kg vorher (₸)",
+        "menge": "Vermarktete Menge je Jahr (kg)",
+        "mengeHinweis": "Leer lassen, wenn die Menge aus den Lieferungen kommen soll.",
+        "wochenVon": "Nutzenbeginn frühestens (Wochen)",
+        "wochenBis": "Nutzenbeginn spätestens (Wochen)",
+        "echtbetrieb": "Erster Monat des Echtbetriebs",
+        "echtbetriebHinweis": "Ab hier läuft der Plan-Ist-Vergleich."
+      }
+    },
+    "planIst": {
+      "titel": "Plan und Ist",
+      "lead": "Was an Kosten vermieden werden soll (ein Zwölftel des Jahresnutzens je Monat) gegen das, was tatsächlich vermieden wurde. Die Ist-Werte stehen auch als Punkte auf den Kurven oben.",
+      "leer": "Noch kein Monat. Sobald der Beginn des Echtbetriebs in den Annahmen gesetzt ist oder ein Ist-Wert vorliegt, erscheint hier der Vergleich.",
+      "col": {
+        "monat": "Monat",
+        "plan": "Plan",
+        "ist": "Ist",
+        "abweichung": "Abweichung",
+        "istKumuliert": "Ist gesamt",
+        "notiz": "Notiz"
+      },
+      "eintraege": "Erfasste Ist-Werte",
+      "neu": "Ist-Wert erfassen",
+      "erfassen": "Ist-Wert erfassen"
+    },
+    "staende": {
+      "titel": "Festgehaltene Stände",
+      "lead": "Ein Stand hält Posten, Annahmen und Ergebnis fest, mit dem Kurs vom Tag. Er ändert sich nicht mehr. Später lässt sich nachsehen, was damals gerechnet wurde.",
+      "leer": "Noch kein Stand festgehalten.",
+      "ansehen": "Ansehen",
+      "angezeigt": "angezeigt",
+      "zumAktuellen": "Zurück zur laufenden Rechnung",
+      "festhaltenTitel": "Aktuellen Stand festhalten",
+      "festhaltenLead": "Hält den heutigen Stand mit Posten, Ist-Werten, Annahmen und Kurs fest.",
+      "name": "Bezeichnung des Standes",
+      "nameBeispiel": "z. B. Quartalsstand Q1 2027",
+      "festhalten": "Stand festhalten"
     }
   }
 }

@@ -4,6 +4,12 @@
 // Warum getrennt von der Ansicht: Die Rechnung und ihre Formatierung sind das
 // Empfindliche an dieser Seite, das Layout ist es nicht. Getrennt laesst sich
 // die Darstellung umbauen, ohne dass jemand versehentlich eine Zahl anfasst.
+//
+// Seit WMCNL-2470 rechnet die Seite aus erfassten Posten (lib/domain/
+// wirtschaftlichkeit-erfassung.ts) statt aus Konstanten. Die Konstanten sind
+// nur noch der Rueckfall ohne Datenbank: dort rechnet dieselbe Funktion aus den
+// Modellwerten, der Test haelt fest, dass dabei die Vorgabewerte herauskommen.
+// Was nicht erfasst ist, steht auf "offen", nie auf null.
 
 import type { ReactNode } from "react";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
@@ -15,34 +21,23 @@ import {
   type Diagrammtexte,
 } from "@/components/db/wirtschaftlichkeit-diagramme";
 import {
-  CAPEX_EUR,
   HORIZONT_JAHRE,
   HORIZONT_MONATE,
-  JAHRESNUTZEN_EUR,
-  KALKULATIONSZINS,
-  KURS_EUR_TENGE,
-  KURS_RUB_TENGE,
-  KURS_STICHTAG,
-  NUTZENBEGINN_WOCHEN,
-  OPEX_EUR_PRO_JAHR,
-  VERMARKTETE_MENGE_KG,
-  VOLLKOSTEN_JE_KG_VORHER_TENGE,
-  amortisationMonate,
   barwertReihe,
-  ersparnisJeKilogramm,
-  euroInRubel,
-  euroInTenge,
-  kapitalwert,
-  kostenJeKilogrammNachher,
-  roi,
   roiReihe,
-  kennzahlHerkunft,
-  tco,
   tcoBausteine,
-  tengeInRubel,
   type Herkunft,
   type Kennzahlschluessel,
+  type Monatspunkt,
 } from "@/lib/domain/wirtschaftlichkeit";
+import {
+  euroInRubelMit,
+  euroInTengeMit,
+  tengeInRubelMit,
+  type Annahmen,
+  type Rechenstand,
+} from "@/lib/domain/wirtschaftlichkeit-erfassung";
+import type { Tone } from "@/components/ui/kit";
 
 export type Diagrammart =
   | "roiJahr1"
@@ -54,13 +49,13 @@ export type Diagrammart =
   | "keines";
 
 export interface Kachel {
-  /** Zugleich der Schluessel in kennzahlHerkunft - ein Tippfehler faellt beim Typecheck auf. */
+  /** Zugleich der Schluessel der Herkunft in Rechenstand - ein Tippfehler faellt beim Typecheck auf. */
   schluessel: Kennzahlschluessel;
   /** Kurzer Name der Kennzahl. */
   label: string;
   /** Die Frage, die sie beantwortet - aus der Vorgabe der Geschaeftsfuehrung. */
   frage: string;
-  /** Fertig formatierter Hauptwert: Tenge, Prozent, Monate oder Wochen. */
+  /** Fertig formatierter Hauptwert: Tenge, Prozent, Monate oder Wochen; "offen", wenn die Angaben fehlen. */
   wert: string;
   /** Derselbe Betrag in Rubel, ohne Klammern. Nur bei Geldbetraegen gesetzt. */
   klammer?: string;
@@ -71,15 +66,16 @@ export interface Kachel {
   diagramm: Diagrammart;
 }
 
-/**
- * Eine Kachel, bevor ihre Herkunft angehaengt wird. Die Stufe steht nicht in
- * den Literalen hier, sondern kommt aus kennzahlHerkunft im Domain-Modul -
- * eine Quelle, nicht zwei.
- */
-type Kachelentwurf = Omit<Kachel, "herkunft">;
+/** Woher die Zahlen kommen: Modellwerte ohne Datenbank, erfasste Posten oder ein festgehaltener Stand. */
+export type Rechenquelle = "modell" | "erfasst" | "stand";
 
-const mitHerkunft = (entwuerfe: Kachelentwurf[]): Kachel[] =>
-  entwuerfe.map((e) => ({ ...e, herkunft: kennzahlHerkunft[e.schluessel] }));
+/** Die Eingabe der Kacheln und Diagramme: ein Rechenstand mit den Annahmen, mit denen er gerechnet wurde (Kurs, Zins). */
+export interface Rechnung {
+  stand: Rechenstand;
+  annahmen: Annahmen;
+  /** ROI und Kapitalwert der erfassten Ist-Werte auf der Achse der Plankurven; null ohne Ist-Werte. */
+  istPunkte: { roi: Monatspunkt[]; barwert: Monatspunkt[] } | null;
+}
 
 export interface Modell {
   /** Die sechs eingerahmten Kennzahlen, je mit eigenem Diagramm. */
@@ -88,16 +84,54 @@ export interface Modell {
   weitere: Kachel[];
   /** Der Satz ueber dem Raster: die Annahme, auf der alles steht. */
   jahresnutzenSatz: string;
-  modellHinweis: string;
+  /** Kennzeichnung der Seite: woher die Zahlen kommen und wie belastbar sie sind. */
+  pille: { text: string; ton: Tone };
+  hinweis: string;
   kursHinweis: string;
   geschaetztLabel: string;
   offenLabel: string;
 }
 
+/**
+ * Eine Kachel, bevor ihre Herkunft angehaengt wird. Die Stufe kommt aus dem
+ * Rechenstand - eine Quelle, nicht zwei.
+ */
+type Kachelentwurf = Omit<Kachel, "herkunft">;
+
+type Uebersetzer = Awaited<ReturnType<typeof getTranslations>>;
+
+/** Der Satz ueber dem Kachelraster: die Annahme, auf der alles steht, und ob sie belegt ist. */
+function jahresnutzenSatzFuer(t: Uebersetzer, werte: { tenge: string; rubel: string } | null, modellrechnung: boolean, herkunft: Herkunft): string {
+  if (werte === null) return t("jahresnutzenOffen");
+  if (modellrechnung) return t("jahresnutzenSatz", werte);
+  return herkunft === "belegt" ? t("jahresnutzenBelegt", werte) : t("jahresnutzenGeschaetzt", werte);
+}
+
+/** Kennzeichnung der ganzen Seite: die schwaechste Stufe aller Kacheln bestimmt sie. */
+function pilleFuer(t: Uebersetzer, modellrechnung: boolean, kacheln: Kachel[]): Modell["pille"] {
+  if (modellrechnung) return { text: t("modellPille"), ton: "warning" };
+  if (kacheln.some((x) => x.herkunft === "offen")) return { text: t("pille.offen"), ton: "neutral" };
+  if (kacheln.some((x) => x.herkunft === "geschaetzt")) return { text: t("pille.geschaetzt"), ton: "warning" };
+  return { text: t("pille.belegt"), ton: "success" };
+}
+
+function hinweisFuer(t: Uebersetzer, k: { quelle: Rechenquelle; postenAnzahl: number; standName?: string; standDatum?: string }, stichtag: string): string {
+  if (k.quelle === "modell") return t("modellHinweis", { stichtag });
+  if (k.quelle === "stand") return t("standHinweis", { name: k.standName ?? "", datum: k.standDatum ?? "" });
+  return k.postenAnzahl === 0 ? t("erfasstLeer") : t("erfasstHinweis", { anzahl: k.postenAnzahl });
+}
+
 /** Baut das Modell. Server Component, holt Uebersetzungen und Formatter selbst. */
-export async function baueModell(): Promise<Modell> {
+export async function baueModell(
+  rechnung: Rechnung,
+  kontext: { quelle: Rechenquelle; postenAnzahl: number; standName?: string; standDatum?: string },
+): Promise<Modell> {
   const t = await getTranslations("wirtschaftlichkeitAnsicht");
   const format = await getFormatter();
+  const { stand, annahmen } = rechnung;
+  const k = stand.kennzahlen;
+  const kurse = annahmen.kurse;
+  const modellrechnung = kontext.quelle === "modell";
 
   // Tenge fuehrend, Rubel in Klammern - beide aus demselben Euro-Wert und
   // demselben Stichtagskurs, sonst stimmt das Verhaeltnis nicht. Kompakt,
@@ -105,86 +139,78 @@ export async function baueModell(): Promise<Modell> {
   // achtstellige Zahl in einer Kachel niemand liest.
   const kurz = (n: number) => format.number(n, { notation: "compact", maximumFractionDigits: 1 });
   const genau = (n: number) => format.number(Math.round(n));
-  const tenge = (euro: number) => `${kurz(euroInTenge(euro))} ₸`;
-  const rubel = (euro: number) => `${kurz(euroInRubel(euro))} ₽`;
-  const tengeGenau = (euro: number) => `${genau(euroInTenge(euro))} ₸`;
-  const rubelGenau = (euro: number) => `${genau(euroInRubel(euro))} ₽`;
+  const tenge = (euro: number) => `${kurz(euroInTengeMit(euro, kurse))} ₸`;
+  const rubel = (euro: number) => `${kurz(euroInRubelMit(euro, kurse))} ₽`;
+  const tengeGenau = (euro: number) => `${genau(euroInTengeMit(euro, kurse))} ₸`;
+  const rubelGenau = (euro: number) => `${genau(euroInRubelMit(euro, kurse))} ₽`;
   const anteil = (wert: number) => format.number(wert, { style: "percent", maximumFractionDigits: 0 });
+  const stichtag = format.dateTime(new Date(`${annahmen.kursStichtag}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
 
-  const monate = amortisationMonate();
-  const kapital = kapitalwert();
-  const jeKgNachher = kostenJeKilogrammNachher();
-  const ersparnis = ersparnisJeKilogramm();
+  /** Ein Geldbetrag in Euro als Kachelfelder; ohne Wert "offen". */
+  const geld = (euro: number | null): Pick<Kachelentwurf, "wert" | "klammer" | "genau"> =>
+    euro === null ? { wert: t("offen") } : { wert: tenge(euro), klammer: rubel(euro), genau: tengeGenau(euro) };
+  const prozent = (wert: number | null): string => (wert === null ? t("offen") : anteil(wert));
+  const mitHerkunft = (entwuerfe: Kachelentwurf[]): Kachel[] => entwuerfe.map((e) => ({ ...e, herkunft: stand.herkunft[e.schluessel] }));
 
   const fokus = mitHerkunft([
     {
       schluessel: "roiJahr1",
       label: t("kennzahl.roiJahr1.label"),
       frage: t("kennzahl.roiJahr1.frage"),
-      wert: anteil(roi(1) ?? 0),
+      wert: prozent(k.roiJahr1),
       rechenweg: t("kennzahl.roiJahr1.rechenweg"),
-      diagramm: "roiJahr1",
+      diagramm: k.roiJahr1 === null ? "keines" : "roiJahr1",
     },
     {
       schluessel: "roiDreiJahre",
       label: t("kennzahl.roiDreiJahre.label"),
       frage: t("kennzahl.roiDreiJahre.frage"),
-      wert: anteil(roi(HORIZONT_JAHRE) ?? 0),
+      wert: prozent(k.roiHorizont),
       rechenweg: t("kennzahl.roiDreiJahre.rechenweg"),
-      diagramm: "roiDreiJahre",
+      diagramm: k.roiHorizont === null ? "keines" : "roiDreiJahre",
     },
     {
       schluessel: "capex",
       label: t("kennzahl.capex.label"),
       frage: t("kennzahl.capex.frage"),
-      wert: tenge(CAPEX_EUR),
-      klammer: rubel(CAPEX_EUR),
-      genau: tengeGenau(CAPEX_EUR),
-      rechenweg: t("kennzahl.capex.rechenweg"),
-      diagramm: "tcoCapex",
+      ...geld(stand.capexEur),
+      rechenweg: modellrechnung ? t("kennzahl.capex.rechenweg") : t("kennzahl.capex.rechenwegErfasst"),
+      diagramm: k.tcoHorizont === null ? "keines" : "tcoCapex",
     },
     {
       schluessel: "opex",
       label: t("kennzahl.opex.label"),
       frage: t("kennzahl.opex.frage"),
-      wert: tenge(OPEX_EUR_PRO_JAHR),
-      klammer: rubel(OPEX_EUR_PRO_JAHR),
-      genau: tengeGenau(OPEX_EUR_PRO_JAHR),
-      rechenweg: t("kennzahl.opex.rechenweg"),
-      diagramm: "tcoOpex",
+      ...geld(stand.opexEur),
+      rechenweg: modellrechnung ? t("kennzahl.opex.rechenweg") : t("kennzahl.opex.rechenwegErfasst"),
+      diagramm: k.tcoHorizont === null ? "keines" : "tcoOpex",
     },
     {
       schluessel: "kapitalwert",
       label: t("kennzahl.kapitalwert.label"),
       frage: t("kennzahl.kapitalwert.frage"),
-      wert: tenge(kapital),
-      klammer: rubel(kapital),
-      genau: tengeGenau(kapital),
-      rechenweg: t("kennzahl.kapitalwert.rechenweg", { zins: anteil(KALKULATIONSZINS) }),
-      diagramm: "barwert",
+      ...geld(k.kapitalwert),
+      rechenweg: t("kennzahl.kapitalwert.rechenweg", { zins: anteil(annahmen.kalkulationszins) }),
+      diagramm: k.kapitalwert === null ? "keines" : "barwert",
     },
     {
       schluessel: "kostenJeKilogramm",
       label: t("kennzahl.kostenJeKilogramm.label"),
       frage: t("kennzahl.kostenJeKilogramm.frage"),
       // Betriebszahl, entsteht in Tenge und durchlaeuft den Euro nie.
-      wert:
-        jeKgNachher === null
-          ? t("offen")
-          : `${genau(jeKgNachher)} ₸/${t("einheit.kilogramm")}`,
-      klammer:
-        jeKgNachher === null
-          ? undefined
-          : `${genau(tengeInRubel(jeKgNachher))} ₽/${t("einheit.kilogramm")}`,
+      wert: k.kostenJeKgNachherTenge === null ? t("offen") : `${genau(k.kostenJeKgNachherTenge)} ₸/${t("einheit.kilogramm")}`,
+      klammer: k.kostenJeKgNachherTenge === null ? undefined : `${genau(tengeInRubelMit(k.kostenJeKgNachherTenge, kurse))} ₽/${t("einheit.kilogramm")}`,
       rechenweg:
-        ersparnis === null
-          ? t("kennzahl.kostenJeKilogramm.rechenweg")
-          : t("kennzahl.kostenJeKilogramm.rechenwegMitWerten", {
-              vorher: genau(VOLLKOSTEN_JE_KG_VORHER_TENGE),
-              ersparnis: genau(ersparnis),
-              menge: genau(VERMARKTETE_MENGE_KG),
-            }),
-      diagramm: "kostenJeKilogramm",
+        k.ersparnisJeKgTenge !== null && stand.vollkostenVorherTenge !== null && stand.mengeKg !== null
+          ? t("kennzahl.kostenJeKilogramm.rechenwegMitWerten", {
+              vorher: genau(stand.vollkostenVorherTenge),
+              ersparnis: genau(k.ersparnisJeKgTenge),
+              menge: genau(stand.mengeKg),
+            })
+          : stand.mengeKg === null
+            ? t("kennzahl.kostenJeKilogramm.rechenwegMengeOffen")
+            : t("kennzahl.kostenJeKilogramm.rechenweg"),
+      diagramm: k.kostenJeKgNachherTenge === null ? "keines" : "kostenJeKilogramm",
     },
   ]);
 
@@ -193,7 +219,7 @@ export async function baueModell(): Promise<Modell> {
       schluessel: "amortisation",
       label: t("kennzahl.amortisation.label"),
       frage: t("kennzahl.amortisation.frage"),
-      wert: monate === null ? t("offen") : t("einheit.monate", { anzahl: Math.round(monate) }),
+      wert: k.amortisationMonate === null ? t("offen") : t("einheit.monate", { anzahl: Math.round(k.amortisationMonate) }),
       rechenweg: t("kennzahl.amortisation.rechenweg"),
       diagramm: "keines",
     },
@@ -201,9 +227,7 @@ export async function baueModell(): Promise<Modell> {
       schluessel: "tco",
       label: t("kennzahl.tco.label"),
       frage: t("kennzahl.tco.frage"),
-      wert: tenge(tco(HORIZONT_JAHRE)),
-      klammer: rubel(tco(HORIZONT_JAHRE)),
-      genau: tengeGenau(tco(HORIZONT_JAHRE)),
+      ...geld(k.tcoHorizont),
       rechenweg: t("kennzahl.tco.rechenweg"),
       diagramm: "keines",
     },
@@ -211,39 +235,35 @@ export async function baueModell(): Promise<Modell> {
       schluessel: "vermiedeneKosten",
       label: t("kennzahl.vermiedeneKosten.label"),
       frage: t("kennzahl.vermiedeneKosten.frage"),
-      wert: tenge(JAHRESNUTZEN_EUR),
-      klammer: rubel(JAHRESNUTZEN_EUR),
-      genau: tengeGenau(JAHRESNUTZEN_EUR),
-      rechenweg: t("kennzahl.vermiedeneKosten.rechenweg"),
+      ...geld(stand.nutzenEur),
+      rechenweg: modellrechnung ? t("kennzahl.vermiedeneKosten.rechenweg") : t("kennzahl.vermiedeneKosten.rechenwegErfasst"),
       diagramm: "keines",
     },
     {
       schluessel: "nutzenbeginn",
       label: t("kennzahl.nutzenbeginn.label"),
       frage: t("kennzahl.nutzenbeginn.frage"),
-      wert: t("einheit.wochenSpanne", { von: NUTZENBEGINN_WOCHEN.von, bis: NUTZENBEGINN_WOCHEN.bis }),
+      wert: annahmen.nutzenbeginnWochen === null ? t("offen") : t("einheit.wochenSpanne", annahmen.nutzenbeginnWochen),
       rechenweg: t("kennzahl.nutzenbeginn.rechenweg"),
       diagramm: "keines",
     },
   ]);
 
+  // Beide Betraege ungekuerzt: das ist die Annahme, auf der die ganze Rechnung steht. Ein "102,7 Mio." daneben
+  // wuerde sie beilaeufig aussehen lassen, und gekuerzt neben ungekuerzt liest sich wie ein Fehler.
+  const nutzenWerte = stand.nutzenEur === null ? null : { tenge: tengeGenau(stand.nutzenEur), rubel: rubelGenau(stand.nutzenEur) };
+
   return {
     fokus,
     weitere,
-    // Beide Betraege ungekuerzt: das ist die Annahme, auf der die ganze
-    // Rechnung steht. Ein "102,7 Mio." daneben wuerde sie beilaeufig
-    // aussehen lassen, und gekuerzt neben ungekuerzt liest sich wie ein
-    // Fehler.
-    jahresnutzenSatz: t("jahresnutzenSatz", {
-      tenge: tengeGenau(JAHRESNUTZEN_EUR),
-      rubel: rubelGenau(JAHRESNUTZEN_EUR),
-    }),
-    modellHinweis: t("modellHinweis", { stichtag: KURS_STICHTAG }),
-    kursHinweis: t("kursHinweis", {
-      stichtag: KURS_STICHTAG,
-      euro: format.number(KURS_EUR_TENGE, { maximumFractionDigits: 2 }),
-      rubel: format.number(KURS_RUB_TENGE, { maximumFractionDigits: 2 }),
-    }),
+    jahresnutzenSatz: jahresnutzenSatzFuer(t, nutzenWerte, modellrechnung, stand.herkunft.vermiedeneKosten),
+    pille: pilleFuer(t, modellrechnung, [...fokus, ...weitere]),
+    hinweis: hinweisFuer(t, kontext, stichtag),
+    // Die Quelle des Kurses steht in den Annahmen und ist frei erfasst; ohne Angabe (Modellwerte) gilt der Wortlaut der Nationalbank.
+    kursHinweis:
+      annahmen.kursQuelle && !modellrechnung
+        ? t("kursHinweisQuelle", { stichtag, euro: format.number(kurse.eurTenge, { maximumFractionDigits: 2 }), rubel: format.number(kurse.rubTenge, { maximumFractionDigits: 2 }), quelle: annahmen.kursQuelle })
+        : t("kursHinweis", { stichtag, euro: format.number(kurse.eurTenge, { maximumFractionDigits: 2 }), rubel: format.number(kurse.rubTenge, { maximumFractionDigits: 2 }) }),
     geschaetztLabel: t("geschaetzt"),
     offenLabel: t("offen"),
   };
@@ -254,32 +274,38 @@ export async function baueModell(): Promise<Modell> {
  * rendert - die recharts-Kinder liegen alle drueben in
  * wirtschaftlichkeit-diagramme.tsx.
  */
-export async function Diagramm({ art }: { art: Diagrammart }): Promise<ReactNode> {
+export async function Diagramm({ art, rechnung }: { art: Diagrammart; rechnung: Rechnung }): Promise<ReactNode> {
   if (art === "keines") return null;
 
+  const { stand, annahmen, istPunkte } = rechnung;
+  const { capexEur: capex, opexEur: opex, nutzenEur: nutzen } = stand;
   const t = await getTranslations("wirtschaftlichkeitAnsicht");
   const locale = await getLocale();
   const texte: Diagrammtexte = {
     wert: t("diagramm.wert"),
     nulllinie: t("diagramm.nulllinie"),
+    ist: t("diagramm.ist"),
   };
+  const bisMonat = (reihe: Monatspunkt[] | undefined, monate: number) => reihe?.filter((p) => p.monat <= monate);
 
   switch (art) {
     case "roiJahr1":
       // Nur bis Monat 12: sonst zeigt die Jahr-1-Kachel dieselbe Kurve wie
       // die Drei-Jahres-Kachel daneben, und die Marke bei 12 ist der einzige
       // Unterschied. Zwei Bilder, die gleich aussehen, erklaeren nichts.
-      return <RoiKurve punkte={roiReihe(12)} markeMonat={12} locale={locale} texte={texte} />;
+      if (capex === null || opex === null || nutzen === null) return null;
+      return <RoiKurve punkte={roiReihe(12, capex, opex, nutzen)} ist={bisMonat(istPunkte?.roi, 12)} markeMonat={12} locale={locale} texte={texte} />;
     case "roiDreiJahre":
-      return (
-        <RoiKurve punkte={roiReihe()} markeMonat={HORIZONT_MONATE} locale={locale} texte={texte} />
-      );
+      if (capex === null || opex === null || nutzen === null) return null;
+      return <RoiKurve punkte={roiReihe(HORIZONT_MONATE, capex, opex, nutzen)} ist={istPunkte?.roi} markeMonat={HORIZONT_MONATE} locale={locale} texte={texte} />;
     case "barwert": {
-      const reihe = barwertReihe();
+      if (capex === null || opex === null || nutzen === null) return null;
+      const reihe = barwertReihe(HORIZONT_MONATE, capex, opex, nutzen, annahmen.kalkulationszins);
       const durchgang = reihe.findIndex((p) => p.wert >= 0);
       return (
         <Barwert
-          punkte={reihe.map((p) => ({ monat: p.monat, wert: euroInTenge(p.wert) }))}
+          punkte={reihe.map((p) => ({ monat: p.monat, wert: euroInTengeMit(p.wert, annahmen.kurse) }))}
+          ist={istPunkte?.barwert.map((p) => ({ monat: p.monat, wert: euroInTengeMit(p.wert, annahmen.kurse) }))}
           nulldurchgang={durchgang === -1 ? null : durchgang}
           locale={locale}
           texte={texte}
@@ -288,11 +314,12 @@ export async function Diagramm({ art }: { art: Diagrammart }): Promise<ReactNode
     }
     case "tcoCapex":
     case "tcoOpex":
+      if (capex === null || opex === null) return null;
       return (
         <TcoStapel
-          teile={tcoBausteine().map((b) => ({
+          teile={tcoBausteine(HORIZONT_JAHRE, capex, opex).map((b) => ({
             name: b.name === "capex" ? t("stapel.capex") : t("stapel.opexJahr", { jahr: b.jahr }),
-            wert: euroInTenge(b.wert),
+            wert: euroInTengeMit(b.wert, annahmen.kurse),
             betont: art === "tcoCapex" ? b.name === "capex" : b.name === "opex",
           }))}
           locale={locale}
@@ -300,11 +327,11 @@ export async function Diagramm({ art }: { art: Diagrammart }): Promise<ReactNode
         />
       );
     case "kostenJeKilogramm": {
-      const nachher = kostenJeKilogrammNachher();
-      if (nachher === null) return null;
+      const nachher = stand.kennzahlen.kostenJeKgNachherTenge;
+      if (nachher === null || stand.vollkostenVorherTenge === null) return null;
       return (
         <KostenJeKilogramm
-          vorher={VOLLKOSTEN_JE_KG_VORHER_TENGE}
+          vorher={stand.vollkostenVorherTenge}
           nachher={nachher}
           locale={locale}
           texte={texte}

@@ -9,6 +9,7 @@ import { baueFoerderDokument } from "@/lib/dokument/foerderung";
 import { baueLieferungDokument } from "@/lib/dokument/lieferung";
 import { baueNachweiseDokument } from "@/lib/dokument/nachweise";
 import { baueLieferplanDokument } from "@/lib/dokument/lieferplan";
+import { baueWirtschaftlichkeitDokument } from "@/lib/dokument/wirtschaftlichkeit";
 import { ladeEsutdMeldungen, ladeEsutdOptionen } from "@/lib/data/esutd";
 import { ladeEsfUebersicht } from "@/lib/data/esf";
 import { ladeFoerdermittel } from "@/lib/data/foerdermittel";
@@ -16,6 +17,7 @@ import { ladeCheckpunkte } from "@/lib/data/foerder-checkliste";
 import { ladeLieferungen } from "@/lib/data/lieferungen";
 import { ladeDokumente } from "@/lib/data/dokumente";
 import { ladeLieferplanQuelle } from "@/lib/data/lieferplan";
+import { ladeStand, ladeWirtschaftlichkeit } from "@/lib/data/wirtschaftlichkeit";
 import { tagInZone } from "@/lib/domain/tageszeit";
 
 // Die Dokumente, die das System im Damicon-Layout herausgibt: je Art ein Recht, die Namensraeume der Texte und das Laden der
@@ -108,6 +110,29 @@ export const DOKUMENT_ARTEN: Record<string, DokumentArt> = {
           partner: d.partner,
         })),
         tagInZone(x.jetzt),
+        x,
+      );
+    },
+  },
+  wirtschaftlichkeit: {
+    namensraeume: ["dokument.wirtschaftlichkeit", "wirtschaftlichkeitAnsicht", "wirtschaftlichkeitErfassung"],
+    erlaubt: (rolle) => hasPermission(rolle, "wirtschaftlichkeit", "view"),
+    baue: async ({ parameter, x }) => {
+      const heute = tagInZone(x.jetzt);
+      // Ein Stand ist ein eigenes Dokument: mit seinem Kurs, seinen Posten, seinen Ist-Werten.
+      if (parameter.has("stand")) {
+        const id = parameterId(parameter, "stand");
+        const festgehalten = id ? await ladeStand(id) : null;
+        if (!festgehalten) return null;
+        const s = festgehalten.snapshot;
+        return baueWirtschaftlichkeitDokument(
+          { posten: s.posten, ist: s.ist, annahmen: s.annahmen, menge: s.mengeAbgeleitet, quelle: "stand", stand: { name: festgehalten.kopf.bezeichnung, standAm: festgehalten.kopf.standAm }, heute, standId: festgehalten.kopf.id },
+          x,
+        );
+      }
+      const daten = await ladeWirtschaftlichkeit();
+      return baueWirtschaftlichkeitDokument(
+        { posten: daten.posten, ist: daten.ist, annahmen: daten.annahmen, menge: daten.menge, quelle: daten.quelle === "modell" ? "modell" : "erfasst", heute },
         x,
       );
     },

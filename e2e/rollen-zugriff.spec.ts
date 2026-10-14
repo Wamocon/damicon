@@ -111,6 +111,7 @@ test.describe("Dokumente im Damicon-Layout", () => {
     { art: "esf", darf: (r) => hasPermission(r, "integrationen", "view"), ohneKennung: 200 },
     { art: "nachweise", darf: (r) => hasPermission(r, "dokumente", "view"), ohneKennung: 200 },
     { art: "lieferplan", darf: (r) => hasPermission(r, "b2b_portal", "view"), ohneKennung: 200 },
+    { art: "wirtschaftlichkeit", darf: (r) => hasPermission(r, "wirtschaftlichkeit", "view"), ohneKennung: 200 },
     { art: "foerderung", darf: (r) => hasPermission(r, "foerdermittel", "view"), ohneKennung: 404 },
     { art: "lieferung", darf: (r) => hasPermission(r, "logistik", "view") || hasPermission(r, "b2b_portal", "view"), ohneKennung: 404 },
   ];
@@ -142,7 +143,7 @@ test.describe("Dokumente im Damicon-Layout", () => {
 
   test("eine Kennung, die es nicht gibt oder die keine ist, ergibt 404", async ({ page }) => {
     await anmelden(page, "admin");
-    for (const pfad of ["foerderung?dossier=00000000-0000-4000-8000-000000000000", "lieferung?lieferung=kein-uuid", "esf?beleg=00000000-0000-4000-8000-000000000000"]) {
+    for (const pfad of ["foerderung?dossier=00000000-0000-4000-8000-000000000000", "lieferung?lieferung=kein-uuid", "esf?beleg=00000000-0000-4000-8000-000000000000", "wirtschaftlichkeit?stand=00000000-0000-4000-8000-000000000000"]) {
       expect((await page.request.get(`/api/dokument/${pfad}`)).status(), pfad).toBe(404);
     }
   });

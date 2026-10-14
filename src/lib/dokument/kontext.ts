@@ -97,6 +97,16 @@ export function tagText(iso: string | null | undefined, sprache: string): string
   }
 }
 
+/** "Oktober 2026" aus einem ISO-Tag (nur Monat und Jahr zaehlen). */
+export function monatText(iso: string | null | undefined, sprache: string): string {
+  if (!iso) return "-";
+  try {
+    return new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString(sprache, { month: "long", year: "numeric", timeZone: "UTC" });
+  } catch {
+    return iso;
+  }
+}
+
 export function zeitText(iso: string | null | undefined, sprache: string): string {
   if (!iso) return "-";
   try {

@@ -3714,6 +3714,184 @@ export type Database = {
           },
         ]
       }
+      wirtschaftlichkeit_annahmen: {
+        Row: {
+          echtbetrieb_beginn: string | null
+          herkunft: Json
+          id: number
+          kalkulationszins: number
+          kurs_eur_tenge: number
+          kurs_quelle: string | null
+          kurs_rub_tenge: number
+          kurs_stichtag: string
+          nutzenbeginn_wochen_bis: number | null
+          nutzenbeginn_wochen_von: number | null
+          updated_at: string
+          vermarktete_menge_kg: number | null
+          vollkosten_vorher_tenge: number | null
+        }
+        Insert: {
+          echtbetrieb_beginn?: string | null
+          herkunft?: Json
+          id?: number
+          kalkulationszins: number
+          kurs_eur_tenge: number
+          kurs_quelle?: string | null
+          kurs_rub_tenge: number
+          kurs_stichtag: string
+          nutzenbeginn_wochen_bis?: number | null
+          nutzenbeginn_wochen_von?: number | null
+          updated_at?: string
+          vermarktete_menge_kg?: number | null
+          vollkosten_vorher_tenge?: number | null
+        }
+        Update: {
+          echtbetrieb_beginn?: string | null
+          herkunft?: Json
+          id?: number
+          kalkulationszins?: number
+          kurs_eur_tenge?: number
+          kurs_quelle?: string | null
+          kurs_rub_tenge?: number
+          kurs_stichtag?: string
+          nutzenbeginn_wochen_bis?: number | null
+          nutzenbeginn_wochen_von?: number | null
+          updated_at?: string
+          vermarktete_menge_kg?: number | null
+          vollkosten_vorher_tenge?: number | null
+        }
+        Relationships: [
+        ]
+      }
+      wirtschaftlichkeit_ist: {
+        Row: {
+          betrag: number
+          created_at: string
+          erfasst_von_profil_id: string | null
+          id: string
+          kategorie: string
+          monat: string
+          notiz: string | null
+          waehrung: string
+        }
+        Insert: {
+          betrag: number
+          created_at?: string
+          erfasst_von_profil_id?: string | null
+          id?: string
+          kategorie: string
+          monat: string
+          notiz?: string | null
+          waehrung?: string
+        }
+        Update: {
+          betrag?: number
+          created_at?: string
+          erfasst_von_profil_id?: string | null
+          id?: string
+          kategorie?: string
+          monat?: string
+          notiz?: string | null
+          waehrung?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wirtschaftlichkeit_ist_erfasst_von_profil_id_fkey"
+            columns: ["erfasst_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wirtschaftlichkeit_posten: {
+        Row: {
+          art: string
+          betrag: number
+          bezeichnung: string
+          created_at: string
+          datum: string
+          erfasst_von_profil_id: string | null
+          herkunft: string
+          id: string
+          kategorie: string
+          notiz: string | null
+          updated_at: string
+          waehrung: string
+        }
+        Insert: {
+          art: string
+          betrag: number
+          bezeichnung: string
+          created_at?: string
+          datum?: string
+          erfasst_von_profil_id?: string | null
+          herkunft?: string
+          id?: string
+          kategorie: string
+          notiz?: string | null
+          updated_at?: string
+          waehrung?: string
+        }
+        Update: {
+          art?: string
+          betrag?: number
+          bezeichnung?: string
+          created_at?: string
+          datum?: string
+          erfasst_von_profil_id?: string | null
+          herkunft?: string
+          id?: string
+          kategorie?: string
+          notiz?: string | null
+          updated_at?: string
+          waehrung?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wirtschaftlichkeit_posten_erfasst_von_profil_id_fkey"
+            columns: ["erfasst_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wirtschaftlichkeit_staende: {
+        Row: {
+          bezeichnung: string
+          created_at: string
+          erstellt_von_profil_id: string | null
+          id: string
+          snapshot: Json
+          stand_am: string
+        }
+        Insert: {
+          bezeichnung: string
+          created_at?: string
+          erstellt_von_profil_id?: string | null
+          id?: string
+          snapshot: Json
+          stand_am?: string
+        }
+        Update: {
+          bezeichnung?: string
+          created_at?: string
+          erstellt_von_profil_id?: string | null
+          id?: string
+          snapshot?: Json
+          stand_am?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wirtschaftlichkeit_staende_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wissen_begriffe: {
         Row: {
           df: number
@@ -4213,6 +4391,16 @@ export type Database = {
             referencedRelation: "pfluecker"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      v_vermarktete_menge: {
+        Row: {
+          belastbar: boolean | null
+          erste_lieferung: string | null
+          menge_kg_12_monate: number | null
+          tage_abdeckung: number | null
+        }
+        Relationships: [
         ]
       }
     }

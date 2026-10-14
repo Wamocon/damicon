@@ -229,7 +229,7 @@
       },
       "stand": {
         "q": "What is already built today?",
-        "a": "{gesamt} modules across four areas: {angebunden} on the database with real writes, {entwicklung} as visible menu entries under development. The figures on the start page are placeholders until the first fully measured season."
+        "a": "{gesamt} modules across four areas: {entwicklung, plural, =0 {all on the database with real writes} other {{angebunden} on the database with real writes, {entwicklung} as visible menu entries under development}}. The figures on the start page are placeholders until the first fully measured season."
       },
       "daten": {
         "q": "Where is the data held?",
@@ -759,9 +759,9 @@
     "wirtschaftlichkeit": {
       "title": "Business case for the rollout",
       "navTitle": "Business case",
-      "description": "Investment appraisal for the rollout: payback period, return in year one and over three years, one-off and recurring cost, net present value. Model figures so far, not yet operational data.",
-      "summary": "Payback, return, one-off and recurring cost, net present value of the rollout. Model calculation, not yet from operations.",
-      "todo": "Capture of investment, operating and benefit items, history per revision, plan versus actual."
+      "description": "Investment appraisal for the rollout from recorded items: payback period, return in year one and over three years, one-off and recurring cost, net present value. With assumptions, plan versus actual and saved snapshots.",
+      "summary": "Payback, return, one-off and recurring cost and net present value of the rollout, calculated from recorded items, with plan versus actual and snapshots.",
+      "todo": "The benefit counts as evidenced only once operations deliver actual figures. Until then it is shown as estimated."
     },
     "sortenkatalog": {
       "title": "Variety and quota catalogue",
@@ -990,7 +990,14 @@
       "esutdEreignis": "Report created.",
       "esutdErfasst": "Report recorded as reported.",
       "esutdGeoeffnet": "Report reopened.",
-      "esutdEntfernt": "Report removed."
+      "esutdEntfernt": "Report removed.",
+      "wiPostenGespeichert": "Item saved.",
+      "wiPostenEntfernt": "Item removed.",
+      "wiIstErfasst": "Actual value recorded.",
+      "wiIstEntfernt": "Actual value removed.",
+      "wiAnnahmenGespeichert": "Assumptions saved.",
+      "wiStandFestgehalten": "Snapshot saved.",
+      "wiModellUebernommen": "Model values taken over."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1097,7 +1104,19 @@
       "esutdVertragsnummer": "The contract number is longer than 60 characters.",
       "esutdBeschreibung": "Please describe what changes, with 3 to 300 characters.",
       "esutdBestaetigung": "The confirmation number is longer than 100 characters.",
-      "esutdMeldungFehlt": "The report was not found or has changed in the meantime."
+      "esutdMeldungFehlt": "The report was not found or has changed in the meantime.",
+      "wiBezeichnung": "Please enter a description of 1 to 120 characters.",
+      "wiKategorie": "Please enter a valid category of at most 60 characters. For the benefit: shrinkage, manual work, audit or other.",
+      "wiBetrag": "Please enter an amount of 0 or more.",
+      "wiWaehrung": "Please choose euro, tenge or ruble.",
+      "wiDatum": "Please enter a valid date.",
+      "wiMonat": "Please enter a valid month.",
+      "wiNotiz": "The note may have at most 500 characters.",
+      "wiAnnahme": "Please check the assumptions: rate 0 to 100 percent, exchange rates above 0, quantity and full cost above 0 or empty, weeks as a pair with \"from\" not above \"to\".",
+      "wiStandName": "Please enter a name for the snapshot of 1 to 120 characters.",
+      "wiStandLeer": "Without recorded items there is nothing to save.",
+      "wiNichtGefunden": "The entry was not found.",
+      "wiModellNichtLeer": "Items are already recorded. The model values can only be taken over onto an empty list."
     },
     "einladungen": {
       "erfolg": {
@@ -1485,10 +1504,11 @@
       "titel": "Four further figures",
       "lead": "Payback period, total cost, avoided cost and time to first benefit."
     },
-    "fussnote": "Return, payback and the cost per kilogram hang entirely on the assumed annual benefit. If the reduction per kilogram looks too high, the annual benefit is set too high. Once operational figures are captured, the page calculates from real items instead of constants.",
+    "fussnote": "Return, payback and the cost per kilogram hang on the annual benefit. If the reduction per kilogram looks too high, the annual benefit is set too high. The actual values further down show whether it materialises in operations.",
     "diagramm": {
       "wert": "Value",
-      "nulllinie": "Money back"
+      "nulllinie": "Money back",
+      "ist": "Actual"
     },
     "stapel": {
       "capex": "One-off",
@@ -1518,12 +1538,14 @@
       "capex": {
         "label": "Cost to acceptance",
         "frage": "What does the step cost?",
-        "rechenweg": "Fixed price up to acceptance. One number, not a range."
+        "rechenweg": "Fixed price up to acceptance. One number, not a range.",
+        "rechenwegErfasst": "Sum of the recorded investment items."
       },
       "opex": {
         "label": "Recurring cost per year",
         "frage": "What does owning it cost?",
-        "rechenweg": "Hosting, maintenance, support and further development."
+        "rechenweg": "Hosting, maintenance, support and further development.",
+        "rechenwegErfasst": "Sum of the recorded operating items per year."
       },
       "tco": {
         "label": "Total cost over 3 years",
@@ -1533,7 +1555,8 @@
       "vermiedeneKosten": {
         "label": "Avoided cost per year",
         "frage": "Where does the benefit come from?",
-        "rechenweg": "Shrinkage, manual work and audit preparation. Back-calculated from the given return figures."
+        "rechenweg": "Shrinkage, manual work and audit preparation. Back-calculated from the given return figures.",
+        "rechenwegErfasst": "Sum of the recorded benefit items per year: shrinkage, manual work, audit preparation and other."
       },
       "kapitalwert": {
         "label": "Net present value",
@@ -1544,7 +1567,8 @@
         "label": "Cost per kilogram",
         "frage": "Does the operation get cheaper?",
         "rechenweg": "Full cost divided by the marketed quantity, before against after. Needs operational figures.",
-        "rechenwegMitWerten": "Full cost divided by the marketed quantity. Before {vorher} ₸, less {ersparnis} ₸ benefit per kilogram at {menge} kg annual volume."
+        "rechenwegMitWerten": "Full cost divided by the marketed quantity. Before {vorher} ₸, less {ersparnis} ₸ benefit per kilogram at {menge} kg annual volume.",
+        "rechenwegMengeOffen": "The marketed annual quantity is still missing. It comes from the deliveries once they cover a full year, or by hand from the assumptions."
       },
       "nutzenbeginn": {
         "label": "Time to first benefit",
@@ -1555,7 +1579,21 @@
     "jeKilogramm": {
       "vorher": "Before",
       "nachher": "After"
-    }
+    },
+    "pille": {
+      "offen": "Partly open",
+      "geschaetzt": "Partly estimated",
+      "belegt": "Evidenced"
+    },
+    "erfasstHinweis": "The figures are calculated from the {anzahl} recorded items and the assumptions further down. Anything estimated or still missing is marked on the tile.",
+    "erfasstLeer": "No item is recorded yet, so every figure stays open. Below you can record the items or take over the values of the metric list as a starting point.",
+    "standHinweis": "Saved snapshot \"{name}\" of {datum}. The page shows the calculation as it was then, with the items and the exchange rate of that day.",
+    "standUnbekannt": "The requested snapshot was not found. The current calculation is shown.",
+    "nurLesen": "View only: administration, CEO and accounting can record entries.",
+    "jahresnutzenOffen": "The annual benefit is not recorded yet. Without it, return, payback period, net present value and the cost per kilogram stay open.",
+    "jahresnutzenGeschaetzt": "Every figure rests on an annual benefit of {tenge} ({rubel}). That number is estimated and not yet evidenced by operations.",
+    "jahresnutzenBelegt": "Every figure rests on an annual benefit of {tenge} ({rubel}), recorded as evidenced.",
+    "kursHinweisQuelle": "Converted at the rate of {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸. Source: {quelle}."
   },
   "finanzVorschau": {
     "titel": "Finances this month",
@@ -4959,6 +4997,172 @@
       "checkliste": "Checklist as document",
       "alle": "All reports as document",
       "offen": "Open reports as document"
+    },
+    "wirtschaftlichkeit": {
+      "art": "Business case · Investment appraisal",
+      "titel": "Investment appraisal for the rollout",
+      "dateiname": "Business-case",
+      "untertitelLaufend": "Current calculation",
+      "untertitelModell": "Model calculation",
+      "untertitelStand": "Saved snapshot \"{name}\"",
+      "meta": {
+        "stand": "As of",
+        "kurs": "Exchange rate",
+        "zins": "Discount rate",
+        "posten": "Recorded items"
+      },
+      "col": {
+        "kennzahl": "Figure",
+        "wert": "Value",
+        "herkunft": "Origin"
+      },
+      "zusammenfassung": "Calculated from {anzahl} recorded items. {geschaetzt} figures rest on estimates, {offen} are still open because information is missing.",
+      "zusammenfassungModell": "Model calculation based on the management's metric list of 23 September 2026, not from live operations.",
+      "zusammenfassungLeer": "No items are recorded yet, so every figure is open.",
+      "abschnittKennzahlen": "Figures",
+      "abschnittPosten": "Items of the calculation",
+      "abschnittAnnahmen": "Assumptions",
+      "abschnittPlanIst": "Plan and actual",
+      "abschnittHinweise": "Notes on reliability",
+      "hinweiseTitel": "To keep in mind when assessing",
+      "leerPosten": "No items recorded.",
+      "hinweis": {
+        "modell": "Model calculation without a database connection: the values come from the metric list of 23 September 2026.",
+        "stand": "This document shows a saved snapshot. It calculates with the items and the exchange rate of that time, not today's.",
+        "geschaetzt": "Estimated, because they depend on assumptions that operations have not yet evidenced: {liste}.",
+        "offen": "Open, because information is missing: {liste}."
+      }
+    }
+  },
+  "wirtschaftlichkeitErfassung": {
+    "posten": {
+      "titel": "Items of the calculation",
+      "lead": "One-off investment, recurring operating cost and expected benefit, per year. The figures above are calculated from these lines. If a whole type is missing, everything that depends on it stays open.",
+      "art": {
+        "investition": "Investment (one-off)",
+        "betrieb": "Operation (per year)",
+        "nutzen": "Benefit (per year)"
+      },
+      "col": {
+        "kategorie": "Category",
+        "bezeichnung": "Description",
+        "datum": "Date",
+        "betrag": "Amount",
+        "herkunft": "Origin"
+      },
+      "summe": "Total {betrag}",
+      "nichtErfasst": "not recorded",
+      "keineZeile": "No item of this type recorded yet.",
+      "neu": "Record an item",
+      "entfernen": "Remove"
+    },
+    "kategorie": {
+      "schwund": "Shrinkage",
+      "handarbeit": "Manual work",
+      "audit": "Audit preparation",
+      "sonstiges": "Other"
+    },
+    "herkunft": {
+      "belegt": "evidenced",
+      "geschaetzt": "estimated"
+    },
+    "waehrung": {
+      "EUR": "Euro (EUR)",
+      "KZT": "Tenge (KZT)",
+      "RUB": "Ruble (RUB)"
+    },
+    "form": {
+      "art": "Type",
+      "kategorie": "Category",
+      "kategorieBeispiel": "e.g. development, hosting",
+      "bezeichnung": "Description",
+      "betrag": "Amount",
+      "waehrung": "Currency",
+      "datum": "Date",
+      "herkunft": "Origin",
+      "notiz": "Note (optional)",
+      "monat": "Month",
+      "anlegen": "Create item",
+      "speichern": "Save"
+    },
+    "modell": {
+      "titel": "Start with the values of the metric list",
+      "lead": "Nothing is recorded yet. The values of the metric list of 23 September 2026 can be taken over as a starting point: investment and recurring cost as evidenced, the back-calculated annual benefit as estimated. Every line can be changed afterwards.",
+      "knopf": "Take over model values",
+      "investition": {
+        "bezeichnung": "Rollout of Damicon up to acceptance (fixed price)",
+        "kategorie": "Rollout"
+      },
+      "betrieb": {
+        "bezeichnung": "Hosting, maintenance, support and further development",
+        "kategorie": "Operation"
+      },
+      "nutzen": {
+        "bezeichnung": "Total avoided cost (back-calculated from the given returns)"
+      },
+      "notiz": "Metric list of the management dated 23 September 2026"
+    },
+    "annahmen": {
+      "titel": "Assumptions",
+      "lead": "Interest rate, exchange rate, full cost and quantity used in the calculation. Every entry carries its origin. A saved snapshot keeps its values.",
+      "offen": "open",
+      "zins": "Discount rate per year",
+      "kurs": "Exchange rate",
+      "stichtag": "as of {datum}",
+      "vollkosten": "Full cost per kg before the rollout",
+      "menge": "Marketed quantity per year",
+      "mengeAusAnnahme": "Set by hand.",
+      "mengeAusLieferungen": "Sum of the delivered shipments of the last 12 months.",
+      "mengeZuKurz": "The deliveries only reach back {tage} days ({menge} kg so far). An annual quantity exists after a full year, or by hand under \"Change assumptions\".",
+      "mengeKeine": "No delivered shipment yet. The quantity can be set by hand.",
+      "nutzenbeginn": "Time until benefit starts",
+      "wochen": "{von} to {bis} weeks",
+      "echtbetrieb": "Start of live operation",
+      "aendern": "Change assumptions",
+      "form": {
+        "zins": "Discount rate in percent",
+        "herkunft": "Origin",
+        "kursEur": "1 EUR in tenge",
+        "kursRub": "1 RUB in tenge",
+        "kursStichtag": "Date of the rate",
+        "kursQuelle": "Source of the rate",
+        "vollkosten": "Full cost per kg before (₸)",
+        "menge": "Marketed quantity per year (kg)",
+        "mengeHinweis": "Leave empty if the quantity should come from the deliveries.",
+        "wochenVon": "Benefit starts at the earliest (weeks)",
+        "wochenBis": "Benefit starts at the latest (weeks)",
+        "echtbetrieb": "First month of live operation",
+        "echtbetriebHinweis": "The plan versus actual comparison runs from here."
+      }
+    },
+    "planIst": {
+      "titel": "Plan and actual",
+      "lead": "The cost that is meant to be avoided (one twelfth of the annual benefit per month) against what was actually avoided. The actual values also appear as points on the curves above.",
+      "leer": "No month yet. As soon as the start of live operation is set in the assumptions or an actual value exists, the comparison appears here.",
+      "col": {
+        "monat": "Month",
+        "plan": "Plan",
+        "ist": "Actual",
+        "abweichung": "Deviation",
+        "istKumuliert": "Actual total",
+        "notiz": "Note"
+      },
+      "eintraege": "Recorded actual values",
+      "neu": "Record an actual value",
+      "erfassen": "Record actual value"
+    },
+    "staende": {
+      "titel": "Saved snapshots",
+      "lead": "A snapshot keeps items, assumptions and result, with the exchange rate of the day. It no longer changes. Later you can look up what was calculated back then.",
+      "leer": "No snapshot saved yet.",
+      "ansehen": "View",
+      "angezeigt": "shown",
+      "zumAktuellen": "Back to the current calculation",
+      "festhaltenTitel": "Save the current state",
+      "festhaltenLead": "Saves today's state with items, actual values, assumptions and exchange rate.",
+      "name": "Name of the snapshot",
+      "nameBeispiel": "e.g. quarterly snapshot Q1 2027",
+      "festhalten": "Save snapshot"
     }
   }
 }

@@ -1291,10 +1291,16 @@ async function dashboardTipp(): Promise<void> {
   halte("zurück: der Tipp ist wieder da");
   klicke("Später");
   halte("Später");
-  // Ein Modul im Reifegrad "in-entwicklung": seit WMCNL-1440 ist das ЭСФ-Register angebunden, uebrig ist die Wirtschaftlichkeit.
+  // Ein Modul im Reifegrad "in-entwicklung": seit WMCNL-2470 ist auch die Wirtschaftlichkeit angebunden und kein Modul mehr ein
+  // Platzhalter. Der Fall braucht eines, das es ist: die Wirtschaftlichkeit wird fuer die Dauer des Falls so gesetzt.
+  const { modules: modulListe } = await import("@/lib/modules");
+  const platzhalter = modulListe.find((m) => m.key === "wirtschaftlichkeit");
+  if (!platzhalter) throw new Error("Modul wirtschaftlichkeit fehlt");
+  platzhalter.reifegrad = "in-entwicklung";
   await ausloesen(() => navigation.setzePfad("/dashboard/buero/wirtschaftlichkeit"));
   await uhr.vor(8000);
   halte("Modul in Entwicklung: kein Tipp");
+  platzhalter.reifegrad = "angebunden";
   await lageNeu({ role: "picker" });
   await ausloesen(() => navigation.setzePfad("/dashboard/hof/kuehlkette"));
   await uhr.vor(8000);

@@ -18,11 +18,13 @@ import { baueFoerderDokument } from "@/lib/dokument/foerderung";
 import { baueLieferungDokument } from "@/lib/dokument/lieferung";
 import { baueNachweiseDokument, type NachweisZeile } from "@/lib/dokument/nachweise";
 import { baueLieferplanDokument, lieferplanZeilen } from "@/lib/dokument/lieferplan";
+import { baueWirtschaftlichkeitDokument } from "@/lib/dokument/wirtschaftlichkeit";
 import { DOKUMENT_ARTEN } from "@/lib/dokument/arten";
 import { roles, type Role } from "@/lib/rbac";
 import type { EsutdMeldung } from "@/lib/domain/esutd";
 import type { EsfBelegZeile, EsfUebersicht } from "@/lib/data/esf";
 import type { LieferungZeile } from "@/lib/domain/lieferungen";
+import { modellAnnahmen, modellPosten, type IstEintrag } from "@/lib/domain/wirtschaftlichkeit-erfassung";
 
 let fehler = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -104,6 +106,14 @@ const PLAN = {
   ],
 };
 
+const WIRT_POSTEN = modellPosten(
+  { investition: { bezeichnung: "Einführung <Damicon>", kategorie: "Einführung" }, betrieb: { bezeichnung: "Hosting", kategorie: "Betrieb" }, nutzen: { bezeichnung: "Vermiedene Kosten", kategorie: "egal" } },
+  "2026-09-23",
+);
+const WIRT_IST: IstEintrag[] = [{ id: "i1", monat: "2026-11-01", kategorie: "schwund", betrag: 12000, waehrung: "EUR", notiz: null }];
+const WIRT_ANNAHMEN = { ...modellAnnahmen(), echtbetriebBeginn: "2026-11-01" };
+const WIRT = { posten: WIRT_POSTEN, ist: WIRT_IST, annahmen: WIRT_ANNAHMEN, menge: null, quelle: "erfasst" as const, heute: HEUTE };
+
 // --- 1. Rahmen -------------------------------------------------------------------------------------------------------------------
 {
   const x = kontext("de");
@@ -143,6 +153,10 @@ const FAELLE: Fall[] = [
   { name: "Lieferung", baue: (x) => baueLieferungDokument(LIEFERUNG, x), inhalt: [/TL-4711/, /CH-1/, /A\. Seitkali/] },
   { name: "Lieferung ohne Messungen", baue: (x) => baueLieferungDokument({ ...LIEFERUNG, status: "geplant", letzteKuehlmessung: null, transportMessungen: [], geliefertAm: null }, x), inhalt: [/Almaty Fresh Market/] },
   { name: "Nachweisregister", baue: (x) => baueNachweiseDokument(NACHWEISE, HEUTE, x), inhalt: [/GlobalG\.A\.P\./, /Auflage &lt;Handel&gt;/] },
+  { name: "Wirtschaftlichkeit, erfasst", baue: (x) => baueWirtschaftlichkeitDokument(WIRT, x), inhalt: [/Hosting/, /Einführung &lt;Damicon&gt;/, /513/] },
+  { name: "Wirtschaftlichkeit, ohne Posten", baue: (x) => baueWirtschaftlichkeitDokument({ ...WIRT, posten: [], ist: [] }, x), inhalt: [/<table/] },
+  { name: "Wirtschaftlichkeit, Modellrechnung", baue: (x) => baueWirtschaftlichkeitDokument({ ...WIRT, quelle: "modell", ist: [] }, x), inhalt: [/Hosting/] },
+  { name: "Wirtschaftlichkeit, Stand", baue: (x) => baueWirtschaftlichkeitDokument({ ...WIRT, quelle: "stand", stand: { name: "Stand <Januar>", standAm: "2027-01-15T08:00:00Z" }, standId: "s1" }, x), inhalt: [/Stand &lt;Januar&gt;/] },
   { name: "Lieferplan, Buero", baue: (x) => baueLieferplanDokument(PLAN, HEUTE, true, x), inhalt: [/Gastro/, /Markt/] },
   { name: "Lieferplan, Kunde", baue: (x) => baueLieferplanDokument(PLAN, HEUTE, false, x), inhalt: [/kg/] },
 ];
@@ -182,6 +196,17 @@ for (const fall of FAELLE) {
   const nachweise = baueNachweiseDokument(NACHWEISE, HEUTE, x);
   check("Nachweisregister: abgelaufen vor gueltig, Zaehlung in der Reihenfolge der Status", nachweise.abschnitte[0].html.indexOf("GlobalG.A.P.") < nachweise.abschnitte[0].html.indexOf("Sachkunde") && nachweise.kennzahlen?.map((k) => k.wert).join(",") === "1,0,1,1");
 
+  const wirt = baueWirtschaftlichkeitDokument(WIRT, x);
+  check("Wirtschaftlichkeit: Amortisation 11 Monate, Rendite 3 Jahre rund 160 Prozent, Kapitalwert vorhanden", wirt.kennzahlen?.[0].wert.includes("11") === true && /1[56]\d\s?%/.test(wirt.kennzahlen?.[1].wert ?? "") && (wirt.kennzahlen?.[2].wert ?? "").includes("₸"), wirt.kennzahlen?.map((k) => k.wert).join(" | "));
+  check("Wirtschaftlichkeit: der geschaetzte Nutzen macht seine Kennzahlen als geschaetzt kenntlich", wirt.kennzahlen?.[0].ton === "warnung" && wirt.abschnitte[0].html.includes("geschätzt") && (wirt.abschnitte.at(-1)?.html ?? "").includes("class=\"kasten\""));
+  const ohnePosten = baueWirtschaftlichkeitDokument({ ...WIRT, posten: [], ist: [] }, x);
+  check("Wirtschaftlichkeit: ohne Posten sind die Kennzahlen offen und das Dokument sagt es", ohnePosten.kennzahlen?.every((k) => k.wert === "offen") === true && ohnePosten.abschnitte[1].html.includes("Keine Posten erfasst") && (ohnePosten.zusammenfassung ?? "").includes("keine Posten"));
+  check("Wirtschaftlichkeit: Plan und Ist zeigt den Monat des Echtbetriebs", wirt.abschnitte[3].html.includes("November 2026"), wirt.abschnitte[3].html.slice(0, 200));
+  const stand = baueWirtschaftlichkeitDokument({ ...WIRT, quelle: "stand", stand: { name: "Januar", standAm: "2027-01-15T08:00:00Z" }, standId: "s1" }, x);
+  check("Wirtschaftlichkeit: ein Stand traegt seinen Namen und hat eine eigene Kennung", (stand.untertitel ?? "").includes("Januar") && stand.kennung !== wirt.kennung);
+  const kurs2 = baueWirtschaftlichkeitDokument({ ...WIRT, annahmen: { ...WIRT_ANNAHMEN, kurse: { eurTenge: 480, rubTenge: 5 }, kursStichtag: "2027-01-15" } }, x);
+  check("Wirtschaftlichkeit: ein anderer Kurs ergibt ein anderes Siegel", kurs2.siegel !== wirt.siegel && wirt.siegel === baueWirtschaftlichkeitDokument(WIRT, { ...x, jetzt: new Date("2026-10-14T18:00:00Z") }).siegel);
+
   const zeilen = lieferplanZeilen(PLAN, HEUTE);
   check("Lieferplan: Tour vor Wunsch, Doppelung und Vergangenes fehlen", zeilen.length === 2 && zeilen[0].art === "lieferung" && zeilen[0].datum === "2026-10-15" && zeilen[1].art === "vorbestellung" && zeilen[1].datum === "2026-10-20", JSON.stringify(zeilen.map((z) => [z.datum, z.art])));
   const kunde = baueLieferplanDokument(PLAN, HEUTE, false, x);
@@ -197,6 +222,7 @@ for (const fall of FAELLE) {
     lieferung: ["admin", "ceo", "betriebsleitung", "buchhaltung", "brigade", "erzeuger", "kunde"],
     nachweise: ["admin", "ceo", "betriebsleitung", "buchhaltung", "erzeuger", "kunde"],
     lieferplan: ["admin", "ceo", "betriebsleitung", "buchhaltung", "erzeuger", "kunde"],
+    wirtschaftlichkeit: ["admin", "ceo", "betriebsleitung", "buchhaltung"],
   };
   for (const [art, rollen] of Object.entries(erwartet)) {
     const ist = roles.filter((r) => DOKUMENT_ARTEN[art].erlaubt(r));
