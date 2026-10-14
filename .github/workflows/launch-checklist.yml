@@ -38,6 +38,11 @@ on:
         required: false
         default: ""
 
+# Mindestrechte: Die Prüfliste nutzt für Vercel, Supabase und die GitHub-API eigene Geheimnisse (ORG_PAT und andere),
+# das GITHUB_TOKEN braucht nur Leserechte.
+permissions:
+  contents: read
+
 jobs:
   checklist:
     name: Run checklist

@@ -18,6 +18,11 @@ on:
         default: "Analyze files in the parent directory (../) there is handbook where all the information is mention and more information you can find in the code scan it and user it to build this landing page. Create a bilingual landing page (EN/DE). Include buttons for App(https://REPO_NAME.vercel.app), Imprint, T&C, and Privacy Policy."
         required: true
 
+# Mindestrechte: Der aufgerufene Workflow checkt aus und schreibt über ORG_PAT in das neue Landingpage-Repository,
+# nicht über das GITHUB_TOKEN dieses Repositorys.
+permissions:
+  contents: read
+
 jobs:
   run-automation:
     # IMPORTANT: Path to the central workflow. Format: OrgName/RepoName/.github/...@Branch

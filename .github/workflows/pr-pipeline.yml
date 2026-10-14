@@ -32,6 +32,11 @@ concurrency:
   group: pr-pipeline-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Mindestrechte für alle Jobs ohne eigenen Block (validate, datenbank): nur lesen. Der Auto-Fix setzt unten sein eigenes
+# contents: write, weil er Korrekturen in den Pull-Request-Branch zurückschreibt.
+permissions:
+  contents: read
+
 jobs:
   # --- Step 1: Auto-fix lint & format errors --------------------------------
   autofix:
