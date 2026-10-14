@@ -4462,5 +4462,51 @@
     "zaehlung": "Stand des Registers",
     "bearbeiten": "Bearbeiten",
     "heute": "heute"
+  },
+  "blockRisiko": {
+    "col": "Risiko",
+    "stufe": {
+      "hoch": "hoch",
+      "mittel": "mittel",
+      "niedrig": "niedrig"
+    },
+    "punkte": "{punkte} von 100",
+    "keinMangel": "kein Mangel",
+    "grund": {
+      "ueberfaellig": "Durchgang überfällig",
+      "sperre": "Erntezeit durch Sperre verloren",
+      "ausschuss": "Hoher Ausschuss",
+      "kuehlkette": "Kühlketten-Verstöße",
+      "erfassung": "Erfassungslücke",
+      "sperre_konflikt": "Aufgabe liegt in der Wartezeitsperre"
+    },
+    "erklaerung": {
+      "titel": "So entsteht der Risikowert",
+      "lead": "Fünf Faktoren, gewichtet. Gewichte und Schwellen stehen mit Begründung in der Datenbank (Tabelle risiko_parameter), ändern dürfen nur admin und ceo.",
+      "gewicht": "Gewicht {gewicht}",
+      "faktor": {
+        "ueberfaellig": {
+          "name": "Versäumter Durchgang",
+          "regel": "Die älteste offene Aufgabe oder der älteste offene Rotationstermin ist überfällig. Ab {tage, plural, one {# Tag} other {# Tagen}} Verzug gilt der Faktor als voll, denn dann ist ein ganzer Durchgang verloren."
+        },
+        "sperre": {
+          "name": "Wartezeitsperre",
+          "regel": "Wird eine offene Aufgabe vor dem Ende der Sperre fällig, ist das ein Konflikt: Faktor voll und immer Stufe hoch. Sonst zählt jeder durch die Sperre entfallende Durchgang anteilig, ab {durchgaenge, plural, one {# Durchgang} other {# Durchgängen}} voll."
+        },
+        "ausschuss": {
+          "name": "Ausschuss",
+          "regel": "Ausschussquote der letzten {tage, plural, one {# Tag} other {# Tage}}. Null beim Ziel von {ziel} Prozent, voll bei {kritisch} Prozent."
+        },
+        "kuehlkette": {
+          "name": "Kühlkette",
+          "regel": "Verstöße gegen die 60-Minuten-Regel bei Chargen des Blocks in den letzten {tage, plural, one {# Tag} other {# Tagen}}, ab {anzahl, plural, one {# Verstoß} other {# Verstößen}} voll."
+        },
+        "erfassung": {
+          "name": "Erfassungslücke",
+          "regel": "Auf dem Block wurde in den letzten {aktiv, plural, one {# Tag} other {# Tagen}} gearbeitet, es gibt aber keine offene Aufgabe und keine aus den letzten {tage, plural, one {# Tag} other {# Tagen}}."
+        }
+      },
+      "schwellen": "Stufe hoch ab {hoch} Punkten, mittel ab {mittel}. Der Konflikt mit der Wartezeitsperre ist immer hoch."
+    }
   }
 }

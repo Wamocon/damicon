@@ -2890,6 +2890,31 @@ export type Database = {
           },
         ]
       }
+      risiko_parameter: {
+        Row: {
+          begruendung: string
+          einheit: string
+          schluessel: string
+          updated_at: string
+          wert: number
+        }
+        Insert: {
+          begruendung: string
+          einheit: string
+          schluessel: string
+          updated_at?: string
+          wert: number
+        }
+        Update: {
+          begruendung?: string
+          einheit?: string
+          schluessel?: string
+          updated_at?: string
+          wert?: number
+        }
+        Relationships: [
+        ]
+      }
       rotationsplan_eintraege: {
         Row: {
           brigade_id: string | null
@@ -3836,6 +3861,30 @@ export type Database = {
           titel: string | null
         }
         Relationships: []
+      }
+      v_block_risiko: {
+        Row: {
+          beitrag_ausschuss: number | null
+          beitrag_erfassung: number | null
+          beitrag_kuehlkette: number | null
+          beitrag_sperre: number | null
+          beitrag_ueberfaellig: number | null
+          code: string | null
+          hauptgrund: string | null
+          reihenblock_id: string | null
+          risiko_score: number | null
+          risiko_stufe: string | null
+          sperre_konflikt: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "v_block_risiko_reihenblock_id_fkey"
+            columns: ["reihenblock_id"]
+            isOneToOne: false
+            referencedRelation: "reihenbloecke"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_dokumente: {
         Row: {

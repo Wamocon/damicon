@@ -4462,5 +4462,51 @@
     "zaehlung": "State of the register",
     "bearbeiten": "Edit",
     "heute": "today"
+  },
+  "blockRisiko": {
+    "col": "Risk",
+    "stufe": {
+      "hoch": "high",
+      "mittel": "medium",
+      "niedrig": "low"
+    },
+    "punkte": "{punkte} of 100",
+    "keinMangel": "no issue",
+    "grund": {
+      "ueberfaellig": "Round overdue",
+      "sperre": "Harvest time lost to the lock",
+      "ausschuss": "High waste",
+      "kuehlkette": "Cold chain violations",
+      "erfassung": "Recording gap",
+      "sperre_konflikt": "Task falls within the waiting-period lock"
+    },
+    "erklaerung": {
+      "titel": "How the risk score is built",
+      "lead": "Five weighted factors. Weights and thresholds are stored with their rationale in the database (table risiko_parameter); only admin and ceo may change them.",
+      "gewicht": "Weight {gewicht}",
+      "faktor": {
+        "ueberfaellig": {
+          "name": "Missed round",
+          "regel": "The oldest open task or the oldest open rotation date is overdue. From {tage, plural, one {# day} other {# days}} of delay the factor counts as full, because a whole round is lost by then."
+        },
+        "sperre": {
+          "name": "Waiting-period lock",
+          "regel": "If an open task falls due before the lock ends, that is a conflict: the factor is full and the level is always high. Otherwise every round lost to the lock counts proportionally, full from {durchgaenge, plural, one {# round} other {# rounds}}."
+        },
+        "ausschuss": {
+          "name": "Waste",
+          "regel": "Waste rate over the last {tage, plural, one {# day} other {# days}}. Zero at the target of {ziel} percent, full at {kritisch} percent."
+        },
+        "kuehlkette": {
+          "name": "Cold chain",
+          "regel": "Violations of the 60-minute rule for batches of the block in the last {tage, plural, one {# day} other {# days}}, full from {anzahl, plural, one {# violation} other {# violations}}."
+        },
+        "erfassung": {
+          "name": "Recording gap",
+          "regel": "Work was done on the block in the last {aktiv, plural, one {# day} other {# days}}, but there is no open task and none from the last {tage, plural, one {# day} other {# days}}."
+        }
+      },
+      "schwellen": "Level high from {hoch} points, medium from {mittel}. A conflict with the waiting-period lock is always high."
+    }
   }
 }

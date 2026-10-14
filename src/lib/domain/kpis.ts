@@ -15,6 +15,14 @@
 import type { Role } from "@/lib/rbac";
 import type { Kachelform } from "@/lib/domain/kachel-form";
 
+/**
+ * Obergrenze der Kennzahlen im Management-Cockpit (Masterplan 4.11): hoechstens zwoelf
+ * je Rolle prominent. Alle 14 Baseline-Kennzahlen bleiben bestehen, die ueberzaehligen
+ * stehen als "erweitert" in einem zweiten Abschnitt. supabase/tests/kennzahlen-cockpit.ts
+ * haelt die Grenze fest: eine dreizehnte Kern-Kennzahl bricht den Test.
+ */
+export const COCKPIT_MAX_KENNZAHLEN = 12;
+
 export type KpiTrend = "up" | "down" | "flat";
 export type KpiStufe = "kern" | "erweitert";
 

@@ -9,6 +9,8 @@ import {
   StammdatenBearbeiten,
   StatusWechsel,
 } from "@/components/db/reihenblock-formulare";
+import { RisikoErklaerung, RisikoZelle } from "@/components/db/block-risiko";
+import { ladeBlockRisiko } from "@/lib/data/block-risiko";
 import { ladePsmMittel, ladeProfile, ladeReihenbloecke } from "@/lib/data/reihenbloecke";
 import { ladeSorten } from "@/lib/data/standort";
 import { heuteIso } from "@/lib/data/util";
@@ -34,14 +36,16 @@ export async function ReihenbloeckeAnsicht({
   pfad: string;
   statusFilter?: string;
 }) {
-  const [liste, mittel, sorten, ausfuehrendeProfile, profil, t] = await Promise.all([
+  const [liste, mittel, sorten, ausfuehrendeProfile, profil, t, risiko] = await Promise.all([
     ladeReihenbloecke(),
     ladePsmMittel(),
     ladeSorten(),
     ladeProfile(),
     getSessionProfile(),
     getTranslations("reihenbloeckeDemo"),
+    ladeBlockRisiko(),
   ]);
+  const rt = await getTranslations("blockRisiko");
   const sortenOptionen = sorten.map((sorte) => ({ wert: sorte.id, text: sorte.name }));
   const s = await getTranslations("reihenblockStatus");
   const hint = await getTranslations("reihenblockStatusHint");
@@ -60,6 +64,8 @@ export async function ReihenbloeckeAnsicht({
   const darfStatusAendern = live && hasPermission(profil?.role, "reihenbloecke", "update");
   const darfFreigeben = live && hasPermission(profil?.role, "reihenbloecke", "approve");
   const darfBehandeln = live && hasPermission(profil?.role, "pflanzenschutz", "create");
+  // Das Risiko zeigt Mengen, Ausschuss und Kuehlverstoesse: nur, wer die Bloecke auch aendern darf.
+  const zeigeRisiko = darfStatusAendern && risiko.quelle === "db";
 
   return (
     <div className="space-y-6">
@@ -120,6 +126,7 @@ export async function ReihenbloeckeAnsicht({
             t("col.status"),
             t("col.letzteErnte"),
             t("col.sperre"),
+            ...(zeigeRisiko ? [rt("col")] : []),
             ...(darfStatusAendern || darfFreigeben ? [a("spalte")] : []),
           ]}
         >
@@ -166,6 +173,11 @@ export async function ReihenbloeckeAnsicht({
                     "-"
                   )}
                 </td>
+                {zeigeRisiko ? (
+                  <td className="px-3 py-2.5">
+                    <RisikoZelle risiko={risiko.risiken[block.id]} t={rt} />
+                  </td>
+                ) : null}
                 {darfStatusAendern || darfFreigeben ? (
                   <td className="px-3 py-2.5">
                     <div className="space-y-1.5">
@@ -212,6 +224,8 @@ export async function ReihenbloeckeAnsicht({
           })}
         </DataTable>
       </Section>
+
+      {zeigeRisiko ? <RisikoErklaerung parameter={risiko.parameter} /> : null}
 
       {darfBehandeln && mittel.length > 0 ? (
         <BehandlungFormular
