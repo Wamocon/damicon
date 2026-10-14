@@ -559,7 +559,7 @@ async function main() {
           <ReklamationDetailKarten detail={detail} rechte={rechte} heuteIso={HEUTE} />
         </div>
       ));
-    const kartenMarkup = (html: string) => html.replace(/<script>[\s\S]*?<\/script>$/, "").slice('<div class="space-y-3">'.length, -"</div>".length);
+    const kartenMarkup = (html: string) => html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>$/i, "").slice('<div class="space-y-3">'.length, -"</div>".length);
     for (const [id, rolle] of [["r1", "betriebsleitung"], ["r3", "betriebsleitung"], ["r1", "kunde"], ["r6", "brigade"]] as const) {
       setze({ profil: profil(rolle, rolle === "kunde" ? "k1" : null) });
       const ganz = (await ansicht(id)).html;

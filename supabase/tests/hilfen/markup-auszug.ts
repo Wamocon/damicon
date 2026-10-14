@@ -24,12 +24,23 @@ const KACHEL_TON: Record<string, string> = {
 const entschluesseln = (s: string) =>
   s.replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 
+/** Ohne Trennkommentare, Symbole und Skripte; wiederholt bis nichts mehr wegfällt, damit auch zerteilte Reste verschwinden (CodeQL). */
+function ohneBloecke(html: string): string {
+  let vorher: string;
+  let jetzt = html;
+  do {
+    vorher = jetzt;
+    jetzt = jetzt
+      .replace(/<!-- -->/g, "")
+      .replace(/<svg\b[\s\S]*?<\/svg\s*>/gi, "")
+      .replace(/<script\b[\s\S]*?<\/script\s*>/gi, "");
+  } while (jetzt !== vorher);
+  return jetzt;
+}
+
 /** Sichtbarer Text: ohne Trennkommentare, Symbole und Skripte; was in eigenen Elementen steht, mit " | " getrennt. */
 export function textVon(html: string): string {
-  return html
-    .replace(/<!-- -->/g, "")
-    .replace(/<svg[\s\S]*?<\/svg>/g, "")
-    .replace(/<script[\s\S]*?<\/script>/g, "")
+  return ohneBloecke(html)
     .replace(/<[^>]+>/g, "\n")
     .split("\n")
     .map((teil) => entschluesseln(teil).trim())

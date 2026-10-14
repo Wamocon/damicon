@@ -9,6 +9,7 @@ import { createElement, lazy, Suspense, useSyncExternalStore, type ComponentType
 import { NextIntlClientProvider } from "next-intl";
 import { texteVon } from "./ansicht-probe";
 import { aktuelleUhr, leereMikrotasks, setzeAktHuelle, zuruecksetzenAttrappen } from "./dom-attrappen";
+import { alsLiteral, bezeichner } from "./modul-ersatz";
 
 // DOM-Testumgebung für Charakterisierungstests von React-Client-Komponenten und Hooks (seit 14.10.2026).
 //
@@ -240,8 +241,8 @@ registerHooks({
     if (!url.startsWith(SCHEMA)) return weiter(url, kontext);
     const modul = decodeURIComponent(url.slice(SCHEMA.length));
     const zeilen = Object.keys(ersatz.get(modul) ?? {}).map((name) => {
-      const zugriff = `globalThis.__domErsatz.export(${JSON.stringify(modul)}, ${JSON.stringify(name)})`;
-      return name === "default" ? `export default ${zugriff};` : `export const ${name} = ${zugriff};`;
+      const zugriff = `globalThis.__domErsatz.export(${alsLiteral(modul)}, ${alsLiteral(name)})`;
+      return name === "default" ? `export default ${zugriff};` : `export const ${bezeichner(name)} = ${zugriff};`;
     });
     return { format: "module", source: zeilen.join("\n"), shortCircuit: true };
   },

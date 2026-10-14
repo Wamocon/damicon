@@ -29,6 +29,16 @@ interface Hooks {
 const registerHooks = (nodeModule as unknown as { registerHooks?: (hooks: Hooks) => unknown }).registerHooks;
 const SCHEMA = "modul-ersatz:";
 
+/** Text als JavaScript-Literal im erzeugten Modul: JSON plus Maskierung von <, >, / und den Zeilentrennern (CodeQL js/bad-code-sanitization). */
+export const alsLiteral = (s: string) =>
+  JSON.stringify(s).replace(/[<>/\u2028\u2029]/g, (z) => `\\u${z.charCodeAt(0).toString(16).padStart(4, "0")}`);
+
+/** Exportnamen landen ungequotet im Modultext, deshalb nur gültige Bezeichner. */
+export const bezeichner = (n: string) => {
+  if (!/^[A-Za-z_$][\w$]*$/.test(n)) throw new Error(`modul-ersatz: ungültiger Exportname ${JSON.stringify(n)}`);
+  return n;
+};
+
 /** Ersetzt jedes genannte Modul (so geschrieben wie im import, etwa "@/lib/auth" oder "next-intl/server") durch seine Attrappe. */
 export function ersetzeModule(ersatz: Record<string, Attrappe>): void {
   if (!registerHooks) throw new Error("module.registerHooks fehlt: dieser Test braucht Node 22.15 oder neuer.");
@@ -42,7 +52,7 @@ export function ersetzeModule(ersatz: Record<string, Attrappe>): void {
       if (!url.startsWith(SCHEMA)) return weiter(url, kontext);
       const name = url.slice(SCHEMA.length);
       const quelle = Object.keys(ersatz[name]!)
-        .map((n) => `export const ${n} = (...a) => globalThis.__modulErsatz[${JSON.stringify(name)}][${JSON.stringify(n)}](...a);`)
+        .map((n) => `export const ${bezeichner(n)} = (...a) => globalThis.__modulErsatz[${alsLiteral(name)}][${alsLiteral(n)}](...a);`)
         .join("\n");
       return { format: "module", source: quelle, shortCircuit: true };
     },
