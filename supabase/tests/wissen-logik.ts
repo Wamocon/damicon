@@ -223,6 +223,12 @@ pruefe("Zusammenführen: ein leerer Vermerk der ersten Zeile bleibt stehen (??= 
 pruefe("Zusammenführen: bestätigte Seiten aus der ersten Zeile, die welche hat", einDokument([{}, { seiten_bestaetigt: "" }, { seiten_bestaetigt: "48-49" }]).seitenBestaetigt === "48-49");
 pruefe("Zusammenführen: nachgeladene Seiten aus der ersten Zeile, die welche hat", einDokument([{ seiten_nachgeladen: null }, { seiten_nachgeladen: "48" }]).seitenNachgeladen === "48");
 pruefe("Zusammenführen: vermerkt, sobald eine Zeile vermerkt ist", einDokument([{ seiten_vermerkt: false }, { seiten_vermerkt: true }, { seiten_vermerkt: false }]).seitenVermerkt && !einDokument([{ seiten_vermerkt: null }, { seiten_vermerkt: false }]).seitenVermerkt);
+pruefe(
+  "Zusammenführen: nur true zählt als vermerkt, nicht \"true\" oder 1 (erste und spätere Zeilen)",
+  !einDokument([{ seiten_vermerkt: "true" as unknown as boolean }]).seitenVermerkt &&
+    !einDokument([{}, { seiten_vermerkt: 1 as unknown as boolean }]).seitenVermerkt &&
+    !einDokument([{ seiten_vermerkt: 1 as unknown as boolean }, { seiten_vermerkt: "true" as unknown as boolean }]).seitenVermerkt,
+);
 pruefe("Zusammenführen: Größe des Originals aus der ersten Zeile mit mehr als 0 Bytes", einDokument([{ original_groesse: null }, { original_groesse: alsZahl("0") }, { original_groesse: alsZahl("x") }, { original_groesse: 500 }, { original_groesse: 700 }]).originalGroesse === 500);
 pruefe("Zusammenführen: 0 Bytes in der ersten Zeile bleiben stehen", einDokument([{ original_groesse: 0 }, { original_groesse: 500 }]).originalGroesse === 0);
 pruefe("Zusammenführen: Größe als Text in der ersten Zeile wird zur Zahl", einDokument([{ original_groesse: alsZahl("567") }, { original_groesse: 900 }]).originalGroesse === 567);
@@ -491,6 +497,21 @@ async function teilEntscheide() {
     await entscheideUeberUpload("ablehnen", Q, { speicher, pruefer: { id: PRUEFER }, umgebung: {}, schema: "public" });
     const zeitpunkt = Date.parse(String(zeitpunkte[0]));
     pruefe("Entscheiden: ohne eigene Uhr gilt die aktuelle Zeit", zeitpunkt >= vorher && zeitpunkt <= Date.now(), String(zeitpunkte[0]));
+  }
+  {
+    // Der Titel im Speicherfehler wird erst beim Scheitern gelesen (Befund des Kritikers, wie vor dem Zerlegen).
+    const info = { ...ENTSCHEID_BASIS.info };
+    const spaeterGeaendert = async () => {
+      await Promise.resolve();
+      info.titel = "SPAETER GEAENDERT";
+      throw new Error("kaputt");
+    };
+    const speicher = { ladeFreigabeInfo: async () => info, entscheide: spaeterGeaendert } as unknown as WissenSpeicher;
+    const fehler = await entscheideUeberUpload("ablehnen", Q, { speicher, pruefer: { id: PRUEFER }, umgebung: {}, schema: "public" }).then(
+      () => null,
+      (e: unknown) => fehlerAbbild(e),
+    );
+    pruefe("Entscheiden: Speicherfehler trägt den Titel zum Zeitpunkt des Scheiterns", fehler !== null && "wert" in fehler && fehler.wert === "SPAETER GEAENDERT", JSON.stringify(fehler));
   }
 }
 

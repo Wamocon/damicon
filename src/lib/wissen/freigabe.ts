@@ -78,11 +78,12 @@ interface SeitenAngaben {
   vermerk: string | null;
 }
 
-/** Scheitert der Speicher, heisst der Fehler "freigeben", mit dem Titel des Dokuments, wenn er bekannt ist, und der Ursache. */
+/** Scheitert der Speicher, heisst der Fehler "freigeben", mit dem Titel des Dokuments, wenn er bekannt ist, und der Ursache.
+ *  Der Titel wird erst beim Scheitern gelesen, wie vor dem Zerlegen. */
 const speicherFehler =
-  (titel?: string | null) =>
+  (titel?: () => string | null | undefined) =>
   (ursache: unknown): never => {
-    throw new UploadFehler("freigeben", titel ?? undefined, ursache);
+    throw new UploadFehler("freigeben", titel?.() ?? undefined, ursache);
   };
 
 export async function entscheideUeberUpload(aktion: FreigabeAktion, quelleId: string, d: FreigabeAbhaengigkeiten): Promise<FreigabeErgebnis> {
@@ -111,7 +112,7 @@ async function verlaengereWiedervorlage({ d, quelleId, info, jetzt, zeitpunkt, a
   sicherheitsPruefung(info, d.pruefer.id);
   const neu = art ? pruefenBis(art, jetzt) : null;
   if (!neu) throw new UploadFehler("nichtPruefbar");
-  const n = await d.speicher.verlaengere(quelleId, { pruefer: d.pruefer.id, zeitpunkt, pruefenBis: neu }).catch(speicherFehler(info.titel));
+  const n = await d.speicher.verlaengere(quelleId, { pruefer: d.pruefer.id, zeitpunkt, pruefenBis: neu }).catch(speicherFehler(() => info.titel));
   if (n !== info.anzahl) throw new UploadFehler("nichtPruefbar");
   return ergebnis(info, n, neu, { fehlend: 0, bestaetigt: null, vermerk: null });
 }
@@ -130,7 +131,7 @@ async function entscheideUeberWartendes(aktion: FreigabeAktion, e: Entscheidung)
   const neu = freigeben && art ? pruefenBis(art, jetzt) : null;
   const n = await d.speicher
     .entscheide(quelleId, { status: freigeben ? "freigegeben" : "abgelehnt", pruefer: d.pruefer.id, zeitpunkt, pruefenBis: neu })
-    .catch(speicherFehler(info.titel));
+    .catch(speicherFehler(() => info.titel));
   // Eine Anweisung, alles oder nichts: weniger Zeilen heisst, jemand anderes war schneller.
   if (n !== info.anzahl) throw new UploadFehler("nichtPruefbar");
   return ergebnis(info, n, neu, { fehlend: stand.fehlend, ...seiten });
@@ -163,7 +164,7 @@ async function bestaetigeFehlendeSeiten({ d, quelleId, info, zeitpunkt }: Entsch
   if (!d.speicher.legeSeitenVermerkAb) throw new UploadFehler("freigeben", info.titel ?? undefined);
   const bestaetigt = alsBereichsText(abdeckung.bestaetigt);
   const vermerk = saeubereVermerk(d.seitenVermerk) || null;
-  await d.speicher.legeSeitenVermerkAb(quelleId, { vermerk, bestaetigt, stellen: info.seitenStellen ?? null, von: d.pruefer.id, zeitpunkt }).catch(speicherFehler(info.titel));
+  await d.speicher.legeSeitenVermerkAb(quelleId, { vermerk, bestaetigt, stellen: info.seitenStellen ?? null, von: d.pruefer.id, zeitpunkt }).catch(speicherFehler(() => info.titel));
   return { bestaetigt, vermerk };
 }
 
