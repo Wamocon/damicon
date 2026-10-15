@@ -9,6 +9,7 @@ import {
 import { ladeBrigadeOptionen, ladePersonalUebersicht } from "@/lib/data/personal";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { esutdAltbestand } from "@/lib/domain/esutd";
 import { LeererZustand } from "@/components/ui/liste";
 
 // Brigadenplanung (Anforderung 2.11): Brigaden/Pfluecker mit echten Daten
@@ -26,6 +27,8 @@ export async function PersonalAnsicht() {
 
   const live = uebersicht.quelle === "db";
   const darfZuweisen = live && hasPermission(profil?.role, "personal", "update");
+  // Die Verträge des Meldeprozesses liest nur, wer das Modul Compliance sehen darf; für alle anderen wäre "kein Vertrag" bei jeder Person falsch.
+  const vertraegeSichtbar = live && hasPermission(profil?.role, "compliance", "view");
 
   const brigadeOptionen = darfZuweisen ? await ladeBrigadeOptionen() : [];
 
@@ -135,6 +138,9 @@ export async function PersonalAnsicht() {
                   </StatusPill>
                   {p.esutd === "offen" ? <FaelligkeitAnzeige faelligkeit={p.esutdFaelligkeit} /> : null}
                 </div>
+                {esutdAltbestand({ status: p.esutd, hatVertrag: p.hatEsutdVertrag, vertraegeSichtbar }) ? (
+                  <p className="mt-1 max-w-[16rem] text-[11px] leading-4 text-muted-foreground">{t("esutdAltbestand")}</p>
+                ) : null}
               </td>
               <td className="px-3 py-2.5 text-muted-foreground">
                 {p.letzteMengeKg === null ? "-" : `${format.number(p.letzteMengeKg)} kg`}

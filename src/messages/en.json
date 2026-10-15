@@ -4034,7 +4034,8 @@
       "erfasst": "recorded",
       "offen": "open"
     },
-    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are not part of this view - the growing-degree-day total is in the weather module."
+    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are not part of this view - the growing-degree-day total is in the weather module.",
+    "esutdAltbestand": "Status from the old records: there is no contract for this person in the reporting process. Please add the contract in the Compliance module."
   },
   "erlebnis": {
     "bento": {

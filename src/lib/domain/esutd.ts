@@ -42,6 +42,15 @@ export interface EsutdMeldung {
 export const esutdTon = { offen: "warning", erfasst: "success" } as const satisfies Record<EsutdMeldungStatus, "warning" | "success">;
 
 /** Offen und die Frist ist vor `heute` verstrichen. Der Tag der Frist selbst zaehlt noch. */
+/**
+ * Altbestand: eine Person gilt als "erfasst", obwohl im Meldeprozess kein Vertrag zu ihr steht. Der Status stammt dann aus der alten Erfassung (Handeingabe),
+ * der Meldeprozess kann ihn weder bestaetigen noch nachziehen (esutd_status_abgleichen laesst Personen ohne Vertrag aus). Nur, wo die Verträge sichtbar
+ * sind: wer sie nicht lesen darf, sieht sonst bei jeder Person "kein Vertrag".
+ */
+export function esutdAltbestand(e: { status: string; hatVertrag: boolean | undefined; vertraegeSichtbar: boolean }): boolean {
+  return e.vertraegeSichtbar && e.hatVertrag === false && e.status === "erfasst";
+}
+
 export function meldungUeberfaellig(m: Pick<EsutdMeldung, "status" | "meldefristAm">, heute: string): boolean {
   return m.status === "offen" && m.meldefristAm !== null && m.meldefristAm < heute;
 }

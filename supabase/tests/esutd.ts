@@ -14,6 +14,7 @@ import {
   esutdEreignisFehler,
   esutdErfassenFehler,
   esutdTon,
+  esutdAltbestand,
   esutdVertragFehler,
   istEsutdArt,
   meldungUeberfaellig,
@@ -119,6 +120,17 @@ for (const sprache of ["de", "en", "kk", "ru"]) {
   check("DA017: der Fehlercode der Datenbank wird auf die Meldung abgebildet", /case "DA017":[\s\S]{0,300}fehler\("fehler\.esutdErfassteMeldungen"\)/.test(status));
   const alleSprachen = ["de", "en", "kk", "ru"].every((s) => lies(`src/messages/${s}.json`).includes('"esutdErfassteMeldungen"'));
   check("DA017: die Meldung steht in allen vier Sprachen", alleSprachen);
+}
+
+// --- Altbestand: "erfasst" ohne Vertrag im Meldeprozess (15.10.2026) ----------------------------------------------------------------------
+{
+  check("Altbestand: erfasst ohne Vertrag, bei sichtbaren Verträgen, ist Altbestand", esutdAltbestand({ status: "erfasst", hatVertrag: false, vertraegeSichtbar: true }));
+  check("Altbestand: mit Vertrag ist es keiner", !esutdAltbestand({ status: "erfasst", hatVertrag: true, vertraegeSichtbar: true }));
+  check("Altbestand: ein offener Status braucht den Hinweis nicht (die Frist läuft ohnehin nicht)", !esutdAltbestand({ status: "offen", hatVertrag: false, vertraegeSichtbar: true }));
+  check("Altbestand: wo die Verträge nicht lesbar sind, gibt es keinen Hinweis (sonst bei jeder Person falsch)", !esutdAltbestand({ status: "erfasst", hatVertrag: false, vertraegeSichtbar: false }));
+  check("Altbestand: unbekannt (Demo) ist kein Altbestand", !esutdAltbestand({ status: "erfasst", hatVertrag: undefined, vertraegeSichtbar: true }));
+  const sprachen = ["de", "en", "kk", "ru"].map((l) => JSON.parse(readFileSync(`src/messages/${l}.json`, "utf8")) as { personalAnsicht?: { esutdAltbestand?: string } });
+  check("Altbestand: der Hinweis steht in allen vier Sprachen", sprachen.every((m) => typeof m.personalAnsicht?.esutdAltbestand === "string" && m.personalAnsicht.esutdAltbestand.length > 20));
 }
 
 if (fehler > 0) {

@@ -4034,7 +4034,8 @@
       "erfasst": "erfasst",
       "offen": "offen"
     },
-    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind nicht Teil dieser Ansicht - die Temperatursumme steht im Wetter-Modul."
+    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind nicht Teil dieser Ansicht - die Temperatursumme steht im Wetter-Modul.",
+    "esutdAltbestand": "Status aus der alten Erfassung: Im Meldeprozess steht kein Vertrag zu dieser Person. Bitte den Vertrag im Modul Compliance nachtragen."
   },
   "erlebnis": {
     "bento": {

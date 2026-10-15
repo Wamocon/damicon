@@ -18,6 +18,8 @@ export interface PfleuckerZeile {
   // Vertrag mit Beginndatum vorliegt (kein Feldarbeiter ohne erkennbare
   // Frist zeigt einen falschen Countdown).
   esutdFaelligkeit: string | null;
+  /** Steht im Meldeprozess ein Vertrag zu dieser Person? undefined, wenn unbekannt (Demo, oder die Verträge sind nicht lesbar). */
+  hatEsutdVertrag?: boolean;
   letzteMengeKg: number | null;
   letzterQualitaetsfaktor: number | null;
 }
