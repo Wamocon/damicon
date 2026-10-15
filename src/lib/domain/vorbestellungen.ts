@@ -67,6 +67,9 @@ export interface B2bKundeZeile {
   kundengruppe: Kundengruppe | null;
 }
 
+/** So viele Vorbestellungen zeigt eine Seite der Liste. Eine Saison bringt mit vielen Kunden mehr als 1000 (PostgREST schneidet dort still ab). */
+export const VORBESTELLUNGEN_PRO_SEITE = 25;
+
 export const demoVorbestellungen: VorbestellungZeile[] = [
   {
     id: "demo-vorbestellung-1",

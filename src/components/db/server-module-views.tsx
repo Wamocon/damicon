@@ -75,7 +75,7 @@ export function serverModulAnsicht(
     case "compliance":
       return <ComplianceAnsicht />;
     case "reklamationen":
-      return <ReklamationenAnsicht pfad={kontext.pfad} auswahl={wert("reklamation")} />;
+      return <ReklamationenAnsicht pfad={kontext.pfad} auswahl={wert("reklamation")} rseite={wert("rseite")} />;
     case "lohn":
       return <LohnAnsicht />;
     case "finanzen":
@@ -137,7 +137,7 @@ export function serverModulAnsicht(
     case "sortenkatalog":
       return <SortenkatalogAnsicht />;
     case "b2b_portal":
-      return <B2bPortalAnsicht />;
+      return <B2bPortalAnsicht pfad={kontext.pfad} vseite={wert("vseite")} />;
     // Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe - eigenes Modul
     // statt Teil von b2b_portal, siehe Kommentar bei der Ressource in rbac.ts.
     case "preislisten":

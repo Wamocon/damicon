@@ -190,8 +190,10 @@ const KUNDEN: AuswahlZeile[] = [
   { id: "k2", label: "Almaty Fresh" },
 ];
 const CHARGEN: AuswahlZeile[] = [{ id: "c1", label: "CH-0902-12" }];
+/** Eine einseitige Liste aus festen Eintraegen (die Seitenzahlen kommen sonst aus dem Lader). */
+const listeVon = (quelle: ReklamationenListe["quelle"], reklamationen: ReklamationListenEintrag[], seite = 1, seiten = 1): ReklamationenListe => ({ quelle, reklamationen, gesamt: reklamationen.length, seite, seiten });
 const setze = (teil: Partial<Lage> = {}) => {
-  lage = { profil: profil("betriebsleitung"), liste: { quelle: "db", reklamationen: LISTE }, details: DETAILS, kunden: KUNDEN, chargen: CHARGEN, ...teil };
+  lage = { profil: profil("betriebsleitung"), liste: listeVon("db", LISTE), details: DETAILS, kunden: KUNDEN, chargen: CHARGEN, ...teil };
 };
 
 // ---- Auszüge aus dem Markup ---------------------------------------------------------------------------------------------------------
@@ -465,7 +467,7 @@ async function main() {
 
   // ---- 6. Demo und Lesefehler: keine Formulare, Büro sieht trotzdem Kunde und Rückverfolgung ----------------------------------
   for (const quelle of ["demo", "fehler"] as const) {
-    setze({ liste: { quelle, reklamationen: LISTE } });
+    setze({ liste: listeVon(quelle, LISTE) });
     const { html } = await ansicht();
     pruefe(
       `Quelle ${quelle}: Abzeichen, keine Formulare, nichts nachgeladen außer dem Detail`,
@@ -476,10 +478,33 @@ async function main() {
     );
   }
 
+  // ---- 6b. Mehrere Seiten (WMCNL-2491) -----------------------------------------------------------------------------------------
+  {
+    setze({ liste: listeVon("db", LISTE, 2, 3) });
+    const { html } = await ansicht();
+    pruefe("Seite 2 von 3: das Blaettern steht unter der Liste, mit Hash auf die Liste", html.includes('aria-label="' + (de.liste as { blaettern: { label: string } }).blaettern.label + '"') && html.includes("rseite=3") && html.includes("#liste"), html.match(/href="[^"]*rseite[^"]*"/g)?.join(" ") ?? "kein Link");
+    pruefe("Seite 2 von 3: ein Eintrag oeffnet auf derselben Seite (rseite bleibt im Link)", /href="[^"]*reklamation=r1[^"]*rseite=2[^"]*"/.test(html), html.match(/href="[^"]*reklamation=[^"]*"/g)?.slice(0, 2).join(" ") ?? "kein Link");
+  }
+  {
+    setze({ liste: listeVon("db", LISTE) });
+    const { html } = await ansicht();
+    pruefe("Eine Seite: kein Blaettern, kein rseite in den Links", !html.includes("rseite=") && !html.includes('aria-label="' + (de.liste as { blaettern: { label: string } }).blaettern.label + '"'));
+  }
+  {
+    setze({ liste: listeVon("db", LISTE, 2, 3) });
+    await ansicht("r-ferne-seite");
+    pruefe("Mehrere Seiten: ein Eintrag, der nicht auf der Seite steht, oeffnet trotzdem sein Detail", protokoll.includes("ladeReklamation(r-ferne-seite)") && !protokoll.includes("ladeReklamation(r1)"), protokoll.join(","));
+  }
+  {
+    setze({ liste: listeVon("db", LISTE) });
+    await ansicht("r-unbekannt");
+    pruefe("Eine Seite: eine unbekannte Auswahl faellt auf den ersten Eintrag (wie zuvor)", protokoll.includes("ladeReklamation(r1)") && !protokoll.includes("ladeReklamation(r-unbekannt)"), protokoll.join(","));
+  }
+
   // ---- 7. Leere Liste und fehlendes Detail ---------------------------------------------------------------------------------------
   const anlegenLink = `href="/de/reklamationen#anlegen-reklamation"`;
   {
-    setze({ liste: { quelle: "db", reklamationen: [] } });
+    setze({ liste: listeVon("db", []) });
     const { html, fehler } = await ansicht();
     pruefe("Leer Büro: baut ohne Fehler auf", fehler.length === 0, fehler.slice(0, 3).join(" | "));
     pruefe("Leer Büro: kein Detail geladen", !protokoll.some((z) => z.startsWith("ladeReklamation(")) && protokoll.includes("ladeB2bKundenOptionen"), protokoll.join(","));
@@ -487,7 +512,7 @@ async function main() {
     pruefe("Leer Büro: der leere Zustand verweist auf das Formular", html.includes(anlegenLink) || html.includes("#anlegen-reklamation"), html.match(/href="[^"]*anlegen[^"]*"/)?.[0] ?? "kein Link");
   }
   {
-    setze({ liste: { quelle: "db", reklamationen: [] }, profil: profil("brigade") });
+    setze({ liste: listeVon("db", []), profil: profil("brigade") });
     const { html } = await ansicht();
     pruefe("Leer ohne Recht: kein Verweis auf das Formular, kein Formular", !html.includes("#anlegen-reklamation") && anlegen(html) === null && html.includes(imMarkup(t.empty!)));
   }

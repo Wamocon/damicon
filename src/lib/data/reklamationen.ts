@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
+import { seitenModell } from "@/lib/listen/seiten";
 import {
+  REKLAMATIONEN_PRO_SEITE,
   demoReklamationen,
   type ReklamationEreignis,
   type ReklamationGrund,
@@ -33,7 +35,12 @@ export interface ReklamationListenEintrag {
 
 export interface ReklamationenListe {
   quelle: Datenquelle;
+  /** Die Eintraege der angezeigten Seite, neueste zuerst. */
   reklamationen: ReklamationListenEintrag[];
+  /** Alle Reklamationen, die die Person sehen darf. */
+  gesamt: number;
+  seite: number;
+  seiten: number;
 }
 
 export interface RueckverfolgungPfluecker {
@@ -86,6 +93,9 @@ export interface ReklamationDetail extends ReklamationListenEintrag {
 function demoListe(quelle: ReklamationenListe["quelle"] = "demo"): ReklamationenListe {
   return {
     quelle,
+    gesamt: demoReklamationen.length,
+    seite: 1,
+    seiten: 1,
     reklamationen: demoReklamationen.map((r) => ({
       id: r.id,
       code: r.code,
@@ -104,10 +114,18 @@ function demoListe(quelle: ReklamationenListe["quelle"] = "demo"): Reklamationen
   };
 }
 
-export async function ladeReklamationen(): Promise<ReklamationenListe> {
+/**
+ * Eine Seite der Reklamationen, neueste zuerst (WMCNL-2491). Gezaehlt wird zuerst, damit eine Seite jenseits der letzten auf die letzte faellt (PostgREST
+ * antwortete sonst mit 416); die Zeilensicherheit gilt fuer die Zaehlung wie fuer die Zeilen.
+ */
+export async function ladeReklamationen(seite = 1): Promise<ReklamationenListe> {
   if (!isSupabaseConfigured()) return demoListe();
 
   const supabase = await createClient();
+  const zaehlung = await supabase.from("reklamationen").select("id", { count: "exact", head: true });
+  if (zaehlung.error || zaehlung.count === null) return demoListe("fehler");
+  const modell = seitenModell(zaehlung.count, seite, REKLAMATIONEN_PRO_SEITE);
+
   const { data, error } = await supabase
     .from("reklamationen")
     .select(
@@ -115,7 +133,9 @@ export async function ladeReklamationen(): Promise<ReklamationenListe> {
        b2b_kunden ( id, name ),
        chargen ( code, reihenbloecke ( code ) )`,
     )
-    .order("gemeldet_am", { ascending: false });
+    .order("gemeldet_am", { ascending: false })
+    .order("id")
+    .range(modell.von, modell.bis);
 
   if (error || !data) return demoListe("fehler");
 
@@ -123,7 +143,7 @@ export async function ladeReklamationen(): Promise<ReklamationenListe> {
     listenEintragAus(r, einsAus(r.b2b_kunden), einsAus(r.chargen)),
   );
 
-  return { quelle: "db", reklamationen };
+  return { quelle: "db", reklamationen, gesamt: zaehlung.count, seite: modell.seite, seiten: modell.seiten };
 }
 
 /** Eine eingebettete Beziehung, wie PostgREST sie liefert: Objekt, Liste oder nichts (siehe einsAus). */

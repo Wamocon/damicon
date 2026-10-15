@@ -20,6 +20,9 @@ export const reklamationGruende = [
 
 export type ReklamationGrund = (typeof reklamationGruende)[number];
 
+/** So viele Reklamationen zeigt eine Seite der Liste (WMCNL-2491). */
+export const REKLAMATIONEN_PRO_SEITE = 20;
+
 export const reklamationStatus = [
   "offen",
   "in_pruefung",

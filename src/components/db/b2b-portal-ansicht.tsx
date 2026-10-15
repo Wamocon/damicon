@@ -19,7 +19,7 @@ import { ladeRechnungshistorie } from "@/lib/data/rechnungshistorie";
 import { LieferplanDownload, VorbestellungNachrichten } from "@/components/db/vorbestellung-nachrichten";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
-import { LeererZustand } from "@/components/ui/liste";
+import { Blaettern, LeererZustand } from "@/components/ui/liste";
 import { formularZiel } from "@/lib/formular-ziele";
 import { kuehlErgebnisTon, lieferStatusTon } from "@/components/db/toene";
 
@@ -41,7 +41,7 @@ const vorbestellungTon: Record<string, Tone> = {
 // Liefermenge und der zum Liefertermin gueltigen Preisliste, keine
 // rechtsverbindliche Rechnung - siehe domain/rechnungshistorie.ts fuer die
 // fachliche Festlegung.
-export async function B2bPortalAnsicht() {
+export async function B2bPortalAnsicht({ pfad, vseite }: { pfad: string; vseite?: string }) {
   const [profil, t] = await Promise.all([
     getSessionProfile(),
     getTranslations("b2bPortalAnsicht"),
@@ -49,7 +49,7 @@ export async function B2bPortalAnsicht() {
   const istKundeVorab = profil?.role === "kunde";
   const [uebersicht, vorbestellungen, kontingente, rechnungen, preislisten] = await Promise.all([
     ladeLieferungen(),
-    ladeVorbestellungen(),
+    ladeVorbestellungen(Number(vseite) || 1),
     ladeKontingente(),
     ladeRechnungshistorie(),
     // Anforderung 5.1/5.2: eine Kunden-Anmeldung sieht nur die eigene
@@ -257,6 +257,7 @@ export async function B2bPortalAnsicht() {
       </Section>
 
       <Section
+        id="vorbestellungen"
         title={t("vorbestellungenTitel")}
         description={t("vorbestellungenLead")}
         action={live ? <LieferplanDownload /> : undefined}
@@ -304,6 +305,12 @@ export async function B2bPortalAnsicht() {
             ))}
           </DataTable>
         )}
+        {/* Seite 1 ohne Parameter: eine Adresse, ein Zustand (listenQuery in lib/listen/parameter.ts folgt derselben Regel). */}
+        <Blaettern
+          seite={vorbestellungen.seite}
+          seiten={vorbestellungen.seiten}
+          ziel={(s) => ({ pathname: pfad, query: s > 1 ? { vseite: String(s) } : {}, hash: "vorbestellungen" })}
+        />
       </Section>
 
       {darfAnlegen ? (

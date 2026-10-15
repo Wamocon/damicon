@@ -296,7 +296,15 @@ async function main() {
   DB_AN();
   lage(alleTabellen);
   const liste = await lader.ladeReklamationen();
-  pruefe("Liste: eine Abfrage mit Kunde, Charge und Reihenblock, neueste zuerst", gleich(abfragen, [["reklamationen", `select(${JSON.stringify(SELECT_LISTE)})`, 'order("gemeldet_am", {"ascending":false})']]), abfragen[0]?.join(" . "));
+  pruefe(
+    "Liste: erst zaehlen, dann eine Seite mit Kunde, Charge und Reihenblock, neueste zuerst, bei Gleichstand nach Id",
+    gleich(abfragen, [
+      ["reklamationen", 'select("id", {"count":"exact","head":true})'],
+      ["reklamationen", `select(${JSON.stringify(SELECT_LISTE)})`, 'order("gemeldet_am", {"ascending":false})', 'order("id")', "range(0, 19)"],
+    ]),
+    abfragen.map((a) => a.join(" . ")).join(" | "),
+  );
+  pruefe("Liste: Seitenzahlen bei fuenf Eintraegen: gesamt 5, Seite 1 von 1", liste.gesamt === 5 && liste.seite === 1 && liste.seiten === 1);
   pruefe("Liste: Quelle db und vollständiger erster Eintrag", liste.quelle === "db" && liste.reklamationen.length === 5 && gleich(liste.reklamationen.find((r) => r.id === "r1"), listenTeil), JSON.stringify(liste.reklamationen.find((r) => r.id === "r1")));
   pruefe(
     "Liste: Eintrag ohne Kunde und Charge",
