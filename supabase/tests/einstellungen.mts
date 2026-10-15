@@ -7,6 +7,14 @@
 import { starte } from "./hilfen/pglite-rollen.mjs";
 import { bereiche, darfEinstellungAendern, einstellungDef, einstellungen, einstellungTextSchluessel, pruefeEinstellungEingabe } from "@/lib/einstellungen";
 import { readFileSync } from "node:fs";
+import {
+  darfRisikoParameterAendern,
+  RISIKO_GRENZEN,
+  RISIKO_PARAMETER,
+  RISIKO_PARAMETER_GRUPPEN,
+  pruefeRisikoEingabe,
+  type RisikoParameterSchluessel,
+} from "@/lib/domain/block-risiko";
 
 const t = await starte();
 const { db, check, als, mussScheitern } = t;
@@ -141,5 +149,112 @@ await mussScheitern("Lesen: anon liest keine Einstellung", `select * from public
 await t.alsRolle("anon");
 await mussScheitern("Lesen: anon ruft die Funktion nicht auf", `select public.einstellung_zahl('esf.frist_tage');`, [], "42501");
 await t.alsAdmin();
+
+// --- 5. Risiko-Gewichte pflegen (Migration 20261208100000) -------------------------------------------------------------------------------
+{
+  const setzen = (schluessel: string, wert: number | null, grund: string | null = null) =>
+    db.query(`select public.risiko_parameter_setzen($1, $2, $3);`, [schluessel, wert, grund]);
+  const wertVon = async (schluessel: string) => Number((await db.query<{ w: string }>(`select wert::text as w from public.risiko_parameter where schluessel = $1;`, [schluessel])).rows[0].w);
+  const verlauf = async (schluessel: string) =>
+    (await db.query<{ alt: string | null; neu: string | null; grund: string | null; von: string | null }>(
+      `select alt_wert::text as alt, neu_wert::text as neu, grund, geaendert_von::text as von from public.betriebs_einstellungen_verlauf where schluessel = $1 order by geaendert_am, id;`,
+      ['risiko.' + schluessel],
+    )).rows;
+
+  // Liste im Code gegen die Datenbank
+  const { rows: param } = await db.query<{ schluessel: string; wert: string; standard_wert: string | null }>(`select schluessel, wert::text, standard_wert::text from public.risiko_parameter;`);
+  check("Risiko: jeder Parameter der Datenbank steht im Code und umgekehrt", param.length === RISIKO_PARAMETER.length && RISIKO_PARAMETER.every((s) => param.some((p) => p.schluessel === s)));
+  check("Risiko: jeder Parameter hat einen Standardwert, und er ist der Startwert", param.every((p) => p.standard_wert !== null && Number(p.standard_wert) === Number(p.wert)), JSON.stringify(param.filter((p) => p.standard_wert === null)));
+  const gruppiert = RISIKO_PARAMETER_GRUPPEN.flatMap((g) => [...g.schluessel]);
+  check("Risiko: die Gruppen der Oberfläche decken jeden Parameter genau einmal ab", gruppiert.length === RISIKO_PARAMETER.length && new Set(gruppiert).size === RISIKO_PARAMETER.length && RISIKO_PARAMETER.every((s) => gruppiert.includes(s)));
+  for (const s of RISIKO_PARAMETER) {
+    const { rows: g } = await db.query<{ min_wert: string; max_wert: string; ganzzahl: boolean }>(`select min_wert::text, max_wert::text, ganzzahl from public.risiko_parameter_grenzen($1);`, [s]);
+    const c = RISIKO_GRENZEN[s];
+    check(`Risiko: ${s} hat in Code und Datenbank dieselben Grenzen`, g.length === 1 && Number(g[0].min_wert) === c.min && Number(g[0].max_wert) === c.max && g[0].ganzzahl === c.ganzzahl, JSON.stringify(g));
+  }
+  {
+    const sprachen = ["de", "en", "ru", "kk"].map((l) => ({ l, m: JSON.parse(readFileSync(`src/messages/${l}.json`, "utf8")) }));
+    for (const { l, m } of sprachen) {
+      const r = m.einstellungen?.risiko;
+      const fehlt = RISIKO_PARAMETER.filter((s) => !r?.eintrag?.[s]?.label || !r?.eintrag?.[s]?.beschreibung || !r?.eintrag?.[s]?.einheit);
+      const gruppen = RISIKO_PARAMETER_GRUPPEN.filter((g) => !r?.gruppe?.[g.name]);
+      const fehler = ["risikoSchwellen", "risikoAusschuss", "risikoGewichte"].filter((k) => !m.aktionen?.fehler?.[k]);
+      check(`Risiko-Texte (${l}): Titel, Gruppen, Fehler und jeder Parameter mit Beschriftung, Beschreibung und Einheit`, !!r?.titel && !!r?.lead && !!r?.nurLesen && !!r?.bereich && fehlt.length === 0 && gruppen.length === 0 && fehler.length === 0, [...fehlt, ...fehler].join(","));
+    }
+  }
+
+  // Rolle
+  for (const rolle of ["admin", "ceo"]) {
+    await als(rolle, async () => {
+      await setzen("gewicht_ausschuss", 25, `Abstimmung mit dem Betreiber (${rolle})`);
+      check(`Risiko: ${rolle} ändert ein Gewicht`, (await wertVon("gewicht_ausschuss")) === 25);
+    });
+    const v = await verlauf("gewicht_ausschuss");
+    const letzter = v[v.length - 1];
+    check(`Risiko: der Verlauf hält alt, neu, Grund und Person fest (${rolle})`, letzter.alt === "20" && letzter.neu === "25" && letzter.grund === `Abstimmung mit dem Betreiber (${rolle})` && letzter.von !== null, JSON.stringify(letzter));
+    await als(rolle, async () => {
+      await setzen("gewicht_ausschuss", 20, null);
+    });
+  }
+  for (const rolle of ["betriebsleitung", "buchhaltung", "brigade", "picker", "erzeuger", "kunde"]) {
+    await alsScheitert(rolle, `Risiko: ${rolle} darf kein Gewicht ändern (42501)`, `select public.risiko_parameter_setzen('gewicht_ausschuss', 25, null);`, [], "42501");
+  }
+  check("Risiko: nach den Versuchen steht das Gewicht auf dem Startwert", (await wertVon("gewicht_ausschuss")) === 20);
+
+  await als("admin", async () => {
+    const vorher = (await verlauf("gewicht_sperre")).length;
+    await setzen("gewicht_sperre", 30, null);
+    check("Risiko: derselbe Wert erzeugt keinen Verlaufseintrag", (await verlauf("gewicht_sperre")).length === vorher);
+    await db.query(`update public.risiko_parameter set wert = 31 where schluessel = 'gewicht_sperre';`);
+    const v = await verlauf("gewicht_sperre");
+    check("Risiko: auch ein direkter Update schreibt den Verlauf (ohne Grund)", v.length === vorher + 1 && v[v.length - 1].neu === "31" && v[v.length - 1].grund === null, JSON.stringify(v));
+    await setzen("gewicht_sperre", 30, "Zurück auf den Startwert");
+    const nach = await verlauf("gewicht_sperre");
+    check("Risiko: der Grund eines früheren Aufrufs hängt nicht an späteren Änderungen", nach[nach.length - 1].grund === "Zurück auf den Startwert" && nach[nach.length - 2].grund === null);
+  });
+  await alsScheitert("admin", "Risiko: ein Grund unter drei Zeichen wird abgelehnt (23514)", `select public.risiko_parameter_setzen('gewicht_ausschuss', 21, 'ab');`, [], "23514");
+  await alsScheitert("admin", "Risiko: ein leerer Wert wird abgelehnt (23514)", `select public.risiko_parameter_setzen('gewicht_ausschuss', null, null);`, [], "23514");
+  await alsScheitert("admin", "Risiko: ein unbekannter Parameter wird abgelehnt (23503)", `select public.risiko_parameter_setzen('gibt_es_nicht', 1, null);`, [], "23503");
+
+  // Grenzen je Parameter, in der Datenbank wie im Code
+  const { rows: stand } = await db.query<{ schluessel: string; wert: string }>(`select schluessel, wert::text from public.risiko_parameter;`);
+  const aktuell = stand.map((p) => ({ schluessel: p.schluessel, wert: Number(p.wert) }));
+  for (const s of RISIKO_PARAMETER) {
+    const g = RISIKO_GRENZEN[s as RisikoParameterSchluessel];
+    await alsScheitert("admin", `Risiko: ${s} über dem Höchstwert (${g.max}) wird abgelehnt`, `select public.risiko_parameter_setzen($1, $2, null);`, [s, g.max + 1], "23514");
+    await alsScheitert("admin", `Risiko: ${s} unter dem Mindestwert (${g.min}) wird abgelehnt`, `select public.risiko_parameter_setzen($1, $2, null);`, [s, g.min - 1], "23514");
+    if (g.ganzzahl) await alsScheitert("admin", `Risiko: ${s} muss ganzzahlig sein`, `select public.risiko_parameter_setzen($1, $2, null);`, [s, g.min + 0.5], "23514");
+    const hoch = pruefeRisikoEingabe(s as RisikoParameterSchluessel, String(g.max + 1), aktuell);
+    const tief = pruefeRisikoEingabe(s as RisikoParameterSchluessel, String(g.min - 1), aktuell);
+    check(`Risiko: ${s}: dieselben Grenzen in der Eingabeprüfung der Anwendung`, "fehler" in hoch && "fehler" in tief, JSON.stringify([hoch, tief]));
+  }
+  // Reihenfolge der Schwellen, Gewichte nicht alle null
+  await alsScheitert("admin", "Risiko: die Schwelle hoch unter mittel wird abgelehnt (23514)", `select public.risiko_parameter_setzen('schwelle_hoch', 20, null);`, [], "23514");
+  await alsScheitert("admin", "Risiko: der kritische Ausschuss auf dem Zielwert wird abgelehnt (23514)", `select public.risiko_parameter_setzen('ausschuss_kritisch_prozent', 6, null);`, [], "23514");
+  await als("admin", async () => {
+    for (const s of ["gewicht_ueberfaellig", "gewicht_sperre", "gewicht_ausschuss", "gewicht_kuehlkette"]) await setzen(s, 0, null);
+    check("Risiko: vier Gewichte auf null sind in Ordnung, solange eines über null bleibt", (await wertVon("gewicht_erfassung")) === 5);
+  });
+  await alsScheitert("admin", "Risiko: alle Gewichte auf null werden abgelehnt (23514, die Sicht teilt durch die Summe)", `select public.risiko_parameter_setzen('gewicht_erfassung', 0, null);`, [], "23514");
+  await als("admin", async () => {
+    for (const [s, w] of [["gewicht_ueberfaellig", 35], ["gewicht_sperre", 30], ["gewicht_ausschuss", 20], ["gewicht_kuehlkette", 10]] as const) await setzen(s, w, "Zurück auf die Startwerte");
+    const { rows: summe } = await db.query<{ s: string }>(`select sum(wert)::text as s from public.risiko_parameter where schluessel like 'gewicht\_%';`);
+    check("Risiko: die Startwerte sind wiederhergestellt (Summe 100)", Number(summe[0].s) === 100, summe[0].s);
+  });
+
+  // Eingabeprüfung der Anwendung
+  const ist = RISIKO_PARAMETER.map((s) => ({ schluessel: s as string, wert: Number(stand.find((p) => p.schluessel === s)?.wert ?? 0) }));
+  const eingabe = (s: RisikoParameterSchluessel, roh: string) => JSON.stringify(pruefeRisikoEingabe(s, roh, ist));
+  check("Risiko-Eingabe: Komma wird verziehen, ein Wert im Bereich angenommen", eingabe("gewicht_ausschuss", "22,5") === JSON.stringify({ wert: 22.5 }));
+  check("Risiko-Eingabe: leer, Text, negativ und Exponent werden abgelehnt", ["", " ", "abc", "-1", "1e3"].every((r) => eingabe("gewicht_ausschuss", r) === JSON.stringify({ fehler: "eingabe" })));
+  check("Risiko-Eingabe: eine Dezimalzahl bei einem Tageswert gibt \"ganzzahl\"", eingabe("betrachtung_tage", "7,5") === JSON.stringify({ fehler: "einstellungGanzzahl" }));
+  check("Risiko-Eingabe: außerhalb des Bereichs gibt \"grenzen\"", eingabe("betrachtung_tage", "91") === JSON.stringify({ fehler: "einstellungGrenzen" }) && eingabe("betrachtung_tage", "0") === JSON.stringify({ fehler: "einstellungGrenzen" }));
+  check("Risiko-Eingabe: Schwellen und Ausschuss in falscher Reihenfolge", eingabe("schwelle_hoch", "25") === JSON.stringify({ fehler: "risikoSchwellen" }) && eingabe("schwelle_mittel", "50") === JSON.stringify({ fehler: "risikoSchwellen" }) && eingabe("ausschuss_kritisch_prozent", "6") === JSON.stringify({ fehler: "risikoAusschuss" }) && eingabe("ausschuss_ziel_prozent", "12") === JSON.stringify({ fehler: "risikoAusschuss" }));
+  {
+    const nurEins = ist.map((p) => (p.schluessel === "gewicht_erfassung" ? p : p.schluessel.startsWith("gewicht_") ? { ...p, wert: 0 } : p));
+    check("Risiko-Eingabe: das letzte Gewicht über null lässt sich nicht auf null setzen", JSON.stringify(pruefeRisikoEingabe("gewicht_erfassung", "0", nurEins)) === JSON.stringify({ fehler: "risikoGewichte" }));
+  }
+  check("Risiko-Eingabe: nur Administration und Geschäftsführung dürfen ändern", ["admin", "ceo"].every((r) => darfRisikoParameterAendern(r)) && ["betriebsleitung", "buchhaltung", "brigade", "picker", "erzeuger", "kunde", null, undefined, ""].every((r) => !darfRisikoParameterAendern(r)));
+}
 
 t.ende("Alle Tests der Einstellungen gruen.");

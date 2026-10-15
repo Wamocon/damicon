@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import {
@@ -26,7 +27,7 @@ export async function ladeBlockRisiko(): Promise<BlockRisikoStand> {
   const supabase = await createClient();
   const [sicht, parameter] = await Promise.all([
     supabase.from("v_block_risiko").select("*"),
-    supabase.from("risiko_parameter").select("schluessel, wert, einheit, begruendung").order("schluessel"),
+    supabase.from("risiko_parameter").select("schluessel, wert, einheit, begruendung, standard_wert").order("schluessel"),
   ]);
   if (sicht.error || !sicht.data || parameter.error || !parameter.data) {
     return { quelle: "fehler", risiken: {}, parameter: [] };
@@ -53,6 +54,28 @@ export async function ladeBlockRisiko(): Promise<BlockRisikoStand> {
   return {
     quelle: "db",
     risiken,
-    parameter: parameter.data.map((p) => ({ ...p, wert: Number(p.wert) })),
+    parameter: parameter.data.map(parameterAusZeile),
   };
 }
+
+type ParameterZeile = { schluessel: string; wert: number | string; einheit: string; begruendung: string; standard_wert: number | string | null };
+
+const parameterAusZeile = (p: ParameterZeile): RisikoParameter => ({
+  schluessel: p.schluessel,
+  wert: Number(p.wert),
+  einheit: p.einheit,
+  begruendung: p.begruendung,
+  standard: p.standard_wert === null ? null : Number(p.standard_wert),
+});
+
+/** Nur die Parameter (ohne die Sicht), einmal je Anfrage gelesen: fuer die Pflege in den Einstellungen. Ohne Datenbank oder bei einem Fehler leer. */
+export const ladeRisikoParameter = cache(async (): Promise<RisikoParameter[]> => {
+  if (!isSupabaseConfigured()) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("risiko_parameter").select("schluessel, wert, einheit, begruendung, standard_wert");
+  if (error || !data) {
+    if (error) console.error("[damicon] Risiko-Parameter lesen fehlgeschlagen:", error.message);
+    return [];
+  }
+  return data.map(parameterAusZeile);
+});

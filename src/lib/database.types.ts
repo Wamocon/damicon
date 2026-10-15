@@ -3425,6 +3425,7 @@ export type Database = {
           begruendung: string
           einheit: string
           schluessel: string
+          standard_wert: number | null
           updated_at: string
           wert: number
         }
@@ -3432,6 +3433,7 @@ export type Database = {
           begruendung: string
           einheit: string
           schluessel: string
+          standard_wert?: number | null
           updated_at?: string
           wert: number
         }
@@ -3439,6 +3441,7 @@ export type Database = {
           begruendung?: string
           einheit?: string
           schluessel?: string
+          standard_wert?: number | null
           updated_at?: string
           wert?: number
         }
@@ -4960,6 +4963,10 @@ export type Database = {
           kg_h: number
           name: string
         }[]
+      }
+      risiko_parameter_setzen: {
+        Args: { p_grund: string | null; p_schluessel: string; p_wert: number }
+        Returns: undefined
       }
       konto_sperren: {
         Args: { p_grund: string | null; p_profil: string; p_sperren: boolean }

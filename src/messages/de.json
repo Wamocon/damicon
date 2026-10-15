@@ -1194,7 +1194,10 @@
       "passwortUngleich": "Die beiden Eingaben stimmen nicht überein.",
       "passwortEinfach": "Das Passwort ist zu einfach (nicht die E-Mail-Adresse, mehr als drei verschiedene Zeichen).",
       "passwortGleich": "Das neue Passwort muss sich vom alten unterscheiden.",
-      "passwortAendern": "Das Passwort konnte nicht geändert werden. Bitte später noch einmal versuchen."
+      "passwortAendern": "Das Passwort konnte nicht geändert werden. Bitte später noch einmal versuchen.",
+      "risikoSchwellen": "Die Schwelle für „hoch“ muss über der Schwelle für „mittel“ liegen. Erst die obere Schwelle anheben, dann die untere, oder umgekehrt beim Senken.",
+      "risikoAusschuss": "Der kritische Ausschuss muss über dem Zielwert liegen.",
+      "risikoGewichte": "Mindestens ein Gewicht muss über null liegen."
     },
     "einladungen": {
       "erfolg": {
@@ -5629,6 +5632,90 @@
       "abholung_aufenthalt_minuten": {
         "label": "Zeit je Stopp der Abholrunde",
         "beschreibung": "Minuten für Wiegen, Verladen und Übergabe bei einem Nachbarbetrieb. Die Planung rechnet sie zur Fahrzeit, wenn sie die Ankunft je Stopp schätzt. Eine Planungsannahme, nach den ersten Runden zu prüfen."
+      }
+    },
+    "risiko": {
+      "titel": "Block-Risiko: Gewichte und Schwellen",
+      "lead": "Der Punktwert eines Reihenblocks (0 bis 100) entsteht aus fünf Faktoren. Das Gewicht sagt, wie schwer ein Faktor im Verhältnis zu den anderen wiegt, gerechnet wird durch ihre Summe. Ändern dürfen nur Administration und Geschäftsführung, jede Änderung steht im Verlauf.",
+      "nurLesen": "Nur Ansicht: ändern dürfen Administration und Geschäftsführung.",
+      "bereich": "erlaubt: {min} bis {max}",
+      "gruppe": {
+        "gewichte": "Gewichte der fünf Faktoren",
+        "faktoren": "Wann ein Faktor als voll gilt",
+        "zeitfenster": "Zeitfenster",
+        "schwellen": "Schwellen der Stufen"
+      },
+      "eintrag": {
+        "gewicht_ueberfaellig": {
+          "label": "Gewicht: versäumter Pflückdurchgang",
+          "einheit": "Gewicht",
+          "beschreibung": "Ein ausgelassener Pflückdurchgang vernichtet die Ernte des Blocks für den Zyklus: die schwerste und häufigste Folge."
+        },
+        "gewicht_sperre": {
+          "label": "Gewicht: Wartezeitsperre",
+          "einheit": "Gewicht",
+          "beschreibung": "Konflikt zwischen einer offenen Aufgabe und der Wartezeitsperre sowie verlorene Erntezeit durch die Sperre."
+        },
+        "gewicht_ausschuss": {
+          "label": "Gewicht: Ausschuss",
+          "einheit": "Gewicht",
+          "beschreibung": "Ausschuss mindert den Erlös der Ernte, trifft aber nur Teile davon."
+        },
+        "gewicht_kuehlkette": {
+          "label": "Gewicht: Kühlkette",
+          "einheit": "Gewicht",
+          "beschreibung": "Verstöße gegen die 60-Minuten-Regel treffen die Charge, nicht den Block selbst."
+        },
+        "gewicht_erfassung": {
+          "label": "Gewicht: Erfassungslücke",
+          "einheit": "Gewicht",
+          "beschreibung": "Eine Erfassungslücke ist ein Hinweis, kein Schaden: es gibt bewusste Pausen."
+        },
+        "intervall_max_tage": {
+          "label": "Längstes Pflückintervall",
+          "einheit": "Tage",
+          "beschreibung": "Längstes Pflückintervall des Rotationsplans. Verzug in dieser Länge bedeutet einen verlorenen Durchgang."
+        },
+        "ausschuss_ziel_prozent": {
+          "label": "Ausschuss: Zielwert",
+          "einheit": "Prozent",
+          "beschreibung": "Bis hierhin zählt der Ausschuss nicht. Der Zielwert der Kennzahl Verlustquote."
+        },
+        "ausschuss_kritisch_prozent": {
+          "label": "Ausschuss: kritischer Wert",
+          "einheit": "Prozent",
+          "beschreibung": "Ab hier gilt der Ausschuss-Faktor als voll. Muss über dem Zielwert liegen."
+        },
+        "kuehl_verstoesse_voll": {
+          "label": "Kühlketten-Verstöße bis voll",
+          "einheit": "Verstöße",
+          "beschreibung": "Ab so vielen Verstößen in der Betrachtungszeit gilt der Faktor als voll."
+        },
+        "sperre_durchgaenge_voll": {
+          "label": "Entfallende Durchgänge bis voll",
+          "einheit": "Durchgänge",
+          "beschreibung": "Ab so vielen durch die Sperre entfallenden Durchgängen gilt der Sperr-Faktor als voll."
+        },
+        "betrachtung_tage": {
+          "label": "Betrachtungszeit",
+          "einheit": "Tage",
+          "beschreibung": "Zeitfenster für Ausschuss und Kühlketten-Verstöße, standardmäßig eine Erntewoche."
+        },
+        "aktiv_tage": {
+          "label": "Block gilt als in Arbeit",
+          "einheit": "Tage",
+          "beschreibung": "Ein Block gilt als in Arbeit, wenn in dieser Zeit eine Aufgabe auf ihm lag."
+        },
+        "schwelle_hoch": {
+          "label": "Schwelle: Stufe hoch",
+          "einheit": "Punkte",
+          "beschreibung": "Ab hier Stufe hoch. Muss über der Schwelle für mittel liegen."
+        },
+        "schwelle_mittel": {
+          "label": "Schwelle: Stufe mittel",
+          "einheit": "Punkte",
+          "beschreibung": "Ab hier Stufe mittel."
+        }
       }
     }
   },
