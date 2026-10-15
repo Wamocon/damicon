@@ -110,6 +110,40 @@ export const nachweisTon = {
   offen: "neutral",
 } as const satisfies Record<NachweisStatus, "success" | "warning" | "danger" | "neutral">;
 
+/** Was ein Dokument braucht, um in einer Versionskette zu stehen (v_dokumente: ersetzt_id, ersetzt_durch_id). */
+export interface Versionierbar {
+  id: string;
+  ersetztId: string | null;
+  ersetztDurchId: string | null;
+}
+
+/**
+ * Ordnet die Dokumente nach Versionen (Migration 20261208120000). Aktuell ist, was keinen Nachfolger hat; zu jedem aktuellen Dokument gehoeren seine
+ * frueheren Versionen, die neueste zuerst. Die Reihenfolge der aktuellen Dokumente bleibt die der Eingabe. Ein Nachfolger, der nicht in der Liste steht
+ * (die Zeile ist fuer die Person nicht sichtbar), macht das Dokument nicht unsichtbar. Kreise und fehlende Glieder brechen die Kette ab.
+ */
+export function ordneVersionen<T extends Versionierbar>(zeilen: readonly T[]): { aktuell: T; vorversionen: T[] }[] {
+  const nachId = new Map(zeilen.map((z) => [z.id, z]));
+  return zeilen
+    .filter((z) => z.ersetztDurchId === null || !nachId.has(z.ersetztDurchId))
+    .map((aktuell) => {
+      const vorversionen: T[] = [];
+      const gesehen = new Set([aktuell.id]);
+      let id = aktuell.ersetztId;
+      while (id !== null && !gesehen.has(id)) {
+        const vor = nachId.get(id);
+        if (!vor) break;
+        gesehen.add(id);
+        vorversionen.push(vor);
+        id = vor.ersetztId;
+      }
+      return { aktuell, vorversionen };
+    });
+}
+
+/** Nur die aktuellen Versionen: das Register zaehlt und zeigt sie, ein ersetzter Nachweis schlaegt nicht mehr Alarm. */
+export const aktuelleVersionen = <T extends Versionierbar>(zeilen: readonly T[]): T[] => ordneVersionen(zeilen).map((g) => g.aktuell);
+
 /** Zaehlung fuer die Kopfzeile des Registers. */
 export function nachweisZaehlung(status: readonly NachweisStatus[]): Record<NachweisStatus, number> {
   const zaehler: Record<NachweisStatus, number> = { gueltig: 0, laeuft_ab: 0, abgelaufen: 0, offen: 0 };

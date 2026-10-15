@@ -58,6 +58,9 @@ export interface DokumentZeile {
   dateiUrl: string | null;
   /** Es gibt eine Datei im Speicher, unabhaengig davon, ob ein Link erzeugt werden konnte. */
   hatDatei: boolean;
+  /** Die Version, die dieses Dokument ersetzt (Migration 20261208120000), und die, die es ersetzt hat. */
+  ersetztId: string | null;
+  ersetztDurchId: string | null;
 }
 
 export interface DokumentListe {
@@ -109,13 +112,15 @@ function demoListe(quelle: DokumentListe["quelle"] = "demo"): DokumentListe {
         partner: null,
         dateiUrl: null,
         hatDatei: false,
+        ersetztId: null,
+        ersetztDurchId: null,
       };
     }),
   };
 }
 
 const SPALTEN = `id, name, kategorie, bezug, stand, storage_path, gueltig_von, gueltig_bis, unbefristet, warnung_tage,
-  nachweis_status, tage_bis_ablauf, verantwortlich_id, rechtsgrundlage, b2b_kunde_id, nachbarbetrieb_id,
+  nachweis_status, tage_bis_ablauf, verantwortlich_id, rechtsgrundlage, b2b_kunde_id, nachbarbetrieb_id, ersetzt_id, ersetzt_durch_id,
   reihenbloecke ( code ), chargen ( code ), profiles ( full_name ), b2b_kunden ( name ), nachbarbetriebe ( name )`;
 
 type DokumentRohzeile = NonNullable<Awaited<ReturnType<typeof ladeRohzeilen>>["data"]>[number];
@@ -163,6 +168,8 @@ function zeileAusDb(doc: DokumentRohzeile, signiert: ReadonlyMap<string, string>
     ...partnerAus(doc),
     dateiUrl: doc.storage_path ? (signiert.get(doc.storage_path) ?? null) : null,
     hatDatei: Boolean(doc.storage_path),
+    ersetztId: doc.ersetzt_id,
+    ersetztDurchId: doc.ersetzt_durch_id,
   };
 }
 
@@ -191,6 +198,8 @@ export async function ladeNachweisFristen(): Promise<{ fristen: NachweisFrist[];
     .from("v_dokumente")
     .select("id, name, gueltig_bis, nachweis_status")
     .in("nachweis_status", ["laeuft_ab", "abgelaufen"])
+    // Eine ersetzte Version schlaegt nicht mehr Alarm: der Nachweis gilt durch die neue.
+    .is("ersetzt_durch_id", null)
     .not("gueltig_bis", "is", null)
     .order("gueltig_bis", { ascending: true });
 

@@ -3,10 +3,10 @@ import { Download } from "lucide-react";
 import { Aufklapper, Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
-import { DokumentAendernFormular, DokumentFormular } from "@/components/db/dokumente-formular";
+import { DokumentAendernFormular, DokumentFormular, DokumentNeueVersionFormular } from "@/components/db/dokumente-formular";
 import { ladeDokumente, ladeNachweisOptionen, type DokumentZeile } from "@/lib/data/dokumente";
 import { ladeDossierOptionen } from "@/lib/data/foerdermittel";
-import { NACHWEIS_STATUS, nachweisTon, nachweisZaehlung } from "@/lib/domain/nachweise";
+import { NACHWEIS_STATUS, nachweisTon, nachweisZaehlung, ordneVersionen } from "@/lib/domain/nachweise";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 
@@ -58,6 +58,31 @@ function Zusatz({ text }: { text: string | null }) {
   return text ? <p className="text-[11px] text-muted-foreground">{text}</p> : null;
 }
 
+/** Die frueheren Versionen eines Nachweises, aufklappbar unter dem Namen: Status, Ende der Gueltigkeit und Datei bleiben nachlesbar. */
+function Vorversionen({ versionen, format, t, v }: { versionen: DokumentZeile[]; format: Format; t: Uebersetzer; v: Uebersetzer }) {
+  if (versionen.length === 0) return null;
+  return (
+    <Aufklapper titel={t("vorversionen", { anzahl: versionen.length })}>
+      <ul className="space-y-1.5 p-3 text-xs">
+        {versionen.map((ver) => (
+          <li key={ver.id} className="flex flex-wrap items-center gap-2">
+            <StatusPill tone={nachweisTon[ver.nachweisStatus]}>{t(`status.${ver.nachweisStatus}`)}</StatusPill>
+            <span className="text-foreground">{ver.name}</span>
+            <span className="text-muted-foreground">
+              {ver.unbefristet
+                ? t("unbefristet")
+                : ver.gueltigBis
+                  ? t("bis", { datum: format.dateTime(new Date(`${ver.gueltigBis}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" }) })
+                  : t("keinZeitraum")}
+            </span>
+            <DateiZelle doc={ver} oeffnen={v("oeffnen")} keineDatei={v("keineDatei")} keinLink={v("linkNichtVerfuegbar")} />
+          </li>
+        ))}
+      </ul>
+    </Aufklapper>
+  );
+}
+
 export async function DokumenteAnsicht() {
   const [liste, profil, t, dossiers] = await Promise.all([
     ladeDokumente(),
@@ -78,7 +103,9 @@ export async function DokumenteAnsicht() {
   const darfAnlegen = live && hasPermission(profil?.role, "dokumente", "create");
   const darfAendern = live && hasPermission(profil?.role, "dokumente", "update");
   const optionen = darfAnlegen || darfAendern ? await ladeNachweisOptionen() : { verantwortliche: [], partner: [] };
-  const zaehlung = nachweisZaehlung(liste.dokumente.map((d) => d.nachweisStatus));
+  // Das Register zeigt und zaehlt die aktuellen Versionen; die frueheren stehen unter dem Namen.
+  const gruppen = ordneVersionen(liste.dokumente);
+  const zaehlung = nachweisZaehlung(gruppen.map((g) => g.aktuell.nachweisStatus));
 
   return (
     <div className="space-y-6">
@@ -105,14 +132,15 @@ export async function DokumenteAnsicht() {
             t("col.status"),
             n("col.verantwortlich"),
             v("col.datei"),
-            ...(darfAendern ? [v("col.aendern")] : []),
+            ...(darfAendern || darfAnlegen ? [v("col.aendern")] : []),
           ]}
         >
-          {liste.dokumente.map((doc) => (
+          {gruppen.map(({ aktuell: doc, vorversionen }) => (
             <tr key={doc.id}>
               <td className="px-3 py-2.5">
                 <p className="font-semibold text-foreground">{doc.name}</p>
                 <Zusatz text={doc.rechtsgrundlage} />
+                <Vorversionen versionen={vorversionen} format={format} t={n} v={v} />
               </td>
               <td className="px-3 py-2.5 text-muted-foreground">{k(doc.kategorie)}</td>
               <td className="px-3 py-2.5 text-muted-foreground">
@@ -129,13 +157,22 @@ export async function DokumenteAnsicht() {
               <td className="px-3 py-2.5">
                 <DateiZelle doc={doc} oeffnen={v("oeffnen")} keineDatei={v("keineDatei")} keinLink={v("linkNichtVerfuegbar")} />
               </td>
-              {darfAendern ? (
-                <td className="px-3 py-2.5">
-                  <Aufklapper titel={n("bearbeiten")}>
-                    <div className="p-3">
-                      <DokumentAendernFormular dokument={doc} optionen={optionen} />
-                    </div>
-                  </Aufklapper>
+              {darfAendern || darfAnlegen ? (
+                <td className="space-y-1.5 px-3 py-2.5">
+                  {darfAendern ? (
+                    <Aufklapper titel={n("bearbeiten")}>
+                      <div className="p-3">
+                        <DokumentAendernFormular dokument={doc} optionen={optionen} />
+                      </div>
+                    </Aufklapper>
+                  ) : null}
+                  {darfAnlegen ? (
+                    <Aufklapper titel={n("neueVersion")}>
+                      <div className="p-3">
+                        <DokumentNeueVersionFormular dokument={doc} optionen={optionen} />
+                      </div>
+                    </Aufklapper>
+                  ) : null}
                 </td>
               ) : null}
             </tr>

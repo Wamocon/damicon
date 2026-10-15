@@ -697,6 +697,7 @@ export type Database = {
           bezug: string | null
           charge_id: string | null
           created_at: string
+          ersetzt_id: string | null
           foerderdossier_id: string | null
           gueltig_bis: string | null
           gueltig_von: string | null
@@ -719,6 +720,7 @@ export type Database = {
           bezug?: string | null
           charge_id?: string | null
           created_at?: string
+          ersetzt_id?: string | null
           foerderdossier_id?: string | null
           gueltig_bis?: string | null
           gueltig_von?: string | null
@@ -741,6 +743,7 @@ export type Database = {
           bezug?: string | null
           charge_id?: string | null
           created_at?: string
+          ersetzt_id?: string | null
           foerderdossier_id?: string | null
           gueltig_bis?: string | null
           gueltig_von?: string | null
@@ -4682,6 +4685,8 @@ export type Database = {
       }
       v_dokumente: {
         Row: {
+          ersetzt_durch_id: string | null
+          ersetzt_id: string | null
           b2b_kunde_id: string | null
           bezug: string | null
           charge_id: string | null

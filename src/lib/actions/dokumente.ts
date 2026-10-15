@@ -89,6 +89,23 @@ interface NachweisFelder {
   nachbarbetrieb_id: string | null;
 }
 
+type Speicher = Awaited<ReturnType<typeof createClient>>;
+
+/** Legt die Datei im privaten Speicher ab. Ohne Datei: kein Pfad (ein Dokument darf zuerst als Eintrag entstehen). */
+async function speichereDatei(supabase: Speicher, kategorie: string, datei: FormDataEntryValue | null): Promise<{ pfad: string | null } | { status: AktionsStatus }> {
+  if (!(datei instanceof File) || datei.size === 0) return { pfad: null };
+  if (datei.size > maxDateigroesse) return { status: fehler("fehler.zuGross") };
+
+  const endung = datei.name.split(".").pop()?.toLowerCase() ?? "pdf";
+  const pfad = `${kategorie}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${endung}`;
+  const { error } = await supabase.storage.from(bucket("dokumente")).upload(pfad, datei, { contentType: datei.type, upsert: false });
+  if (error) {
+    console.error("[damicon] Upload fehlgeschlagen:", error.message);
+    return { status: fehler("fehler.upload") };
+  }
+  return { pfad };
+}
+
 export async function dokumentAnlegen(
   _status: AktionsStatus,
   formData: FormData,
@@ -107,24 +124,9 @@ export async function dokumentAnlegen(
   const { felder } = gelesen;
 
   const supabase = await createClient();
-  const datei = formData.get("datei");
-  let storagePfad: string | null = null;
-
-  if (datei instanceof File && datei.size > 0) {
-    if (datei.size > maxDateigroesse) return fehler("fehler.zuGross");
-
-    const endung = datei.name.split(".").pop()?.toLowerCase() ?? "pdf";
-    storagePfad = `${kategorie}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${endung}`;
-
-    const { error: uploadFehler } = await supabase.storage
-      .from(bucket("dokumente"))
-      .upload(storagePfad, datei, { contentType: datei.type, upsert: false });
-
-    if (uploadFehler) {
-      console.error("[damicon] Upload fehlgeschlagen:", uploadFehler.message);
-      return fehler("fehler.upload");
-    }
-  }
+  const gespeichert = await speichereDatei(supabase, kategorie, formData.get("datei"));
+  if ("status" in gespeichert) return gespeichert.status;
+  const storagePfad = gespeichert.pfad;
 
   // Anforderung 4.12: ein Nachweis kann direkt an ein Foerderdossier haengen.
   // Die Spalte samt Fremdschluessel gibt es seit 20260925000000, gefuellt hat
@@ -204,4 +206,68 @@ export async function dokumentAendern(
 
   aktualisiere(formData);
   return ok("ok.dokumentGeaendert", data.name);
+}
+
+// Eine neue Version eines Nachweises (Migration 20261208120000): das Zertifikat wurde erneuert. Die alte Version bleibt unveraendert stehen,
+// die neue ersetzt sie im Register. Kategorie, Foerderdossier und Bezug zu Block oder Charge uebernimmt die neue Version von der alten; alles
+// andere kommt aus dem Formular (vorbelegt mit den Werten der alten Version, der Zeitraum ist neu einzutragen).
+export async function dokumentNeueVersion(_status: AktionsStatus, formData: FormData): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("dokumente", "create");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const vorgaengerId = text(formData, "vorgaenger_id");
+  const gelesen = leseNachweisfelder(formData);
+  if (!istUuid(vorgaengerId)) return fehler("fehler.eingabe");
+  if (!gelesen.ok) return gelesen.status;
+  const { felder } = gelesen;
+
+  const supabase = await createClient();
+  const { data: alt, error: leseFehler } = await supabase
+    .from("v_dokumente")
+    .select("id, kategorie, foerderdossier_id, reihenblock_id, charge_id, ersetzt_durch_id")
+    .eq("id", vorgaengerId)
+    .maybeSingle();
+  if (leseFehler) return dbFehler(leseFehler);
+  // Keine Zeile: das Dokument gibt es nicht, oder die Zeilensicherheit zeigt es dieser Rolle nicht.
+  if (!alt?.id || !alt.kategorie) return fehler("fehler.berechtigung");
+  if (alt.ersetzt_durch_id) return fehler("fehler.versionSchonErsetzt");
+
+  const gespeichert = await speichereDatei(supabase, alt.kategorie, formData.get("datei"));
+  if ("status" in gespeichert) return gespeichert.status;
+
+  const { data, error } = await supabase
+    .from("dokumente")
+    .insert({
+      ...felder,
+      kategorie: alt.kategorie,
+      storage_path: gespeichert.pfad,
+      foerderdossier_id: alt.foerderdossier_id,
+      reihenblock_id: alt.reihenblock_id,
+      charge_id: alt.charge_id,
+      ersetzt_id: alt.id,
+    })
+    .select("id, name")
+    .single();
+
+  if (error) {
+    if (gespeichert.pfad) await supabase.storage.from(bucket("dokumente")).remove([gespeichert.pfad]);
+    // Zwei Personen erneuern zugleich: der eindeutige Index laesst nur einen Nachfolger zu.
+    return error.code === "23505" ? fehler("fehler.versionSchonErsetzt") : dbFehler(error);
+  }
+
+  await protokolliere(profil, "dokument.version_angelegt", "dokumente", data.id, {
+    name: data.name,
+    ersetzt: alt.id,
+    kategorie: alt.kategorie,
+    gueltig_bis: felder.gueltig_bis,
+    unbefristet: felder.unbefristet,
+    datei: Boolean(gespeichert.pfad),
+  });
+
+  aktualisiere(formData);
+  return ok("ok.dokumentVersion", data.name);
 }

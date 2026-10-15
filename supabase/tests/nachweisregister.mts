@@ -6,8 +6,11 @@
 // Aufruf: npm run test:nachweisregister (ueber tsx, PGlite, kein Docker noetig).
 
 import { starte } from "./hilfen/pglite-rollen.mjs";
+import { readFileSync } from "node:fs";
 import {
+  aktuelleVersionen,
   nachweisFristen,
+  ordneVersionen,
   nachweisStatus,
   nachweisZaehlung,
   partnerAusWert,
@@ -187,6 +190,82 @@ pruefe("Partner: unbekannte Art oder keine Id ist ungueltig", partnerAusWert(`li
   pruefe("Zaehlung je Status", zaehler.abgelaufen === 2 && zaehler.laeuft_ab === 1 && zaehler.gueltig === 1 && zaehler.offen === 1);
   const faellig = nachweisFaelligkeit("2026-10-14");
   pruefe("Faelligkeit: Ende des Tages in Almaty (UTC+5), nicht Mitternacht davor", faellig === "2026-10-14T18:59:59.000Z", faellig);
+}
+
+// --- 8. Versionen (Migration 20261208120000) --------------------------------------------------------------------------------------
+{
+  const neu = async (name: string, kategorie: string, gueltigBis: string | null, ersetzt: string | null = null) =>
+    (await db.query<{ id: string }>(
+      `insert into public.dokumente (name, kategorie, gueltig_bis, ersetzt_id) values ($1, $2::public.dokument_kategorie, $3::date, $4::uuid) returning id;`,
+      [name, kategorie, gueltigBis, ersetzt],
+    )).rows[0].id;
+  const sicht = async (id: string) =>
+    (await db.query<{ ersetzt_id: string | null; ersetzt_durch_id: string | null; nachweis_status: string }>(
+      `select ersetzt_id, ersetzt_durch_id, nachweis_status from public.v_dokumente where id = $1;`,
+      [id],
+    )).rows[0];
+
+  const vorjahr = tagePlus(tagInZone(new Date()), -30);
+  const naechstesJahr = tagePlus(tagInZone(new Date()), 300);
+  const v1 = await neu("Ver-Zertifikat 2025", "zertifikat", vorjahr);
+  const v2 = await neu("Ver-Zertifikat 2026", "zertifikat", naechstesJahr, v1);
+  const a = await sicht(v1);
+  const b = await sicht(v2);
+  pruefe("Version: die ersetzte Version nennt ihren Nachfolger, die neue ihre Vorversion", a.ersetzt_durch_id === v2 && a.ersetzt_id === null && b.ersetzt_id === v1 && b.ersetzt_durch_id === null);
+  pruefe("Version: die ersetzte Version bleibt unverändert abgelaufen, die neue gilt", a.nachweis_status === "abgelaufen" && b.nachweis_status === "gueltig", `${a.nachweis_status} / ${b.nachweis_status}`);
+  {
+    const { rows } = await db.query<{ id: string }>(
+      `select id from public.v_dokumente where name like 'Ver-%' and nachweis_status in ('laeuft_ab', 'abgelaufen') and ersetzt_durch_id is null;`,
+    );
+    pruefe("Version: eine ersetzte, abgelaufene Version erscheint nicht mehr im Radar (Filter ersetzt_durch_id)", rows.length === 0, rows.length + " Zeilen");
+  }
+  await mussScheitern("Version: eine Version hat höchstens einen Nachfolger (23505)", `insert into public.dokumente (name, kategorie, ersetzt_id) values ('Ver-Zweiter', 'zertifikat', $1);`, [v1], "23505");
+  const sonstiges = await neu("Ver-Sonstiges", "sonstiges", null);
+  await mussScheitern("Version: eine andere Kategorie wird abgelehnt (DA020)", `insert into public.dokumente (name, kategorie, ersetzt_id) values ('Ver-Falsch', 'zertifikat', $1);`, [sonstiges], "DA020");
+  await mussScheitern("Version: die Vorversion ändert sich nach dem Anlegen nicht (DA020)", `update public.dokumente set ersetzt_id = $2 where id = $1;`, [sonstiges, v2], "DA020");
+  await mussScheitern("Version: ein Dokument ersetzt nicht sich selbst (DA020)", `insert into public.dokumente (id, name, kategorie, ersetzt_id) values ('22222222-2222-4222-8222-222222222222', 'Ver-Selbst', 'zertifikat', '22222222-2222-4222-8222-222222222222');`, [], "DA020");
+  await mussScheitern("Version: eine unbekannte Vorversion wird abgelehnt (23503 oder DA020)", `insert into public.dokumente (name, kategorie, ersetzt_id) values ('Ver-Unbekannt', 'zertifikat', gen_random_uuid());`, [], "DA020");
+  {
+    // Die alte Version wird gelöscht: die Verknüpfung wird leer, die neue bleibt (on delete set null darf die Vorversion leeren).
+    await db.query(`delete from public.dokumente where id = $1;`, [v1]);
+    const nach = await sicht(v2);
+    pruefe("Version: wird die alte Version gelöscht, bleibt die neue ohne Verknüpfung stehen", nach.ersetzt_id === null && nach.nachweis_status === "gueltig");
+  }
+  for (const rolle of ["brigade", "kunde"]) {
+    await als(rolle, async () => {
+      await mussScheitern(`Version: ${rolle} legt keine Version an`, `insert into public.dokumente (name, kategorie, ersetzt_id) values ('Ver-Fremd', 'zertifikat', $1);`, [v2], "42501");
+    });
+  }
+
+  // Ordnung in der Anwendung
+  type Z = { id: string; ersetztId: string | null; ersetztDurchId: string | null };
+  const z = (id: string, ersetztId: string | null, ersetztDurchId: string | null): Z => ({ id, ersetztId, ersetztDurchId });
+  const kette = [z("c", "b", null), z("a", null, "b"), z("b", "a", "c"), z("x", null, null)];
+  const g = ordneVersionen(kette);
+  pruefe("Ordnung: aktuell ist, was keinen Nachfolger hat; die Reihenfolge der Eingabe bleibt", g.map((e) => e.aktuell.id).join() === "c,x", g.map((e) => e.aktuell.id).join());
+  pruefe("Ordnung: die früheren Versionen stehen neueste zuerst", g[0].vorversionen.map((e) => e.id).join() === "b,a" && g[1].vorversionen.length === 0);
+  pruefe("Ordnung: aktuelleVersionen liefert nur die aktuellen", aktuelleVersionen(kette).map((e) => e.id).join() === "c,x");
+  {
+    // Ein Kreis (die Datenbank verhindert ihn) bricht ab, statt endlos zu laufen.
+    const kreis = [z("p", "q", null), z("q", "p", "p")];
+    const k = ordneVersionen(kreis);
+    pruefe("Ordnung: ein Kreis bricht ab", k.length === 1 && k[0].aktuell.id === "p" && k[0].vorversionen.map((e) => e.id).join() === "q");
+  }
+  {
+    // Der Nachfolger ist für die Person nicht sichtbar (Zeilensicherheit): das Dokument bleibt sichtbar und gilt als aktuell.
+    const unsichtbar = ordneVersionen([z("alt", null, "geheim")]);
+    pruefe("Ordnung: ein nicht sichtbarer Nachfolger macht das Dokument nicht unsichtbar", unsichtbar.length === 1 && unsichtbar[0].aktuell.id === "alt");
+    pruefe("Ordnung: eine fehlende Vorversion bricht die Kette ab", ordneVersionen([z("neu", "weg", null)])[0].vorversionen.length === 0);
+    pruefe("Ordnung: leere Eingabe", ordneVersionen([]).length === 0);
+  }
+  const sprachen = ["de", "en", "ru", "kk"].map((l) => ({ l, m: JSON.parse(readFileSync(`src/messages/${l}.json`, "utf8")) }));
+  for (const { l, m } of sprachen) {
+    const fehlt = [
+      m.nachweisregister?.neueVersion, m.nachweisregister?.vorversionen, m.nachweisregister?.bis, m.nachweisregister?.versionLead,
+      m.dokumenteVerwaltung?.versionKnopf, m.aktionen?.ok?.dokumentVersion, m.aktionen?.fehler?.versionSchonErsetzt, m.aktionen?.fehler?.versionRegel,
+    ].filter((x) => typeof x !== "string" || x.length < 3);
+    pruefe(`Version: alle Texte stehen in ${l}`, fehlt.length === 0);
+  }
 }
 
 t.ende("Alle Nachweisregister-Tests gruen.");

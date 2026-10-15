@@ -17,6 +17,7 @@ import { ladeFoerdermittel } from "@/lib/data/foerdermittel";
 import { ladeCheckpunkte } from "@/lib/data/foerder-checkliste";
 import { ladeLieferungen } from "@/lib/data/lieferungen";
 import { ladeDokumente } from "@/lib/data/dokumente";
+import { aktuelleVersionen } from "@/lib/domain/nachweise";
 import { ladeLieferplanQuelle } from "@/lib/data/lieferplan";
 import { ladeStand, ladeWirtschaftlichkeit } from "@/lib/data/wirtschaftlichkeit";
 import { ladeAbholrunde } from "@/lib/data/abholrunden";
@@ -97,7 +98,7 @@ export const DOKUMENT_ARTEN: Record<string, DokumentArt> = {
     baue: async ({ x }) => {
       const liste = await ladeDokumente();
       return baueNachweiseDokument(
-        liste.dokumente.map((d) => ({
+        aktuelleVersionen(liste.dokumente).map((d) => ({
           id: d.id,
           name: d.name,
           kategorie: d.kategorie,

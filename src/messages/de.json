@@ -1023,7 +1023,8 @@
       "kontoAngelegt": "Konto angelegt. Vorläufiges Passwort (nur jetzt sichtbar, bitte der Person sicher übergeben): {wert}",
       "kontoGesperrt": "Konto von „{wert}“ gesperrt.",
       "kontoEntsperrt": "Konto von „{wert}“ entsperrt.",
-      "passwortGeaendert": "Passwort geändert."
+      "passwortGeaendert": "Passwort geändert.",
+      "dokumentVersion": "Neue Version „{wert}“ angelegt."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1197,7 +1198,9 @@
       "passwortAendern": "Das Passwort konnte nicht geändert werden. Bitte später noch einmal versuchen.",
       "risikoSchwellen": "Die Schwelle für „hoch“ muss über der Schwelle für „mittel“ liegen. Erst die obere Schwelle anheben, dann die untere, oder umgekehrt beim Senken.",
       "risikoAusschuss": "Der kritische Ausschuss muss über dem Zielwert liegen.",
-      "risikoGewichte": "Mindestens ein Gewicht muss über null liegen."
+      "risikoGewichte": "Mindestens ein Gewicht muss über null liegen.",
+      "versionSchonErsetzt": "Dieser Nachweis hat schon eine neuere Version. Bitte die Seite neu laden und die aktuelle Version erneuern.",
+      "versionRegel": "Eine neue Version hat dieselbe Kategorie wie die ersetzte, und ihre Vorversion ändert sich nicht mehr."
     },
     "einladungen": {
       "erfolg": {
@@ -1323,7 +1326,8 @@
       "warnungTage": "{min} bis {max} Tage, Vorgabe 60."
     },
     "keinVerantwortlicher": "niemand festgelegt",
-    "keinPartner": "kein Partner"
+    "keinPartner": "kein Partner",
+    "versionKnopf": "Neue Version anlegen"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "Ohne Brigade",
@@ -4648,7 +4652,11 @@
     "vorTagen": "{tage, plural, one {vor # Tag} other {vor # Tagen}}",
     "zaehlung": "Stand des Registers",
     "bearbeiten": "Bearbeiten",
-    "heute": "heute"
+    "heute": "heute",
+    "neueVersion": "Neue Version",
+    "vorversionen": "{anzahl, plural, one {# frühere Version} other {# frühere Versionen}}",
+    "bis": "bis {datum}",
+    "versionLead": "Der Nachweis wurde erneuert: Die neue Version ersetzt diesen Eintrag im Register. Die alte bleibt als frühere Version erhalten und zählt nicht mehr als aktuell. Bitte den neuen Zeitraum eintragen."
   },
   "blockRisiko": {
     "col": "Risiko",

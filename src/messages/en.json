@@ -1023,7 +1023,8 @@
       "kontoAngelegt": "Account created. Temporary password (visible only now, please hand it over securely): {wert}",
       "kontoGesperrt": "Account of \"{wert}\" blocked.",
       "kontoEntsperrt": "Account of \"{wert}\" unblocked.",
-      "passwortGeaendert": "Password changed."
+      "passwortGeaendert": "Password changed.",
+      "dokumentVersion": "New version “{wert}” created."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1197,7 +1198,9 @@
       "passwortAendern": "The password could not be changed. Please try again later.",
       "risikoSchwellen": "The threshold for “high” must be above the threshold for “medium”.",
       "risikoAusschuss": "The critical reject rate must be above the target.",
-      "risikoGewichte": "At least one weight must be above zero."
+      "risikoGewichte": "At least one weight must be above zero.",
+      "versionSchonErsetzt": "This proof already has a newer version. Please reload the page and renew the current version.",
+      "versionRegel": "A new version has the same category as the one it replaces, and its predecessor can no longer be changed."
     },
     "einladungen": {
       "erfolg": {
@@ -1323,7 +1326,8 @@
       "warnungTage": "{min} to {max} days, default 60."
     },
     "keinVerantwortlicher": "nobody assigned",
-    "keinPartner": "no partner"
+    "keinPartner": "no partner",
+    "versionKnopf": "Create new version"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "No brigade",
@@ -4648,7 +4652,11 @@
     "vorTagen": "{tage, plural, one {# day ago} other {# days ago}}",
     "zaehlung": "State of the register",
     "bearbeiten": "Edit",
-    "heute": "today"
+    "heute": "today",
+    "neueVersion": "New version",
+    "vorversionen": "{anzahl, plural, one {# earlier version} other {# earlier versions}}",
+    "bis": "until {datum}",
+    "versionLead": "The proof was renewed: the new version replaces this entry in the register. The old one is kept as an earlier version and no longer counts as current. Please enter the new period."
   },
   "blockRisiko": {
     "col": "Risk",

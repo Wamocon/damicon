@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { dokumentAendern, dokumentAnlegen } from "@/lib/actions/dokumente";
+import { dokumentAendern, dokumentAnlegen, dokumentNeueVersion } from "@/lib/actions/dokumente";
 import { leer } from "@/lib/actions/status";
 import {
   AktionsMeldung,
@@ -161,6 +161,55 @@ export function DokumentAendernFormular({
       <NachweisFelder werte={dokument} optionen={optionen} />
       <div className="sm:col-span-2 lg:col-span-3 flex flex-wrap items-center gap-3">
         <SubmitKnopf label={t("aendernKnopf")} status={zustand} />
+        <AktionsMeldung status={zustand} />
+      </div>
+    </form>
+  );
+}
+
+// Neue Version: das Zertifikat wurde erneuert. Vorbelegt mit den Werten der aktuellen Version, der Zeitraum ist neu einzutragen. Die alte
+// Version bleibt als frühere Version erhalten und zählt nicht mehr als aktuell.
+export function DokumentNeueVersionFormular({
+  dokument,
+  optionen,
+}: {
+  dokument: Pick<DokumentZeile, "id" | "name" | "bezugRoh" | "stand" | "warnungTage" | "verantwortlichId" | "rechtsgrundlage" | "partnerArt" | "partnerId">;
+  optionen: NachweisOptionen;
+}) {
+  const [zustand, action] = useActionState(dokumentNeueVersion, leer);
+  const t = useTranslations("dokumenteVerwaltung");
+  const n = useTranslations("nachweisregister");
+  const werte: Vorbelegung = {
+    gueltigVon: null,
+    gueltigBis: null,
+    unbefristet: false,
+    warnungTage: dokument.warnungTage,
+    verantwortlichId: dokument.verantwortlichId,
+    rechtsgrundlage: dokument.rechtsgrundlage,
+    partnerArt: dokument.partnerArt,
+    partnerId: dokument.partnerId,
+  };
+
+  return (
+    <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+      <PfadFeld />
+      <input type="hidden" name="vorgaenger_id" value={dokument.id} />
+      <p className="text-[11px] leading-4 text-muted-foreground sm:col-span-2 lg:col-span-3">{n("versionLead")}</p>
+      <Feld label={t("feld.name")} name="name" required defaultValue={dokument.name} />
+      <Feld label={t("feld.bezug")} name="bezug" defaultValue={dokument.bezugRoh ?? ""} />
+      <Feld label={t("feld.stand")} name="stand" type="date" defaultValue={dokument.stand ?? ""} />
+      <NachweisFelder werte={werte} optionen={optionen} />
+      <label className="block space-y-1">
+        <span className="text-[11px] font-semibold text-card-foreground">{t("feld.datei")}</span>
+        <input
+          type="file"
+          name="datei"
+          accept="application/pdf,image/jpeg,image/png,image/webp"
+          className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs file:font-semibold file:text-foreground"
+        />
+      </label>
+      <div className="sm:col-span-2 lg:col-span-3 flex flex-wrap items-center gap-3">
+        <SubmitKnopf label={t("versionKnopf")} status={zustand} />
         <AktionsMeldung status={zustand} />
       </div>
     </form>
