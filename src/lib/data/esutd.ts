@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { einsAus, leseAlleZeilen } from "@/lib/data/util";
-import { istEsutdArt, sortiereMeldungen, type EsutdMeldung } from "@/lib/domain/esutd";
+import { leseAlleZeilen } from "@/lib/data/util";
+import { istEsutdArt, sortiereMeldungen, type EsutdArt, type EsutdMeldung } from "@/lib/domain/esutd";
 
 // Offene ESUTD-Meldefristen ueber alle Pfluecker (Migration 20261025000000) -
 // eine eigene, schlanke Abfrage statt eines Auszugs aus
@@ -11,7 +11,9 @@ import { istEsutdArt, sortiereMeldungen, type EsutdMeldung } from "@/lib/domain/
 // interessiert.
 
 export interface OffeneEsutdFrist {
+  /** Quelle und Id der Meldung ("vertrag-..." oder "ereignis-..."). */
   id: string;
+  art: EsutdArt;
   pfluecker: string;
   meldefristAm: string;
 }
@@ -20,25 +22,32 @@ export async function ladeOffeneEsutdFristen(): Promise<OffeneEsutdFrist[]> {
   if (!isSupabaseConfigured()) return [];
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("esutd_vertraege_mit_frist")
-    .select("id, meldefrist_am, pfluecker ( name )")
-    .eq("status", "offen")
-    .not("meldefrist_am", "is", null)
-    .order("meldefrist_am", { ascending: true });
+  // Aus der Liste aller Meldungen: Abschluss, Aenderung und Beendigung (bis 15.10.2026 nur der Abschluss). Seitenweise, weil PostgREST ab
+  // 1000 Zeilen still kappt.
+  let zeilen;
+  try {
+    ({ zeilen } = await leseAlleZeilen((von, bis) =>
+      supabase
+        .from("v_esutd_meldungen")
+        .select("id, quelle, art, pfluecker_name, meldefrist_am")
+        .eq("status", "offen")
+        .not("meldefrist_am", "is", null)
+        .order("meldefrist_am", { ascending: true })
+        .order("id")
+        .range(von, bis),
+    ));
+  } catch (error) {
+    console.error("[damicon] Offene ЕСУТД-Fristen lesen fehlgeschlagen:", error instanceof Error ? error.message : error);
+    return [];
+  }
 
-  if (error || !data) return [];
-
-  return data
-    // id/meldefrist_am sind in der Basistabelle not null, die Sicht markiert
-    // Spalten grundsaetzlich als nullable im generierten Typ.
-    .filter(
-      (row): row is typeof row & { id: string; meldefrist_am: string } =>
-        row.id !== null && row.meldefrist_am !== null,
-    )
+  return zeilen
+    // id/meldefrist_am sind in den Basistabellen not null, die Sicht markiert Spalten grundsaetzlich als nullable im generierten Typ.
+    .filter((row): row is typeof row & { id: string; meldefrist_am: string; art: EsutdArt } => row.id !== null && row.meldefrist_am !== null && row.art !== null && istEsutdArt(row.art))
     .map((row) => ({
-      id: row.id,
-      pfluecker: einsAus(row.pfluecker)?.name ?? "-",
+      id: `${row.quelle}-${row.id}`,
+      art: row.art,
+      pfluecker: row.pfluecker_name ?? "-",
       meldefristAm: row.meldefrist_am,
     }));
 }

@@ -83,7 +83,7 @@ const mwstStatusAbrufen = tool({
 // --- Arbeitsrecht-Fachberater: ESUTD -----------------------------------------
 const esutdOffeneFristenAbrufen = tool({
   description:
-    "Ruft alle offenen ESUTD-Meldefristen ab (Arbeitsverträge, die innerhalb von 5 Werktagen nach Vertragsbeginn im ESUTD-System erfasst werden müssen). Nutze dieses Werkzeug für Fragen zu Arbeitsverträgen, ESUTD oder Meldefristen für Pflücker.",
+    "Ruft alle offenen ESUTD-Meldefristen ab: Abschluss, Änderung und Beendigung eines Arbeitsvertrags, die im ESUTD-System gemeldet werden müssen. Die Fristen stammen aus den Einstellungen des Betriebs (Standard: Abschluss 5 Arbeitstage nach Unterschrift, Änderung 15 Kalendertage, Beendigung 3 Arbeitstage). Nutze dieses Werkzeug für Fragen zu Arbeitsverträgen, ESUTD oder Meldefristen für Pflücker.",
   inputSchema: leeresSchema,
   execute: async () => {
     const fristen = await ladeOffeneEsutdFristen();
@@ -92,6 +92,7 @@ const esutdOffeneFristenAbrufen = tool({
       ziel: ZIEL_ESUTD,
       anzahl: fristen.length,
       fristen: fristen.map((f) => ({
+        art: f.art,
         pfluecker: f.pfluecker,
         meldefristAm: f.meldefristAm,
         ueberfaellig: new Date(f.meldefristAm).getTime() < jetzt,

@@ -818,6 +818,13 @@
       "description": "Rechtsform und ИИН oder БИН für den eigenen Betrieb, die Zulieferbetriebe und die Kunden - die Angaben, die auf jedem Beleg stehen müssen.",
       "summary": "Ein bäuerlicher Betrieb trägt einen ИИН, eine juristische Person einen БИН. Die Prüfziffer weist einen Zahlendreher ab, bevor er auf eine Rechnung gerät.",
       "todo": "Nummern für Zulieferbetriebe und Kunden erheben."
+    },
+    "einstellungen": {
+      "title": "Einstellungen",
+      "navTitle": "Einstellungen",
+      "description": "Fristen, Kapazitäten und Richtwerte, die Administration, Geschäftsführung und die zuständigen Fachrollen selbst pflegen.",
+      "summary": "Zehn fachliche Werte mit Grenzen, Quelle und Änderungsverlauf. Zugriffsrechte stehen hier nicht zur Wahl.",
+      "todo": "Nichts mehr offen."
     }
   },
   "reihenblockStatusHint": {
@@ -1010,7 +1017,8 @@
       "integrationWiederholt": "Der Eintrag wartet wieder auf die Auslieferung.",
       "auslieferung": "{versucht} versucht: {zugestellt} zugestellt, {wiederholen} warten auf die Wiederholung, {gescheitert} gescheitert.",
       "auslieferungNichts": "Nichts fällig.",
-      "nachrichtAnonymisiert": "Nachricht anonymisiert."
+      "nachrichtAnonymisiert": "Nachricht anonymisiert.",
+      "einstellungGespeichert": "Einstellung gespeichert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1151,7 +1159,9 @@
       "integrationNichtGescheitert": "Nur ein gescheiterter Eintrag lässt sich erneut versuchen.",
       "auslieferung": "Die Auslieferung ist fehlgeschlagen. Details stehen im Server-Log.",
       "unveraenderlich": "Dieser Eintrag ist unveränderlich.",
-      "anonymisierungGrund": "Bitte einen Grund mit 3 bis 300 Zeichen angeben, ohne personenbezogene Angaben."
+      "anonymisierungGrund": "Bitte einen Grund mit 3 bis 300 Zeichen angeben, ohne personenbezogene Angaben.",
+      "einstellungGrenzen": "Der Wert liegt außerhalb der erlaubten Grenzen.",
+      "einstellungGanzzahl": "Bitte eine ganze Zahl angeben."
     },
     "einladungen": {
       "erfolg": {
@@ -1726,7 +1736,9 @@
       "labelVorfall": "Meldung eines Datenschutzvorfalls an die Behörde",
       "labelDrittweitergabe": "Benachrichtigung über Weitergabe an {empfaenger}",
       "labelNachweisAbgelaufen": "Nachweis abgelaufen: {name}",
-      "labelNachweisLaeuftAb": "Nachweis läuft ab: {name}"
+      "labelNachweisLaeuftAb": "Nachweis läuft ab: {name}",
+      "labelEsutdAenderung": "ESUTD-Meldung einer Änderung für {name}",
+      "labelEsutdBeendigung": "ESUTD-Meldung einer Beendigung für {name}"
     },
     "stat": {
       "einwilligungenAktiv": "Aktive Einwilligungen",
@@ -4729,7 +4741,7 @@
     "zaehlOffen": "Ohne Beleg",
     "offen": {
       "titel": "Lieferungen ohne ЭСФ",
-      "lead": "Zugestellt, aber ohne ausgestellten Beleg. Das Alter zählt ab dem Liefertag. Welche Frist gilt, legt die Buchhaltung fest, das System hinterlegt keine.",
+      "lead": "Zugestellt, aber ohne ausgestellten Beleg. Das Alter zählt ab dem Liefertag, die Frist beträgt {frist} Kalendertage (Einstellung der Buchhaltung).",
       "leer": "Alle zugestellten Lieferungen haben einen ausgestellten Beleg.",
       "col": {
         "kunde": "Kunde",
@@ -4740,7 +4752,11 @@
       },
       "heute": "heute",
       "tage": "{tage, plural, one {# Tag} other {# Tage}}",
-      "keinBeleg": "noch kein Entwurf"
+      "keinBeleg": "noch kein Entwurf",
+      "leadOhneFrist": "Zugestellt, aber ohne ausgestellten Beleg. Das Alter zählt ab dem Liefertag. Eine Frist ist in den Einstellungen nicht gesetzt.",
+      "ueberfaellig": "{tage, plural, one {# Tag} other {# Tage}} überfällig",
+      "nochTage": "noch {tage, plural, one {# Tag} other {# Tage}}",
+      "letzterTag": "letzter Tag"
     },
     "belege": {
       "titel": "Belege",
@@ -4807,12 +4823,13 @@
         "grund": "Art und Dauer der Störung",
         "knopf": "Auf Papier führen"
       }
-    }
+    },
+    "zaehlUeberfaellig": "Frist überschritten"
   },
   "esutdAnsicht": {
     "titel": "Meldeprozess im Einheitssystem (ЕСУТД)",
     "lead": "Abschluss, Änderung und Beendigung jedes Saisonvertrags gehören ins staatliche Einheitssystem ЕСУТД. Die Liste zeigt, was zu melden ist, was gemeldet ist und womit es belegt ist. Gemeldet wird weiterhin im staatlichen System, Damicon führt den Stand.",
-    "stufeHinweis": "Eine Frist ist nur für den Abschluss hinterlegt: fünf Werktage ab Vertragsbeginn, ohne Feiertagskalender. Für Änderung und Beendigung ist keine Frist hinterlegt. Die automatische Meldung folgt, sobald der Zugang der Behörde vorliegt.",
+    "stufeHinweis": "Die Meldefristen kommen aus den Einstellungen: Abschluss {abschluss} Arbeitstage nach der Unterschrift (sonst nach Vertragsbeginn), Änderung {aenderung} Kalendertage, Beendigung {beendigung} Arbeitstage. Samstag und Sonntag zählen nicht, einen Feiertagskalender gibt es nicht. Die automatische Meldung folgt, sobald der Zugang der Behörde vorliegt.",
     "nurLesen": "Nur Ansicht: erfassen dürfen Administration, Geschäftsführung und Betriebsleitung.",
     "zaehl": {
       "offen": "Offen",
@@ -4871,7 +4888,9 @@
         "keinePersonen": "Keine Person sichtbar.",
         "beginn": "Vertragsbeginn",
         "nummer": "Vertragsnummer (optional)",
-        "knopf": "Anlegen"
+        "knopf": "Anlegen",
+        "unterschrift": "Unterschrieben am (leer: Vertragsbeginn)",
+        "unterschriftHinweis": "Ab hier läuft die Meldefrist."
       },
       "ereignis": {
         "titel": "Änderung oder Beendigung anlegen",
@@ -5401,6 +5420,101 @@
       "versucheVon": "{versuche} von {max}",
       "wiederholen": "Erneut versuchen",
       "jetzt": "Jetzt ausliefern"
+    }
+  },
+  "einstellungen": {
+    "lead": "Diese Werte stehen nicht im Programm, sondern hier. Jede Änderung ist protokolliert. Wer was lesen oder schreiben darf, steht nicht zur Wahl: Das regeln die Rollen und die Datenbank.",
+    "nichtGesetzt": "nicht gesetzt",
+    "nurLesen": "Nur Ansicht: ändern dürfen Administration, Geschäftsführung und die zuständige Fachrolle.",
+    "standard": "Standard: {wert}",
+    "stand": "Stand der Quelle: {datum}",
+    "geaendert": "zuletzt geändert {datum}",
+    "quelle": "Quelle: {quelle}",
+    "bereich": {
+      "steuer": {
+        "titel": "Steuer",
+        "lead": "Fristen der elektronischen Rechnung."
+      },
+      "arbeitsrecht": {
+        "titel": "Arbeitsrecht",
+        "lead": "Meldefristen im Einheitssystem ЕСУТД."
+      },
+      "abholung": {
+        "titel": "Abholrunden",
+        "lead": "Kapazität der Fahrzeuge."
+      },
+      "finanzen": {
+        "titel": "Finanzen",
+        "lead": "Richtwerte der Investitionsrechnung."
+      },
+      "auslieferung": {
+        "titel": "Auslieferung",
+        "lead": "Zeitbudget der Schnittstelle zu Partnersystemen."
+      },
+      "sicherheit": {
+        "titel": "Sicherheit",
+        "lead": "Grenzen gegen Missbrauch."
+      }
+    },
+    "einheit": {
+      "kalendertage": "Kalendertage",
+      "arbeitstage": "Arbeitstage",
+      "kg": "kg",
+      "prozent": "Prozent",
+      "sekunden": "Sekunden",
+      "anfragen_je_stunde": "Anfragen je Person und Stunde"
+    },
+    "formular": {
+      "wert": "Wert",
+      "leerHinweis": "Leer lassen heißt: nicht gesetzt, keine Prüfung.",
+      "grund": "Grund (freiwillig)",
+      "speichern": "Speichern"
+    },
+    "verlauf": {
+      "titel": "Verlauf der Änderungen",
+      "lead": "Wer wann welchen Wert geändert hat. Der Verlauf lässt sich nicht ändern."
+    },
+    "eintrag": {
+      "esf_frist_tage": {
+        "label": "Frist für die ЭСФ",
+        "beschreibung": "So viele Kalendertage nach dem Liefertag darf die elektronische Rechnung (ЭСФ) spätestens ausgestellt werden. Danach gilt die Lieferung in der Liste als überfällig."
+      },
+      "esutd_frist_abschluss_tage": {
+        "label": "ЕСУТД: Frist für den Abschluss",
+        "beschreibung": "Arbeitstage nach Vertragsbeginn, bis der Vertrag im Einheitssystem gemeldet sein muss. Samstag und Sonntag zählen nicht, Feiertage sind nicht hinterlegt."
+      },
+      "esutd_frist_aenderung_tage": {
+        "label": "ЕСУТД: Frist für eine Änderung",
+        "beschreibung": "Kalendertage nach dem Tag der Änderung, bis sie gemeldet sein muss."
+      },
+      "esutd_frist_beendigung_tage": {
+        "label": "ЕСУТД: Frist für eine Beendigung",
+        "beschreibung": "Arbeitstage nach dem Ende des Vertrags, bis die Beendigung gemeldet sein muss. Samstag und Sonntag zählen nicht."
+      },
+      "abholung_fahrzeug_kapazitaet_kg": {
+        "label": "Fahrzeugkapazität der Abholrunden",
+        "beschreibung": "Nutzlast des Kühlfahrzeugs in kg. Plant eine Runde mehr als diese Menge, warnt die Planung. Leer heißt: keine Prüfung. Eine einzelne Runde kann eine eigene Kapazität tragen."
+      },
+      "wirtschaftlichkeit_kalkulationszins_richtwert": {
+        "label": "Richtwert für den Kalkulationszins",
+        "beschreibung": "Vorschlag für den Zinssatz der Investitionsrechnung, solange der Betrieb keinen eigenen Wert einträgt. Nominal, in Prozent."
+      },
+      "wirtschaftlichkeit_zins_sensitivitaet_niedrig": {
+        "label": "Vergleichszins unten",
+        "beschreibung": "Untere Vergleichsrechnung zum Richtwert, in Prozent."
+      },
+      "wirtschaftlichkeit_zins_sensitivitaet_hoch": {
+        "label": "Vergleichszins oben",
+        "beschreibung": "Obere Vergleichsrechnung zum Richtwert, in Prozent."
+      },
+      "auslieferung_zeitbudget_sekunden": {
+        "label": "Zeitbudget der Auslieferung",
+        "beschreibung": "So lange läuft ein Lauf der Auslieferung höchstens. Was bis dahin nicht gesendet ist, bleibt für den nächsten Lauf."
+      },
+      "sicherheit_adresssuche_je_stunde": {
+        "label": "Grenze der Adresssuche",
+        "beschreibung": "Wie oft eine Person je Stunde eine Anschrift in Koordinaten umrechnen lassen darf (Geokodierung)."
+      }
     }
   }
 }

@@ -12,6 +12,7 @@ import {
   ESF_UEBERGAENGE,
   baueEsfEntwurf,
   esfAngabenFehler,
+  esfFristStand,
   esfTon,
   istAbgeschlossen,
   istEsfStatus,
@@ -24,6 +25,7 @@ import {
   type EsfEntwurfEingabe,
   type EsfLuecke,
 } from "@/lib/domain/esf";
+import { einstellungStandard } from "@/lib/einstellungen";
 
 let fehler = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -141,8 +143,18 @@ const wert = (baum: Baum, pfad: string): unknown => pfad.split(".").reduce<unkno
 const quelle = `${readFileSync("src/lib/actions/esf.ts", "utf8")}\n${readFileSync("src/lib/actions/status.ts", "utf8")}`;
 const schluesselAusCode = [...quelle.matchAll(/"(ok|fehler)\.(esf\w+)"/g)].map((m) => `aktionen.${m[1]}.${m[2]}`);
 const zusaetzlich = ["esfNummer", "esfDatum", "esfBemerkung"].map((k) => `aktionen.fehler.${k}`); // aus esfAngabenFehler, ueber fehler.${...} gebildet
+// --- Frist (15.10.2026) -------------------------------------------------------------------------------------------------------------------
+// Steuerkodex 214-VIII, Art. 493 Abs. 1: spaetestens 15 Kalendertage nach dem Umsatztag. Der letzte Tag zaehlt noch, die Frist kommt aus der Einstellung.
+check("Frist: am Liefertag laufen noch alle Tage", JSON.stringify(esfFristStand(0, 15)) === JSON.stringify({ art: "laeuft", verbleibend: 15 }));
+check("Frist: am fuenfzehnten Tag ist es der letzte Tag, noch nicht ueberfaellig", JSON.stringify(esfFristStand(15, 15)) === JSON.stringify({ art: "laeuft", verbleibend: 0 }));
+check("Frist: am sechzehnten Tag ist es einen Tag ueberfaellig", JSON.stringify(esfFristStand(16, 15)) === JSON.stringify({ art: "ueberfaellig", ueberschritten: 1 }));
+check("Frist: eine andere Einstellung gilt (30 Tage)", JSON.stringify(esfFristStand(20, 30)) === JSON.stringify({ art: "laeuft", verbleibend: 10 }));
+check("Frist: ohne gesetzte Frist gibt es keine Aussage statt eines erfundenen Werts", JSON.stringify(esfFristStand(400, null)) === JSON.stringify({ art: "keine" }));
+check("Frist: der Standard im Code ist 15 Kalendertage", einstellungStandard("esf.frist_tage") === 15);
+
 const noetig = [
   ...new Set([...schluesselAusCode, ...zusaetzlich]),
+  "esfAnsicht.zaehlUeberfaellig", "esfAnsicht.offen.leadOhneFrist", "esfAnsicht.offen.ueberfaellig", "esfAnsicht.offen.nochTage", "esfAnsicht.offen.letzterTag",
   "esfAnsicht.titel", "esfAnsicht.lead", "esfAnsicht.stufeHinweis", "esfAnsicht.nurLesen", "esfAnsicht.zaehlOffen",
   "esfAnsicht.offen.titel", "esfAnsicht.offen.lead", "esfAnsicht.offen.leer", "esfAnsicht.offen.heute", "esfAnsicht.offen.tage", "esfAnsicht.offen.keinBeleg",
   "esfAnsicht.offen.col.kunde", "esfAnsicht.offen.col.geliefertAm", "esfAnsicht.offen.col.menge", "esfAnsicht.offen.col.alter", "esfAnsicht.offen.col.beleg",

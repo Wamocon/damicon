@@ -4,7 +4,8 @@ import { Aufklapper, Card, DataTable, Section, StatusPill } from "@/components/u
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { EsfEntwurfKnopf, EsfEntwurfVerwerfenKnopf, EsfSchrittFormular } from "@/components/db/esf-formulare";
 import { ladeEsfUebersicht, type EsfBelegZeile, type EsfOffeneLieferung } from "@/lib/data/esf";
-import { ESF_STATUS, esfTon, zaehleBelege, type EsfEntwurf } from "@/lib/domain/esf";
+import { ESF_FRIST_WARNUNG_TAGE, ESF_STATUS, esfFristStand, esfTon, zaehleBelege, type EsfEntwurf, type EsfFristStand } from "@/lib/domain/esf";
+import { einstellungWert } from "@/lib/data/einstellungen";
 import { tagInZone } from "@/lib/domain/tageszeit";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
@@ -103,6 +104,15 @@ function offenKnopfLabel(l: EsfOffeneLieferung, t: Uebersetzer): string {
   return t("aktion.entwurfErstellen");
 }
 
+/** Der Stand der Frist neben dem Alter: überfällig, oder die letzten Tage. Sonst nichts, damit die Liste ruhig bleibt. */
+function FristPille({ stand, t }: { stand: EsfFristStand; t: Uebersetzer }) {
+  if (stand.art === "ueberfaellig") return <StatusPill tone="danger">{t("offen.ueberfaellig", { tage: stand.ueberschritten })}</StatusPill>;
+  if (stand.art === "laeuft" && stand.verbleibend <= ESF_FRIST_WARNUNG_TAGE) {
+    return <StatusPill tone="warning">{stand.verbleibend === 0 ? t("offen.letzterTag") : t("offen.nochTage", { tage: stand.verbleibend })}</StatusPill>;
+  }
+  return null;
+}
+
 export async function EsfAnsicht() {
   const [uebersicht, profil, t, format, dk] = await Promise.all([ladeEsfUebersicht(), getSessionProfile(), getTranslations("esfAnsicht"), getFormatter(), getTranslations("dokument.knopf")]);
   const darfAendern = hasPermission(profil?.role, "integrationen", "update");
@@ -110,6 +120,9 @@ export async function EsfAnsicht() {
   const tag = (iso: string) => format.dateTime(new Date(`${tagInZone(new Date(iso))}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
   const tagNurDatum = (iso: string) => format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
   const zaehlung = zaehleBelege(uebersicht.offen.length, uebersicht.belege.map((b) => b.status));
+  const fristTage = await einstellungWert("esf.frist_tage");
+  const fristen = uebersicht.offen.map((l) => esfFristStand(l.tageSeitLieferung, fristTage));
+  const ueberfaellig = fristen.filter((f) => f.art === "ueberfaellig").length;
 
   return (
     <div className="space-y-6">
@@ -118,6 +131,11 @@ export async function EsfAnsicht() {
           <StatusPill tone={zaehlung.offen > 0 ? "warning" : "success"}>
             {t("zaehlOffen")} {zaehlung.offen}
           </StatusPill>
+          {ueberfaellig > 0 ? (
+            <StatusPill tone="danger">
+              {t("zaehlUeberfaellig")} {ueberfaellig}
+            </StatusPill>
+          ) : null}
           {ESF_STATUS.filter((s) => zaehlung[s] > 0).map((s) => (
             <StatusPill key={s} tone={esfTon[s]}>
               {t(`status.${s}`)} {zaehlung[s]}
@@ -131,17 +149,20 @@ export async function EsfAnsicht() {
         </div>
       </Section>
 
-      <Section title={t("offen.titel")} description={t("offen.lead")}>
+      <Section title={t("offen.titel")} description={fristTage === null ? t("offen.leadOhneFrist") : t("offen.lead", { frist: fristTage })}>
         {uebersicht.offen.length === 0 ? (
           <p className="text-xs text-muted-foreground">{t("offen.leer")}</p>
         ) : (
           <DataTable head={[t("offen.col.kunde"), t("offen.col.geliefertAm"), t("offen.col.menge"), t("offen.col.alter"), t("offen.col.beleg"), ...(darfAendern ? [""] : [])]}>
-            {uebersicht.offen.map((l) => (
+            {uebersicht.offen.map((l, i) => (
               <tr key={l.lieferungId}>
                 <td className="px-3 py-2.5 font-semibold text-foreground">{l.kunde}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{tag(l.geliefertAm)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{format.number(l.mengeKg)} kg</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{l.tageSeitLieferung <= 0 ? t("offen.heute") : t("offen.tage", { tage: l.tageSeitLieferung })}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {l.tageSeitLieferung <= 0 ? t("offen.heute") : t("offen.tage", { tage: l.tageSeitLieferung })}
+                  <FristPille stand={fristen[i]} t={t} />
+                </td>
                 <td className="px-3 py-2.5">
                   {l.belegStatus ? <StatusPill tone={esfTon[l.belegStatus]}>{t(`status.${l.belegStatus}`)}</StatusPill> : <span className="text-xs text-muted-foreground">{t("offen.keinBeleg")}</span>}
                 </td>

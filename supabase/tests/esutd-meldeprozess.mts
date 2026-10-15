@@ -158,7 +158,8 @@ await mussScheitern("anon darf die Sicht nicht lesen", `select * from public.v_e
     check("Sicht: Abschluss und Beendigung stehen in einer Liste", rows.length === 2 && abschluss?.quelle === "vertrag" && ende?.quelle === "ereignis", JSON.stringify(rows));
     // 12.10.2026 ist ein Montag: fuenf Werktage danach ist der Montag, 19.10.2026.
     check("Sicht: die Meldefrist des offenen Abschlusses sind fuenf Werktage", abschluss?.meldefrist_am === "2026-10-19", String(abschluss?.meldefrist_am));
-    check("Sicht: eine Beendigung hat keine Frist", ende?.meldefrist_am === null);
+    // 31.12.2026 ist ein Donnerstag: drei Arbeitstage danach sind Freitag (1.1.), Montag (4.1.) und Dienstag, der 5.1.2027 (kein Feiertagskalender).
+    check("Sicht: die Meldefrist einer offenen Beendigung sind drei Arbeitstage (Einstellung esutd.frist_beendigung_tage)", ende?.meldefrist_am === "2027-01-05", String(ende?.meldefrist_am));
     check("Sicht: Name und Ausweis der Person stehen dabei", abschluss?.pfluecker_name === "Test Zweite" && abschluss?.pfluecker_ausweis === "AW-ESUTD-2");
   });
   await als("ceo", async () => {
@@ -169,6 +170,42 @@ await mussScheitern("anon darf die Sicht nicht lesen", `select * from public.v_e
   await als("betriebsleitung", async () => {
     const { rows } = await db.query<{ meldefrist_am: string | null }>(`select meldefrist_am::text from public.v_esutd_meldungen where vertragsnummer = 'V-SICHT' and art = 'abschluss';`);
     check("Sicht: ein erfasster Abschluss hat keine Frist mehr", rows[0].meldefrist_am === null);
+  });
+}
+
+// --- 5b. Fristen aus den Einstellungen (15.10.2026) -----------------------------------------------------------------------------------
+// Erlass des Arbeitsministers Nr. 353: Abschluss 5 Arbeitstage nach Unterschrift, Änderung 15 Kalendertage, Beendigung 3 Arbeitstage. Die Tage stehen
+// in betriebs_einstellungen; eine nicht gesetzte Einstellung heisst: keine Frist für diese Art.
+{
+  const p5 = await pfluecker("Test Fuenfte", "AW-ESUTD-5");
+  const fristVon = async (nummer: string, art: string) =>
+    (await db.query<{ meldefrist_am: string | null }>(`select meldefrist_am::text from public.v_esutd_meldungen where vertragsnummer = $1 and art = $2;`, [nummer, art])).rows[0]?.meldefrist_am;
+  const { rows: v } = await db.query<{ id: string }>(`insert into public.esutd_vertraege (pfluecker_id, vertragsnummer, vertrag_beginn_am, unterzeichnet_am) values ($1, 'V-FRIST', '2026-10-12', '2026-10-08') returning id;`, [p5]);
+  await db.query(`insert into public.esutd_ereignisse (vertrag_id, art, ereignis_am, beschreibung) values ($1, 'aenderung', '2026-11-02', 'Neue Taetigkeit');`, [v[0].id]);
+  // 8.10.2026 ist ein Donnerstag: fuenf Arbeitstage danach sind Freitag, Montag, Dienstag, Mittwoch und Donnerstag, der 15.10.2026.
+  check("Frist: der Abschluss rechnet ab der Unterschrift (8.10.), nicht ab dem Vertragsbeginn (12.10.)", (await fristVon("V-FRIST", "abschluss")) === "2026-10-15", String(await fristVon("V-FRIST", "abschluss")));
+  check("Frist: die Aenderung hat fuenfzehn Kalendertage (2.11. + 15 = 17.11.)", (await fristVon("V-FRIST", "aenderung")) === "2026-11-17", String(await fristVon("V-FRIST", "aenderung")));
+
+  await als("admin", () => db.query(`select public.einstellung_setzen('esutd.frist_abschluss_tage', 3, null, null), public.einstellung_setzen('esutd.frist_aenderung_tage', 20, null, null);`));
+  check("Frist: eine geaenderte Einstellung gilt sofort (Abschluss 3 Arbeitstage ab 8.10. = 13.10.)", (await fristVon("V-FRIST", "abschluss")) === "2026-10-13", String(await fristVon("V-FRIST", "abschluss")));
+  check("Frist: ... und bei der Aenderung (20 Kalendertage = 22.11.)", (await fristVon("V-FRIST", "aenderung")) === "2026-11-22", String(await fristVon("V-FRIST", "aenderung")));
+
+  await als("admin", () => db.query(`select public.einstellung_setzen('esutd.frist_abschluss_tage', null, null, null), public.einstellung_setzen('esutd.frist_aenderung_tage', null, null, null);`));
+  check("Frist: eine nicht gesetzte Einstellung ergibt keine Frist, keinen erfundenen Wert", (await fristVon("V-FRIST", "abschluss")) === null && (await fristVon("V-FRIST", "aenderung")) === null);
+
+  await als("admin", () => db.query(`select public.einstellung_setzen('esutd.frist_abschluss_tage', 5, null, null), public.einstellung_setzen('esutd.frist_aenderung_tage', 15, null, null);`));
+  check("Frist: mit dem Standard zurueck gilt wieder die alte Rechnung", (await fristVon("V-FRIST", "abschluss")) === "2026-10-15");
+
+  await db.query(`update public.esutd_ereignisse set status = 'erfasst', erfasst_am = public.heute_almaty() where vertrag_id = $1;`, [v[0].id]);
+  check("Frist: eine erfasste Aenderung hat keine Frist mehr", (await fristVon("V-FRIST", "aenderung")) === null);
+
+  // Ohne Unterschrift gilt der Vertragsbeginn (12.10. + 5 Arbeitstage = 19.10.).
+  await db.query(`update public.esutd_vertraege set unterzeichnet_am = null where id = $1;`, [v[0].id]);
+  check("Frist: ohne erfasste Unterschrift gilt der Vertragsbeginn", (await fristVon("V-FRIST", "abschluss")) === "2026-10-19", String(await fristVon("V-FRIST", "abschluss")));
+
+  await als("betriebsleitung", async () => {
+    const { rows } = await db.query<{ id: string }>(`select id from public.esutd_vertraege_mit_frist where meldefrist_am is not null;`);
+    check("Frist: die Sicht esutd_vertraege_mit_frist liefert dieselbe Frist weiter (Personalansicht)", rows.length >= 1);
   });
 }
 

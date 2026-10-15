@@ -818,6 +818,13 @@
       "description": "Legal form and IIN or BIN for the farm itself, its supplying farms and its customers - the details that must appear on every document.",
       "summary": "A peasant farm carries an IIN, a legal entity a BIN. The check digit rejects a transposed number before it reaches an invoice.",
       "todo": "Collect numbers for supplying farms and customers."
+    },
+    "einstellungen": {
+      "title": "Settings",
+      "navTitle": "Settings",
+      "description": "Deadlines, capacities and reference values that administration, management and the responsible specialist roles maintain themselves.",
+      "summary": "Ten business values with limits, source and change history. Access rights are not up for choice here.",
+      "todo": "Nothing open."
     }
   },
   "reihenblockStatusHint": {
@@ -1010,7 +1017,8 @@
       "integrationWiederholt": "The entry is waiting for delivery again.",
       "auslieferung": "{versucht} attempted: {zugestellt} delivered, {wiederholen} waiting for retry, {gescheitert} failed.",
       "auslieferungNichts": "Nothing due.",
-      "nachrichtAnonymisiert": "Message anonymised."
+      "nachrichtAnonymisiert": "Message anonymised.",
+      "einstellungGespeichert": "Setting saved."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1151,7 +1159,9 @@
       "integrationNichtGescheitert": "Only a failed entry can be tried again.",
       "auslieferung": "The delivery failed. Details are in the server log.",
       "unveraenderlich": "This entry cannot be changed.",
-      "anonymisierungGrund": "Please give a reason of 3 to 300 characters, without personal data."
+      "anonymisierungGrund": "Please give a reason of 3 to 300 characters, without personal data.",
+      "einstellungGrenzen": "The value is outside the permitted limits.",
+      "einstellungGanzzahl": "Please enter a whole number."
     },
     "einladungen": {
       "erfolg": {
@@ -1724,7 +1734,9 @@
       "labelVorfall": "Reporting a data-protection incident to the authority",
       "labelDrittweitergabe": "Notification about disclosure to {empfaenger}",
       "labelNachweisAbgelaufen": "Evidence expired: {name}",
-      "labelNachweisLaeuftAb": "Evidence expiring: {name}"
+      "labelNachweisLaeuftAb": "Evidence expiring: {name}",
+      "labelEsutdAenderung": "ESUTD filing of an amendment for {name}",
+      "labelEsutdBeendigung": "ESUTD filing of a termination for {name}"
     },
     "cockpitTitle": "Compliance cockpit",
     "cockpitLead": "Processing purposes, consents, data incidents and third-party disclosures from the database - under the 2026 Kazakhstani legal framework.",
@@ -4729,7 +4741,7 @@
     "zaehlOffen": "Without document",
     "offen": {
       "titel": "Deliveries without ЭСФ",
-      "lead": "Delivered, but without an issued document. The age counts from the delivery day. Accounting decides which deadline applies, the system stores none.",
+      "lead": "Delivered, but without an issued document. The age counts from the delivery day, the deadline is {frist} calendar days (setting maintained by accounting).",
       "leer": "All delivered shipments have an issued document.",
       "col": {
         "kunde": "Customer",
@@ -4740,7 +4752,11 @@
       },
       "heute": "today",
       "tage": "{tage, plural, one {# day} other {# days}}",
-      "keinBeleg": "no draft yet"
+      "keinBeleg": "no draft yet",
+      "leadOhneFrist": "Delivered, but without an issued document. The age counts from the delivery day. No deadline is set in the settings.",
+      "ueberfaellig": "{tage, plural, one {# day} other {# days}} overdue",
+      "nochTage": "{tage, plural, one {# day} other {# days}} left",
+      "letzterTag": "last day"
     },
     "belege": {
       "titel": "Documents",
@@ -4807,12 +4823,13 @@
         "grund": "Kind and duration of the outage",
         "knopf": "Keep on paper"
       }
-    }
+    },
+    "zaehlUeberfaellig": "Deadline exceeded"
   },
   "esutdAnsicht": {
     "titel": "Reporting process in the unified system (ЕСУТД)",
     "lead": "The conclusion, change and termination of every seasonal contract belong in the state unified system ЕСУТД. The list shows what is to be reported, what has been reported and what proves it. Reporting is still done in the state system, Damicon keeps the status.",
-    "stufeHinweis": "A deadline is stored for the conclusion only: five working days from the start of the contract, without a holiday calendar. No deadline is stored for change and termination. The automatic report follows once the authority grants access.",
+    "stufeHinweis": "The reporting deadlines come from the settings: conclusion {abschluss} working days after signing (otherwise after the start of the contract), amendment {aenderung} calendar days, termination {beendigung} working days. Saturday and Sunday do not count, there is no public holiday calendar. Automatic reporting follows once the authority's access is available.",
     "nurLesen": "View only: administration, CEO and farm management can record entries.",
     "zaehl": {
       "offen": "Open",
@@ -4871,7 +4888,9 @@
         "keinePersonen": "No person visible.",
         "beginn": "Start of contract",
         "nummer": "Contract number (optional)",
-        "knopf": "Create"
+        "knopf": "Create",
+        "unterschrift": "Signed on (empty: start of contract)",
+        "unterschriftHinweis": "The reporting deadline runs from here."
       },
       "ereignis": {
         "titel": "Create a change or termination",
@@ -5401,6 +5420,101 @@
       "versucheVon": "{versuche} of {max}",
       "wiederholen": "Try again",
       "jetzt": "Deliver now"
+    }
+  },
+  "einstellungen": {
+    "lead": "These values are not in the program but here. Every change is logged. Who may read or write what is not a choice: roles and the database decide that.",
+    "nichtGesetzt": "not set",
+    "nurLesen": "View only: administration, management and the responsible specialist role can change this.",
+    "standard": "Default: {wert}",
+    "stand": "Source as of: {datum}",
+    "geaendert": "last changed {datum}",
+    "quelle": "Source: {quelle}",
+    "bereich": {
+      "steuer": {
+        "titel": "Tax",
+        "lead": "Deadlines for the electronic invoice."
+      },
+      "arbeitsrecht": {
+        "titel": "Labour law",
+        "lead": "Reporting deadlines in the unified system ЕСУТД."
+      },
+      "abholung": {
+        "titel": "Pickup rounds",
+        "lead": "Vehicle capacity."
+      },
+      "finanzen": {
+        "titel": "Finance",
+        "lead": "Reference values for the investment calculation."
+      },
+      "auslieferung": {
+        "titel": "Delivery",
+        "lead": "Time budget of the interface to partner systems."
+      },
+      "sicherheit": {
+        "titel": "Security",
+        "lead": "Limits against misuse."
+      }
+    },
+    "einheit": {
+      "kalendertage": "calendar days",
+      "arbeitstage": "working days",
+      "kg": "kg",
+      "prozent": "percent",
+      "sekunden": "seconds",
+      "anfragen_je_stunde": "requests per person and hour"
+    },
+    "formular": {
+      "wert": "Value",
+      "leerHinweis": "Leave empty for: not set, no check.",
+      "grund": "Reason (optional)",
+      "speichern": "Save"
+    },
+    "verlauf": {
+      "titel": "History of changes",
+      "lead": "Who changed which value and when. The history cannot be changed."
+    },
+    "eintrag": {
+      "esf_frist_tage": {
+        "label": "Deadline for the ЭСФ",
+        "beschreibung": "The electronic invoice (ЭСФ) may be issued at the latest this many calendar days after the delivery day. After that the delivery counts as overdue in the list."
+      },
+      "esutd_frist_abschluss_tage": {
+        "label": "ЕСУТД: deadline for a conclusion",
+        "beschreibung": "Working days after the start of the contract until it must be reported in the unified system. Saturday and Sunday do not count, public holidays are not stored."
+      },
+      "esutd_frist_aenderung_tage": {
+        "label": "ЕСУТД: deadline for an amendment",
+        "beschreibung": "Calendar days after the day of the amendment until it must be reported."
+      },
+      "esutd_frist_beendigung_tage": {
+        "label": "ЕСУТД: deadline for a termination",
+        "beschreibung": "Working days after the end of the contract until the termination must be reported. Saturday and Sunday do not count."
+      },
+      "abholung_fahrzeug_kapazitaet_kg": {
+        "label": "Vehicle capacity of pickup rounds",
+        "beschreibung": "Payload of the refrigerated vehicle in kg. If a round plans more than this, the planning warns. Empty means: no check. A single round can carry its own capacity."
+      },
+      "wirtschaftlichkeit_kalkulationszins_richtwert": {
+        "label": "Reference value for the discount rate",
+        "beschreibung": "Suggestion for the interest rate of the investment calculation as long as the farm enters no value of its own. Nominal, in percent."
+      },
+      "wirtschaftlichkeit_zins_sensitivitaet_niedrig": {
+        "label": "Comparison rate, lower",
+        "beschreibung": "Lower comparison calculation to the reference value, in percent."
+      },
+      "wirtschaftlichkeit_zins_sensitivitaet_hoch": {
+        "label": "Comparison rate, upper",
+        "beschreibung": "Upper comparison calculation to the reference value, in percent."
+      },
+      "auslieferung_zeitbudget_sekunden": {
+        "label": "Time budget of the delivery",
+        "beschreibung": "A delivery run lasts at most this long. What has not been sent by then stays for the next run."
+      },
+      "sicherheit_adresssuche_je_stunde": {
+        "label": "Limit of the address search",
+        "beschreibung": "How often a person may have an address converted into coordinates per hour (geocoding)."
+      }
     }
   }
 }

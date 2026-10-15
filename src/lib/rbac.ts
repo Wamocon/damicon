@@ -72,6 +72,10 @@ export const resources = [
   // sonst die Investitionsrechnung des Betriebs mitlesen. Das ist eine
   // andere Befugnis als den laufenden Deckungsbeitrag zu sehen.
   "wirtschaftlichkeit",
+  // Fachliche Einstellungen (Fristen, Kapazitaeten, Richtwerte), in der Oberflaeche pflegbar. Bewusst eine eigene Ressource: Wer eine Frist
+  // pflegt, entscheidet damit nicht ueber Zugriffsrechte (die bleiben in dieser Datei und in den Policies). Welche Rolle welche Einstellung
+  // aendern darf, steht je Einstellung (src/lib/einstellungen.ts, betriebs_einstellungen.bearbeiter); update oeffnet hier nur die Seite.
+  "einstellungen",
 ] as const;
 
 export type Resource = (typeof resources)[number];
@@ -208,6 +212,8 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("lohn"),
     ...view("finanzen"),
     ...view("wirtschaftlichkeit"),
+    ...view("einstellungen"),
+    "einstellungen:update",
     ...crud("dokumente"),
     ...crud("compliance"),
     ...view("integrationen"),
@@ -259,6 +265,8 @@ export const rolePermissions: Record<Role, Permission[]> = {
     `lohn:approve`,
     ...all("finanzen"),
     ...all("wirtschaftlichkeit"),
+    ...view("einstellungen"),
+    "einstellungen:update",
     ...crud("dokumente"),
     ...crud("compliance"),
     ...crud("integrationen"),

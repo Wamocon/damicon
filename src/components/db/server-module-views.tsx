@@ -27,6 +27,7 @@ import { WetterAnsicht } from "@/components/db/wetter-ansicht";
 import { KanaeleAnsicht } from "@/components/db/kanaele-ansicht";
 import { StammdatenAnsicht } from "@/components/db/stammdaten-ansicht";
 import { PreislistenAnsicht } from "@/components/db/preislisten-ansicht";
+import { EinstellungenAnsicht } from "@/components/db/einstellungen-ansicht";
 import { SortenkatalogAnsicht } from "@/components/db/sortenkatalog-ansicht";
 import { RollenDemo } from "@/components/demo/buero";
 import type { ModuleDef } from "@/lib/modules";
@@ -118,6 +119,9 @@ export function serverModulAnsicht(
     // (Stufe 2) braucht den Zugang der Behoerde.
     case "integrationen":
       return <IntegrationenAnsicht />;
+    // Fristen, Kapazitaeten und Richtwerte in der Oberflaeche pflegen (Migration 20261208030000), statt im Code.
+    case "einstellungen":
+      return <EinstellungenAnsicht />;
     case "logistik":
       return <LogistikAnsicht />;
     // Anforderung 3.1: die Live-Alarmlogik (KuehlkettenAlarm) lief bisher nur

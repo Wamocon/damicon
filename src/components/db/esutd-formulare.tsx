@@ -31,6 +31,7 @@ export function EsutdAbschlussFormular({ pfluecker }: { pfluecker: EsutdOptionen
           options={[{ wert: "", text: t("bitteWaehlen") }, ...pfluecker.map((p) => ({ wert: p.id, text: `${p.name} (${p.ausweis})` }))]}
         />
         <Feld label={t("beginn")} name="vertrag_beginn_am" type="date" required />
+        <Feld label={t("unterschrift")} name="unterzeichnet_am" type="date" hinweis={t("unterschriftHinweis")} />
         <Feld label={t("nummer")} name="vertragsnummer" />
         <div className="flex items-end">
           <SubmitKnopf label={t("knopf")} status={status} />

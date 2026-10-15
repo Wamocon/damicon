@@ -11,6 +11,7 @@ import {
   EsutdOeffnenKnopf,
 } from "@/components/db/esutd-formulare";
 import { ladeEsutdMeldungen, ladeEsutdOptionen, ladeEsutdVerlauf } from "@/lib/data/esutd";
+import { einstellungWert } from "@/lib/data/einstellungen";
 import { esutdTon, meldungUeberfaellig, zaehleMeldungen, type EsutdMeldung } from "@/lib/domain/esutd";
 import { tagInZone } from "@/lib/domain/tageszeit";
 import { getSessionProfile } from "@/lib/auth";
@@ -47,7 +48,10 @@ function Detail({ m, t, belegName }: { m: EsutdMeldung; t: Uebersetzer; belegNam
 }
 
 export async function IntegrationenAnsicht() {
-  const [meldungen, optionen, verlauf, profil, t, format, sprache, dk] = await Promise.all([
+  const [fristAbschluss, fristAenderung, fristBeendigung, meldungen, optionen, verlauf, profil, t, format, sprache, dk] = await Promise.all([
+    einstellungWert("esutd.frist_abschluss_tage"),
+    einstellungWert("esutd.frist_aenderung_tage"),
+    einstellungWert("esutd.frist_beendigung_tage"),
     ladeEsutdMeldungen(),
     ladeEsutdOptionen(),
     ladeEsutdVerlauf(),
@@ -83,7 +87,9 @@ export async function IntegrationenAnsicht() {
             {t("zaehl.erfasst")} {zaehlung.erfasst}
           </StatusPill>
         </div>
-        <p className="mt-3 text-xs leading-5 text-muted-foreground">{t("stufeHinweis")}</p>
+        <p className="mt-3 text-xs leading-5 text-muted-foreground">
+          {t("stufeHinweis", { abschluss: fristAbschluss ?? "-", aenderung: fristAenderung ?? "-", beendigung: fristBeendigung ?? "-" })}
+        </p>
         {!darfAendern ? <p className="mt-1 text-xs text-muted-foreground">{t("nurLesen")}</p> : null}
         {darfAendern ? (
           <div className="mt-3 flex flex-wrap items-center gap-3">

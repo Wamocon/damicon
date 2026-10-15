@@ -66,7 +66,7 @@ export interface RisikoAufbereitet {
 export interface RisikoRohdaten {
   mwstMeldefristAm: string | null;
   mwstRegistriert: boolean;
-  esutdFristen: { id: string; pfluecker: string; meldefristAm: string }[];
+  esutdFristen: { id: string; pfluecker: string; meldefristAm: string; art?: "abschluss" | "aenderung" | "beendigung" }[];
   vorfaelleUeberfaellig: { id: string; meldefristAm: string | null }[];
   drittweitergabenUeberfaellig: { id: string; empfaenger: string; benachrichtigungsfristAm: string | null }[];
   /** Abgelaufene und bald ablaufende Nachweise aus dem Register (WMCNL-1469). */
@@ -102,7 +102,7 @@ export async function baueRisikoEintraege(rohdaten: RisikoRohdaten): Promise<Ris
     ...rohdaten.esutdFristen.map((e) => ({
       id: `esutd-${e.id}`,
       kategorie: "arbeit" as const,
-      label: t("labelEsutd", { name: e.pfluecker }),
+      label: t(e.art === "aenderung" ? "labelEsutdAenderung" : e.art === "beendigung" ? "labelEsutdBeendigung" : "labelEsutd", { name: e.pfluecker }),
       faelligkeit: e.meldefristAm,
       ziel: "/dashboard/buero/personal",
     })),

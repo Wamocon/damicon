@@ -257,6 +257,16 @@ export const modules: ModuleDef[] = [
     reifegrad: "angebunden",
   },
   {
+    key: "einstellungen",
+    zone: "buero",
+    slug: "einstellungen",
+    icon: "sliders-horizontal",
+    resource: "einstellungen",
+    // Fristen, Kapazitaeten und Richtwerte, die Administration, Geschaeftsfuehrung und die zustaendigen Fachrollen pflegen
+    // (Migration 20261208030000). Zugriffsrechte gehoeren nicht hierher.
+    reifegrad: "angebunden",
+  },
+  {
     key: "foerdermittel",
     zone: "buero",
     slug: "foerdermittel",

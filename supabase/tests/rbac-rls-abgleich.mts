@@ -55,13 +55,15 @@ const SONDEN: Partial<Record<Resource, Partial<Record<ProbeAktion, string>>>> = 
   kanaele: { view: "kontaktkanaele", create: "kontaktkanaele", update: "kontaktkanaele", delete: "kontaktkanaele" },
   stammdaten: { view: "b2b_kunden", update: "b2b_kunden" },
   preislisten: { view: "preislisten", create: "preislisten", update: "preislisten", delete: "preislisten_positionen" },
+  wirtschaftlichkeit: { view: "wirtschaftlichkeit_posten", create: "wirtschaftlichkeit_posten", update: "wirtschaftlichkeit_posten" },
+  einstellungen: { view: "betriebs_einstellungen" },
 };
 
 /** Was der Test bewusst nicht prueft, mit Grund. */
 const NICHT_PRUEFBAR: Record<string, string> = {
   dashboard: "keine eigene Tabelle: die Startseite liest Kennzahlen und Sichten, jede mit eigener Zeilensicherheit",
-  wirtschaftlichkeit: "rechnet heute aus Konstanten, hat keine Tabelle (WMCNL-2470)",
   ki_assistent: "Chat- und Anbietertabellen sind leer im Seed und haengen an der Anwendungslogik (Einwilligung, Ratenlimit)",
+  einstellungen: "create und update laufen nur ueber die Funktion einstellung_setzen() (Rolle je Einstellung, Typ, Grenzen, Verlauf), nicht ueber die Tabelle: geprueft in einstellungen.mts",
   rollen: "profiles: jede Rolle liest und aendert die eigene Zeile, die Rollenvergabe schuetzen Trigger (profil_rolle_schuetzen, profil_letzter_admin_schuetzen), geprueft in rollenzuweisung.mts",
   einladungen: "die Tabelle ist im Seed leer, ein gueltiges Muster-Einladungsdatum gehoert in einen eigenen Test (einladungen.mts)",
   "delete (ausser kanaele, preislisten)": "delete ist ausserhalb von kanaele und preislisten nur ueber all() fuer admin und ceo vergeben: Tabellen sind teils bewusst unveraenderlich (Protokolle, Buchungen, Nachrichten)",
@@ -86,6 +88,7 @@ const BEKANNTE_REGELN: { rollen: Role[]; ressource: Resource; aktionen: ProbeAkt
   { rollen: ["buchhaltung"], ressource: "qr_steigen", aktionen: ["view"], grund: "steigen_select_feld nennt die Buchhaltung, die Matrix nicht" },
   { rollen: ["betriebsleitung"], ressource: "qr_steigen", aktionen: ["create", "update"], grund: "steigen_insert_feld und _update_feld erlauben der Betriebsleitung das Erfassen und Korrigieren von Steigen, die Matrix kennt qr_steigen nur als view" },
   { rollen: ["buchhaltung", "kunde"], ressource: "logistik", aktionen: ["view"], grund: "Lieferungen sind fuers Buero lesbar, der Kunde liest seine eigenen (lieferungen_select_kunde_buero), das B2B-Portal zeigt sie" },
+  { rollen: ["brigade", "erzeuger", "kunde", "picker"], ressource: "einstellungen", aktionen: ["view"], grund: "entschieden am 15.10.2026: die Werte der Einstellungen (Fristen, Richtwerte) sind keine Geheimnisse, die Anwendung liest sie in jeder Rolle. Die Seite zum Pflegen zeigt die Matrix nur dem Buero, aendern geht nur ueber einstellung_setzen()" },
   // Matrix erlaubt mehr als die Datenbank: seit dem 15.10.2026 keine Ausnahme mehr (dokumente, b2b_portal, finanzen sind aus der Matrix entfallen)
 ];
 
@@ -121,6 +124,9 @@ for (const r of BEKANNTE_REGELN) for (const rolle of r.rollen) for (const aktion
     await db.exec(`alter table public.${tabelle} enable trigger user;`);
   }
 }
+
+// Eine Zeile fuer die Investitionsrechnung, sonst bleibt die Ressource ohne Versuch (der Seed enthaelt keinen Posten).
+await db.query(`insert into public.wirtschaftlichkeit_posten (art, kategorie, bezeichnung, betrag) values ('investition', 'Technik', 'Abgleich', 100);`);
 
 /** Tabellen, deren Trigger einen Versuch ablehnen koennten, BEVOR die Zeilensicherheit greift: fuer den Abgleich abgeschaltet. */
 const TRIGGER_AUS = ["kuehlketten_messungen", "steigen", "pflanzenschutz_behandlungen", "lieferungen", "esf_belege"];

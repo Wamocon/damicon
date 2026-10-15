@@ -197,6 +197,24 @@ export function esfAngabenFehler(nach: EsfStatus, a: EsfAngaben, heute: string):
   }
 }
 
+// --- Frist ----------------------------------------------------------------------------------------------------------
+
+/**
+ * Stand der Frist einer zugestellten Lieferung ohne ausgestellten Beleg. Die Frist (Kalendertage ab Liefertag) kommt aus der Einstellung
+ * esf.frist_tage (Steuerkodex 214-VIII, Art. 493 Abs. 1: 15 Kalendertage). Der letzte Tag der Frist zaehlt noch; das Fristende wird nicht auf einen
+ * Arbeitstag verschoben (vorsichtige Lesart). Ohne gesetzte Frist (null) gibt es keine Aussage.
+ */
+export type EsfFristStand = { art: "keine" } | { art: "laeuft"; verbleibend: number } | { art: "ueberfaellig"; ueberschritten: number };
+
+/** Ab so vielen verbleibenden Tagen warnt die Liste. */
+export const ESF_FRIST_WARNUNG_TAGE = 3;
+
+export function esfFristStand(tageSeitLieferung: number, fristTage: number | null): EsfFristStand {
+  if (fristTage === null || !Number.isFinite(fristTage)) return { art: "keine" };
+  if (tageSeitLieferung > fristTage) return { art: "ueberfaellig", ueberschritten: tageSeitLieferung - fristTage };
+  return { art: "laeuft", verbleibend: fristTage - tageSeitLieferung };
+}
+
 // --- Zaehlung -------------------------------------------------------------------------------------------------------
 
 export interface EsfZaehlung {

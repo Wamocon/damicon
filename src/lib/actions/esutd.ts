@@ -30,14 +30,15 @@ export async function esutdVertragAnlegen(_status: AktionsStatus, formData: Form
   const pflueckerId = text(formData, "pfluecker_id");
   const beginn = text(formData, "vertrag_beginn_am");
   const vertragsnummer = text(formData, "vertragsnummer");
+  const unterzeichnet = text(formData, "unterzeichnet_am");
   if (!istUuid(pflueckerId)) return fehler("fehler.eingabe");
-  const abgelehnt = esutdVertragFehler({ beginn, vertragsnummer });
+  const abgelehnt = esutdVertragFehler({ beginn, vertragsnummer, unterzeichnet }, tagInZone(new Date()));
   if (abgelehnt) return fehler(`fehler.${abgelehnt}`);
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("esutd_vertraege")
-    .insert({ pfluecker_id: pflueckerId, vertrag_beginn_am: beginn, vertragsnummer: vertragsnummer || null })
+    .insert({ pfluecker_id: pflueckerId, vertrag_beginn_am: beginn, vertragsnummer: vertragsnummer || null, unterzeichnet_am: unterzeichnet || null })
     .select("id")
     .single();
   if (error) return dbFehler(error);

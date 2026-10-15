@@ -2,9 +2,9 @@ import { istGueltigerTag } from "@/lib/listen/zeitraum";
 
 // Meldeprozess fuer das Einheitssystem ЕСУТД, Stufe 1 (WMCNL-1447). Reine Pruef- und Sortierregeln
 // ohne Server-Import. Das System meldet nicht selbst: es fuehrt, was zu melden ist, was gemeldet
-// ist und womit es belegt ist. Fuer den Abschluss gibt es die Meldefrist (5 Werktage ab
-// Vertragsbeginn, berechnet in der Datenbank), fuer Aenderung und Beendigung ist keine Frist
-// hinterlegt.
+// ist und womit es belegt ist. Die Meldefristen berechnet die Datenbank aus den Einstellungen (esutd.frist_abschluss_tage, _aenderung_tage,
+// _beendigung_tage; Grundlage: Erlass des Arbeitsministers Nr. 353 vom 03.09.2020): Abschluss in Arbeitstagen nach Unterschrift (sonst Vertragsbeginn),
+// Aenderung in Kalendertagen, Beendigung in Arbeitstagen. Ist eine Einstellung nicht gesetzt, gibt es fuer diese Art keine Frist.
 
 export const ESUTD_ARTEN = ["abschluss", "aenderung", "beendigung"] as const;
 export type EsutdArt = (typeof ESUTD_ARTEN)[number];
@@ -35,7 +35,7 @@ export interface EsutdMeldung {
   erfasstAm: string | null;
   bestaetigung: string | null;
   belegDokumentId: string | null;
-  /** Nur beim offenen Abschluss. */
+  /** Nur bei einer offenen Meldung, und nur wenn die Einstellung der Art gesetzt ist. */
   meldefristAm: string | null;
 }
 
@@ -84,8 +84,10 @@ export function sortiereMeldungen<T extends EsutdMeldung>(meldungen: readonly T[
 
 export type EsutdFehler = "esutdDatum" | "esutdVertragsnummer" | "esutdBeschreibung" | "esutdBestaetigung";
 
-export function esutdVertragFehler(a: { beginn: string; vertragsnummer: string }): EsutdFehler | null {
+export function esutdVertragFehler(a: { beginn: string; vertragsnummer: string; unterzeichnet?: string }, heute?: string): EsutdFehler | null {
   if (!istGueltigerTag(a.beginn)) return "esutdDatum";
+  // Die Unterschrift ist freiwillig. Sie liegt nicht in der Zukunft: Ein Vertrag ist unterschrieben, bevor er gemeldet wird.
+  if (a.unterzeichnet && (!istGueltigerTag(a.unterzeichnet) || (heute !== undefined && a.unterzeichnet > heute))) return "esutdDatum";
   if (a.vertragsnummer.trim().length > VERTRAGSNUMMER_MAX_ZEICHEN) return "esutdVertragsnummer";
   return null;
 }

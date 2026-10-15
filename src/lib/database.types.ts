@@ -366,6 +366,96 @@ export type Database = {
         }
         Relationships: []
       }
+      betriebs_einstellungen: {
+        Row: {
+          aktualisiert_am: string
+          aktualisiert_von: string | null
+          bearbeiter: Database["public"]["Enums"]["app_role"][]
+          bereich: string
+          einheit: string | null
+          max_wert: number | null
+          min_wert: number | null
+          quelle: string
+          schluessel: string
+          stand: string
+          standard_text: string | null
+          standard_wert: number | null
+          typ: string
+          wert: number | null
+          wert_text: string | null
+        }
+        Insert: {
+          aktualisiert_am?: string
+          aktualisiert_von?: string | null
+          bearbeiter?: Database["public"]["Enums"]["app_role"][]
+          bereich: string
+          einheit?: string | null
+          max_wert?: number | null
+          min_wert?: number | null
+          quelle: string
+          schluessel: string
+          stand: string
+          standard_text?: string | null
+          standard_wert?: number | null
+          typ: string
+          wert?: number | null
+          wert_text?: string | null
+        }
+        Update: {
+          aktualisiert_am?: string
+          aktualisiert_von?: string | null
+          bearbeiter?: Database["public"]["Enums"]["app_role"][]
+          bereich?: string
+          einheit?: string | null
+          max_wert?: number | null
+          min_wert?: number | null
+          quelle?: string
+          schluessel?: string
+          stand?: string
+          standard_text?: string | null
+          standard_wert?: number | null
+          typ?: string
+          wert?: number | null
+          wert_text?: string | null
+        }
+        Relationships: []
+      }
+      betriebs_einstellungen_verlauf: {
+        Row: {
+          alt_text: string | null
+          alt_wert: number | null
+          geaendert_am: string
+          geaendert_von: string | null
+          grund: string | null
+          id: string
+          neu_text: string | null
+          neu_wert: number | null
+          schluessel: string
+        }
+        Insert: {
+          alt_text?: string | null
+          alt_wert?: number | null
+          geaendert_am?: string
+          geaendert_von?: string | null
+          grund?: string | null
+          id?: string
+          neu_text?: string | null
+          neu_wert?: number | null
+          schluessel: string
+        }
+        Update: {
+          alt_text?: string | null
+          alt_wert?: number | null
+          geaendert_am?: string
+          geaendert_von?: string | null
+          grund?: string | null
+          id?: string
+          neu_text?: string | null
+          neu_wert?: number | null
+          schluessel?: string
+        }
+        Relationships: []
+      }
       brigaden: {
         Row: {
           created_at: string
@@ -1108,6 +1198,7 @@ export type Database = {
           outbox_id: string | null
           pfluecker_id: string
           status: Database["public"]["Enums"]["esutd_status"]
+          unterzeichnet_am: string | null
           vertrag_beginn_am: string | null
           vertragsnummer: string | null
         }
@@ -1120,6 +1211,7 @@ export type Database = {
           outbox_id?: string | null
           pfluecker_id: string
           status?: Database["public"]["Enums"]["esutd_status"]
+          unterzeichnet_am?: string | null
           vertrag_beginn_am?: string | null
           vertragsnummer?: string | null
         }
@@ -1132,6 +1224,7 @@ export type Database = {
           outbox_id?: string | null
           pfluecker_id?: string
           status?: Database["public"]["Enums"]["esutd_status"]
+          unterzeichnet_am?: string | null
           vertrag_beginn_am?: string | null
           vertragsnummer?: string | null
         }
@@ -4710,6 +4803,11 @@ export type Database = {
         Args: { p_auth_user_id: string; p_code_digest: string; p_email: string }
         Returns: string
       }
+      einstellung_setzen: {
+        Args: { p_grund: string | null; p_schluessel: string; p_text: string | null; p_wert: number | null }
+        Returns: undefined
+      }
+      einstellung_zahl: { Args: { p_schluessel: string }; Returns: number }
       einwilligung_widerrufen: {
         Args: { p_grund: string; p_id: string }
         Returns: undefined

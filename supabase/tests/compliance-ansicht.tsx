@@ -212,7 +212,7 @@ const setze = (teil: Partial<Lage> = {}) => {
     profil: profil("buchhaltung"),
     cockpit: COCKPIT,
     mwst: { quelle: "db", status: mwstStatus() },
-    esutd: [{ id: "f1", pfluecker: "Aliya", meldefristAm: "2099-01-01" }],
+    esutd: [{ id: "f1", art: "abschluss", pfluecker: "Aliya", meldefristAm: "2099-01-01" }],
     betroffene: BETROFFENE,
     ...teil,
   };
