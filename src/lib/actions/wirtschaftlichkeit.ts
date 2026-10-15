@@ -144,6 +144,8 @@ export async function istErfassen(_status: AktionsStatus, formData: FormData): P
     })
     .select("id")
     .single();
+  // Ein Wert je Monat, Kategorie und Waehrung (Unique-Index): ein zweiter Klick oder ein zweiter Eintrag trifft ihn.
+  if (error?.code === "23505") return fehler("fehler.wiIstSchonDa");
   if (error) return dbFehler(error);
   await protokoll(z.profil, "wirtschaftlichkeit.ist_erfasst", data.id, { monat: e.monat, kategorie: e.kategorie, betrag: e.betrag, waehrung: e.waehrung });
   aktualisiere(formData);
@@ -266,10 +268,6 @@ export async function modellwerteUebernehmen(_status: AktionsStatus, formData: F
   if ("status" in z) return z.status;
 
   const supabase = await createClient();
-  const { count, error: zaehlFehler } = await supabase.from("wirtschaftlichkeit_posten").select("id", { count: "exact", head: true });
-  if (zaehlFehler) return dbFehler(zaehlFehler);
-  if ((count ?? 0) > 0) return fehler("fehler.wiModellNichtLeer");
-
   const t = await getTranslations("wirtschaftlichkeitErfassung.modell");
   const posten = modellPosten(
     {
@@ -279,8 +277,9 @@ export async function modellwerteUebernehmen(_status: AktionsStatus, formData: F
     },
     tagInZone(new Date()),
   );
-  const { error } = await supabase.from("wirtschaftlichkeit_posten").insert(
-    posten.map((p) => ({
+  // Zaehlen und Einfuegen in einer Funktion unter einer Sperre: ein Doppelklick fuegt die Modellwerte nicht zweimal ein (0 = es gab schon Posten).
+  const { data: eingefuegt, error } = await supabase.rpc("wirtschaftlichkeit_posten_uebernehmen", {
+    p_posten: posten.map((p) => ({
       art: p.art,
       kategorie: p.kategorie,
       bezeichnung: p.bezeichnung,
@@ -289,10 +288,11 @@ export async function modellwerteUebernehmen(_status: AktionsStatus, formData: F
       datum: p.datum,
       herkunft: p.herkunft,
       notiz: t("notiz"),
-      erfasst_von_profil_id: z.profil.id,
     })),
-  );
+    p_profil: z.profil.id,
+  });
   if (error) return dbFehler(error);
+  if (!eingefuegt) return fehler("fehler.wiModellNichtLeer");
 
   // Die Menge der bisherigen Rechnung, nur wo noch keine gesetzt ist; "menge" bleibt geschaetzt.
   await supabase.from("wirtschaftlichkeit_annahmen").update({ vermarktete_menge_kg: VERMARKTETE_MENGE_KG }).eq("id", 1).is("vermarktete_menge_kg", null);

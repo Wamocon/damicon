@@ -1,5 +1,6 @@
 import { istGueltigerTag } from "@/lib/listen/zeitraum";
 import { preisAmStichtag, type PreislisteEintrag } from "@/lib/domain/rechnungshistorie";
+import { rundeKaufmaennisch } from "@/lib/domain/runden";
 
 // Belegregister der elektronischen Rechnung (ЭСФ), Stufe 1 (WMCNL-1440). Reine Rechen- und
 // Pruefregeln ohne Server-Import. Das System stellt keine ЭСФ aus: es fuehrt das Register (welche
@@ -93,7 +94,8 @@ export interface EsfEntwurfEingabe {
   mwstRegistriertAm: string | null;
 }
 
-const runde = (wert: number) => Math.round(wert * 100) / 100;
+// Kaufmaennisch auf zwei Stellen (Pruefung PR #156, 15.10.2026: Math.round(wert * 100) / 100 rundete 1,005 auf 1,00).
+const runde = (wert: number) => rundeKaufmaennisch(wert, 2);
 
 export function mwstSatzAm(saetze: readonly MwstSatzEintrag[], tag: string): number | null {
   const passend = saetze

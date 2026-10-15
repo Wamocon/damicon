@@ -13,13 +13,16 @@ import {
 } from "@/lib/actions/wirtschaftlichkeit";
 import { AktionsMeldung, Auswahl, Feld, MiniAktion, PfadFeld, SubmitKnopf, useBehalteEingaben } from "@/components/db/formular-kit";
 import type { Annahmen, Posten } from "@/lib/domain/wirtschaftlichkeit-erfassung";
+import { rundeKaufmaennisch } from "@/lib/domain/runden";
 
 // Die Bedienung der Erfassung (WMCNL-2470): Posten anlegen und aendern, Ist-Werte erfassen, Annahmen setzen, einen Stand
 // festhalten und mit den Modellwerten beginnen. Die Pruefung der Eingaben macht die Server Action (und die Datenbank
 // ein zweites Mal); die Formulare verlangen Pflichtfelder nur als Hinweis.
 
 /** Zahl fuer ein Eingabefeld: ohne Gleitkommareste (0,12 mal 100 ergibt sonst 12,000000000000002). */
-const eingabeZahl = (wert: number | null, stellen = 4): string => (wert === null ? "" : String(Math.round(wert * 10 ** stellen) / 10 ** stellen));
+// Die Stellen sind eine Obergrenze fuer den Gleitkommafehler, nicht fuer die Genauigkeit der Eingabe: Ein Zins von 6,125 % erscheint als 6,125, nicht als 6,13. Sonst
+// wuerde das Speichern ohne Aenderung den Wert veraendern (Pruefung PR #156, 15.10.2026).
+const eingabeZahl = (wert: number | null, stellen = 4): string => (wert === null ? "" : String(rundeKaufmaennisch(wert, stellen)));
 
 function WaehrungAuswahl({ defaultValue }: { defaultValue: string }) {
   const t = useTranslations("wirtschaftlichkeitErfassung");
@@ -156,7 +159,7 @@ export function AnnahmenFormular({ annahmen }: { annahmen: Annahmen }) {
   return (
     <form {...formProps} className="grid gap-2 p-4 sm:grid-cols-2">
       <PfadFeld />
-      <Feld label={t("annahmen.form.zins")} name="zins" required inputMode="decimal" defaultValue={eingabeZahl(annahmen.kalkulationszins * 100, 2)} />
+      <Feld label={t("annahmen.form.zins")} name="zins" required inputMode="decimal" defaultValue={eingabeZahl(annahmen.kalkulationszins * 100, 6)} />
       <HerkunftAuswahl name="herkunft_kalkulationszins" label={t("annahmen.form.herkunft")} defaultValue={h("kalkulationszins")} />
       <Feld label={t("annahmen.form.kursEur")} name="kurs_eur" required inputMode="decimal" defaultValue={eingabeZahl(annahmen.kurse.eurTenge)} />
       <Feld label={t("annahmen.form.kursRub")} name="kurs_rub" required inputMode="decimal" defaultValue={eingabeZahl(annahmen.kurse.rubTenge)} />

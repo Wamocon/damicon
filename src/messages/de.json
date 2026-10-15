@@ -1154,14 +1154,16 @@
       "integrationAdapter": "Bitte „manuell“ oder „Webhook“ wählen.",
       "integrationUrl": "Bitte eine gültige https-Adresse angeben, ohne Zugangsdaten, höchstens 500 Zeichen.",
       "integrationUrlIntern": "Diese Adresse zeigt ins eigene Netz oder auf die eigene Maschine. Ziele müssen öffentlich erreichbar sein.",
-      "integrationGeheimnis": "Bitte nur den Namen der Umgebungsvariable angeben: Großbuchstaben, Ziffern und Unterstriche, beginnend mit einem Buchstaben, 3 bis 64 Zeichen. Nicht das Geheimnis selbst.",
+      "integrationGeheimnis": "Bitte nur den Namen der Umgebungsvariable angeben. Er beginnt mit DAMICON_HOOK_, danach folgen Großbuchstaben, Ziffern und Unterstriche (bis 48 Zeichen). Nicht das Geheimnis selbst.",
       "integrationUnvollstaendig": "Aktiv gibt es nur als Webhook mit Adresse und dem Namen des Geheimnisses.",
       "integrationNichtGescheitert": "Nur ein gescheiterter Eintrag lässt sich erneut versuchen.",
       "auslieferung": "Die Auslieferung ist fehlgeschlagen. Details stehen im Server-Log.",
       "unveraenderlich": "Dieser Eintrag ist unveränderlich.",
       "anonymisierungGrund": "Bitte einen Grund mit 3 bis 300 Zeichen angeben, ohne personenbezogene Angaben.",
       "einstellungGrenzen": "Der Wert liegt außerhalb der erlaubten Grenzen.",
-      "einstellungGanzzahl": "Bitte eine ganze Zahl angeben."
+      "einstellungGanzzahl": "Bitte eine ganze Zahl angeben.",
+      "wiIstSchonDa": "Für diesen Monat, diese Kategorie und diese Währung gibt es schon einen Wert. Den vorhandenen entfernen und neu erfassen.",
+      "adresssucheGrenze": "Zu viele Adresssuchen in der letzten Stunde. Bitte später noch einmal versuchen (Grenze in den Einstellungen)."
     },
     "einladungen": {
       "erfolg": {

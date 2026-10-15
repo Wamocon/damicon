@@ -27,13 +27,17 @@ export function aktualisiere(formData: FormData) {
   if (pfad.startsWith("/")) revalidatePath(pfad);
 }
 
-export async function protokolliere(
+/**
+ * Schreibt einen Protokolleintrag und sagt, ob es gelang. Fuer Zugriffe, die ohne Eintrag nicht hinausgehen duerfen (zum Beispiel der Export von Namen
+ * und Ausweisnummern): schlaegt es fehl, bricht der Aufrufer ab. protokolliere() dagegen bricht eine schon geschehene Aktion nicht ab.
+ */
+export async function protokolliereStreng(
   profil: SessionProfile,
   aktion: string,
   ressource: string,
   ressourceId: string | null,
   metadata: Record<string, Json> = {},
-) {
+): Promise<boolean> {
   const supabase = await createClient();
   const { error } = await supabase.from("audit_events").insert({
     actor: `${profil.fullName} (${profil.role})`,
@@ -42,8 +46,19 @@ export async function protokolliere(
     ressource_id: ressourceId,
     metadata,
   });
-  // Ein fehlender Protokolleintrag bricht die Aktion nicht ab (sie ist schon geschehen), darf aber nicht still bleiben.
   if (error) console.error(`[damicon] Protokolleintrag "${aktion}" fehlgeschlagen:`, error.message);
+  return !error;
+}
+
+export async function protokolliere(
+  profil: SessionProfile,
+  aktion: string,
+  ressource: string,
+  ressourceId: string | null,
+  metadata: Record<string, Json> = {},
+) {
+  // Ein fehlender Protokolleintrag bricht die Aktion nicht ab (sie ist schon geschehen), darf aber nicht still bleiben: protokolliereStreng() meldet es im Log.
+  await protokolliereStreng(profil, aktion, ressource, ressourceId, metadata);
 }
 
 // WMC-Vibecode-Cleanup-Fund: derselbe Datumsstempel-plus-Zufallssuffix-Code

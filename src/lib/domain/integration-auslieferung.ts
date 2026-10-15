@@ -24,7 +24,12 @@ export const SPERRE_MINUTEN = 5;
 /** Zeitlimit eines Versuchs. */
 export const ZEITLIMIT_MS = 10_000;
 
-export const GEHEIMNIS_MUSTER = /^[A-Z][A-Z0-9_]{2,63}$/;
+/**
+ * Der Name der Umgebungsvariable mit dem Geheimnis hat ein festes Praefix (Pruefung PR #156, 15.10.2026): Die Administration waehlt nur den Rest. Der Name einer
+ * anderen Variable (CRON_SECRET, KI_ANBIETER_SCHLUESSEL, SUPABASE_SERVICE_ROLE_KEY) laesst sich so nicht als Signaturschluessel eintragen.
+ */
+export const GEHEIMNIS_PRAEFIX = "DAMICON_HOOK_";
+export const GEHEIMNIS_MUSTER = /^DAMICON_HOOK_[A-Z0-9_]{1,48}$/;
 
 export const istOutboxStatus = (w: string): w is OutboxStatus => (OUTBOX_STATUS as readonly string[]).includes(w);
 export const istAdapter = (w: string): w is Adapter => (ADAPTER as readonly string[]).includes(w);
@@ -78,7 +83,12 @@ export function fortschritt(vorher: { versuche: number }, z: Zustellung, jetzt: 
 
 // --- Adressen -----------------------------------------------------------------------------------------------------------------------
 
-const PRIVATE_IPV4 = [/^10\./, /^127\./, /^169\.254\./, /^172\.(1[6-9]|2\d|3[01])\./, /^192\.168\./, /^0\./, /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./];
+const PRIVATE_IPV4 = [
+  /^10\./, /^127\./, /^169\.254\./, /^172\.(1[6-9]|2\d|3[01])\./, /^192\.168\./, /^0\./, /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./,
+  // Weitere Bereiche ohne oeffentliches Ziel: 192.0.0.0/24 (IETF), 192.0.2.0/24, 198.51.100.0/24 und 203.0.113.0/24 (Dokumentation), 198.18.0.0/15 (Benchmark),
+  // 224.0.0.0/4 (Multicast), 240.0.0.0/4 (reserviert) und 255.255.255.255.
+  /^192\.0\.0\./, /^192\.0\.2\./, /^198\.51\.100\./, /^203\.0\.113\./, /^198\.1[89]\./, /^2(2[4-9]|3\d)\./, /^2(4\d|5[0-5])\./,
+];
 
 /** Ist die Adresse ein Rechner im eigenen Netz oder auf der eigenen Maschine (kein Ziel fuer eine Auslieferung)? Gilt fuer Namen wie fuer IP-Adressen. */
 export function istInternerHost(host: string): boolean {
@@ -86,7 +96,10 @@ export function istInternerHost(host: string): boolean {
   if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") || h.endsWith(".internal") || h.endsWith(".lan") || h === "") return true;
   if (PRIVATE_IPV4.some((r) => r.test(h))) return true;
   // IPv6: Loopback, unspezifiziert, Link-Local (fe80::/10), Unique-Local (fc00::/7), auf IPv4 abgebildete Adressen
-  if (h.includes(":")) return h === "::1" || h === "::" || /^fe[89ab]/.test(h) || /^f[cd]/.test(h) || h.startsWith("::ffff:");
+  // Dazu NAT64 (64:ff9b::/96, bettet eine IPv4-Adresse ein), 6to4 (2002::/16, ebenso), Teredo (2001::/32), Dokumentation (2001:db8::/32) und Multicast (ff00::/8).
+  if (h.includes(":")) {
+    return h === "::1" || h === "::" || /^fe[89ab]/.test(h) || /^f[cd]/.test(h) || h.startsWith("::ffff:") || /^64:ff9b:/.test(h) || /^2002:/.test(h) || /^2001:(0:|0000:|db8:)/.test(h) || /^ff/.test(h);
+  }
   return false;
 }
 

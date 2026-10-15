@@ -4761,6 +4761,19 @@ export type Database = {
       }
     }
     Functions: {
+      abholrunde_anlegen: {
+        Args: {
+          p_ab_erstem: number | null
+          p_datum: string
+          p_dauer_min: number | null
+          p_distanz_km: number | null
+          p_fahrzeug: string | null
+          p_geometrie: Json | null
+          p_notiz: string | null
+          p_stopps: Json
+        }
+        Returns: string
+      }
       abholrunde_nachbarbetriebe: {
         Args: never
         Returns: {
@@ -4784,6 +4797,7 @@ export type Database = {
           spanne_prozent: number
         }[]
       }
+      adresssuche_zulassen: { Args: never; Returns: boolean }
       audit_bereich_fuer: {
         Args: { p_tabelle: string }
         Returns: Database["public"]["Enums"]["audit_bereich"]
@@ -4819,6 +4833,10 @@ export type Database = {
           erloes_tenge: number
           kosten_tenge: number
         }[]
+      }
+      foerder_checkliste_vorschlag_uebernehmen: {
+        Args: { p_dossier: string; p_punkte: string[] }
+        Returns: number
       }
       geraet_zeitpunkt_pruefen: {
         Args: { p_geraet: string; p_server?: string }
@@ -5082,6 +5100,10 @@ export type Database = {
       werktage_addieren: {
         Args: { p_anzahl: number; p_start: string }
         Returns: string
+      }
+      wirtschaftlichkeit_posten_uebernehmen: {
+        Args: { p_posten: Json; p_profil: string }
+        Returns: number
       }
       wissen_suche: {
         Args: {

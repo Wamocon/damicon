@@ -3,7 +3,7 @@ import { hasPermission } from "@/lib/rbac";
 import { sitzungFuerRoute, textAntwort } from "@/lib/api/sitzung";
 import { csvDatei } from "@/lib/domain/csv";
 import { ladeEsutdMeldungenStreng } from "@/lib/data/esutd";
-import { protokolliere } from "@/lib/actions/formular-helfer";
+import { protokolliereStreng } from "@/lib/actions/formular-helfer";
 
 // Angaben der ЕСУТД-Meldungen als CSV-Datei (WMCNL-1447): GET /api/esutd/export?sprache=ru&status=offen.
 //
@@ -48,7 +48,10 @@ export async function GET(request: Request) {
     ]),
   ];
 
-  await protokolliere(profil, "esutd.export", "esutd", null, { anzahl: meldungen.length, status: nurOffene ? "offen" : "alle" });
+  // Die Datei enthaelt Namen und Ausweisnummern: ohne Eintrag im Protokoll geht sie nicht hinaus.
+  if (!(await protokolliereStreng(profil, "esutd.export", "esutd", null, { anzahl: meldungen.length, status: nurOffene ? "offen" : "alle" }))) {
+    return textAntwort("Der Zugriff konnte nicht protokolliert werden. Die Datei wird nicht ausgegeben.", 500);
+  }
 
   // Die Kodierungsmarke (BOM) sorgt dafuer, dass Excel kyrillische und kasachische Namen als UTF-8 liest.
   return new Response(`﻿${csvDatei(tabelle)}`, {

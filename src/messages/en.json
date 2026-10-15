@@ -1154,14 +1154,16 @@
       "integrationAdapter": "Please choose \"manual\" or \"webhook\".",
       "integrationUrl": "Please enter a valid https address without credentials, at most 500 characters.",
       "integrationUrlIntern": "This address points into the own network or to the own machine. Targets must be publicly reachable.",
-      "integrationGeheimnis": "Please enter only the name of the environment variable: capital letters, digits and underscores, starting with a letter, 3 to 64 characters. Not the secret itself.",
+      "integrationGeheimnis": "Please enter only the name of the environment variable. It starts with DAMICON_HOOK_, followed by capital letters, digits and underscores (up to 48 characters). Not the secret itself.",
       "integrationUnvollstaendig": "Active exists only as a webhook with an address and the name of the secret.",
       "integrationNichtGescheitert": "Only a failed entry can be tried again.",
       "auslieferung": "The delivery failed. Details are in the server log.",
       "unveraenderlich": "This entry cannot be changed.",
       "anonymisierungGrund": "Please give a reason of 3 to 300 characters, without personal data.",
       "einstellungGrenzen": "The value is outside the permitted limits.",
-      "einstellungGanzzahl": "Please enter a whole number."
+      "einstellungGanzzahl": "Please enter a whole number.",
+      "wiIstSchonDa": "There is already a value for this month, category and currency. Remove the existing one and enter it again.",
+      "adresssucheGrenze": "Too many address searches in the last hour. Please try again later (limit in the settings)."
     },
     "einladungen": {
       "erfolg": {

@@ -34,15 +34,21 @@ const geraetZeitpunkt = (formData: FormData): string | null => {
 // --- Planen ----------------------------------------------------------------------------------------------------------------------
 
 export async function nachbarAdresseSetzen(_status: AktionsStatus, formData: FormData): Promise<AktionsStatus> {
-  const z = await zugriff("update");
+  // "create" statt "update" (Pruefung PR #156, 15.10.2026): Die Anschrift geht an einen Dienst ausserhalb, bevor die Zeilensicherheit sie prueft. Die Brigade
+  // hat "update" auf der Logistik, aber kein "create", und darf Adressen nicht an den Dienst schicken.
+  const z = await zugriff("create");
   if ("status" in z) return z.status;
 
   const id = text(formData, "id");
   const adresse = text(formData, "adresse");
   if (!istUuid(id) || adresse === "" || adresse.length > 300) return fehler("fehler.eingabe");
 
-  const geokodierung = await geokodiereAdresse(adresse);
   const supabase = await createClient();
+  // Grenze je Person und Stunde (Einstellung sicherheit.adresssuche_je_stunde), bevor die Anschrift den Dienst erreicht.
+  const { data: erlaubt, error: grenzeFehler } = await supabase.rpc("adresssuche_zulassen");
+  if (grenzeFehler) return dbFehler(grenzeFehler);
+  if (!erlaubt) return fehler("fehler.adresssucheGrenze");
+  const geokodierung = await geokodiereAdresse(adresse);
   const { data, error } = await supabase
     .from("nachbarbetriebe")
     .update({
@@ -93,30 +99,20 @@ export async function abholrundeErstellen(_status: AktionsStatus, formData: Form
     ? [...mitOrt.map((s, i) => ({ s, position: positionen[i] })).sort((a, b) => a.position - b.position).map((x) => x.s), ...ohneOrt]
     : [...mitOrt, ...ohneOrt];
 
-  const { data: runde, error: rundeFehlerDb } = await supabase
-    .from("abholrunden")
-    .insert({
-      datum: eingabe.datum,
-      fahrzeug: eingabe.fahrzeug === "" ? null : eingabe.fahrzeug,
-      notiz: eingabe.notiz === "" ? null : eingabe.notiz,
-      distanz_km: trip?.distanzKm ?? null,
-      dauer_minuten: trip?.dauerMinuten ?? null,
-      ab_erstem_stopp_minuten: trip ? minutenAbErstemStopp(trip) : null,
-      routen_geometrie: (trip?.geometrie as unknown as Json) ?? null,
-      erstellt_von_profil_id: z.profil.id,
-    })
-    .select("id")
-    .single();
-  if (rundeFehlerDb) return dbFehler(rundeFehlerDb);
-
-  const { error: stoppFehler } = await supabase.from("abholstopps").insert(
-    geordnet.map((s, position) => ({ runde_id: runde.id, nachbarbetrieb_id: s.nachbarbetriebId, reihenfolge: position, menge_geplant_kg: s.mengeKg as number })),
-  );
-  if (stoppFehler) {
-    // Eine Runde ohne ihre Stopps waere ein leerer Rest: wieder entfernen, dann die Fehlermeldung.
-    await supabase.from("abholrunden").delete().eq("id", runde.id);
-    return dbFehler(stoppFehler);
-  }
+  // Runde und Stopps in einer Transaktion (Funktion abholrunde_anlegen): scheitert ein Stopp, gibt es auch die Runde nicht, und es bleibt kein Rest,
+  // den eine zweite Anweisung wieder aufraeumen muesste (die konnte selbst scheitern).
+  const { data: rundeId, error: rundeFehlerDb } = await supabase.rpc("abholrunde_anlegen", {
+    p_datum: eingabe.datum,
+    p_fahrzeug: eingabe.fahrzeug,
+    p_notiz: eingabe.notiz,
+    p_distanz_km: trip?.distanzKm ?? null,
+    p_dauer_min: trip?.dauerMinuten ?? null,
+    p_ab_erstem: trip ? minutenAbErstemStopp(trip) : null,
+    p_geometrie: (trip?.geometrie as unknown as Json) ?? null,
+    p_stopps: geordnet.map((s, position) => ({ nachbarbetrieb_id: s.nachbarbetriebId, reihenfolge: position, menge_geplant_kg: s.mengeKg as number })),
+  });
+  if (rundeFehlerDb || !rundeId) return rundeFehlerDb ? dbFehler(rundeFehlerDb) : fehler("fehler.unbekannt");
+  const runde = { id: rundeId };
 
   await protokoll(z.profil, "abholrunde.erstellt", runde.id, { datum: eingabe.datum, stopps: geordnet.length, optimiert: trip !== null });
   aktualisiere(formData);

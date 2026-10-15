@@ -269,9 +269,11 @@ for (const fall of FAELLE) {
     esutd: ["admin", "ceo", "betriebsleitung"],
     esf: ["admin", "ceo", "betriebsleitung", "buchhaltung"],
     foerderung: ["admin", "ceo", "betriebsleitung", "buchhaltung"],
-    lieferung: ["admin", "ceo", "betriebsleitung", "buchhaltung", "brigade", "erzeuger", "kunde"],
-    nachweise: ["admin", "ceo", "betriebsleitung", "buchhaltung", "erzeuger", "kunde"],
-    lieferplan: ["admin", "ceo", "betriebsleitung", "buchhaltung", "erzeuger", "kunde"],
+    // Seit dem 15.10.2026 ohne Erzeuger (b2b_portal:view entfallen) und bei den Nachweisen ohne Erzeuger und Kunde (dokumente:view entfallen): die
+    // Zeilensicherheit liess sie die Quellen nie lesen, das Dokument waere leer gewesen.
+    lieferung: ["admin", "ceo", "betriebsleitung", "buchhaltung", "brigade", "kunde"],
+    nachweise: ["admin", "ceo", "betriebsleitung", "buchhaltung"],
+    lieferplan: ["admin", "ceo", "betriebsleitung", "buchhaltung", "kunde"],
     wirtschaftlichkeit: ["admin", "ceo", "betriebsleitung", "buchhaltung"],
     abholauftrag: ["admin", "ceo", "betriebsleitung", "brigade"],
   };

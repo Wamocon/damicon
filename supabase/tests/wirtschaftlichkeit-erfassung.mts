@@ -67,12 +67,13 @@ await mussScheitern("Posten: Nutzen kennt nur vier Kategorien", `insert into pub
   const { rows } = await db.query<{ id: string }>(`insert into public.wirtschaftlichkeit_ist (monat, kategorie, betrag) values ('2026-11-01', 'schwund', 1200) returning id;`);
   check("Ist: ein Wert zum Monatsersten geht durch", rows.length === 1);
 }
+await mussScheitern("Ist: derselbe Monat, dieselbe Kategorie und dieselbe Waehrung noch einmal wird abgelehnt (23505)", `insert into public.wirtschaftlichkeit_ist (monat, kategorie, betrag) values ('2026-11-01', 'schwund', 5);`, [], "23505");
 await mussScheitern("Ist: der Monat muss der Erste sein", `insert into public.wirtschaftlichkeit_ist (monat, kategorie, betrag) values ('2026-11-15', 'schwund', 1);`, [], "23514");
 await mussScheitern("Ist: Kategorie wie beim Nutzen", `insert into public.wirtschaftlichkeit_ist (monat, kategorie, betrag) values ('2026-11-01', 'andere', 1);`, [], "23514");
 await mussScheitern("Ist: Betrag nicht negativ", `insert into public.wirtschaftlichkeit_ist (monat, kategorie, betrag) values ('2026-11-01', 'schwund', -1);`, [], "23514");
 
 // --- 5. Rechte -------------------------------------------------------------------------------------------------------------------
-for (const rolle of ["admin", "buchhaltung"]) {
+for (const [index, rolle] of ["admin", "buchhaltung"].entries()) {
   await als(rolle, async () => {
     const { rows } = await posten("betrieb", "Hosting", 25000);
     check(`${rolle}: darf einen Posten anlegen`, rows.length === 1);
@@ -81,7 +82,8 @@ for (const rolle of ["admin", "buchhaltung"]) {
     check(`${rolle}: darf einen Posten aendern`, Number(s[0].betrag) === 26000);
     const { rows: weg } = await db.query(`delete from public.wirtschaftlichkeit_posten where id = $1 returning id;`, [rows[0].id]);
     check(`${rolle}: darf einen Posten entfernen`, weg.length === 1);
-    const { rows: ist } = await db.query(`insert into public.wirtschaftlichkeit_ist (monat, kategorie, betrag) values ('2026-12-01', 'audit', 500) returning id;`);
+    // Ein Wert je Monat, Kategorie und Waehrung (Migration 20261208050000): jede Rolle nimmt einen eigenen Monat.
+    const { rows: ist } = await db.query(`insert into public.wirtschaftlichkeit_ist (monat, kategorie, betrag) values (date '2026-12-01' + make_interval(months => $1::int), 'audit', 500) returning id;`, [index]);
     check(`${rolle}: darf einen Ist-Wert erfassen`, ist.length === 1);
     const { rows: a } = await db.query(`update public.wirtschaftlichkeit_annahmen set kalkulationszins = 0.11 returning id;`);
     check(`${rolle}: darf die Annahmen aendern`, a.length === 1);

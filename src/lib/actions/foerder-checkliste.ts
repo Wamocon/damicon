@@ -98,18 +98,11 @@ export async function checklisteVorschlagUebernehmen(_status: AktionsStatus, for
   const dossierId = text(formData, "dossier_id");
   if (!istUuid(dossierId)) return fehler("fehler.eingabe");
 
+  // Zaehlen und Einfuegen in einer Funktion unter einer Sperre: ein Doppelklick fuegt den Vorschlag nicht zweimal ein (0 = die Liste hatte schon Punkte).
   const supabase = await createClient();
-  const { count, error: zaehlFehler } = await supabase
-    .from("foerder_checkpunkte")
-    .select("id", { count: "exact", head: true })
-    .eq("dossier_id", dossierId);
-  if (zaehlFehler) return dbFehler(zaehlFehler);
-  if ((count ?? 0) > 0) return fehler("fehler.checklisteNichtLeer");
-
-  const { error } = await supabase
-    .from("foerder_checkpunkte")
-    .insert(VORSCHLAG_PUNKTE.map((vorlage_key, reihenfolge) => ({ dossier_id: dossierId, vorlage_key, pflicht: true, reihenfolge })));
+  const { data: eingefuegt, error } = await supabase.rpc("foerder_checkliste_vorschlag_uebernehmen", { p_dossier: dossierId, p_punkte: [...VORSCHLAG_PUNKTE] });
   if (error) return dbFehler(error);
+  if (!eingefuegt) return fehler("fehler.checklisteNichtLeer");
 
   await protokoll(z.profil, "foerdermittel.checkliste_vorschlag", dossierId, { punkte: VORSCHLAG_PUNKTE.length });
   aktualisiere(formData);

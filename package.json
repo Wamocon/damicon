@@ -55,6 +55,7 @@
     "test:esutd": "npx --yes tsx supabase/tests/esutd.ts",
     "test:rechte-schutz": "npx --yes tsx supabase/tests/rechte-schutz.mts",
     "test:einstellungen": "npx --yes tsx supabase/tests/einstellungen.mts",
+    "test:haertung": "npx --yes tsx supabase/tests/haertung.mts",
     "test:rbac-rls": "npx --yes tsx supabase/tests/rbac-rls-abgleich.mts",
     "test:dokument": "npx --yes tsx supabase/tests/dokument.ts",
     "test:kennzahlen-cockpit": "npx --yes tsx supabase/tests/kennzahlen-cockpit.ts",
