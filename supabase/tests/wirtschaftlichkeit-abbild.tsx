@@ -163,7 +163,7 @@ async function main() {
     { name: "schreiben-menge-aus-annahme", e: eingabe(POSTEN, IST, { ...ANNAHMEN, vermarkteteMengeKg: 70000 }, MENGE_KURZ, STAENDE, { darfSchreiben: true }), s: { "wirtschaftlichkeit.kalkulationszins_richtwert": 20 } },
   ];
   for (const f of ERFASSUNG_FAELLE) {
-    einstellungen = f.s;
+    einstellungen = f.s as Record<string, number | null>;
     const element = await WirtschaftlichkeitErfassung(f.e);
     const { html, fehler: textFehler } = rendere(element, "de");
     if (textFehler.some((z) => !z.includes("value"))) {

@@ -121,38 +121,25 @@ function hinweisFuer(t: Uebersetzer, k: { quelle: Rechenquelle; postenAnzahl: nu
   return k.postenAnzahl === 0 ? t("erfasstLeer") : t("erfasstHinweis", { anzahl: k.postenAnzahl });
 }
 
-/** Baut das Modell. Server Component, holt Uebersetzungen und Formatter selbst. */
-export async function baueModell(
-  rechnung: Rechnung,
-  kontext: { quelle: Rechenquelle; postenAnzahl: number; standName?: string; standDatum?: string },
-): Promise<Modell> {
-  const t = await getTranslations("wirtschaftlichkeitAnsicht");
-  const format = await getFormatter();
-  const { stand, annahmen } = rechnung;
+/** Was die Kacheln brauchen: Texte, die Rechenergebnisse und die Formate (Tenge, Rubel, Prozent), einmal in baueModell aufgebaut. */
+interface Formate {
+  t: Uebersetzer;
+  stand: Rechenstand;
+  annahmen: Annahmen;
+  kurse: Annahmen["kurse"];
+  modellrechnung: boolean;
+  anteil: (wert: number) => string;
+  genau: (n: number) => string;
+  geld: (euro: number | null) => Pick<Kachelentwurf, "wert" | "klammer" | "genau">;
+  prozent: (wert: number | null) => string;
+  mitHerkunft: (entwuerfe: Kachelentwurf[]) => Kachel[];
+}
+
+/** Die sechs eingerahmten Kennzahlen, je mit Diagramm. */
+function fokusKacheln(f: Formate): Kachel[] {
+  const { t, stand, annahmen, kurse, modellrechnung, anteil, genau, geld, prozent, mitHerkunft } = f;
   const k = stand.kennzahlen;
-  const kurse = annahmen.kurse;
-  const modellrechnung = kontext.quelle === "modell";
-
-  // Tenge fuehrend, Rubel in Klammern - beide aus demselben Euro-Wert und
-  // demselben Stichtagskurs, sonst stimmt das Verhaeltnis nicht. Kompakt,
-  // weil ein CAPEX von 154.000 EUR in Tenge achtstellig wird und eine
-  // achtstellige Zahl in einer Kachel niemand liest.
-  const kurz = (n: number) => format.number(n, { notation: "compact", maximumFractionDigits: 1 });
-  const genau = (n: number) => format.number(Math.round(n));
-  const tenge = (euro: number) => `${kurz(euroInTengeMit(euro, kurse))} ₸`;
-  const rubel = (euro: number) => `${kurz(euroInRubelMit(euro, kurse))} ₽`;
-  const tengeGenau = (euro: number) => `${genau(euroInTengeMit(euro, kurse))} ₸`;
-  const rubelGenau = (euro: number) => `${genau(euroInRubelMit(euro, kurse))} ₽`;
-  const anteil = (wert: number) => format.number(wert, { style: "percent", maximumFractionDigits: 0 });
-  const stichtag = format.dateTime(new Date(`${annahmen.kursStichtag}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
-
-  /** Ein Geldbetrag in Euro als Kachelfelder; ohne Wert "offen". */
-  const geld = (euro: number | null): Pick<Kachelentwurf, "wert" | "klammer" | "genau"> =>
-    euro === null ? { wert: t("offen") } : { wert: tenge(euro), klammer: rubel(euro), genau: tengeGenau(euro) };
-  const prozent = (wert: number | null): string => (wert === null ? t("offen") : anteil(wert));
-  const mitHerkunft = (entwuerfe: Kachelentwurf[]): Kachel[] => entwuerfe.map((e) => ({ ...e, herkunft: stand.herkunft[e.schluessel] }));
-
-  const fokus = mitHerkunft([
+  return mitHerkunft([
     {
       schluessel: "roiJahr1",
       label: t("kennzahl.roiJahr1.label"),
@@ -213,8 +200,13 @@ export async function baueModell(
       diagramm: k.kostenJeKgNachherTenge === null ? "keines" : "kostenJeKilogramm",
     },
   ]);
+}
 
-  const weitere = mitHerkunft([
+/** Die vier kleineren Kennzahlen im Aufklapper, ohne Diagramm. */
+function weitereKacheln(f: Formate): Kachel[] {
+  const { t, stand, annahmen, modellrechnung, geld, mitHerkunft } = f;
+  const k = stand.kennzahlen;
+  return mitHerkunft([
     {
       schluessel: "amortisation",
       label: t("kennzahl.amortisation.label"),
@@ -248,6 +240,41 @@ export async function baueModell(
       diagramm: "keines",
     },
   ]);
+}
+
+/** Baut das Modell. Server Component, holt Uebersetzungen und Formatter selbst. */
+export async function baueModell(
+  rechnung: Rechnung,
+  kontext: { quelle: Rechenquelle; postenAnzahl: number; standName?: string; standDatum?: string },
+): Promise<Modell> {
+  const t = await getTranslations("wirtschaftlichkeitAnsicht");
+  const format = await getFormatter();
+  const { stand, annahmen } = rechnung;
+  const kurse = annahmen.kurse;
+  const modellrechnung = kontext.quelle === "modell";
+
+  // Tenge fuehrend, Rubel in Klammern - beide aus demselben Euro-Wert und
+  // demselben Stichtagskurs, sonst stimmt das Verhaeltnis nicht. Kompakt,
+  // weil ein CAPEX von 154.000 EUR in Tenge achtstellig wird und eine
+  // achtstellige Zahl in einer Kachel niemand liest.
+  const kurz = (n: number) => format.number(n, { notation: "compact", maximumFractionDigits: 1 });
+  const genau = (n: number) => format.number(Math.round(n));
+  const tenge = (euro: number) => `${kurz(euroInTengeMit(euro, kurse))} ₸`;
+  const rubel = (euro: number) => `${kurz(euroInRubelMit(euro, kurse))} ₽`;
+  const tengeGenau = (euro: number) => `${genau(euroInTengeMit(euro, kurse))} ₸`;
+  const rubelGenau = (euro: number) => `${genau(euroInRubelMit(euro, kurse))} ₽`;
+  const anteil = (wert: number) => format.number(wert, { style: "percent", maximumFractionDigits: 0 });
+  const stichtag = format.dateTime(new Date(`${annahmen.kursStichtag}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
+
+  /** Ein Geldbetrag in Euro als Kachelfelder; ohne Wert "offen". */
+  const geld = (euro: number | null): Pick<Kachelentwurf, "wert" | "klammer" | "genau"> =>
+    euro === null ? { wert: t("offen") } : { wert: tenge(euro), klammer: rubel(euro), genau: tengeGenau(euro) };
+  const prozent = (wert: number | null): string => (wert === null ? t("offen") : anteil(wert));
+  const mitHerkunft = (entwuerfe: Kachelentwurf[]): Kachel[] => entwuerfe.map((e) => ({ ...e, herkunft: stand.herkunft[e.schluessel] }));
+
+  const formate: Formate = { t, stand, annahmen, kurse, modellrechnung, anteil, genau, geld, prozent, mitHerkunft };
+  const fokus = fokusKacheln(formate);
+  const weitere = weitereKacheln(formate);
 
   // Beide Betraege ungekuerzt: das ist die Annahme, auf der die ganze Rechnung steht. Ein "102,7 Mio." daneben
   // wuerde sie beilaeufig aussehen lassen, und gekuerzt neben ungekuerzt liest sich wie ein Fehler.
