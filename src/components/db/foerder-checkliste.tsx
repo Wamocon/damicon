@@ -1,4 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kalendertag } from "@/lib/format/datum";
 import { Aufklapper, Section, StatusPill } from "@/components/ui/kit";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import {
@@ -47,7 +48,7 @@ function PunktZeile({ punkt, heute, darfAendern, t, tag }: { punkt: Checkpunkt; 
 export async function FoerdermittelCheckliste({ dossiers, darfAendern }: { dossiers: readonly FoerderdossierZeile[]; darfAendern: boolean }) {
   const [punkteJeDossier, t, format, dk] = await Promise.all([ladeCheckpunkte(), getTranslations("foerdermittelCheckliste"), getFormatter(), getTranslations("dokument.knopf")]);
   const heute = tagInZone(new Date());
-  const tag = (iso: string) => format.dateTime(new Date(`${iso}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
+  const tag = (iso: string) => kalendertag(format, iso);
 
   return (
     <Section title={t("titel")} description={t("lead")}>

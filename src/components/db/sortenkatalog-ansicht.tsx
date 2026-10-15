@@ -1,4 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kilogramm } from "@/lib/format/menge";
 import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
@@ -115,7 +116,7 @@ export async function SortenkatalogAnsicht() {
                     <div className="flex justify-between text-[11px] text-muted-foreground">
                       <span>{t("vergeben")}</span>
                       <span>
-                        {format.number(z.reserviertKgGesamt)} / {format.number(z.mengeKgGesamt)} kg
+                        {format.number(z.reserviertKgGesamt)} / {kilogramm(format, z.mengeKgGesamt)}
                       </span>
                     </div>
                     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -126,7 +127,7 @@ export async function SortenkatalogAnsicht() {
                     </div>
                   </div>
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    {t("verfuegbar")}: {format.number(Math.max(0, z.mengeKgGesamt - z.reserviertKgGesamt))} kg
+                    {t("verfuegbar")}: {kilogramm(format, Math.max(0, z.mengeKgGesamt - z.reserviertKgGesamt))}
                   </p>
                 </Card>
               );
@@ -154,8 +155,8 @@ export async function SortenkatalogAnsicht() {
                   <td className="px-3 py-2.5 font-semibold text-foreground">{k.kunde}</td>
                   <td className="px-3 py-2.5 text-foreground">{k.sorte}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{k.saison ?? "-"}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{format.number(k.mengeKg)} kg</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{format.number(k.reserviertKg)} kg</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{kilogramm(format, k.mengeKg)}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{kilogramm(format, k.reserviertKg)}</td>
                   <td className="px-3 py-2.5">
                     <KontingentMengeFormular kontingentId={k.id} mengeKg={k.mengeKg} />
                   </td>

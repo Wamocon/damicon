@@ -1,4 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kilogramm } from "@/lib/format/menge";
 import { Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import { FaelligkeitAnzeige } from "@/components/db/faelligkeit-anzeige";
@@ -143,7 +144,7 @@ export async function PersonalAnsicht() {
                 ) : null}
               </td>
               <td className="px-3 py-2.5 text-muted-foreground">
-                {p.letzteMengeKg === null ? "-" : `${format.number(p.letzteMengeKg)} kg`}
+                {p.letzteMengeKg === null ? "-" : `${kilogramm(format, p.letzteMengeKg)}`}
               </td>
               <td className="px-3 py-2.5 font-semibold text-foreground">
                 {p.letzterQualitaetsfaktor === null ? "-" : p.letzterQualitaetsfaktor.toFixed(2)}

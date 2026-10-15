@@ -1,4 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kilogramm } from "@/lib/format/menge";
 import { Card, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
@@ -102,10 +103,10 @@ export async function LogistikAnsicht() {
                   <div>
                     <dt className="text-muted-foreground">{t("menge")}</dt>
                     <dd className="font-semibold text-foreground">
-                      {format.number(l.mengeKg)} kg
+                      {kilogramm(format, l.mengeKg)}
                       {l.bestellteMengeKg !== null && l.bestellteMengeKg !== l.mengeKg ? (
                         <span className="ml-1 text-[11px] text-muted-foreground">
-                          ({t("bestellt")}: {format.number(l.bestellteMengeKg)} kg)
+                          ({t("bestellt")}: {kilogramm(format, l.bestellteMengeKg)})
                         </span>
                       ) : null}
                     </dd>
@@ -229,7 +230,7 @@ export async function LogistikAnsicht() {
                           {i + 1}
                         </span>
                         <span className="font-semibold text-foreground">{s.kunde}</span>
-                        <span className="text-muted-foreground">{format.number(s.mengeKg)} kg</span>
+                        <span className="text-muted-foreground">{kilogramm(format, s.mengeKg)}</span>
                       </li>
                     ))}
                   </ol>

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kalendertag } from "@/lib/format/datum";
+import { kilogramm } from "@/lib/format/menge";
 import { Aufklapper, Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { EsfEntwurfKnopf, EsfEntwurfVerwerfenKnopf, EsfSchrittFormular } from "@/components/db/esf-formulare";
@@ -38,7 +40,7 @@ function EntwurfAngaben({ entwurf, t, format, tag }: { entwurf: EsfEntwurf; t: U
         <Zeile label={t("entwurf.identifikationsnummer")}>{entwurf.kunde.identifikationsnummer ?? fehlt}</Zeile>
         <Zeile label={t("entwurf.sorte")}>{entwurf.ware.sorte ?? fehlt}</Zeile>
         {entwurf.ware.chargeCode ? <Zeile label={t("entwurf.charge")}>{entwurf.ware.chargeCode}</Zeile> : null}
-        <Zeile label={t("entwurf.menge")}>{format.number(entwurf.ware.mengeKg)} kg</Zeile>
+        <Zeile label={t("entwurf.menge")}>{kilogramm(format, entwurf.ware.mengeKg)}</Zeile>
         <Zeile label={t("entwurf.preis")}>{entwurf.ware.preisTengeKg === null ? fehlt : `${format.number(entwurf.ware.preisTengeKg, { maximumFractionDigits: 2 })} ₸/kg`}</Zeile>
         <Zeile label={t("entwurf.betrag")}>{entwurf.ware.betragTenge === null ? fehlt : tenge(entwurf.ware.betragTenge)}</Zeile>
         {entwurf.mwst.registriert ? (
@@ -118,7 +120,7 @@ export async function EsfAnsicht() {
   const darfAendern = hasPermission(profil?.role, "integrationen", "update");
   const heute = tagInZone(new Date());
   const tag = (iso: string) => format.dateTime(new Date(`${tagInZone(new Date(iso))}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
-  const tagNurDatum = (iso: string) => format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
+  const tagNurDatum = (iso: string) => kalendertag(format, iso);
   const zaehlung = zaehleBelege(uebersicht.offen.length, uebersicht.belege.map((b) => b.status));
   const fristTage = await einstellungWert("esf.frist_tage");
   const fristen = uebersicht.offen.map((l) => esfFristStand(l.tageSeitLieferung, fristTage));
@@ -158,7 +160,7 @@ export async function EsfAnsicht() {
               <tr key={l.lieferungId}>
                 <td className="px-3 py-2.5 font-semibold text-foreground">{l.kunde}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{tag(l.geliefertAm)}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{format.number(l.mengeKg)} kg</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{kilogramm(format, l.mengeKg)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">
                   {l.tageSeitLieferung <= 0 ? t("offen.heute") : t("offen.tage", { tage: l.tageSeitLieferung })}
                   <FristPille stand={fristen[i]} t={t} />
@@ -185,7 +187,7 @@ export async function EsfAnsicht() {
             if (b.esfNummer) teile.push(t("nummerMit", { nummer: b.esfNummer }));
             if (b.ausgestelltAm) teile.push(t("ausgestelltAm", { datum: tagNurDatum(b.ausgestelltAm) }));
             if (b.bestaetigtAm) teile.push(t("bestaetigtAm", { datum: tagNurDatum(b.bestaetigtAm) }));
-            const titel = [b.kunde, b.geliefertAm ? tag(b.geliefertAm) : null, b.mengeKg !== null ? `${format.number(b.mengeKg)} kg` : null].filter(Boolean).join(" · ");
+            const titel = [b.kunde, b.geliefertAm ? tag(b.geliefertAm) : null, b.mengeKg !== null ? `${kilogramm(format, b.mengeKg)}` : null].filter(Boolean).join(" · ");
             return (
               <Aufklapper key={b.id} titel={titel} beschreibung={teile.join(" · ")}>
                 <div className="space-y-3 p-4">

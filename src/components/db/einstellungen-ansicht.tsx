@@ -1,4 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kalendertag } from "@/lib/format/datum";
 import { Card, Section } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import { EinstellungFormular } from "@/components/db/einstellung-formular";
@@ -23,7 +24,7 @@ export async function EinstellungenAnsicht() {
   ]);
   const live = isSupabaseConfigured();
   const zahl = (wert: number | null, einheit: string) => (wert === null ? t("nichtGesetzt") : `${format.number(wert)} ${einheit}`);
-  const tag = (iso: string) => format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
+  const tag = (iso: string) => kalendertag(format, iso);
 
   return (
     <div className="space-y-6">

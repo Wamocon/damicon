@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kalendermonat, kalendertag } from "@/lib/format/datum";
 import { Link } from "@/i18n/navigation";
 import { Aufklapper, Card, DataTable, Section, StatusPill, textVerweisKlassen } from "@/components/ui/kit";
 import {
@@ -94,8 +95,8 @@ function anzeigeFuer(t: Uebersetzer, format: Format, annahmen: Annahmen): Anzeig
     format,
     zahl,
     tenge: (euro) => `${format.number(euroInTengeMit(euro, annahmen.kurse))} ₸`,
-    tag: (iso) => format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" }),
-    monat: (iso) => format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00Z`), { month: "long", year: "numeric", timeZone: "UTC" }),
+    tag: (iso) => kalendertag(format, iso),
+    monat: (iso) => kalendermonat(format, iso),
     zeitpunkt: (iso) => format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
     betrag: (p) => `${zahl(p.betrag)} ${p.waehrung}`,
     kategorieText: (p) => (("art" in p ? p.art === "nutzen" : true) ? (kategorieTexte[p.kategorie] ?? p.kategorie) : p.kategorie),

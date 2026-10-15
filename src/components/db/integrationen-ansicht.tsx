@@ -1,4 +1,5 @@
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
+import { kalendertag } from "@/lib/format/datum";
 import { Download } from "lucide-react";
 import { Section, StatusPill, DataTable } from "@/components/ui/kit";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
@@ -63,7 +64,7 @@ export async function IntegrationenAnsicht() {
   ]);
   const darfAendern = hasPermission(profil?.role, "personal", "update");
   const heute = tagInZone(new Date());
-  const tag = (iso: string) => format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
+  const tag = (iso: string) => kalendertag(format, iso);
   const zaehlung = zaehleMeldungen(meldungen, heute);
   const belegName = new Map(optionen.belege.map((b) => [b.id, b.name]));
   const vertragsAuswahl = optionen.vertraege.map((v) => ({

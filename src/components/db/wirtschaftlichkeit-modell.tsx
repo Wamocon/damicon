@@ -13,6 +13,7 @@
 
 import type { ReactNode } from "react";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
+import { kalendertag } from "@/lib/format/datum";
 import {
   Barwert,
   KostenJeKilogramm,
@@ -264,7 +265,7 @@ export async function baueModell(
   const tengeGenau = (euro: number) => `${genau(euroInTengeMit(euro, kurse))} ₸`;
   const rubelGenau = (euro: number) => `${genau(euroInRubelMit(euro, kurse))} ₽`;
   const anteil = (wert: number) => format.number(wert, { style: "percent", maximumFractionDigits: 0 });
-  const stichtag = format.dateTime(new Date(`${annahmen.kursStichtag}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
+  const stichtag = kalendertag(format, annahmen.kursStichtag);
 
   /** Ein Geldbetrag in Euro als Kachelfelder; ohne Wert "offen". */
   const geld = (euro: number | null): Pick<Kachelentwurf, "wert" | "klammer" | "genau"> =>

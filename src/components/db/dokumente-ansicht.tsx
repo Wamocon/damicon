@@ -1,4 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kalendertag } from "@/lib/format/datum";
 import { Download } from "lucide-react";
 import { Aufklapper, Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
@@ -28,7 +29,7 @@ function GueltigBisZelle({ doc, format, t }: { doc: DokumentZeile; format: Forma
   const tage = doc.tageBisAblauf;
   return (
     <div>
-      <p className="text-foreground">{format.dateTime(new Date(`${doc.gueltigBis}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" })}</p>
+      <p className="text-foreground">{kalendertag(format, doc.gueltigBis)}</p>
       <p className="text-[11px] text-muted-foreground">
         {tage < 0 ? t("vorTagen", { tage: -tage }) : tage === 0 ? t("heute") : t("inTagen", { tage })}
       </p>
@@ -72,7 +73,7 @@ function Vorversionen({ versionen, format, t, v }: { versionen: DokumentZeile[];
               {ver.unbefristet
                 ? t("unbefristet")
                 : ver.gueltigBis
-                  ? t("bis", { datum: format.dateTime(new Date(`${ver.gueltigBis}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" }) })
+                  ? t("bis", { datum: kalendertag(format, ver.gueltigBis) })
                   : t("keinZeitraum")}
             </span>
             <DateiZelle doc={ver} oeffnen={v("oeffnen")} keineDatei={v("keineDatei")} keinLink={v("linkNichtVerfuegbar")} />

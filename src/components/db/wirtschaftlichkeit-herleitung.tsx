@@ -1,4 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kalendertag } from "@/lib/format/datum";
 import { Card, Section } from "@/components/ui/kit";
 import { SchwundKnopf } from "@/components/db/wirtschaftlichkeit-formulare";
 import type { SchwundHerleitung } from "@/lib/data/wirtschaftlichkeit";
@@ -9,7 +10,7 @@ export async function WirtschaftlichkeitHerleitung({ herleitung, darfSchreiben }
   const [t, format] = await Promise.all([getTranslations("wirtschaftlichkeitErfassung.schwund"), getFormatter()]);
   const { eingabe: e, ergebnis, von, bis } = herleitung;
   const prozent = (n: number | null) => (n === null ? t("offen") : `${format.number(n, { maximumFractionDigits: 2 })} %`);
-  const tag = (iso: string) => format.dateTime(new Date(`${iso}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
+  const tag = (iso: string) => kalendertag(format, iso);
 
   const zeilen: [string, string][] = [
     [t("vorher"), prozent(e.verlustVorherProzent)],
