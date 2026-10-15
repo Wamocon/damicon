@@ -24,6 +24,7 @@ const OEFFENTLICH = new Map([
   ["src/app/[locale]/login/mfa/actions.ts mfaAnmeldenBestaetigen", "zweiter Faktor der Anmeldung (Sitzung aus Schritt 1)"],
   ["src/lib/actions/einladungen.ts einladungEinloesen", "Einladungscode statt Anmeldung, Digest-Prüfung im Rumpf"],
   ["src/app/api/integrationen/ausliefern/route.ts GET", "Cron-Dienst ohne Sitzung: Bearer-Geheimnis CRON_SECRET, zeitkonstanter Vergleich, ohne Geheimnis 503"],
+  ["src/app/api/benachrichtigungen/erzeugen/route.ts GET", "Cron-Dienst ohne Sitzung: Bearer-Geheimnis CRON_SECRET, zeitkonstanter Vergleich, ohne Geheimnis 503"],
   ["src/app/api/integrationen/bestaetigung/[key]/route.ts POST", "Rückmeldung des Partners ohne Sitzung: HMAC-Signatur mit dem Geheimnis der Integration, zeitkonstanter Vergleich, Zeitstempel innerhalb von fünf Minuten, sonst 401"],
 ]);
 

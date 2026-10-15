@@ -3586,6 +3586,47 @@ export type Database = {
           },
         ]
       }
+      benachrichtigungen: {
+        Row: {
+          art: string
+          empfaenger_id: string
+          erstellt_am: string
+          gelesen_am: string | null
+          id: string
+          modul: string
+          parameter: Json
+          schluessel: string
+        }
+        Insert: {
+          art: string
+          empfaenger_id: string
+          erstellt_am?: string
+          gelesen_am?: string | null
+          id?: string
+          modul: string
+          parameter?: Json
+          schluessel: string
+        }
+        Update: {
+          art?: string
+          empfaenger_id?: string
+          erstellt_am?: string
+          gelesen_am?: string | null
+          id?: string
+          modul?: string
+          parameter?: Json
+          schluessel?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benachrichtigungen_empfaenger_id_fkey"
+            columns: ["empfaenger_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schulungsvideo_dateien: {
         Row: {
           created_at: string
@@ -5012,6 +5053,10 @@ export type Database = {
           kg_h: number
           name: string
         }[]
+      }
+      benachrichtigungen_erzeugen: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       schwund_herleitung: {
         Args: { p_stichtag?: string }

@@ -1924,8 +1924,17 @@
   "benachrichtigungen": {
     "titel": "Notifications",
     "leer": "No new notifications.",
-    "leerHinweis": "Alerts and deadlines are still shown directly in the modules.",
-    "schliessen": "Close notifications"
+    "leerHinweis": "You can still see alarms and deadlines directly in the modules.",
+    "schliessen": "Close notifications",
+    "alleGelesen": "Mark all as read",
+    "ungelesenAnzahl": "{anzahl} unread",
+    "art": {
+      "nachweis_abgelaufen": "Proof expired: {name}",
+      "nachweis_laeuft_ab": "Proof expires soon: {name}",
+      "esf_ueberfaellig": "Deliveries without ЭСФ past the deadline: {anzahl}",
+      "esutd_ueberfaellig": "Overdue ЕСУТД reports: {anzahl}",
+      "block_risiko_hoch": "Row blocks with risk level high: {anzahl}"
+    }
   },
   "sync": {
     "knopf": {

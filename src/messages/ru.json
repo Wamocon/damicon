@@ -3154,8 +3154,17 @@
   "benachrichtigungen": {
     "titel": "Уведомления",
     "leer": "Новых уведомлений нет.",
-    "leerHinweis": "Тревоги и сроки по-прежнему отображаются непосредственно в модулях.",
-    "schliessen": "Закрыть уведомления"
+    "leerHinweis": "Тревоги и сроки по-прежнему видны прямо в модулях.",
+    "schliessen": "Закрыть уведомления",
+    "alleGelesen": "Отметить все как прочитанные",
+    "ungelesenAnzahl": "непрочитанных: {anzahl}",
+    "art": {
+      "nachweis_abgelaufen": "Документ просрочен: {name}",
+      "nachweis_laeuft_ab": "Документ скоро истекает: {name}",
+      "esf_ueberfaellig": "Поставки без ЭСФ сверх срока: {anzahl}",
+      "esutd_ueberfaellig": "Просроченные уведомления ЕСУТД: {anzahl}",
+      "block_risiko_hoch": "Блоки с высоким уровнем риска: {anzahl}"
+    }
   },
   "sync": {
     "knopf": {

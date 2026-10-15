@@ -3154,8 +3154,17 @@
   "benachrichtigungen": {
     "titel": "Хабарламалар",
     "leer": "Жаңа хабарламалар жоқ.",
-    "leerHinweis": "Дабылдар мен мерзімдер бұрынғыдай тікелей модульдерде көрсетіледі.",
-    "schliessen": "Хабарламаларды жабу"
+    "leerHinweis": "Дабылдар мен мерзімдер бұрынғыдай модульдерде көрінеді.",
+    "schliessen": "Хабарламаларды жабу",
+    "alleGelesen": "Барлығын оқылған деп белгілеу",
+    "ungelesenAnzahl": "оқылмаған: {anzahl}",
+    "art": {
+      "nachweis_abgelaufen": "Құжаттың мерзімі өтті: {name}",
+      "nachweis_laeuft_ab": "Құжаттың мерзімі жақында аяқталады: {name}",
+      "esf_ueberfaellig": "Мерзімнен асқан ЭСФ-сіз жеткізілімдер: {anzahl}",
+      "esutd_ueberfaellig": "Мерзімі өткен ЕСУТД хабарламалары: {anzahl}",
+      "block_risiko_hoch": "Тәуекел деңгейі жоғары блоктар: {anzahl}"
+    }
   },
   "sync": {
     "knopf": {
