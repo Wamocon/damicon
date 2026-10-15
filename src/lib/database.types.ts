@@ -3084,6 +3084,9 @@ export type Database = {
           darf_kontrollieren: boolean
           email: string | null
           full_name: string
+          gesperrt_am: string | null
+          gesperrt_grund: string | null
+          gesperrt_von: string | null
           id: string
           pfluecker_id: string | null
           role: Database["public"]["Enums"]["app_role"]
@@ -3097,6 +3100,9 @@ export type Database = {
           darf_kontrollieren?: boolean
           email?: string | null
           full_name: string
+          gesperrt_am?: string | null
+          gesperrt_grund?: string | null
+          gesperrt_von?: string | null
           id?: string
           pfluecker_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
@@ -3110,6 +3116,9 @@ export type Database = {
           darf_kontrollieren?: boolean
           email?: string | null
           full_name?: string
+          gesperrt_am?: string | null
+          gesperrt_grund?: string | null
+          gesperrt_von?: string | null
           id?: string
           pfluecker_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
@@ -4951,6 +4960,10 @@ export type Database = {
           kg_h: number
           name: string
         }[]
+      }
+      konto_sperren: {
+        Args: { p_grund: string | null; p_profil: string; p_sperren: boolean }
+        Returns: string
       }
       lohn_kz_abzuege_berechnen: {
         Args: {

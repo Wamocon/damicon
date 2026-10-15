@@ -105,6 +105,9 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // esutd_vertrag_loeschen_pruefen() (Pruefung PR #156): ein Vertrag mit erfassten Aenderungen oder Beendigungen bleibt,
       // die Kaskade haette sie samt Bestaetigung und Beleg geloescht.
       return fehler("fehler.esutdErfassteMeldungen");
+    case "DA019":
+      // profil_sperre_schuetzen() (15.10.2026): ein Konto sperrt nur die Administration ueber konto_sperren().
+      return fehler("fehler.berechtigung");
     case "DA018":
       // vorbestellung_nachricht_schuetzen(), transport_logger_quelle_pruefen() und die Unveraenderlichkeit des ЕСУТД-Verlaufs (15.10.2026):
       // die Zeile ist unveraenderlich, oder die Herkunft "logger" setzt nur der Import.

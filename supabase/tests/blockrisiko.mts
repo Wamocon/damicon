@@ -44,9 +44,12 @@ interface Risiko {
   beitrag_kuehlkette: string;
   beitrag_erfassung: string;
 }
+// Seit dem 15.10.2026 liefert die Sicht nur den Rollen etwas, die alle Eingaben sehen (Administration, Betriebsleitung, Brigade): die Abfrage laeuft als Betriebsleitung.
 async function risiko(block: string): Promise<Risiko> {
-  const { rows } = await db.query<Risiko>(`select * from public.v_block_risiko where reihenblock_id = $1;`, [block]);
-  return rows[0];
+  return als("betriebsleitung", async () => {
+    const { rows } = await db.query<Risiko>(`select * from public.v_block_risiko where reihenblock_id = $1;`, [block]);
+    return rows[0];
+  });
 }
 const beitrag = (r: Risiko, faktor: keyof Risiko) => Number(r[faktor]);
 
@@ -217,11 +220,13 @@ async function charge(block: string, menge: number, ausschuss: number) {
   check("Zusammenspiel: Verzug und Ausschuss voll ergeben 55 Punkte und damit hoch", r.risiko_score === 55 && r.risiko_stufe === "hoch" && r.hauptgrund === "ueberfaellig" && !r.sperre_konflikt, JSON.stringify(r));
 }
 {
-  const { rows } = await db.query<{ n: number }>(`select count(*)::int as n from public.v_block_risiko;`);
-  const { rows: bloecke } = await db.query<{ n: number }>(`select count(*)::int as n from public.reihenbloecke;`);
-  check("Die Sicht liefert genau eine Zeile je Reihenblock", rows[0].n === bloecke[0].n, `${rows[0].n} von ${bloecke[0].n}`);
-  const { rows: bereich } = await db.query<{ n: number }>(`select count(*)::int as n from public.v_block_risiko where risiko_score not between 0 and 100;`);
-  check("Der Punktwert liegt immer zwischen 0 und 100", bereich[0].n === 0);
+  await als("betriebsleitung", async () => {
+    const { rows } = await db.query<{ n: number }>(`select count(*)::int as n from public.v_block_risiko;`);
+    const { rows: bloecke } = await db.query<{ n: number }>(`select count(*)::int as n from public.reihenbloecke;`);
+    check("Die Sicht liefert genau eine Zeile je Reihenblock", rows[0].n === bloecke[0].n, `${rows[0].n} von ${bloecke[0].n}`);
+    const { rows: bereich } = await db.query<{ n: number }>(`select count(*)::int as n from public.v_block_risiko where risiko_score not between 0 and 100;`);
+    check("Der Punktwert liegt immer zwischen 0 und 100", bereich[0].n === 0);
+  });
 }
 
 // --- 8. Parameter ----------------------------------------------------------------------------------------------------------------------

@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { PageHeader, Card } from "@/components/ui/kit";
 import { MfaVerwaltung } from "@/components/auth/mfa-verwaltung";
 import { MfaUebersicht } from "@/components/auth/mfa-uebersicht";
+import { PasswortAendern } from "@/components/auth/passwort-aendern";
 import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -35,10 +36,14 @@ export default async function SicherheitPage({
   const { data: faktoren } = await supabase.auth.mfa.listFactors();
   const totpFaktoren = (faktoren?.totp ?? []).filter((f) => f.status === "verified");
   const profil = await getSessionProfile();
+  const { data: benutzer } = await supabase.auth.getUser();
+  // Ein Konto, das die Administration angelegt hat, startet mit einem vorlaeufigen Passwort (user_metadata.passwort_vorlaeufig), das die Person ersetzt.
+  const vorlaeufig = benutzer.user?.user_metadata?.passwort_vorlaeufig === true;
 
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} description={t("description")} />
+      <PasswortAendern vorlaeufig={vorlaeufig} />
       <MfaVerwaltung bestehend={totpFaktoren.map((f) => ({ id: f.id, name: f.friendly_name ?? f.id }))} />
       {profil?.role === "admin" ? <MfaUebersicht /> : null}
     </div>

@@ -13,6 +13,10 @@ export interface KontoZeile {
   rolle: Role;
   /** Gehoert zu einem B2B-Kunden: Zugang laeuft ueber Einladungen, nicht ueber die Rollenzuweisung. */
   kundenkonto: boolean;
+  /** Zeitpunkt der Sperre; null = aktiv. */
+  gesperrtAm: string | null;
+  /** Grund der Sperre (nur fuer die Administration gedacht). */
+  gesperrtGrund: string | null;
 }
 
 export interface KontenListe {
@@ -30,7 +34,7 @@ export async function ladeKonten(): Promise<KontenListe> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, b2b_kunde_id")
+    .select("id, full_name, email, role, b2b_kunde_id, gesperrt_am, gesperrt_grund")
     .order("full_name");
   if (error || !data) return { quelle: "fehler", konten: [], adminAnzahl: 0 };
 
@@ -42,6 +46,9 @@ export async function ladeKonten(): Promise<KontenListe> {
       email: p.email,
       rolle: p.role as Role,
       kundenkonto: p.role === "kunde" || p.b2b_kunde_id !== null,
+      gesperrtAm: p.gesperrt_am,
+      gesperrtGrund: p.gesperrt_grund,
     }));
-  return { quelle: "db", konten, adminAnzahl: konten.filter((k) => k.rolle === "admin").length };
+  // Nur aktive Administratoren zaehlen: ein gesperrter arbeitet nicht und ersetzt keinen.
+  return { quelle: "db", konten, adminAnzahl: konten.filter((k) => k.rolle === "admin" && k.gesperrtAm === null).length };
 }

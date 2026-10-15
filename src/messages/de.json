@@ -1019,7 +1019,11 @@
       "auslieferungNichts": "Nichts fällig.",
       "nachrichtAnonymisiert": "Nachricht anonymisiert.",
       "einstellungGespeichert": "Einstellung gespeichert.",
-      "zeitfensterGespeichert": "Abholfenster gespeichert."
+      "zeitfensterGespeichert": "Abholfenster gespeichert.",
+      "kontoAngelegt": "Konto angelegt. Vorläufiges Passwort (nur jetzt sichtbar, bitte der Person sicher übergeben): {wert}",
+      "kontoGesperrt": "Konto von „{wert}“ gesperrt.",
+      "kontoEntsperrt": "Konto von „{wert}“ entsperrt.",
+      "passwortGeaendert": "Passwort geändert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1176,7 +1180,21 @@
       "integrationVorlage_zu_tief": "Die Vorlage ist zu tief verschachtelt (höchstens 8 Ebenen).",
       "integrationVorlage_zu_viele_platzhalter": "Die Vorlage hat mehr als 200 Platzhalter.",
       "integrationVorlage_pfad": "Unbekannter Pfad in der Vorlage: {wert}.",
-      "integrationVorlage_leer": "Die Vorlage ist leer."
+      "integrationVorlage_leer": "Die Vorlage ist leer.",
+      "kontoName": "Bitte einen Namen mit 2 bis 100 Zeichen angeben.",
+      "kontoEmail": "Bitte eine gültige E-Mail-Adresse angeben.",
+      "kontoRolle": "Bitte eine Rolle für Mitarbeitende wählen.",
+      "kontoVorhanden": "Zu dieser E-Mail-Adresse gibt es schon ein Konto.",
+      "kontoAnlegen": "Das Konto konnte nicht angelegt werden. Bitte später noch einmal versuchen.",
+      "eigeneSperre": "Das eigene Konto sperrt man nicht.",
+      "sperrgrund": "Bitte einen Grund mit 3 bis 300 Zeichen angeben.",
+      "kontoSperreAuth": "Das Konto von „{wert}“ ist in der Datenbank gesperrt, die Anmeldung beim Auth-Dienst ließ sich nicht umstellen. Bitte noch einmal sperren.",
+      "passwortKurz": "Das Passwort braucht mindestens 12 Zeichen.",
+      "passwortLang": "Das Passwort ist zu lang (höchstens 72 Bytes).",
+      "passwortUngleich": "Die beiden Eingaben stimmen nicht überein.",
+      "passwortEinfach": "Das Passwort ist zu einfach (nicht die E-Mail-Adresse, mehr als drei verschiedene Zeichen).",
+      "passwortGleich": "Das neue Passwort muss sich vom alten unterscheiden.",
+      "passwortAendern": "Das Passwort konnte nicht geändert werden. Bitte später noch einmal versuchen."
     },
     "einladungen": {
       "erfolg": {
@@ -4681,7 +4699,24 @@
     "eigenesKonto": "Eigenes Konto",
     "nurAdministration": "Rollen vergibt nur die Administration.",
     "leer": "Keine Konten sichtbar.",
-    "hinweis": "Der letzte Administrator behält seine Rolle. Die eigene Rolle lässt sich hier nicht ändern."
+    "hinweis": "Der letzte Administrator behält seine Rolle. Die eigene Rolle lässt sich hier nicht ändern.",
+    "gesperrtSeit": "gesperrt seit {datum}",
+    "sperrgrund": "Grund: {grund}",
+    "anlegen": {
+      "titel": "Konto für Mitarbeitende anlegen",
+      "lead": "Die Person bekommt ein vorläufiges Passwort, das hier einmal angezeigt wird. Sie ändert es bei der ersten Anmeldung auf der Seite Sicherheit. Kundenkonten entstehen über Einladungen.",
+      "name": "Name",
+      "email": "E-Mail",
+      "rolle": "Rolle",
+      "knopf": "Konto anlegen"
+    },
+    "sperre": {
+      "sperren": "Konto sperren",
+      "entsperren": "Konto entsperren",
+      "grund": "Grund der Sperre",
+      "sperrenKnopf": "Sperren",
+      "entsperrenKnopf": "Entsperren"
+    }
   },
   "nachrichten": {
     "titel": "Nachrichten zu Vorbestellungen",
@@ -5596,5 +5631,13 @@
         "beschreibung": "Minuten für Wiegen, Verladen und Übergabe bei einem Nachbarbetrieb. Die Planung rechnet sie zur Fahrzeit, wenn sie die Ankunft je Stopp schätzt. Eine Planungsannahme, nach den ersten Runden zu prüfen."
       }
     }
+  },
+  "passwort": {
+    "titel": "Passwort ändern",
+    "lead": "Mindestens {min} Zeichen. Es gilt ab der nächsten Anmeldung.",
+    "vorlaeufig": "Ihr Passwort ist vorläufig. Bitte setzen Sie jetzt ein eigenes.",
+    "neu": "Neues Passwort",
+    "wiederholung": "Noch einmal",
+    "knopf": "Passwort ändern"
   }
 }

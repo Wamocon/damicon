@@ -1019,7 +1019,11 @@
       "auslieferungNichts": "Nothing due.",
       "nachrichtAnonymisiert": "Message anonymised.",
       "einstellungGespeichert": "Setting saved.",
-      "zeitfensterGespeichert": "Pickup window saved."
+      "zeitfensterGespeichert": "Pickup window saved.",
+      "kontoAngelegt": "Account created. Temporary password (visible only now, please hand it over securely): {wert}",
+      "kontoGesperrt": "Account of \"{wert}\" blocked.",
+      "kontoEntsperrt": "Account of \"{wert}\" unblocked.",
+      "passwortGeaendert": "Password changed."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1176,7 +1180,21 @@
       "integrationVorlage_zu_tief": "The template is nested too deeply (at most 8 levels).",
       "integrationVorlage_zu_viele_platzhalter": "The template has more than 200 placeholders.",
       "integrationVorlage_pfad": "Unknown path in the template: {wert}.",
-      "integrationVorlage_leer": "The template is empty."
+      "integrationVorlage_leer": "The template is empty.",
+      "kontoName": "Please enter a name of 2 to 100 characters.",
+      "kontoEmail": "Please enter a valid email address.",
+      "kontoRolle": "Please choose a role for staff.",
+      "kontoVorhanden": "There is already an account for this email address.",
+      "kontoAnlegen": "The account could not be created. Please try again later.",
+      "eigeneSperre": "You cannot block your own account.",
+      "sperrgrund": "Please give a reason of 3 to 300 characters.",
+      "kontoSperreAuth": "The account of \"{wert}\" is blocked in the database, but the sign-in at the auth service could not be switched. Please block again.",
+      "passwortKurz": "The password needs at least 12 characters.",
+      "passwortLang": "The password is too long (at most 72 bytes).",
+      "passwortUngleich": "The two entries do not match.",
+      "passwortEinfach": "The password is too simple (not the email address, more than three different characters).",
+      "passwortGleich": "The new password must differ from the old one.",
+      "passwortAendern": "The password could not be changed. Please try again later."
     },
     "einladungen": {
       "erfolg": {
@@ -4681,7 +4699,24 @@
     "eigenesKonto": "Your own account",
     "nurAdministration": "Only administration assigns roles.",
     "leer": "No accounts visible.",
-    "hinweis": "The last administrator keeps the role. Your own role cannot be changed here."
+    "hinweis": "The last administrator keeps the role. Your own role cannot be changed here.",
+    "gesperrtSeit": "blocked since {datum}",
+    "sperrgrund": "Reason: {grund}",
+    "anlegen": {
+      "titel": "Create an account for staff",
+      "lead": "The person gets a temporary password that is shown here once. They change it at the first sign-in on the Security page. Customer accounts are created through invitations.",
+      "name": "Name",
+      "email": "Email",
+      "rolle": "Role",
+      "knopf": "Create account"
+    },
+    "sperre": {
+      "sperren": "Block account",
+      "entsperren": "Unblock account",
+      "grund": "Reason for the block",
+      "sperrenKnopf": "Block",
+      "entsperrenKnopf": "Unblock"
+    }
   },
   "nachrichten": {
     "titel": "Messages on pre-orders",
@@ -5596,5 +5631,13 @@
         "beschreibung": "Minutes for weighing, loading and handover at a neighbouring farm. The planning adds them to the driving time when it estimates the arrival at each stop. A planning assumption, to be checked after the first rounds."
       }
     }
+  },
+  "passwort": {
+    "titel": "Change password",
+    "lead": "At least {min} characters. It applies from the next sign-in.",
+    "vorlaeufig": "Your password is temporary. Please set your own now.",
+    "neu": "New password",
+    "wiederholung": "Once more",
+    "knopf": "Change password"
   }
 }
