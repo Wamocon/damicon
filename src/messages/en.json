@@ -4829,7 +4829,7 @@
   "esutdAnsicht": {
     "titel": "Reporting process in the unified system (ЕСУТД)",
     "lead": "The conclusion, change and termination of every seasonal contract belong in the state unified system ЕСУТД. The list shows what is to be reported, what has been reported and what proves it. Reporting is still done in the state system, Damicon keeps the status.",
-    "stufeHinweis": "The reporting deadlines come from the settings: conclusion {abschluss} working days after signing (otherwise after the start of the contract), amendment {aenderung} calendar days, termination {beendigung} working days. Saturday and Sunday do not count, there is no public holiday calendar. Automatic reporting follows once the authority's access is available.",
+    "stufeHinweis": "The reporting deadlines come from the settings: conclusion {tageAbschluss} working days after signing (otherwise after the start of the contract), amendment {tageAnpassung} calendar days, termination {tageBeendigung} working days. Saturday and Sunday do not count, there is no public holiday calendar. Automatic reporting follows once the authority's access is available.",
     "nurLesen": "View only: administration, CEO and farm management can record entries.",
     "zaehl": {
       "offen": "Open",

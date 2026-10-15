@@ -8,6 +8,7 @@ import { starte } from "./hilfen/pglite-rollen.mjs";
 
 const t = await starte();
 const { db, check, als, mussScheitern } = t;
+const alsScheitert = (rolle: string, name: string, sql: string, params: unknown[], code?: string) => als(rolle, () => mussScheitern(name, sql, params, code));
 
 async function lieferung(status: string): Promise<string> {
   const { rows } = await db.query<{ id: string }>(
@@ -122,10 +123,13 @@ for (const rolle of ["brigade", "betriebsleitung", "admin"]) {
 await als("brigade", async () => {
   await db.query(`insert into public.transport_temperatur_messungen (lieferung_id, temperatur_c) values ($1, 3.2);`, [geplant]);
   check("Eine Handmessung (manuell) geht weiter direkt", true);
-  await mussScheitern("Die Importfunktion lehnt eine leere Liste ab", `select public.transport_logger_messungen_importieren($1, null, '[]'::jsonb);`, [geplant], "23514");
-  await mussScheitern("Die Importfunktion lehnt mehr als 1000 Werte je Aufruf ab", `select public.transport_logger_messungen_importieren($1, null, (select jsonb_agg(jsonb_build_object('temperatur_c', 3, 'geraet_zeitpunkt', now())) from generate_series(1, 1001)));`, [geplant], "23514");
-  await mussScheitern("Die Importfunktion lehnt eine Kennung ueber 60 Zeichen ab", `select public.transport_logger_messungen_importieren($1, repeat('x', 61), jsonb_build_array(jsonb_build_object('temperatur_c', 3, 'geraet_zeitpunkt', now())));`, [geplant], "23514");
 });
+// mussScheitern() setzt die Rolle danach zurueck: jede Pruefung bekommt deshalb ihren eigenen Rollenwechsel.
+await alsScheitert("brigade", "Die Importfunktion lehnt eine leere Liste ab", `select public.transport_logger_messungen_importieren($1, null, '[]'::jsonb);`, [geplant], "23514");
+await alsScheitert("brigade", "Die Importfunktion lehnt mehr als 1000 Werte je Aufruf ab", `select public.transport_logger_messungen_importieren($1, null, (select jsonb_agg(jsonb_build_object('temperatur_c', 3, 'geraet_zeitpunkt', now())) from generate_series(1, 1001)));`, [geplant], "23514");
+await alsScheitert("brigade", "Die Importfunktion lehnt eine Kennung ueber 60 Zeichen ab", `select public.transport_logger_messungen_importieren($1, repeat('x', 61), jsonb_build_array(jsonb_build_object('temperatur_c', 3, 'geraet_zeitpunkt', now())));`, [geplant], "23514");
+// Ohne App-Rolle (Superuser ohne Anmeldung) ist die Funktion verschlossen: has_role() ist dort null und gilt als nein.
+await mussScheitern("Ohne Anmeldung ruft niemand die Importfunktion auf", `select public.transport_logger_messungen_importieren($1, null, jsonb_build_array(jsonb_build_object('temperatur_c', 3, 'geraet_zeitpunkt', now())));`, [geplant], "42501");
 await t.alsRolle("anon");
 await mussScheitern("anon ruft die Importfunktion nicht auf", `select public.transport_logger_messungen_importieren($1, null, jsonb_build_array(jsonb_build_object('temperatur_c', 3, 'geraet_zeitpunkt', now())));`, [geplant], "42501");
 await t.alsAdmin();

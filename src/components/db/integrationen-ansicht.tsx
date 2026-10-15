@@ -88,7 +88,7 @@ export async function IntegrationenAnsicht() {
           </StatusPill>
         </div>
         <p className="mt-3 text-xs leading-5 text-muted-foreground">
-          {t("stufeHinweis", { abschluss: fristAbschluss ?? "-", aenderung: fristAenderung ?? "-", beendigung: fristBeendigung ?? "-" })}
+          {t("stufeHinweis", { tageAbschluss: fristAbschluss ?? "-", tageAnpassung: fristAenderung ?? "-", tageBeendigung: fristBeendigung ?? "-" })}
         </p>
         {!darfAendern ? <p className="mt-1 text-xs text-muted-foreground">{t("nurLesen")}</p> : null}
         {darfAendern ? (

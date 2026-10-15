@@ -4829,7 +4829,7 @@
   "esutdAnsicht": {
     "titel": "Meldeprozess im Einheitssystem (ЕСУТД)",
     "lead": "Abschluss, Änderung und Beendigung jedes Saisonvertrags gehören ins staatliche Einheitssystem ЕСУТД. Die Liste zeigt, was zu melden ist, was gemeldet ist und womit es belegt ist. Gemeldet wird weiterhin im staatlichen System, Damicon führt den Stand.",
-    "stufeHinweis": "Die Meldefristen kommen aus den Einstellungen: Abschluss {abschluss} Arbeitstage nach der Unterschrift (sonst nach Vertragsbeginn), Änderung {aenderung} Kalendertage, Beendigung {beendigung} Arbeitstage. Samstag und Sonntag zählen nicht, einen Feiertagskalender gibt es nicht. Die automatische Meldung folgt, sobald der Zugang der Behörde vorliegt.",
+    "stufeHinweis": "Die Meldefristen kommen aus den Einstellungen: Abschluss {tageAbschluss} Arbeitstage nach der Unterschrift (sonst nach Vertragsbeginn), Änderung {tageAnpassung} Kalendertage, Beendigung {tageBeendigung} Arbeitstage. Samstag und Sonntag zählen nicht, einen Feiertagskalender gibt es nicht. Die automatische Meldung folgt, sobald der Zugang der Behörde vorliegt.",
     "nurLesen": "Nur Ansicht: erfassen dürfen Administration, Geschäftsführung und Betriebsleitung.",
     "zaehl": {
       "offen": "Offen",
