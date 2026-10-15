@@ -12,7 +12,7 @@ import { anmelden } from "./helpers";
  *
  * Gewaehlt sind Seiten, deren Inhalt aus den Seed-Daten kommt und nicht von der Tageszeit oder vom Datum abhaengt:
  * oeffentliche Seiten und Stammdatenseiten des Portals. Bilder mit Uhrzeit, Fristen in Tagen oder Live-Werten
- * (Uebersicht, Aufgabenlisten) wuerden taeglich abweichen. Das Haustier ist ausgeblendet (visuell.css).
+ * (Uebersicht, Aufgabenlisten) wuerden taeglich abweichen. Das Haustier ist abgeschaltet (thema()) und ausgeblendet (visuell.css).
  *
  * Der Tag @visuell trennt diese Datei von den Funktionstests: npm run test:e2e laesst sie aus.
  */
@@ -23,6 +23,11 @@ async function thema(page: Page, dunkel: boolean) {
   await page.addInitScript((wert) => {
     try {
       localStorage.setItem("damicon-theme", wert);
+      // Himbi weggeschickt und die Tour als bekannt markiert (src/components/haustier/haustier-tour.tsx).
+      // Nur ausblenden genuegt nicht: ein neuer Besucher bekommt nach etwa sieben Sekunden eine Tour,
+      // die von allein losgeht und die Seite durchscrollt, auch wenn Himbi selbst unsichtbar ist.
+      localStorage.setItem("damicon-haustier-weg", "1");
+      localStorage.setItem("damicon-haustier-tour", "gesehen");
     } catch {
       // Ohne localStorage bleibt es beim Standard der Seite.
     }

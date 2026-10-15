@@ -10,3 +10,8 @@ nextjs-portal {
 * {
   caret-color: transparent !important;
 }
+
+/* Das Video im Kopf der Startseite zeigt je nach Zeitpunkt einen anderen Frame: ausblenden, der Hintergrund bleibt. */
+video {
+  visibility: hidden !important;
+}
