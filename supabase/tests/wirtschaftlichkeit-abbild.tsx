@@ -12,6 +12,7 @@ import {
   rechneStand,
   roiIstPunkte,
   zeilenBisLetzteErfassung,
+  type Annahmen,
   type IstEintrag,
   type MengeAbgeleitet,
   type Posten,
@@ -120,7 +121,7 @@ async function main() {
 
   // --- 2. Kachelmodell -----------------------------------------------------------------------------------------------------------------
   const { baueModell } = await import("../../src/components/db/wirtschaftlichkeit-modell");
-  function rechnung(posten: Posten[], ist: IstEintrag[], annahmen: typeof ANNAHMEN, menge: MengeAbgeleitet | null, bisMonat: string) {
+  function rechnung(posten: Posten[], ist: IstEintrag[], annahmen: Annahmen, menge: MengeAbgeleitet | null, bisMonat: string) {
     const stand = rechneStand(posten, annahmen, menge);
     const vergleich = planIst(stand.nutzenEur, ist, annahmen, bisMonat);
     const erfasst = zeilenBisLetzteErfassung(vergleich.zeilen, ist);
@@ -148,7 +149,7 @@ async function main() {
   // --- 3. Erfassung --------------------------------------------------------------------------------------------------------------------
   sprache = "de";
   const { WirtschaftlichkeitErfassung } = await import("../../src/components/db/wirtschaftlichkeit-erfassung");
-  function eingabe(posten: Posten[], ist: IstEintrag[], annahmen: typeof ANNAHMEN, menge: MengeAbgeleitet | null, staende: typeof STAENDE, extra: { darfSchreiben: boolean; aktiverStand?: string }) {
+  function eingabe(posten: Posten[], ist: IstEintrag[], annahmen: Annahmen, menge: MengeAbgeleitet | null, staende: typeof STAENDE, extra: { darfSchreiben: boolean; aktiverStand?: string }) {
     const stand = rechneStand(posten, annahmen, menge);
     return { pfad: "/de/dashboard/buero/wirtschaftlichkeit", posten, ist, annahmen, menge, staende, stand, planIst: planIst(stand.nutzenEur, ist, annahmen, "2026-12"), heute: HEUTE, ...extra };
   }

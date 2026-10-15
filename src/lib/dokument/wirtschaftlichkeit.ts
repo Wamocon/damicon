@@ -15,6 +15,7 @@ import {
   type IstEintrag,
   type MengeAbgeleitet,
   type Posten,
+  type Rechenstand,
 } from "@/lib/domain/wirtschaftlichkeit-erfassung";
 
 // Die Investitionsrechnung als Dokument (WMCNL-2470): Kennzahlen mit Herkunft, die Posten, aus denen sie gerechnet sind, die
@@ -37,38 +38,45 @@ export interface WirtschaftlichkeitDokumentDaten {
 
 const TON: Record<Herkunft, Ton> = { belegt: "gut", geschaetzt: "warnung", offen: "neutral" };
 
-export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDaten, x: DokumentKontext): DokumentEingabe {
+type Uebersetzer = ReturnType<DokumentKontext["t"]>;
+
+/** Was alle Abschnitte brauchen: die drei Namensräume der Texte, die Sprache, die Kurse des Standes und die Formate für Prozent, Geld und Herkunft. */
+interface Hilfen {
+  t: Uebersetzer;
+  a: Uebersetzer;
+  e: Uebersetzer;
+  sprache: string;
+  kurse: Annahmen["kurse"];
+  offen: string;
+  herkunftMarke: (h: Herkunft) => { html: string };
+  prozent: (v: number | null) => string;
+  euroAlsTenge: (euro: number | null) => string;
+}
+
+function hilfenFuer(d: WirtschaftlichkeitDokumentDaten, x: DokumentKontext): Hilfen {
   const t = x.t("dokument.wirtschaftlichkeit");
   const a = x.t("wirtschaftlichkeitAnsicht");
   const e = x.t("wirtschaftlichkeitErfassung");
   const sprache = x.sprache;
   const kurse = d.annahmen.kurse;
-  const stand = rechneStand(d.posten, d.annahmen, d.menge);
-  const k = stand.kennzahlen;
-
-  const herkunftText = (h: Herkunft): string => (h === "belegt" ? e("herkunft.belegt") : h === "geschaetzt" ? a("geschaetzt") : a("offen"));
-  const herkunftMarke = (h: Herkunft) => marke(herkunftText(h), TON[h]);
   const offen = a("offen");
+  const herkunftText = (h: Herkunft): string => (h === "belegt" ? e("herkunft.belegt") : h === "geschaetzt" ? a("geschaetzt") : a("offen"));
+  return {
+    t,
+    a,
+    e,
+    sprache,
+    kurse,
+    offen,
+    herkunftMarke: (h) => marke(herkunftText(h), TON[h]),
+    prozent: (v) => (v === null ? offen : `${zahlText(v * 100, sprache, 0)} %`),
+    euroAlsTenge: (euro) => (euro === null ? offen : `${zahlText(euroInTengeMit(euro, kurse), sprache, 0)} ₸ (${zahlText(euroInRubelMit(euro, kurse), sprache, 0)} ₽)`),
+  };
+}
 
-  const prozent = (v: number | null): string => (v === null ? offen : `${zahlText(v * 100, sprache, 0)} %`);
-  const euroAlsTenge = (euro: number | null): string => (euro === null ? offen : `${zahlText(euroInTengeMit(euro, kurse), sprache, 0)} ₸ (${zahlText(euroInRubelMit(euro, kurse), sprache, 0)} ₽)`);
-  const kg = (v: number | null): string => (v === null ? offen : `${zahlText(v, sprache, 0)} ₸/${a("einheit.kilogramm")} (${zahlText(tengeInRubelMit(v, kurse), sprache, 0)} ₽/${a("einheit.kilogramm")})`);
-
-  const kennzahlZeilen: { schluessel: Kennzahlschluessel; wert: string }[] = [
-    { schluessel: "roiJahr1", wert: prozent(k.roiJahr1) },
-    { schluessel: "roiDreiJahre", wert: prozent(k.roiHorizont) },
-    { schluessel: "capex", wert: euroAlsTenge(stand.capexEur) },
-    { schluessel: "opex", wert: euroAlsTenge(stand.opexEur) },
-    { schluessel: "kapitalwert", wert: euroAlsTenge(k.kapitalwert) },
-    { schluessel: "kostenJeKilogramm", wert: kg(k.kostenJeKgNachherTenge) },
-    { schluessel: "amortisation", wert: k.amortisationMonate === null ? offen : a("einheit.monate", { anzahl: Math.round(k.amortisationMonate) }) },
-    { schluessel: "tco", wert: euroAlsTenge(k.tcoHorizont) },
-    { schluessel: "vermiedeneKosten", wert: euroAlsTenge(stand.nutzenEur) },
-    { schluessel: "nutzenbeginn", wert: d.annahmen.nutzenbeginnWochen === null ? offen : a("einheit.wochenSpanne", d.annahmen.nutzenbeginnWochen) },
-  ];
-
-  // Namen der Kennzahlen: literale Schluessel, damit der Test jeden in allen Sprachen findet.
-  const labels: Record<Kennzahlschluessel, string> = {
+/** Namen der Kennzahlen: literale Schluessel, damit der Test jeden in allen Sprachen findet. */
+function kennzahlLabels(a: Uebersetzer): Record<Kennzahlschluessel, string> {
+  return {
     roiJahr1: a("kennzahl.roiJahr1.label"),
     roiDreiJahre: a("kennzahl.roiDreiJahre.label"),
     capex: a("kennzahl.capex.label"),
@@ -80,13 +88,40 @@ export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDate
     vermiedeneKosten: a("kennzahl.vermiedeneKosten.label"),
     nutzenbeginn: a("kennzahl.nutzenbeginn.label"),
   };
+}
 
-  const kennzahlTabelle = tabelle(
-    [t("col.kennzahl"), t("col.wert"), t("col.herkunft")],
-    kennzahlZeilen.map((z) => [labels[z.schluessel], z.wert, herkunftMarke(stand.herkunft[z.schluessel])]),
+type Kennzahlzeile = { schluessel: Kennzahlschluessel; wert: string };
+
+function kennzahlZeilenVon(d: WirtschaftlichkeitDokumentDaten, stand: Rechenstand, h: Hilfen): Kennzahlzeile[] {
+  const { a, offen, kurse, sprache, prozent, euroAlsTenge } = h;
+  const k = stand.kennzahlen;
+  const kg = (v: number | null): string => (v === null ? offen : `${zahlText(v, sprache, 0)} ₸/${a("einheit.kilogramm")} (${zahlText(tengeInRubelMit(v, kurse), sprache, 0)} ₽/${a("einheit.kilogramm")})`);
+  const amortisation = k.amortisationMonate === null ? offen : a("einheit.monate", { anzahl: Math.round(k.amortisationMonate) });
+  return [
+    { schluessel: "roiJahr1", wert: prozent(k.roiJahr1) },
+    { schluessel: "roiDreiJahre", wert: prozent(k.roiHorizont) },
+    { schluessel: "capex", wert: euroAlsTenge(stand.capexEur) },
+    { schluessel: "opex", wert: euroAlsTenge(stand.opexEur) },
+    { schluessel: "kapitalwert", wert: euroAlsTenge(k.kapitalwert) },
+    { schluessel: "kostenJeKilogramm", wert: kg(k.kostenJeKgNachherTenge) },
+    { schluessel: "amortisation", wert: amortisation },
+    { schluessel: "tco", wert: euroAlsTenge(k.tcoHorizont) },
+    { schluessel: "vermiedeneKosten", wert: euroAlsTenge(stand.nutzenEur) },
+    { schluessel: "nutzenbeginn", wert: d.annahmen.nutzenbeginnWochen === null ? offen : a("einheit.wochenSpanne", d.annahmen.nutzenbeginnWochen) },
+  ];
+}
+
+/** Die Tabelle der Kennzahlen mit ihrer Herkunft. */
+function kennzahlTabelle(h: Hilfen, zeilen: Kennzahlzeile[], labels: Record<Kennzahlschluessel, string>, stand: Rechenstand): string {
+  return tabelle(
+    [h.t("col.kennzahl"), h.t("col.wert"), h.t("col.herkunft")],
+    zeilen.map((z) => [labels[z.schluessel], z.wert, h.herkunftMarke(stand.herkunft[z.schluessel])]),
   );
+}
 
-  // --- Posten ---------------------------------------------------------------------------------------------------------
+/** Die Posten nach Art, darunter die Summen je Art. */
+function postenAbschnitt(d: WirtschaftlichkeitDokumentDaten, h: Hilfen): string {
+  const { t, e, sprache, kurse } = h;
   const artTexte = { investition: e("posten.art.investition"), betrieb: e("posten.art.betrieb"), nutzen: e("posten.art.nutzen") };
   const kategorieTexte: Record<string, string> = {
     schwund: e("kategorie.schwund"),
@@ -95,7 +130,7 @@ export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDate
     sonstiges: e("kategorie.sonstiges"),
   };
   const kategorieText = (kategorie: string, nutzen: boolean) => (nutzen ? (kategorieTexte[kategorie] ?? kategorie) : kategorie);
-  const postenZeilen: Zelle[][] = POSTEN_ARTEN.flatMap((art) =>
+  const zeilen: Zelle[][] = POSTEN_ARTEN.flatMap((art) =>
     d.posten
       .filter((p) => p.art === art)
       .map((p) => [
@@ -104,38 +139,49 @@ export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDate
         p.bezeichnung,
         tagText(p.datum, sprache),
         { html: `${zahlText(p.betrag, sprache)} ${p.waehrung}`, zahl: true },
-        herkunftMarke(p.herkunft),
+        h.herkunftMarke(p.herkunft),
       ]),
   );
   const summen = POSTEN_ARTEN.map((art) => {
     const s = summiere(d.posten, art, kurse).summe;
-    return { label: artTexte[art], wert: s === null ? e("posten.nichtErfasst") : euroAlsTenge(s) };
+    return { label: artTexte[art], wert: s === null ? e("posten.nichtErfasst") : h.euroAlsTenge(s) };
   });
+  return (
+    (zeilen.length > 0
+      ? tabelle([e("form.art"), e("form.kategorie"), e("form.bezeichnung"), e("form.datum"), e("form.betrag"), e("form.herkunft")], zeilen, [4])
+      : leerHinweis(t("leerPosten"))) + definitionen(summen)
+  );
+}
 
-  // --- Annahmen -------------------------------------------------------------------------------------------------------
-  const h = (s: keyof Annahmen["herkunft"]): Herkunft => d.annahmen.herkunft[s] ?? "geschaetzt";
-  const mitHerkunft = (wert: string, hk: Herkunft) => ({ html: `${esc(wert)} ${herkunftMarke(hk).html}` });
+/** Die Annahmen als Liste, jede mit ihrer Herkunft. */
+function annahmenAbschnitt(d: WirtschaftlichkeitDokumentDaten, stand: Rechenstand, h: Hilfen): string {
+  const { a, e, sprache, kurse, offen } = h;
+  const herkunft = (s: keyof Annahmen["herkunft"]): Herkunft => d.annahmen.herkunft[s] ?? "geschaetzt";
+  const mitHerkunft = (wert: string, hk: Herkunft) => ({ html: `${esc(wert)} ${h.herkunftMarke(hk).html}` });
   const mengeWert = stand.mengeKg === null ? offen : `${zahlText(stand.mengeKg, sprache, 0)} kg`;
-  const annahmenHtml = definitionen([
-    { label: e("annahmen.zins"), wert: mitHerkunft(`${zahlText(d.annahmen.kalkulationszins * 100, sprache, 2)} %`, h("kalkulationszins")) },
+  return definitionen([
+    { label: e("annahmen.zins"), wert: mitHerkunft(`${zahlText(d.annahmen.kalkulationszins * 100, sprache, 2)} %`, herkunft("kalkulationszins")) },
     {
       label: e("annahmen.kurs"),
-      wert: mitHerkunft(`1 EUR = ${zahlText(kurse.eurTenge, sprache)} ₸, 1 RUB = ${zahlText(kurse.rubTenge, sprache)} ₸ (${tagText(d.annahmen.kursStichtag, sprache)})`, h("kurs")),
+      wert: mitHerkunft(`1 EUR = ${zahlText(kurse.eurTenge, sprache)} ₸, 1 RUB = ${zahlText(kurse.rubTenge, sprache)} ₸ (${tagText(d.annahmen.kursStichtag, sprache)})`, herkunft("kurs")),
     },
     ...(d.annahmen.kursQuelle ? [{ label: e("annahmen.form.kursQuelle"), wert: d.annahmen.kursQuelle }] : []),
-    { label: e("annahmen.vollkosten"), wert: d.annahmen.vollkostenVorherTenge === null ? offen : mitHerkunft(`${zahlText(d.annahmen.vollkostenVorherTenge, sprache, 0)} ₸/${a("einheit.kilogramm")}`, h("vollkosten")) },
+    { label: e("annahmen.vollkosten"), wert: d.annahmen.vollkostenVorherTenge === null ? offen : mitHerkunft(`${zahlText(d.annahmen.vollkostenVorherTenge, sprache, 0)} ₸/${a("einheit.kilogramm")}`, herkunft("vollkosten")) },
     {
       label: e("annahmen.menge"),
-      wert: stand.mengeQuelle === "annahme" ? mitHerkunft(mengeWert, h("menge")) : stand.mengeQuelle === "lieferungen" ? mitHerkunft(mengeWert, "belegt") : mengeWert,
+      wert: stand.mengeQuelle === "annahme" ? mitHerkunft(mengeWert, herkunft("menge")) : stand.mengeQuelle === "lieferungen" ? mitHerkunft(mengeWert, "belegt") : mengeWert,
     },
-    { label: e("annahmen.nutzenbeginn"), wert: d.annahmen.nutzenbeginnWochen === null ? offen : mitHerkunft(a("einheit.wochenSpanne", d.annahmen.nutzenbeginnWochen), h("nutzenbeginn")) },
+    { label: e("annahmen.nutzenbeginn"), wert: d.annahmen.nutzenbeginnWochen === null ? offen : mitHerkunft(a("einheit.wochenSpanne", d.annahmen.nutzenbeginnWochen), herkunft("nutzenbeginn")) },
     { label: e("annahmen.echtbetrieb"), wert: d.annahmen.echtbetriebBeginn === null ? offen : tagText(d.annahmen.echtbetriebBeginn, sprache) },
   ]);
+}
 
-  // --- Plan und Ist -----------------------------------------------------------------------------------------------------
+/** Plan gegen Ist je Monat, bis zum Monat des Standes (oder heute). */
+function planIstAbschnitt(d: WirtschaftlichkeitDokumentDaten, stand: Rechenstand, h: Hilfen): string {
+  const { e, sprache, kurse, offen } = h;
   const vergleich = planIst(stand.nutzenEur, d.ist, d.annahmen, (d.stand ? tagInZone(new Date(d.stand.standAm)) : d.heute).slice(0, 7));
   const tengeAusEuro = (euro: number | null): string => (euro === null ? offen : tengeText(euroInTengeMit(euro, kurse), sprache));
-  const planIstHtml =
+  const tabelleHtml =
     vergleich.zeilen.length === 0
       ? leerHinweis(e("planIst.leer"))
       : tabelle(
@@ -149,22 +195,42 @@ export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDate
           ]),
           [1, 2, 3, 4],
         );
+  return absatz(e("planIst.lead")) + tabelleHtml;
+}
 
-  // --- Hinweise ---------------------------------------------------------------------------------------------------------
-  const alle = kennzahlZeilen.map((z) => ({ schluessel: z.schluessel, h: stand.herkunft[z.schluessel] }));
-  const offene = alle.filter((z) => z.h === "offen").map((z) => labels[z.schluessel]);
-  const geschaetzte = alle.filter((z) => z.h === "geschaetzt").map((z) => labels[z.schluessel]);
+/** Namen der geschaetzten und der offenen Kennzahlen, fuer die Hinweise und die Zusammenfassung. */
+function geschaetztUndOffen(zeilen: Kennzahlzeile[], stand: Rechenstand, labels: Record<Kennzahlschluessel, string>): { geschaetzt: string[]; offen: string[] } {
+  const stufe = (art: Herkunft) => zeilen.filter((z) => stand.herkunft[z.schluessel] === art).map((z) => labels[z.schluessel]);
+  return { geschaetzt: stufe("geschaetzt"), offen: stufe("offen") };
+}
+
+function hinweiseVon(d: WirtschaftlichkeitDokumentDaten, h: Hilfen, g: { geschaetzt: string[]; offen: string[] }): string[] {
   const hinweise: string[] = [];
-  if (d.quelle === "modell") hinweise.push(t("hinweis.modell"));
-  if (d.quelle === "stand") hinweise.push(t("hinweis.stand"));
-  if (geschaetzte.length > 0) hinweise.push(t("hinweis.geschaetzt", { liste: geschaetzte.join(", ") }));
-  if (offene.length > 0) hinweise.push(t("hinweis.offen", { liste: offene.join(", ") }));
+  if (d.quelle === "modell") hinweise.push(h.t("hinweis.modell"));
+  if (d.quelle === "stand") hinweise.push(h.t("hinweis.stand"));
+  if (g.geschaetzt.length > 0) hinweise.push(h.t("hinweis.geschaetzt", { liste: g.geschaetzt.join(", ") }));
+  if (g.offen.length > 0) hinweise.push(h.t("hinweis.offen", { liste: g.offen.join(", ") }));
+  return hinweise;
+}
 
-  const kennzahlKarten: Kennzahl[] = [
-    { label: labels.amortisation, wert: k.amortisationMonate === null ? offen : a("einheit.monate", { anzahl: Math.round(k.amortisationMonate) }), ton: TON[stand.herkunft.amortisation] },
-    { label: labels.roiDreiJahre, wert: prozent(k.roiHorizont), ton: TON[stand.herkunft.roiDreiJahre] },
-    { label: labels.kapitalwert, wert: euroAlsTenge(k.kapitalwert).split(" (")[0], ton: TON[stand.herkunft.kapitalwert] },
+/** Die drei Kennzahlen auf dem Deckblatt. */
+function kennzahlKarten(stand: Rechenstand, h: Hilfen, labels: Record<Kennzahlschluessel, string>): Kennzahl[] {
+  const k = stand.kennzahlen;
+  return [
+    { label: labels.amortisation, wert: k.amortisationMonate === null ? h.offen : h.a("einheit.monate", { anzahl: Math.round(k.amortisationMonate) }), ton: TON[stand.herkunft.amortisation] },
+    { label: labels.roiDreiJahre, wert: h.prozent(k.roiHorizont), ton: TON[stand.herkunft.roiDreiJahre] },
+    { label: labels.kapitalwert, wert: h.euroAlsTenge(k.kapitalwert).split(" (")[0], ton: TON[stand.herkunft.kapitalwert] },
   ];
+}
+
+export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDaten, x: DokumentKontext): DokumentEingabe {
+  const h = hilfenFuer(d, x);
+  const { t, sprache, kurse } = h;
+  const stand = rechneStand(d.posten, d.annahmen, d.menge);
+  const labels = kennzahlLabels(h.a);
+  const zeilen = kennzahlZeilenVon(d, stand, h);
+  const g = geschaetztUndOffen(zeilen, stand, labels);
+  const hinweise = hinweiseVon(d, h, g);
 
   const untertitel = d.stand ? t("untertitelStand", { name: d.stand.name }) : d.quelle === "modell" ? t("untertitelModell") : t("untertitelLaufend");
   const zusammenfassung =
@@ -172,7 +238,7 @@ export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDate
       ? t("zusammenfassungModell")
       : d.posten.length === 0
         ? t("zusammenfassungLeer")
-        : t("zusammenfassung", { anzahl: d.posten.length, offen: offene.length, geschaetzt: geschaetzte.length });
+        : t("zusammenfassung", { anzahl: d.posten.length, offen: g.offen.length, geschaetzt: g.geschaetzt.length });
 
   return versiegeln({
     kennung: kennungFuer(
@@ -192,19 +258,13 @@ export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDate
       { label: t("meta.zins"), wert: `${zahlText(d.annahmen.kalkulationszins * 100, sprache, 2)} %` },
       { label: t("meta.posten"), wert: String(d.posten.length) },
     ],
-    kennzahlen: kennzahlKarten,
+    kennzahlen: kennzahlKarten(stand, h, labels),
     zusammenfassung,
     abschnitte: [
-      { titel: t("abschnittKennzahlen"), html: kennzahlTabelle },
-      {
-        titel: t("abschnittPosten"),
-        html:
-          (postenZeilen.length > 0
-            ? tabelle([e("form.art"), e("form.kategorie"), e("form.bezeichnung"), e("form.datum"), e("form.betrag"), e("form.herkunft")], postenZeilen, [4])
-            : leerHinweis(t("leerPosten"))) + definitionen(summen),
-      },
-      { titel: t("abschnittAnnahmen"), html: annahmenHtml },
-      { titel: t("abschnittPlanIst"), html: absatz(e("planIst.lead")) + planIstHtml },
+      { titel: t("abschnittKennzahlen"), html: kennzahlTabelle(h, zeilen, labels, stand) },
+      { titel: t("abschnittPosten"), html: postenAbschnitt(d, h) },
+      { titel: t("abschnittAnnahmen"), html: annahmenAbschnitt(d, stand, h) },
+      { titel: t("abschnittPlanIst"), html: planIstAbschnitt(d, stand, h) },
       ...(hinweise.length > 0 ? [{ titel: t("abschnittHinweise"), html: kasten(t("hinweiseTitel"), hinweise, "warnung") }] : []),
     ],
     freigabe: [x.t("roles")("ceo"), x.t("roles")("buchhaltung")],
