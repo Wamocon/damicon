@@ -4401,16 +4401,26 @@ if (leitung && brigade) {
       await admin.from("vorbestellungen").delete().eq("id", geliefertVb.id);
     }
 
-    // Preisliste: oeffentlich (authenticated) lesbar, keine Kundengruppen-
-    // Filterung (siehe Migrationskommentar 20260929000000).
-    const { data: preislisteSicht } = await (await anmelden("erzeuger@damicon.demo")).client
+    // Preisliste lesen (Entscheidung vom 15.10.2026, Migration 20261208020000): das Buero liest alle aktiven Listen, ein Kunde nur die der eigenen
+    // Kundengruppe und die gruppenlosen (eigener Test weiter unten), Brigade, Pfluecker und Erzeuger lesen keine. Vorher las jede angemeldete Rolle
+    // alle Listen (Migrationskommentar 20260929000000), ein Kunde also auch die der anderen Kundengruppen.
+    const { data: preislisteSicht } = await (await anmelden("leitung@damicon.demo")).client
       .from("preislisten")
       .select("id, preislisten_positionen ( id )")
       .eq("aktiv", true);
     check(
-      "Anforderung 5.1: die aktive Preisliste ist fuer jede angemeldete Rolle lesbar",
+      "Anforderung 5.1: die aktive Preisliste ist fuers Buero lesbar (Betriebsleitung)",
       (preislisteSicht?.length ?? 0) >= 1,
       `Zeilen: ${preislisteSicht?.length}`,
+    );
+    const { data: preislisteErzeuger } = await (await anmelden("erzeuger@damicon.demo")).client
+      .from("preislisten")
+      .select("id")
+      .eq("aktiv", true);
+    check(
+      "Anforderung 5.1: ein Erzeuger liest keine Preisliste (Matrix: kein b2b_portal, keine preislisten)",
+      (preislisteErzeuger?.length ?? 0) === 0,
+      `Zeilen: ${preislisteErzeuger?.length}`,
     );
 
     // --- Anforderung 5.1: automatischer Kontingent-Verbrauch (Migration
