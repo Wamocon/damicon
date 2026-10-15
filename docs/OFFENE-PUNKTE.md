@@ -32,7 +32,7 @@ Drei Spalten bestimmen, wie es weitergeht:
 | 1627, 2290 | Auslieferung der Integrations-Warteschlange: signierter Webhook, Basic-Authentifizierung, Vorlage für das Zielformat, Rückmeldung des Partners, regelmäßiger Aufruf | Rahmen fertig, der Partner steht aus |
 | 1465 | Hypercare-Plan, festgelegt am 15.10.2026 (`docs/Hypercare-Plan-Damicon.docx`) | festgelegt |
 | 1454, 2419 | Drehbuch für acht Kurzvideos, Wiedergabe im Portal je Sprache, Hochladen für Administration und Betriebsleitung | Portal fertig, Produktion der Videos offen |
-| 2486 | Benachrichtigungen, Stufe 2: Hinweise je Person in der Glocke (Nachweise, ЭСФ, ЕСУТД, Block-Risiko), stündlich erzeugt | fertig, der Zeitplan ist einzurichten |
+| 2486 | Benachrichtigungen, Stufe 2: Hinweise je Person in der Glocke (Nachweise, ЭСФ, ЕСУТД, Block-Risiko), stündlich erzeugt | fertig, der Zeitplan ist eingerichtet und greift mit dem Merge |
 | 2489, 2491 | Reklamationen und Vorbestellungen seitenweise statt alle Zeilen, Ratsche gegen neue unbegrenzte Abfragen | teilweise, siehe Kapitel 2 |
 | 1436 | Wetter: Anbindung war schon umgesetzt | nur Jira nachgezogen |
 | 3.5 | Fehler in der Tourenplanung der Auslieferung behoben | behoben |
@@ -73,10 +73,15 @@ Jede Zeile war ein offener Punkt dieser Liste. Die Begründung steht in `docs/EN
 | 1C-Konnektor, Partner | Welcher Partner angebunden wird. Das Mapping auf sein Format ist eine Vorlage in der Oberfläche, sie lässt sich anlegen, sobald `$metadata` der Basis vorliegt. | Partner |
 | Temperaturlogger, Geräteanbindung | Ein Gerät zum Testen (Cloud-Schnittstellen von Testo und elproCLOUD sind recherchiert). Der Dateiimport läuft. | Betreiber |
 | Fördermittel, Datenabgleich | Eine Schnittstelle des Förderportals. Antragsvorlagen je Programm sind bewusst nicht Teil. | Förderstelle |
-| Zeitpläne einrichten | Zwei Workflows rufen das Portal auf: `integrationen-ausliefern` (alle fünf Minuten) und `benachrichtigungen-erzeugen` (stündlich). Dafür braucht das Repository die Geheimnisse `DAMICON_APP_URL` und `CRON_SECRET`, der Server `CRON_SECRET`. Ohne sie bleibt die Glocke leer und liefert nur der Knopf aus. | Betreiber |
-| Speicher für Videos | Die globale Dateigrenze des Supabase-Projekts muss mindestens 500 MB betragen (Dashboard, Storage, Einstellungen), sonst nimmt der Speicher die Videodateien nicht an. | Betreiber |
 | Einstellungen, Quelle der Werte | Die Startwerte tragen Quelle und Stand (15.10.2026). Die Geschäftsführung kann jeden Wert ersetzen. Rechtsberatung ersetzt die Zusammenstellung nicht. | Geschäftsführung, Rechtsberatung |
 | Plattform in Kasachstan | Beauftragung, danach Umzug. KI- und Sprachdienste werden zuerst analysiert. | Niko |
+
+### Betreiber-Punkte, am 15.10.2026 erledigt
+
+| Punkt | Stand |
+|---|---|
+| Zeitpläne einrichten | Das Repository trägt die Geheimnisse `DAMICON_APP_URL` (`https://damicon.vercel.app`) und `CRON_SECRET`, die Vercel-Produktion trägt denselben `CRON_SECRET` als verborgene Variable. Die Workflows `integrationen-ausliefern` (alle fünf Minuten) und `benachrichtigungen-erzeugen` (stündlich) laufen erst, wenn sie auf `main` liegen, also mit dem Merge dieses Pull Requests. Danach ist ein Lauf von Hand auszulösen (`gh workflow run benachrichtigungen-erzeugen.yml`) und auf HTTP 200 zu prüfen. |
+| Speicher für Videos | Die globale Dateigrenze des Supabase-Projekts steht in der Cloud auf 1 GiB, gemessen mit `supabase config diff`. Mehr als die verlangten 500 MB, es war nichts zu ändern. |
 
 ## 2. Braucht Entwicklungsarbeit
 
