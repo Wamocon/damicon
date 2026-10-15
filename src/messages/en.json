@@ -1024,7 +1024,8 @@
       "kontoGesperrt": "Account of \"{wert}\" blocked.",
       "kontoEntsperrt": "Account of \"{wert}\" unblocked.",
       "passwortGeaendert": "Password changed.",
-      "dokumentVersion": "New version “{wert}” created."
+      "dokumentVersion": "New version “{wert}” created.",
+      "videoEntfernt": "Video file removed."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -5742,5 +5743,40 @@
     "neu": "New password",
     "wiederholung": "Once more",
     "knopf": "Change password"
+  },
+  "schulungsvideos": {
+    "titel": "Training videos",
+    "lead": "Short onboarding videos, played in the person's language where one exists.",
+    "pflicht": "Required",
+    "dauer": "{min} min {sek} s",
+    "nochKeinVideo": "There is no video for this yet.",
+    "keineDatei": "No video file available.",
+    "sprachwahl": "Video language",
+    "kein_video_support": "Your browser cannot play this video.",
+    "sprache": {
+      "de": "Deutsch",
+      "en": "English",
+      "ru": "Русский",
+      "kk": "Қазақша"
+    },
+    "entfernen": "Remove file",
+    "upload": {
+      "titel": "Upload or replace video file",
+      "sprache": "Language",
+      "datei": "File (MP4 or WebM)",
+      "knopf": "Upload",
+      "laeuft": "Uploading … {prozent} %",
+      "fertig": "The video file is saved.",
+      "hinweis": "MP4 or WebM, up to 500 MB. An existing file in the same language is replaced. The upload runs in chunks and can be resumed after an interruption."
+    },
+    "fehler": {
+      "zugriff": "You do not have permission for this.",
+      "ungueltig": "The video or the language is invalid.",
+      "typ": "Only MP4 or WebM files are possible.",
+      "groesse": "The file is empty or larger than 500 MB.",
+      "nichtDa": "The file did not arrive in storage after uploading. Please try again.",
+      "speicher": "Storage did not accept the file. Please try again.",
+      "unbekannt": "The upload failed."
+    }
   }
 }

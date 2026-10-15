@@ -1024,7 +1024,8 @@
       "kontoGesperrt": "Konto von „{wert}“ gesperrt.",
       "kontoEntsperrt": "Konto von „{wert}“ entsperrt.",
       "passwortGeaendert": "Passwort geändert.",
-      "dokumentVersion": "Neue Version „{wert}“ angelegt."
+      "dokumentVersion": "Neue Version „{wert}“ angelegt.",
+      "videoEntfernt": "Videodatei entfernt."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -5742,5 +5743,40 @@
     "neu": "Neues Passwort",
     "wiederholung": "Noch einmal",
     "knopf": "Passwort ändern"
+  },
+  "schulungsvideos": {
+    "titel": "Schulungsvideos",
+    "lead": "Kurze Videos zur Einarbeitung, in der Sprache der Person abgespielt, wo es sie gibt.",
+    "pflicht": "Pflicht",
+    "dauer": "{min} Min. {sek} Sek.",
+    "nochKeinVideo": "Dazu gibt es noch kein Video.",
+    "keineDatei": "Keine Videodatei vorhanden.",
+    "sprachwahl": "Sprache des Videos",
+    "kein_video_support": "Ihr Browser kann dieses Video nicht abspielen.",
+    "sprache": {
+      "de": "Deutsch",
+      "en": "English",
+      "ru": "Русский",
+      "kk": "Қазақша"
+    },
+    "entfernen": "Datei entfernen",
+    "upload": {
+      "titel": "Videodatei hochladen oder ersetzen",
+      "sprache": "Sprache",
+      "datei": "Datei (MP4 oder WebM)",
+      "knopf": "Hochladen",
+      "laeuft": "Lädt … {prozent} %",
+      "fertig": "Die Videodatei ist gespeichert.",
+      "hinweis": "MP4 oder WebM, höchstens 500 MB. Eine vorhandene Datei in derselben Sprache wird ersetzt. Der Upload läuft in Stücken und kann nach einem Abbruch fortgesetzt werden."
+    },
+    "fehler": {
+      "zugriff": "Dafür fehlt die Berechtigung.",
+      "ungueltig": "Das Video oder die Sprache ist ungültig.",
+      "typ": "Nur MP4- oder WebM-Dateien sind möglich.",
+      "groesse": "Die Datei ist leer oder größer als 500 MB.",
+      "nichtDa": "Die Datei ist nach dem Hochladen nicht im Speicher angekommen. Bitte noch einmal versuchen.",
+      "speicher": "Der Speicher hat die Datei nicht angenommen. Bitte noch einmal versuchen.",
+      "unbekannt": "Das Hochladen ist fehlgeschlagen."
+    }
   }
 }

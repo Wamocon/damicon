@@ -4,6 +4,7 @@ import { Card, Section } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import { Icon } from "@/components/icon";
 import { SchrittAbhakenKnopf } from "@/components/db/einarbeitung-formulare";
+import { SchulungsvideosBereich } from "@/components/db/schulungsvideos-bereich";
 import { ladeEinarbeitung } from "@/lib/data/einarbeitung";
 import { getSessionProfile } from "@/lib/auth";
 import type { Locale } from "@/i18n/routing";
@@ -77,6 +78,8 @@ export async function EinarbeitungAnsicht() {
           ))}
         </div>
       </Section>
+
+      <SchulungsvideosBereich />
     </div>
   );
 }

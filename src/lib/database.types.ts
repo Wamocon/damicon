@@ -3586,6 +3586,50 @@ export type Database = {
           },
         ]
       }
+      schulungsvideo_dateien: {
+        Row: {
+          created_at: string
+          dateiname: string | null
+          groesse_bytes: number
+          hochgeladen_von: string | null
+          id: string
+          sprache: string
+          storage_path: string
+          updated_at: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          dateiname?: string | null
+          groesse_bytes: number
+          hochgeladen_von?: string | null
+          id?: string
+          sprache: string
+          storage_path: string
+          updated_at?: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          dateiname?: string | null
+          groesse_bytes?: number
+          hochgeladen_von?: string | null
+          id?: string
+          sprache?: string
+          storage_path?: string
+          updated_at?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schulungsvideo_dateien_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsvideos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schulungsvideos: {
         Row: {
           created_at: string
