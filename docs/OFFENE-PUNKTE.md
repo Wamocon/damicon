@@ -1,10 +1,12 @@
 # Offene Punkte
 
-Stand: 14.10.2026, Branch `feat/restfunktionen-spur-a`. Diese Liste ersetzt keine Jira-Pakete. Sie sagt, was nach diesem Stand noch nicht fertig ist und woran es hängt, damit niemand raten muss, ob ein Punkt vergessen wurde oder bewusst offen ist.
+Stand: 15.10.2026, Branch `feat/restfunktionen-spur-a`. Diese Liste ersetzt keine Jira-Pakete. Sie sagt, was nach diesem Stand noch nicht fertig ist und woran es hängt, damit niemand raten muss, ob ein Punkt vergessen wurde oder bewusst offen ist.
+
+Seit dem 15.10.2026 steht in der Liste nichts mehr, was nur auf eine Festlegung wartet. Alle fachlichen Entscheidungen sind getroffen, begründet (`docs/ENTSCHEIDUNGSGRUNDLAGEN.md`) und umgesetzt. Werte, die sich ändern können (Fristen, Kapazitäten, Richtwerte, Gewichte), stehen unter Büro → Einstellungen und lassen sich dort ohne Programmänderung anpassen. Offen bleibt, was von Dritten abhängt oder dafür ein Gerät, einen Zugang oder eine Sichtprüfung braucht.
 
 Drei Spalten bestimmen, wie es weitergeht:
 
-1. **Wartet auf Entscheidung**: Niemand muss bauen, jemand muss festlegen. Ohne Antwort würde Code eine fachliche Annahme als Tatsache einbauen.
+1. **Wartet auf Dritte**: Der Code ist bereit oder wird erst mit dem Zugang möglich. Die Entscheidung liegt nicht mehr bei uns.
 2. **Braucht Entwicklungsarbeit**: Die Anforderung ist klar, die Umsetzung fehlt.
 3. **Braucht Inhalte**: Das System kann es, die Daten oder Texte fehlen.
 
@@ -12,86 +14,80 @@ Drei Spalten bestimmen, wie es weitergeht:
 
 | Jira | Inhalt | Stand |
 |---|---|---|
-| 1467 | Globale Datensuche (`search_everything`, Gruppe „Daten“ im Suchdialog) | fertig |
-| 1469 | Nachweisregister: Gültigkeit, Verantwortliche, Ablaufstatus, Einspeisung in den Risiko-Radar | fertig |
-| 1470 | Block-Risiko mit Gewichten aus der Tabelle `risiko_parameter` (aus den Betriebsregeln hergeleitet) | fertig, Abstimmung mit dem Betreiber offen |
-| 1472 | Nachrichten je Vorbestellung, Lieferplan als Kalenderdatei | fertig |
-| 1441 | Rollenzuweisung in der Oberfläche, letzter Administrator geschützt | fertig |
-| 1519 | Kennzahlen im Cockpit auf 12 begrenzt | war schon umgesetzt, jetzt durch einen Test gesichert |
-| 1440 | ЭСФ, Stufe 1: Belegregister, Entwurf, Statuslauf | fertig, Stufe 2 offen |
-| 1447 | ЕСУТД, Stufe 1: Meldeprozess, Bestätigung, Beleg, CSV-Export | fertig, Stufe 2 offen |
+| 1467 | Globale Datensuche (`search_everything`), jetzt mit Trigramm-Indizes für große Tabellen | fertig |
+| 1469 | Nachweisregister: Gültigkeit, Verantwortliche, Ablaufstatus, Risiko-Radar, mehrere Versionen je Nachweis (eine ersetzte Version schlägt nicht mehr Alarm) | fertig |
+| 1470 | Block-Risiko mit Gewichten aus `risiko_parameter`, Grenzen und Verlauf, Pflege durch Administration und Geschäftsführung unter Büro → Einstellungen | fertig |
+| 1472 | Nachrichten je Vorbestellung, Lieferplan als Kalenderdatei, Anonymisieren auf Anweisung der Administration | fertig |
+| 1441 | Rollenzuweisung, Konten für Mitarbeitende anlegen, Konten sperren statt löschen, Passwort ändern, letzter aktiver Administrator geschützt | fertig |
+| 1519 | Kennzahlen im Cockpit auf 12 begrenzt | durch einen Test gesichert |
+| 1440 | ЭСФ, Stufe 1: Belegregister, Entwurf (netto oder brutto je Preisliste), Statuslauf, Frist aus den Einstellungen | fertig, Stufe 2 wartet auf die Behörde |
+| 1447 | ЕСУТД, Stufe 1: Meldeprozess, Fristen für Abschluss, Änderung und Beendigung aus den Einstellungen, Verlauf beim Wiederöffnen, Hinweis bei Altbestand | fertig, Stufe 2 wartet auf die Behörde |
 | 1448 | Fördermittel: Checkliste je Dossier statt Portalanbindung | fertig |
-| 1517 | Temperaturlogger: Import der CSV-Datei, Stufe 1 | fertig, Geräteanbindung offen |
-| 1461 | Abgleich der Rechtematrix mit der Zeilensicherheit per Zugriffsprobe | fertig, vier Entscheidungen offen (unten) |
-| 1473, 1460 | Browsertests gegen die lokale Instanz in der CI, Rechte je Rolle, Bildvergleich | fertig, Referenzbilder noch aus der CI zu holen |
-| 1475 | Diese Liste, Handbuch um neun Anleitungen und zwei Schnittstellen erweitert | fertig |
-| 2470 | Wirtschaftlichkeit: Posten, Annahmen, Plan-Ist, festgehaltene Stände mit eigenem Kurs, Dokument | Erfassung fertig, die Werte sind Sache der Geschäftsführung |
-| 1577 | Abholrunden bei Nachbarbetrieben: Planen, Ablauf, 60-Minuten-Regel, Abholauftrag und Nachweis als Dokument | fertig, Fahrzeugkapazität und Zeitfenster offen |
-| 1627, 2290 | Auslieferung der Integrations-Warteschlange als signierter Webhook, Registry mit Konfiguration, ЭСФ-Beleg reiht ein | Rahmen fertig, Partner und Zielformat offen |
-| 1517 | Temperaturlogger: JSON-Import neben der CSV-Datei (Stufe 2, soweit ohne Gerät möglich) | fertig, Geräteanbindung offen |
-| 1465 | Hypercare-Plan als Entwurf zur Abstimmung (Word, `docs/Hypercare-Plan-Damicon.docx`) | Entwurf, Entscheidungen offen |
-| 1454, 2419 | Drehbuch für acht Kurzvideos auf Russisch und Kasachisch (Word, `docs/Schulungsvideos-Drehbuch-Damicon.docx`) | Drehbuch fertig, Produktion offen |
-| 1436 | Wetter: Anbindung (Open-Meteo, Temperatursumme) war schon umgesetzt, die Jira-Beschreibung war veraltet | nur Jira nachgezogen |
-| 3.5 | Fehler in der Tourenplanung der Auslieferung behoben: die Reihenfolge der Stopps aus dem Routendienst wurde in der falschen Richtung gelesen | behoben, Test hält es fest |
+| 1517 | Temperaturlogger: CSV und JSON, Kodierungen (UTF-8, UTF-16, Windows-1251, 1252), Zeitzone wählbar, Kelvin und Fahrenheit, elproCLOUD-Modell | fertig, Geräteanbindung wartet auf ein Gerät |
+| 1461 | Abgleich der Rechtematrix mit der Zeilensicherheit per Zugriffsprobe, Rechte der Preislisten, des Pflanzenschutzes, der Abholrunden und der Nachrichten an die Matrix angeglichen | fertig |
+| 1473, 1460 | Browsertests gegen die lokale Instanz, Rechte je Rolle, Bildvergleich, Geschäftsführung und Erzeuger im fachlichen Ablauf | fertig, Referenzbilder noch aus der CI zu holen |
+| 1475 | Diese Liste, Handbuch um sieben Anleitungen erweitert, die älteren berichtigt, in vier Sprachen | fertig |
+| 2470 | Wirtschaftlichkeit: Posten, Annahmen, Plan-Ist, Stände, Dokument, Zins-Check, Herleitung des Schwund-Nutzens aus Verlustquote, Jahresmenge und Vollkosten | fertig, die Werte sind Sache der Geschäftsführung |
+| 1577 | Abholrunden: Planen, Ablauf, 60-Minuten-Regel, Fahrzeugkapazität, Abholfenster, geschätzte Ankunft | fertig |
+| 1627, 2290 | Auslieferung der Integrations-Warteschlange: signierter Webhook, Basic-Authentifizierung, Vorlage für das Zielformat, Rückmeldung des Partners, regelmäßiger Aufruf | Rahmen fertig, der Partner steht aus |
+| 1465 | Hypercare-Plan, festgelegt am 15.10.2026 (`docs/Hypercare-Plan-Damicon.docx`) | festgelegt |
+| 1454, 2419 | Drehbuch für acht Kurzvideos, Wiedergabe im Portal je Sprache, Hochladen für Administration und Betriebsleitung | Portal fertig, Produktion der Videos offen |
+| 2486 | Benachrichtigungen, Stufe 2: Hinweise je Person in der Glocke (Nachweise, ЭСФ, ЕСУТД, Block-Risiko), stündlich erzeugt | fertig, der Zeitplan ist einzurichten |
+| 2489, 2491 | Reklamationen und Vorbestellungen seitenweise statt alle Zeilen, Ratsche gegen neue unbegrenzte Abfragen | teilweise, siehe Kapitel 2 |
+| 1436 | Wetter: Anbindung war schon umgesetzt | nur Jira nachgezogen |
+| 3.5 | Fehler in der Tourenplanung der Auslieferung behoben | behoben |
+| 1518 | Sprachpolitik: Standardsprache Russisch, Kasachisch gleichrangig, Verbrauchernahes auf Kasachisch und Russisch | festgelegt (`docs/ENTSCHEIDUNGSGRUNDLAGEN.md`, Kapitel 6) |
 
-## 1. Wartet auf Entscheidung
+## Entschieden am 15.10.2026
 
-| Punkt | Warum es hängt | Wer |
+Jede Zeile war ein offener Punkt dieser Liste. Die Begründung steht in `docs/ENTSCHEIDUNGSGRUNDLAGEN.md`, die Umsetzung in der genannten Migration.
+
+| Punkt | Entscheidung | Umsetzung |
 |---|---|---|
-| Preislisten lesen (Matrix gegen Datenbank) | `preislisten_select_intern` lässt jede angemeldete Rolle lesen (WMCNL-2451). Ein Kunde kann damit per direktem Zugriff auch die Preislisten anderer Kundengruppen lesen. Entweder die Policy auf die eigene Gruppe einschränken oder bewusst so lassen. | Niko, Betreiber |
-| Preislisten schreiben | Die Datenbank erlaubt dem ganzen Büro das Schreiben, also auch der Buchhaltung. Die Matrix gibt der Buchhaltung nur „sehen“. Matrix erweitern oder Policy einschränken. | Niko |
-| Pflanzenschutz lesen | `pflanzenschutz_behandlungen_select_produktion` nennt Buchhaltung und Erzeuger. Ein Nachbarbetrieb liest damit alle Behandlungen des Betriebs. Gewollt oder zu weit? | Niko, Betreiber |
-| Matrix gibt mehr, als die Datenbank liefert | `dokumente:view` für Erzeuger und Kunde, `b2b_portal:view` und `finanzen:view` für Erzeuger: Das Modul öffnet, zeigt aber nichts. Matrix kürzen oder Zugriff nachziehen. | Niko |
-| Preisliste netto oder brutto | Der ЭСФ-Entwurf nimmt Nettopreise an und rechnet die MwSt obendrauf, wenn der Betrieb am Liefertag MwSt-registriert war. Die Buchhaltung muss das bestätigen. | Buchhaltung |
-| Frist für die ЭСФ | Das Portal hinterlegt keine Frist und rechnet nur das Alter ab dem Liefertag. Welche Frist gilt, legt die Buchhaltung fest. | Buchhaltung |
-| Rechtsgrundlage der ЕСУТД-Frist | Die Frist von fünf Werktagen ab Vertragsbeginn steht seit Oktober im System. Eine eindeutige Quelle ist in der Recherche nicht belegt. Für Änderung und Beendigung ist bewusst keine Frist hinterlegt. | Rechtsberatung |
-| Risiko-Gewichte (1470) | Die Gewichte sind aus den Betriebsregeln hergeleitet und stehen mit Begründung in `risiko_parameter`. Ändern dürfen nur Administration und Geschäftsführung. Mit dem Betreiber abstimmen. | Betreiber |
-| ЭСФ und ЕСУТД, Stufe 2 | Brauchen den Zugang der Behörde (Operator oder API, Signatur beim Betreiber). Private Schlüssel gehören nicht ins System. | Behörde, Betreiber |
-| Abholrunden (1577), Ausbau | Gebaut ist der Ablauf einer Runde mit Strecke und 60-Minuten-Regel. Offen sind die Fahrzeugkapazität, Zeitfenster der Nachbarbetriebe und ob mehrere Fahrzeuge je Tag planbar sein sollen. | Betreiber |
-| 1C-Konnektor (1627, 2290) | Der Rahmen steht (Warteschlange, Webhook, Signatur, Wiederholung). Welcher Partner angebunden wird und welches Format sein Ziel erwartet, steht aus. Das Zielformat des Umschlags ist festgelegt, ein Mapping auf den Partner fehlt. | Partner |
-| Auslieferung einschalten | Eine Integration liefert nur aus, wenn die Administration sie aktiviert, die Adresse einträgt und die Umgebungsvariable mit dem Geheimnis auf dem Server gesetzt ist. Ohne Cron-Dienst (`CRON_SECRET`, Aufruf von `/api/integrationen/ausliefern`) liefert der Knopf aus. Das Einrichten der Plattform übernimmt der Betreiber. | Niko, Betreiber |
-| ЕСУТД an einen Partner liefern | Die Meldungen tragen Namen und Ausweisnummern. Ob und auf welcher Rechtsgrundlage sie an ein Partnersystem gehen dürfen, ist nicht entschieden. Bis dahin reiht ЕСУТД bewusst nichts ein. | Rechtsberatung, Betreiber |
-| Sprachpolitik (1518) | Wartet auf die Antwort des Betreibers. | Betreiber |
-| Wirtschaftlichkeit (2470), Werte | Das Erfassen steht. Jahresnutzen, Kalkulationszins und vermarktete Menge sind „in Klärung“ (Jira-Kommentar vom 24.09.2026) und stehen als geschätzt, bis sie belegt sind. Die Seite zeigt „offen“, wo Angaben fehlen. | Geschäftsführung |
-| Hypercare-Plan (1465) | Der Entwurf nennt Vorschläge. Go-Live-Datum, Dauer, Bereitschaftszeiten, Reaktionsziele, Meldekanal und die Namen der Rollen stehen im Abschnitt „Offene Entscheidungen“ des Plans. | Geschäftsführung, Betreiber |
-| Plattform in Kasachstan | Umzug nach der Beauftragung und vor dem Produktivbetrieb (Entscheidung vom 13.10.2026). KI- und Sprachdienste werden zuerst analysiert. | Niko |
-| Prüfung PR #156 (15.10.2026): Rechte der Buchhaltung | Die Policies der Abholrunden (planen, löschen) und der Nachrichten (schreiben) nennen `has_office_access()`, also auch die Buchhaltung. `rbac.ts` gibt ihr dort nur `b2b_portal:view` und kein `logistik`. Entweder die Matrix erweitern oder die Policies auf die Rollen der Matrix einengen. | Niko |
-| Prüfung PR #156: Brigade ändert geplante Runden | Die Brigade darf Datum und Fahrzeug einer geplanten (nicht gestarteten) Runde ändern, ohne Spalten- oder Phasenbegrenzung der Policy. Gewollt, oder nur das Büro bis zum Start? | Betreiber |
-| Prüfung PR #156: Herkunft "Messprotokoll" | Die Brigade darf Messungen als `logger` eintragen (die Datenbank unterscheidet Import und Handeingabe nicht). Die Kennzeichnung ist damit kein Fälschungsschutz. Wer sie als Nachweis nutzt, braucht einen Importweg über eine eigene Funktion oder Rolle. | Niko |
-| Prüfung PR #156: Konto löschen | Ein Konto, das einen bestätigten ЭСФ-Beleg, einen Stand der Wirtschaftlichkeit oder eine abgeschlossene Runde angelegt hat, lässt sich nicht löschen (`on delete set null` stößt auf die Unveränderlichkeit). Konten sperren statt löschen, oder die Fremdschlüssel wie bei den Nachrichten weglassen. | Niko |
-| Prüfung PR #156: Wiederöffnen eines ЕСУТД-Abschlusses | Das Wiederöffnen leert Bestätigung und Beleg, ohne Verlauf in der Datenbank. Gewollt (Korrektur) oder soll ein Verlauf bleiben? | Betreiber |
-| Prüfung PR #156: Löschweg für Nachrichten | Nachrichten zu Vorbestellungen sind unveränderlich und tragen Klarnamen. Für Datenschutzfälle gibt es keinen Löschweg. | Datenschutz, Betreiber |
+| Preislisten lesen | Büro alle, ein Kunde nur die Listen der eigenen Kundengruppe und die gruppenlosen | Migration `20261208020000` |
+| Preislisten schreiben | Administration, Geschäftsführung, Betriebsleitung, wie in der Matrix. Die Buchhaltung liest | Migration `20261208020000` |
+| Pflanzenschutz lesen | Behandlungen und Mittel für Administration, Geschäftsführung, Betriebsleitung, Brigade. Buchhaltung und Erzeuger sehen nur die Sperre | Migration `20261208020000`, Sicht `v_block_sperre` |
+| Matrix gegen Datenbank | Die Matrix wurde gekürzt, wo das Modul nichts zeigt; der Abgleichstest hält beides gleich | `src/lib/rbac.ts`, `test:rbac-rls` |
+| Preisliste netto oder brutto | Vorgabe netto, je Preisliste mit Schalter „inkl. MwSt“, die ЭСФ rechnet immer netto plus Satz | Migration `20261208070000` |
+| Frist für die ЭСФ | 15 Kalendertage nach dem Liefertag (Steuerkodex Art. 493), als Einstellung | Migration `20261208030000` |
+| ЕСУТД-Fristen | Abschluss 5 Arbeitstage nach der Unterschrift, Änderung 15 Kalendertage, Beendigung 3 Arbeitstage (Erlass Nr. 353), als Einstellungen | Migration `20261208040000` |
+| Risiko-Gewichte | Aus den Betriebsregeln hergeleitet, mit Grenzen und Verlauf in der Oberfläche änderbar | Migration `20261208100000` |
+| Abholrunden, Ausbau | Fahrzeugkapazität (warnt, sperrt nicht), Abholfenster je Nachbarbetrieb, geschätzte Ankunft, mehrere Fahrzeuge je Tag | Migration `20261208060000` |
+| 1C-Konnektor | Zielformat als Vorlage in der Oberfläche, Basic-Authentifizierung, Rückmeldung des Partners | Migration `20261208080000` |
+| Wirtschaftlichkeit, Werte | Kalkulationszins 20 Prozent mit Vergleichszinsen 16 und 24 Prozent, Schwund aus der Verlustquote hergeleitet | Einstellungen, Migration `20261208140000` |
+| Hypercare-Plan | Festgelegt, Abschnitt 12 des Plans | `docs/Hypercare-Plan-Damicon.docx` |
+| Plattform in Kasachstan | Umzug nach der Beauftragung und vor dem Produktivbetrieb, Analyse der Dienste liegt vor | `docs/Plattform-Kasachstan-Analyse.docx` |
+| Rechte der Buchhaltung bei Abholrunden und Nachrichten | Die Policies folgen der Matrix: planen nur das Büro ohne Buchhaltung, Nachrichten schreiben Kunde und Büro ohne Buchhaltung | Migration `20261208020000` |
+| Brigade ändert geplante Runden | Nein. Die Brigade fährt die Runde (Start, Abholung, Abschluss), ändert aber Datum, Fahrzeug und Strecke nicht | Migration `20261208020000` (DA015) |
+| Herkunft „Messprotokoll“ | Die Herkunft `logger` setzt nur die Importfunktion, ein Direktinsert wird abgelehnt | Migration `20261208020000` (DA018) |
+| Konto löschen | Konten werden gesperrt statt gelöscht, die Fremdschlüssel der Urheber an unveränderlichen Zeilen entfallen | Migrationen `20261208020000` und `20261208090000` |
+| Wiederöffnen eines ЕСУТД-Abschlusses | Gewollt als Korrektur, aber mit unveränderlichem Verlauf der geleerten Angaben | Migration `20261208020000` |
+| Löschweg für Nachrichten | „Anonymisieren“ auf Anweisung der Administration: Text und Name entfallen, der Verlauf bleibt, Grund Pflicht | Migration `20261208020000` |
+
+## 1. Wartet auf Dritte
+
+| Punkt | Worauf es wartet | Wer |
+|---|---|---|
+| ЭСФ, Stufe 2 | Zugang der Behörde (Operator oder API, Signatur beim Betreiber). Private Schlüssel gehören nicht ins System. Die Tabelle `integration_outbox` und die Auslieferung sind die Grundlage. | Behörde, Betreiber |
+| ЕСУТД, Stufe 2 | Zugang der Behörde. Die Meldungen tragen Namen und Ausweisnummern: Ob und auf welcher Rechtsgrundlage sie an ein Partnersystem gehen dürfen, ist nicht entschieden, bis dahin reiht ЕСУТД bewusst nichts in die Warteschlange ein. | Behörde, Rechtsberatung |
+| 1C-Konnektor, Partner | Welcher Partner angebunden wird. Das Mapping auf sein Format ist eine Vorlage in der Oberfläche, sie lässt sich anlegen, sobald `$metadata` der Basis vorliegt. | Partner |
+| Temperaturlogger, Geräteanbindung | Ein Gerät zum Testen (Cloud-Schnittstellen von Testo und elproCLOUD sind recherchiert). Der Dateiimport läuft. | Betreiber |
+| Fördermittel, Datenabgleich | Eine Schnittstelle des Förderportals. Antragsvorlagen je Programm sind bewusst nicht Teil. | Förderstelle |
+| Zeitpläne einrichten | Zwei Workflows rufen das Portal auf: `integrationen-ausliefern` (alle fünf Minuten) und `benachrichtigungen-erzeugen` (stündlich). Dafür braucht das Repository die Geheimnisse `DAMICON_APP_URL` und `CRON_SECRET`, der Server `CRON_SECRET`. Ohne sie bleibt die Glocke leer und liefert nur der Knopf aus. | Betreiber |
+| Speicher für Videos | Die globale Dateigrenze des Supabase-Projekts muss mindestens 500 MB betragen (Dashboard, Storage, Einstellungen), sonst nimmt der Speicher die Videodateien nicht an. | Betreiber |
+| Einstellungen, Quelle der Werte | Die Startwerte tragen Quelle und Stand (15.10.2026). Die Geschäftsführung kann jeden Wert ersetzen. Rechtsberatung ersetzt die Zusammenstellung nicht. | Geschäftsführung, Rechtsberatung |
+| Plattform in Kasachstan | Beauftragung, danach Umzug. KI- und Sprachdienste werden zuerst analysiert. | Niko |
 
 ## 2. Braucht Entwicklungsarbeit
 
 | Punkt | Hinweis |
 |---|---|
-| Abholrunden, Ausbau | Fahrzeugkapazität und Zeitfenster, sobald fachlich geklärt. Eine Karte je Runde gibt es, die Reihenfolge folgt nur der Strecke. |
-| Wirtschaftlichkeit, Aufteilung des Nutzens | Der Nutzen steht als Summe und je Kategorie (Schwund, Handarbeit, Audit, Sonstiges). Eine Herleitung aus Betriebsdaten (zum Beispiel Schwund aus der Verlustquote) ist nicht gebaut. |
-| Auslieferung, Bestätigung durch den Partner | Der Status „bestätigt“ ist vorgesehen, aber nichts setzt ihn. Er braucht einen Rückkanal des Partners. |
-| Schulungsvideos im Portal | Das Portal hat die Tabelle `schulungsvideos`, aber keine Wiedergabe. Das Drehbuch ist fertig, die Produktion nicht. |
-| Listen mit Filter und Blättern (2489, 2490, 2491) | Reklamationen als Liste mit Detailansicht, Neuanlage über der Liste in den übrigen Modulen, Grenze und Blättern für lange Listen. Eine Folge des Pilots aus WMCNL-2488, nicht bearbeitet: es berührt rund vierzehn Seiten und verlangt eine Sichtprüfung bei vier Breiten. |
-| Benachrichtigungen, Stufe 2 (2486) | Jira nennt als Voraussetzung die Klärung der Anforderungen und einen zeitgesteuerten Dienst (pg_cron), den es nicht gibt. Nicht bearbeitet. |
-| ЭСФ Stufe 2 | Übergabe über Operator oder API, Statusrückmeldung, Wiederholung. Die Tabelle `integration_outbox` ist die Grundlage. |
-| ЕСУТД Stufe 2 | Anbindung, falls ein Zugang existiert. Der Risiko-Radar kennt heute nur die Frist des Abschlusses, offene Änderungen und Beendigungen erscheinen dort nicht. |
-| Temperaturlogger, Geräteanbindung | Je Hersteller, braucht ein Gerät zum Testen. |
-| Fördermittel, Datenabgleich | Nur, wenn das Portal eine Schnittstelle bietet. Antragsvorlagen je Programm sind bewusst nicht Teil. |
-| Nachweisregister, Versionen | Mehrere Stände je Dokument. |
-| Rollenverwaltung | Konten für Mitarbeitende anlegen und sperren. Heute entstehen Konten über Einladungen (Kunden) oder das Seed-Skript. |
-| Handbuch | Anleitungen für Fördermittel-Checkliste, Datensuche und Block-Risiko fehlen noch. |
-| ЕСУТД, Altbestand | `pfluecker.esutd` folgt den Meldungen nur für Personen mit mindestens einem Vertrag. Personen ohne erfassten Vertrag behalten ihren alten Wert. |
+| Listen mit Detailansicht, Neuanlage über der Liste (2489, 2490) | Der Umbau der Reklamationen auf die Liste mit Schublade und das Verschieben der Neuanlage über die Liste in den übrigen Modulen berühren rund vierzehn Seiten. Er ist eine Gestaltungsarbeit mit Sichtprüfung bei vier Breiten und gehört in einen eigenen Pull Request. Das Muster steht im Piloten der Pflückaufgaben. |
+| Seitenweise Listen, übrige Module (2491) | Vorbestellungen und Reklamationen blättern seit diesem Stand. Die Ratsche `npm run test:grenzen` hält fest, dass keine neue Abfrage ohne Zeilengrenze dazukommt; die vorhandenen stehen in `scripts/qualitaet/grenzen-basis.json` (99 Abfragen, überwiegend kleine Stammdaten). Wächst eine Liste über 500 Zeilen, bekommt sie Seiten. |
+| ЕСУТД, weitere Vorgänge | Verlängerung eines befristeten Vertrags (15 Arbeitstage), Fehlerkorrektur (30), Wiedereinstellung (10) sind recherchiert, aber keine Meldeart im System. Einen Feiertagskalender gibt es nicht. |
 | Bildvergleich | Referenzbilder aus dem ersten CI-Lauf holen (Artefakt `visuelle-referenz`), prüfen, nach `e2e/visuell.spec.ts-snapshots/` kopieren, einchecken. Bis dahin erzeugt die Pipeline sie nur. |
-| Browsertests | Geschäftsführung und Erzeuger sind nur im Zugriffstest abgedeckt, nicht in einem fachlichen Ablauf. |
-| Prüfung PR #156: lange Funktionen | `WirtschaftlichkeitErfassung` (247 Zeilen), `baueWirtschaftlichkeitDokument` (173) und `baueModell` (146) gehören zerlegt. Erst ein Charakterisierungstest (Ausgabe vor dem Umbau festhalten), dann aufteilen. |
-| Prüfung PR #156: Doppelungen in der Oberfläche | Tenge-Formatierer viermal (`esf-ansicht`, `wirtschaftlichkeit-erfassung`, `wirtschaftlichkeit-modell`, `dokument/kontext`), Tagesformatierer mit `T00:00:00Z` achtmal, Auswahllisten der Wirtschaftlichkeit doppelt, Überfälligkeitsregel der Förder-Checkliste dreifach, "kg" fest in ЭСФ und Vorbestellungen (ru, kk lateinisch). Gemeinsame Helfer, wenn die Bereiche das nächste Mal angefasst werden. |
-| Prüfung PR #156: Doppelklick | `modellwerteUebernehmen` und `checklisteVorschlagUebernehmen` zählen erst und fügen dann ein. Unique-Index auf (monat, kategorie, waehrung) für die Ist-Werte, Pending-Schutz an den Knöpfen. |
-| Prüfung PR #156: Abholrunde atomar | `abholrundeErstellen` legt Runde und Stopps in zwei Einfügungen an, die Rücknahme kann scheitern. Eine Funktion in der Datenbank oder eine Transaktion. |
-| Prüfung PR #156: Geokodierung | `nachbarAdresseSetzen` verlangt nur `update`, die Brigade hat es, und die Adresse geht an Nominatim vor der Zeilensicherheit, ohne Ratenbegrenzung. Besser `create` und eine Grenze je Person. |
-| Prüfung PR #156: Protokoll | `protokolliere` schluckt Fehler: Ein ЕСУТД-Export mit Namen und Ausweisnummern kann ohne Eintrag herausgehen. Für den Export den Fehler nicht verschlucken. |
-| Prüfung PR #156: Auslieferung, Härtung | `geheimnis_name` auf ein festes Präfix (`DAMICON_HOOK_`) beschränken, sonst kann die Administration `CRON_SECRET` als Signaturschlüssel eintragen. Adressfilter um 192.0.0.0/24, 198.18.0.0/15, 224.0.0.0/4, 240.0.0.0/4, NAT64 und 6to4 ergänzen. |
-| Prüfung PR #156: Datensuche | `ILIKE '%x%'` ohne Trigramm-Index: Bei wachsenden Tabellen sequenzielle Suche. `pg_trgm` und GIN-Index. |
-| Prüfung PR #156: Block-Risiko | `risiko_parameter` ist für jede Rolle lesbar und ohne Plausibilität (Schwelle hoch kleiner als mittel). Für Erzeuger und Buchhaltung liefert die Sicht zu niedrige Werte, weil Rotationsplan und Kühlketten für sie unsichtbar sind. |
-| Prüfung PR #156: Rundung | `esf.ts` rundet über Gleitkomma (1,005 ergibt 1,00), `wirtschaftlichkeit-formulare.tsx` rundet beim Vorbefüllen (6,125 % wird beim nächsten Speichern 6,13 %). |
+| Tenge-Formatierer | Vier Fassungen in `esf-ansicht`, `wirtschaftlichkeit-erfassung`, `wirtschaftlichkeit-modell` und `dokument/kontext`, mit unterschiedlicher Rundung (kompakt, ganz, mit Rubel). Eine gemeinsame Fassung braucht eine Entscheidung über die Rundung je Ort. Kalendertag, Monat und Kilogramm sind seit diesem Stand gemeinsam (`src/lib/format/`). |
+| Kasachische Texte | Die kasachischen Texte dieses Standes (Einstellungen, Glocke, Videos, Konten, Handbuch) sind erstellt, aber noch nicht von einer Muttersprachlerin oder einem Muttersprachler geprüft. |
 
 ## 3. Braucht Inhalte
 
@@ -100,12 +96,14 @@ Drei Spalten bestimmen, wie es weitergeht:
 | Identifikationsnummern der Kunden | Der ЭСФ-Entwurf meldet „Identifikationsnummer fehlt“, solange IIN oder BIN beim Kunden fehlt (Stammdaten). |
 | Preislisten | Je Sorte und Kundengruppe vollständig, sonst fehlt dem Entwurf der Preis. |
 | Gültigkeitsdaten der Nachweise | Bestehende Dokumente stehen nach der Migration als „offen“, bis Zeitraum, Verantwortlicher und Rechtsgrundlage gepflegt sind. Das Portal erfindet keine Daten. |
-| Videos (1454, 2419) | Das Drehbuch liegt vor (acht Videos, Russisch und Kasachisch). Es fehlen Sprecher, ein Drehtermin in der Erntezeit, Einwilligungen der Personen im Bild und die muttersprachliche Prüfung des kasachischen Textes. |
+| Videos (1454, 2419) | Das Drehbuch liegt vor (acht Videos, Russisch und Kasachisch). Es fehlen Sprecher, ein Drehtermin in der Erntezeit, Einwilligungen der Personen im Bild und die muttersprachliche Prüfung des kasachischen Textes. Hochladen lassen sich die Dateien im Portal, sobald sie existieren. |
+| ЕСУТД, Altbestand | Personen, die als „erfasst“ geführt werden, aber keinen Vertrag im Meldeprozess haben, zeigt die Personalansicht mit einem Hinweis. Die Verträge sind nachzutragen. |
+| Baseline der Verlustquote | Die Herleitung des Schwund-Nutzens liest die Verlustquote aus der Baseline (8,4 Prozent). Ändert die Geschäftsführung sie, steht sie unter den Kennzahlen der Baseline. |
 | Fragenliste an den Betreiber | 28 Fragen, deutsch und russisch, Antworten stehen aus. |
 
 ## Was mit dem Zusammenführen live geht
 
-Die Migrationen `20261207000000` bis `20261208010000` laufen nach dem Merge automatisch auf der gemeinsamen Datenbank (`datenbank-migration.yml`). Im Pull Request laufen sie vorher auf `public_preview`.
+Die Migrationen `20261207000000` bis `20261208150000` laufen nach dem Merge automatisch auf der gemeinsamen Datenbank (`datenbank-migration.yml`). Im Pull Request laufen sie vorher auf `public_preview`. Alle 28 Dateien haben auf einer echten Postgres-17-Datenbank (lokaler Stack) gelaufen.
 
 | Datei | Wirkung |
 |---|---|
@@ -117,11 +115,27 @@ Die Migrationen `20261207000000` bis `20261208010000` laufen nach dem Merge auto
 | `20261207050000_transport_logger_quelle` | Zwei Spalten an `transport_temperatur_messungen` |
 | `20261207060000_foerder_checkliste` | Tabelle `foerder_checkpunkte` |
 | `20261207070000_esf_belege` | Tabelle `esf_belege`, Sicht `v_esf_offen` |
-| `20261207080000_esutd_meldeprozess` | Tabelle `esutd_ereignisse`, Spalten an `esutd_vertraege`, **ersetzt zwei Policies** von `esutd_vertraege` (Geschäftsführung ergänzt) |
+| `20261207080000_esutd_meldeprozess` | Tabelle `esutd_ereignisse`, Spalten an `esutd_vertraege`, **ersetzt zwei Policies** von `esutd_vertraege` |
 | `20261207090000_wirtschaftlichkeit_erfassung` | Tabellen `wirtschaftlichkeit_annahmen` (eine Zeile mit den bisherigen Werten, Dateneinfügung), `wirtschaftlichkeit_posten`, `wirtschaftlichkeit_ist`, `wirtschaftlichkeit_staende` (unveränderlich), Sicht `v_vermarktete_menge` |
-| `20261207100000_abholrunden` | Vier Spalten an `nachbarbetriebe`, Tabellen `abholrunden` und `abholstopps`, Sicht `v_abholstopps_kuehlkette`, **neue Lese-Policy** der Brigade auf `nachbarbetriebe` (nur Betriebe in einem Stopp) |
-| `20261207110000_integration_auslieferung` | Spalten an `integrationen` (alle Integrationen bleiben aus) und `integration_outbox` (bestehende Zeilen bekommen den Standard für den nächsten Versuch), Funktion `integration_einreihen`, Trigger auf `esf_belege`, **nimmt Tabellenrechte zurück** (`update` auf `integrationen`, `insert`, `update`, `delete` auf `integration_outbox` für `authenticated`) und vergibt sie spaltenweise an die Administration, neue Update-Policies |
-| `20261208000000_wissen_weitere_bereiche_pgvector` | Spalte `weitere_bereiche` an `wissen_chunks`, Wächter und Liste angepasst, **Datenänderung**: 13 Risiko-Dokumente (65 Abschnitte) gelten zusätzlich im Bereich `risiko`, idempotent, nur über die genannten `quelle_id` |
-| `20261208010000_cleanup_pr156_schutz` | Nachbesserungen aus der Prüfung: **Policy der Brigade auf `nachbarbetriebe` entfällt** (Funktion `abholrunde_nachbarbetriebe()` ersetzt sie, ohne ИИН/БИН), ЕСУТД-Funktionen nicht mehr über `/rpc` aufrufbar, Löschschutz für Verträge mit erfassten Meldungen (DA017), Stopp-Regeln der Abholrunden (Beginn immer geplant, Zeiten nach der Abholung fest), neuer Idempotenzschlüssel der ЭСФ-Meldungen, Check auf `logger_kennung`. Keine Datenänderung |
+| `20261207100000_abholrunden` | Vier Spalten an `nachbarbetriebe`, Tabellen `abholrunden` und `abholstopps`, Sicht `v_abholstopps_kuehlkette` |
+| `20261207110000_integration_auslieferung` | Spalten an `integrationen` (alle bleiben aus) und `integration_outbox`, Funktion `integration_einreihen`, Trigger auf `esf_belege`, **nimmt Tabellenrechte zurück** und vergibt sie spaltenweise an die Administration |
+| `20261208000000_wissen_weitere_bereiche_pgvector` | Spalte `weitere_bereiche` an `wissen_chunks`, **Datenänderung**: 13 Risiko-Dokumente (65 Abschnitte) gelten zusätzlich im Bereich `risiko`, idempotent, nur über die genannten `quelle_id` |
+| `20261208010000_cleanup_pr156_schutz` | Nachbesserungen aus der Prüfung: Funktion `abholrunde_nachbarbetriebe()` statt Policy der Brigade auf `nachbarbetriebe`, Löschschutz für Verträge mit erfassten Meldungen (DA017), Stopp-Regeln. Keine Datenänderung |
+| `20261208020000_rechte_und_schutz` | **Ersetzt Policies** der Preislisten, des Pflanzenschutzes, der Abholrunden und der Nachrichten, Sicht `v_block_sperre`, Anonymisieren von Nachrichten, Herkunft `logger` nur über die Importfunktion, Fremdschlüssel der Urheber entfallen, Tabelle `esutd_meldeverlauf`. Keine Datenänderung |
+| `20261208030000_betriebs_einstellungen` | Tabellen `betriebs_einstellungen` mit 11 Startwerten (**Dateneinfügung**, jeder mit Quelle und Stand) und `betriebs_einstellungen_verlauf` (unveränderlich), Funktion `einstellung_setzen` |
+| `20261208040000_esutd_fristen_einstellungen` | Spalte `unterzeichnet_am`, Fristen aus den Einstellungen, Sichten erweitert. Keine Datenänderung |
+| `20261208050000_haertung` | Eindeutiger Index auf die Ist-Werte (entfernt doppelte Ist-Werte der neuen Tabelle), Funktionen für Doppelklick und atomare Abholrunde, Grenze der Adresssuche, Präfix `DAMICON_HOOK_`, Plausibilität der Risiko-Parameter, Sicht `v_block_risiko` nur für Rollen mit allen Eingaben |
+| `20261208060000_abholrunden_ausbau` | Kapazität an Runden, Abholfenster an Nachbarbetrieben, geschätzte Ankunft. Keine Datenänderung |
+| `20261208070000_preise_netto_brutto` | Schalter netto oder brutto an der Preisliste. Alle vorhandenen Listen bleiben netto |
+| `20261208080000_integration_ausbau` | Zugang per Basic, Vorlage, Rückmeldung des Partners. Alle Integrationen bleiben aus |
+| `20261208090000_konten_sperren` | Drei Spalten an `profiles`, Funktion `konto_sperren`, `current_app_role()` und Verwandte liefern für gesperrte Konten nichts. Alle Konten bleiben aktiv |
+| `20261208100000_risiko_parameter_pflege` | Spalte `standard_wert` an `risiko_parameter` (**füllt die neue Spalte** mit den Startwerten, ändert keinen Wert), Grenzen, Verlauf, Funktion `risiko_parameter_setzen` |
+| `20261208110000_datensuche_trigramm` | Erweiterung `pg_trgm` und neun Indizes. Ohne die Erweiterung bleibt die Migration wirkungslos |
+| `20261208120000_nachweis_versionen` | Spalte `ersetzt_id` an `dokumente`, Sicht erweitert. Bestehende Dokumente gelten als aktuell |
+| `20261208130000_schulungsvideos_dateien` | Tabelle `schulungsvideo_dateien`, privater Bucket `schulungsvideos`, Policies auf `storage.objects` |
+| `20261208140000_schwund_herleitung` | Funktion `schwund_herleitung`. Keine Datenänderung |
+| `20261208150000_benachrichtigungen` | Tabelle `benachrichtigungen`, Funktion `benachrichtigungen_erzeugen` (nur für den Dienstschlüssel) |
 
-Keine Migration außer `20261208000000` ändert oder löscht bestehende Zeilen (dort nur ein Eintrag in der neuen Spalte). Die Rechterücknahme in `20261207110000` ändert nichts an dem, was heute möglich ist: es gab dort keine Update-Policy, also auch kein wirksames Schreibrecht.
+Datenänderungen im engeren Sinn sind die Startwerte (`risiko_parameter`, `wirtschaftlichkeit_annahmen`, `betriebs_einstellungen`), die Spalte `standard_wert`, der Eintrag in `weitere_bereiche` und das Entfernen doppelter Ist-Werte in einer Tabelle, die es erst mit diesem Pull Request gibt. Keine Migration ändert oder löscht sonst bestehende Zeilen.
+
+Die Rechterücknahme in `20261207110000` ändert nichts an dem, was heute möglich ist: es gab dort keine Update-Policy, also auch kein wirksames Schreibrecht. Die Policies, die `20261208020000` ersetzt, waren weiter als die Rechtematrix: Wer heute über die Datenbank direkt Preislisten, Behandlungen oder Abholrunden liest oder schreibt, ohne dass die Matrix es vorsieht, verliert dieses Recht (die Oberfläche zeigte es ihm nie).
