@@ -72,6 +72,7 @@ const parameterAusZeile = (p: ParameterZeile): RisikoParameter => ({
 export const ladeRisikoParameter = cache(async (): Promise<RisikoParameter[]> => {
   if (!isSupabaseConfigured()) return [];
   const supabase = await createClient();
+  // grenze: vierzehn feste Schluessel (RISIKO_PARAMETER)
   const { data, error } = await supabase.from("risiko_parameter").select("schluessel, wert, einheit, begruendung, standard_wert");
   if (error || !data) {
     if (error) console.error("[damicon] Risiko-Parameter lesen fehlgeschlagen:", error.message);

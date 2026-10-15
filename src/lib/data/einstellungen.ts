@@ -26,7 +26,7 @@ export const ladeEinstellungen = cache(async (): Promise<EinstellungZeile[]> => 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("betriebs_einstellungen")
-    .select("schluessel, wert, quelle, stand, aktualisiert_am, aktualisiert_von");
+    .select("schluessel, wert, quelle, stand, aktualisiert_am, aktualisiert_von"); // grenze: eine Zeile je Einstellung der Liste im Code (src/lib/einstellungen.ts), zweistellig
   if (error || !data) {
     console.error("[damicon] Einstellungen lesen fehlgeschlagen, Standardwerte gelten:", error?.message ?? "keine Daten");
     return einstellungen.map(standard);
