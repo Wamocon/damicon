@@ -8,10 +8,12 @@ import {
   FENSTER_ZUKUNFT_MS,
   LOGGER_MAX_MESSWERTE,
   liesLoggerDatei,
+  liesExcelZeitpunkt,
   liesLoggerJson,
   liesTemperatur,
   liesZeitpunkt,
   waehleMesswerte,
+  zeitzoneAusKopf,
   type LoggerMesswert,
 } from "@/lib/domain/logger-import";
 
@@ -37,6 +39,18 @@ pruefe("Zeit: Anfuehrungszeichen um das Feld", zeit('"2026-10-14 08:15:00"') ===
 pruefe("Zeit: ohne Uhrzeit ist ungueltig", zeit("2026-10-14") === null && zeit("14.10.2026") === null);
 pruefe("Zeit: unmoegliche Daten sind ungueltig", zeit("2026-13-01 10:00") === null && zeit("2026-02-30 10:00") === null && zeit("32.10.2026 10:00") === null && zeit("2026-10-14 25:00") === null);
 pruefe("Zeit: Text und leer sind ungueltig", zeit("gestern") === null && zeit("") === null);
+// Weitere Schreibweisen von Loggerexporten (15.10.2026)
+pruefe("Zeit: zweistelliges Jahr", zeit("14.10.26 08:15") === "2026-10-14T03:15:00.000Z" && zeit("1/2/27 7:05:09") === "2027-02-01T02:05:09.000Z", String(zeit("14.10.26 08:15")));
+pruefe("Zeit: Bindestrich als Trenner im Tag-zuerst-Datum", zeit("14-10-2026 08:15:00") === "2026-10-14T03:15:00.000Z");
+pruefe("Zeit: 12-Stunden-Zeit mit PM und AM", zeit("14/10/2026 8:15:00 PM") === "2026-10-14T15:15:00.000Z" && zeit("14/10/2026 8:15 AM") === "2026-10-14T03:15:00.000Z", String(zeit("14/10/2026 8:15:00 PM")));
+pruefe("Zeit: 12 AM ist Mitternacht, 12 PM Mittag", zeit("14/10/2026 12:00 AM") === "2026-10-13T19:00:00.000Z" && zeit("14/10/2026 12:30 PM") === "2026-10-14T07:30:00.000Z");
+pruefe("Zeit: Stunde 0 oder 13 mit AM/PM ist unsinnig", zeit("14/10/2026 0:15 AM") === null && zeit("14/10/2026 13:15 PM") === null);
+pruefe("Zeit: Monat-zuerst wird auch mit zweistelligem Jahr nicht erraten", zeit("10/14/26 08:15") === null);
+pruefe("Excel: ein Zeitwert mit Bruchteil ist ein Zeitpunkt (Komma oder Punkt)", liesExcelZeitpunkt("46310,34375") === liesExcelZeitpunkt("46310.34375") && liesExcelZeitpunkt("46310.34375") !== null, String(liesExcelZeitpunkt("46310.34375")));
+pruefe("Excel: 46310,5 ist der Mittag des 15.10.2026 (UTC+5)", liesExcelZeitpunkt("46310.5") === "2026-10-15T07:00:00.000Z", String(liesExcelZeitpunkt("46310.5")));
+pruefe("Excel: Zahlen ausserhalb der Jahre 2000 bis 2099 und Text sind keine Zeit", liesExcelZeitpunkt("12.5") === null && liesExcelZeitpunkt("80000") === null && liesExcelZeitpunkt("abc") === null && liesExcelZeitpunkt("") === null);
+pruefe("Kopf: UTC mit Versatz, ohne Versatz, ohne Angabe", zeitzoneAusKopf("Time (UTC+6)") === "Etc/GMT-6" && zeitzoneAusKopf("Zeit [UTC]") === "UTC" && zeitzoneAusKopf("UTC-3") === "Etc/GMT+3" && zeitzoneAusKopf("Zeit") === "Asia/Almaty");
+pruefe("Kopf: halbe Stunden und mehr als 12 bleiben bei der Vorgabe", zeitzoneAusKopf("Time (UTC+5:30)") === "Asia/Almaty" && zeitzoneAusKopf("UTC+14") === "Asia/Almaty");
 
 // --- 2. Temperaturen ----------------------------------------------------------------------------------------
 const temp = (roh: string) => liesTemperatur(roh);
@@ -53,6 +67,28 @@ pruefe("Temperatur: ausserhalb von -50 bis 80 ist ungueltig (Geraetefehler)", te
   const r = liesLoggerDatei(csv);
   pruefe("Datei: Semikolon, Kopfzeile, Dezimalkomma, Windows-Zeilenenden", r.messwerte.length === 3 && r.trennzeichen === ";" && r.ungueltig === 0 && r.messwerte[2].temperaturC === 4.1, JSON.stringify(r.messwerte[2]));
   pruefe("Datei: die Zeit ist UTC", r.messwerte[0].zeitpunkt === "2026-10-14T03:00:00.000Z");
+}
+{
+  // Excel-Zeitwerte in der Zeitspalte (ein Export, der ueber Excel lief)
+  const r = liesLoggerDatei("Zeit;Temperatur\n46310,34375;3,5\n46310,3444444;3,6\n");
+  pruefe("Datei: Excel-Zeitwerte in der Zeitspalte werden gelesen (auf die Sekunde gerundet)", r.messwerte.length === 2 && r.messwerte[0].zeitpunkt === "2026-10-15T03:15:00.000Z" && r.messwerte[1].zeitpunkt === "2026-10-15T03:16:00.000Z", JSON.stringify(r.messwerte));
+}
+{
+  // Ohne Kopfzeile ist eine grosse Zahl ein Zaehler und keine Zeit
+  const r = liesLoggerDatei("46310;3,5\n46311;3,6\n");
+  pruefe("Datei: ohne Kopf zaehlt eine nackte Zahl nicht als Zeit", r.messwerte.length === 0);
+}
+{
+  const r = liesLoggerDatei("Time (UTC+6);Temp\n2026-10-14 08:00:00;3,5\n14.10.26 08:01;3,6\n");
+  pruefe("Datei: die Zone im Kopf (UTC+6) gilt fuer die Spalte", r.messwerte.length === 2 && r.messwerte[0].zeitpunkt === "2026-10-14T02:00:00.000Z" && r.messwerte[1].zeitpunkt === "2026-10-14T02:01:00.000Z", JSON.stringify(r));
+}
+{
+  const r = liesLoggerDatei("Zeit [UTC];Temperatur\n14.10.2026 03:00;3,5\n2026-10-14T08:01:00+05:00;3,6\n");
+  pruefe("Datei: Zeit [UTC] im Kopf, ein Wert mit eigenem Versatz behaelt ihn", r.messwerte.length === 2 && r.messwerte[0].zeitpunkt === "2026-10-14T03:00:00.000Z" && r.messwerte[1].zeitpunkt === "2026-10-14T03:01:00.000Z", JSON.stringify(r.messwerte));
+}
+{
+  const r = liesLoggerDatei("Date/Time,Temperature [°C],Humidity [%]\n14/10/2026 8:00:00 AM,3.5,80\n14/10/2026 8:01:00 PM,3.6,81\n");
+  pruefe("Datei: Feuchte neben der Temperatur wird nicht gelesen, AM/PM gilt", r.messwerte.length === 2 && r.messwerte.map((m) => m.temperaturC).join() === "3.5,3.6" && r.messwerte[1].zeitpunkt === "2026-10-14T15:01:00.000Z", JSON.stringify(r.messwerte));
 }
 {
   const r = liesLoggerDatei("Time,Temperature\n2026-10-14 08:00:00,3.5\n2026-10-14 08:01:00,3.6\n");

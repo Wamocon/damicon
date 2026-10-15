@@ -18,6 +18,9 @@ import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
 //     tag-zuerst ("14.10.2026 08:15", "14/10/2026 08:15:00"). Ohne Angabe gilt die
 //     Betriebszeit Almaty. Monat-zuerst ("10/14/2026") wird nicht erraten: bei einer
 //     Schreibweise, die beides sein koennte, gilt tag-zuerst, wie in Kasachstan.
+//   * Auch gelesen (Exporte von Elpro, LogTag, Testo, Tinytag und aus Excel): zweistelliges Jahr ("14.10.26 08:15"), Bindestrich ("14-10-2026 08:15"),
+//     12-Stunden-Zeit mit AM oder PM ("14/10/2026 8:15:00 PM"), Excel-Zeitwerte in der Zeitspalte (46310,34375) und eine Zeitzone im Spaltenkopf
+//     ("Time (UTC+6)", "Zeit [UTC]"), die dann fuer die Spalte gilt.
 //   * Temperatur mit Punkt oder Komma, mit oder ohne "°C".
 // Vorspann (Geraetename, Seriennummer, Einstellungen) vor den Messwerten wird uebersprungen.
 //
@@ -66,7 +69,8 @@ const TEMP_NAMEN = /(temp|°c|\bt\b|температур)/i;
 
 // Datum mit Uhrzeit. Die Uhrzeit ist Pflicht: ein Logger misst mehrmals am Tag.
 const ISO = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?\s*(Z|[+-]\d{2}:?\d{2})?$/i;
-const TAG_ZUERST = /^(\d{1,2})[./](\d{1,2})[./](\d{4})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?$/;
+const TAG_ZUERST = /^(\d{1,2})[./-](\d{1,2})[./-](\d{4}|\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*([AaPp])\.?[Mm]\.?)?$/;
+const KOPF_ZONE = /\b(?:UTC|GMT)\s*(?:([+-])\s*(\d{1,2})(?::?(\d{2}))?)?/i;
 const ZAHL = /^[-+]?\d+(?:[.,]\d+)?$/;
 
 const zweistellig = (n: number | string) => String(n).padStart(2, "0");
@@ -90,11 +94,46 @@ export function liesZeitpunkt(roh: string, zeitzone: string = betriebsZeitzone):
   }
   const europaeisch = TAG_ZUERST.exec(text);
   if (europaeisch) {
-    const [, t, m, j, h, min, s = "0"] = europaeisch;
-    const wandzeit = `${j}-${zweistellig(m)}-${zweistellig(t)}T${zweistellig(h)}:${min}:${zweistellig(s)}`;
+    const [, t, m, jahr, h, min, s = "0", halbtag] = europaeisch;
+    // Zweistelliges Jahr: 2000 bis 2099 (Logger gibt es erst seit diesem Jahrhundert).
+    const j = jahr.length === 2 ? `20${jahr}` : jahr;
+    let stunde = Number(h);
+    if (halbtag) {
+      // 12-Stunden-Zeit: 12 AM ist Mitternacht, 12 PM Mittag; ausserhalb von 1 bis 12 ist die Angabe unsinnig.
+      if (stunde < 1 || stunde > 12) return null;
+      stunde = (stunde % 12) + (halbtag.toLowerCase() === "p" ? 12 : 0);
+    }
+    const wandzeit = `${j}-${zweistellig(m)}-${zweistellig(t)}T${zweistellig(stunde)}:${min}:${zweistellig(s)}`;
     return wandzeitZuUtc(wandzeit, zeitzone)?.toISOString() ?? null;
   }
   return null;
+}
+
+/**
+ * Ein Excel-Zeitwert (Tage seit dem 30.12.1899, der Bruchteil ist die Uhrzeit) als UTC-ISO, oder null. Nur fuer eine Spalte, die der Kopf als Zeit ausweist:
+ * eine nackte Zahl ist sonst auch ein Zaehler. Gueltig sind die Jahre 2000 bis 2099, auf die Sekunde gerundet (die Fliesskommazahl traegt sonst Rauschen).
+ */
+export function liesExcelZeitpunkt(roh: string, zeitzone: string = betriebsZeitzone): string | null {
+  const text = roh.trim().replace(/^"|"$/g, "");
+  if (!ZAHL.test(text)) return null;
+  const tage = Number(text.replace(",", "."));
+  if (!Number.isFinite(tage) || tage < 36526 || tage >= 73051) return null;
+  const sekunden = Math.round((tage - 25569) * 86400);
+  const wand = new Date(sekunden * 1000).toISOString().slice(0, 19);
+  return wandzeitZuUtc(wand, zeitzone)?.toISOString() ?? null;
+}
+
+/** Die Zeitzone, die ein Spaltenkopf nennt ("Time (UTC+6)"), sonst die Vorgabe. Nur ganze Stunden von UTC-12 bis UTC+12. */
+export function zeitzoneAusKopf(kopf: string, vorgabe: string = betriebsZeitzone): string {
+  const treffer = KOPF_ZONE.exec(kopf);
+  if (!treffer) return vorgabe;
+  const [, vorzeichen, h, min] = treffer;
+  if (!vorzeichen) return "UTC";
+  const stunden = Number(h);
+  if (Number(min ?? 0) !== 0 || stunden > 12) return vorgabe;
+  if (stunden === 0) return "UTC";
+  // Etc/GMT kehrt das Vorzeichen um: UTC+6 heisst Etc/GMT-6.
+  return `Etc/GMT${vorzeichen === "+" ? "-" : "+"}${stunden}`;
 }
 
 /** Eine Temperatur mit einer Nachkommastelle, oder null. Punkt oder Komma, "°C" und Leerraum werden verziehen. */
@@ -233,10 +272,13 @@ export function liesLoggerDatei(inhalt: string, zeitzone: string = betriebsZeitz
   const messwerte: LoggerMesswert[] = [];
   let ungueltig = 0;
   let datenBegonnen = false;
+  // Nennt der Kopf der Zeitspalte eine Zeitzone, gilt sie fuer die ganze Spalte (Zeiten mit eigenem Versatz behalten ihren).
+  const zone = festeSpalten ? zeitzoneAusKopf(felderVon(zeilen[kopfIndex], trenner)[festeSpalten.zeit] ?? "", zeitzone) : zeitzone;
   for (let i = kopfIndex + 1; i < zeilen.length; i++) {
     const felder = felderVon(zeilen[i], trenner);
-    const zeitFeld = festeSpalten ? felder[festeSpalten.zeit] : felder.find((f) => liesZeitpunkt(f, zeitzone) !== null);
-    const zeitpunkt = zeitFeld === undefined ? null : liesZeitpunkt(zeitFeld, zeitzone);
+    const zeitFeld = festeSpalten ? felder[festeSpalten.zeit] : felder.find((f) => liesZeitpunkt(f, zone) !== null);
+    // Excel-Zeitwerte nur in einer Spalte, die der Kopf als Zeit ausweist.
+    const zeitpunkt = zeitFeld === undefined ? null : (liesZeitpunkt(zeitFeld, zone) ?? (festeSpalten ? liesExcelZeitpunkt(zeitFeld, zone) : null));
     let temperatur: number | null = null;
     if (zeitpunkt !== null) {
       if (festeSpalten) {
