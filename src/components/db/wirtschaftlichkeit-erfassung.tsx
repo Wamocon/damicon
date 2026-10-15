@@ -66,35 +66,55 @@ function HerkunftPille({ herkunft, t }: { herkunft: "belegt" | "geschaetzt"; t: 
   return <StatusPill tone={herkunft === "belegt" ? "success" : "warning"}>{herkunft === "belegt" ? t("herkunft.belegt") : t("herkunft.geschaetzt")}</StatusPill>;
 }
 
-export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen, menge, staende, stand, planIst, aktiverStand, darfSchreiben, heute }: ErfassungsEingabe) {
-  const [t, format] = await Promise.all([getTranslations("wirtschaftlichkeitErfassung"), getFormatter()]);
-  const zahl = (n: number, stellen = 2) => format.number(n, { maximumFractionDigits: stellen });
-  const tenge = (euro: number) => `${format.number(euroInTengeMit(euro, annahmen.kurse))} ₸`;
-  const tag = (iso: string) => format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" });
-  const monat = (iso: string) => format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00Z`), { month: "long", year: "numeric", timeZone: "UTC" });
-  const zeitpunkt = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
-  const betrag = (p: { betrag: number; waehrung: string }) => `${zahl(p.betrag)} ${p.waehrung}`;
+type Format = Awaited<ReturnType<typeof getFormatter>>;
 
-  const artTexte: Record<PostenArt, string> = {
-    investition: t("posten.art.investition"),
-    betrieb: t("posten.art.betrieb"),
-    nutzen: t("posten.art.nutzen"),
-  };
+/** Texte und Formate, die alle Abschnitte teilen: einmal in WirtschaftlichkeitErfassung aufgebaut. */
+interface Anzeige {
+  t: Uebersetzer;
+  format: Format;
+  zahl: (n: number, stellen?: number) => string;
+  tenge: (euro: number) => string;
+  tag: (iso: string) => string;
+  monat: (iso: string) => string;
+  zeitpunkt: (iso: string) => string;
+  betrag: (p: { betrag: number; waehrung: string }) => string;
+  kategorieText: (p: Posten | IstEintrag) => string;
+}
+
+function anzeigeFuer(t: Uebersetzer, format: Format, annahmen: Annahmen): Anzeige {
   const kategorieTexte: Record<string, string> = {
     schwund: t("kategorie.schwund"),
     handarbeit: t("kategorie.handarbeit"),
     audit: t("kategorie.audit"),
     sonstiges: t("kategorie.sonstiges"),
   };
-  const kategorieText = (p: Posten | IstEintrag) => (("art" in p ? p.art === "nutzen" : true) ? (kategorieTexte[p.kategorie] ?? p.kategorie) : p.kategorie);
-  const lesend = !darfSchreiben;
+  const zahl = (n: number, stellen = 2) => format.number(n, { maximumFractionDigits: stellen });
+  return {
+    t,
+    format,
+    zahl,
+    tenge: (euro) => `${format.number(euroInTengeMit(euro, annahmen.kurse))} ₸`,
+    tag: (iso) => format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00Z`), { dateStyle: "medium", timeZone: "UTC" }),
+    monat: (iso) => format.dateTime(new Date(`${iso.slice(0, 10)}T00:00:00Z`), { month: "long", year: "numeric", timeZone: "UTC" }),
+    zeitpunkt: (iso) => format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
+    betrag: (p) => `${zahl(p.betrag)} ${p.waehrung}`,
+    kategorieText: (p) => (("art" in p ? p.art === "nutzen" : true) ? (kategorieTexte[p.kategorie] ?? p.kategorie) : p.kategorie),
+  };
+}
 
-  // --- Posten -------------------------------------------------------------------------------------------------------
-  const postenGruppen = POSTEN_ARTEN.map((art) => ({ art, zeilen: posten.filter((p) => p.art === art), summe: summiere(posten, art, annahmen.kurse).summe }));
+// --- Posten ---------------------------------------------------------------------------------------------------------------
 
-  const postenAnsicht = (
+function PostenAnsicht({ a, posten, annahmen, lesend, heute }: { a: Anzeige; posten: Posten[]; annahmen: Annahmen; lesend: boolean; heute: string }) {
+  const { t, tenge, tag, betrag, kategorieText } = a;
+  const artTexte: Record<PostenArt, string> = {
+    investition: t("posten.art.investition"),
+    betrieb: t("posten.art.betrieb"),
+    nutzen: t("posten.art.nutzen"),
+  };
+  const gruppen = POSTEN_ARTEN.map((art) => ({ art, zeilen: posten.filter((p) => p.art === art), summe: summiere(posten, art, annahmen.kurse).summe }));
+  return (
     <div className="space-y-4">
-      {postenGruppen.map((g) => (
+      {gruppen.map((g) => (
         <div key={g.art}>
           <p className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2 text-xs font-semibold text-card-foreground">
             <span>{artTexte[g.art]}</span>
@@ -138,39 +158,44 @@ export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen,
       ))}
     </div>
   );
+}
 
-  // --- Annahmen -----------------------------------------------------------------------------------------------------
-  const h = (s: keyof Annahmen["herkunft"]): "belegt" | "geschaetzt" => annahmen.herkunft[s] ?? "geschaetzt";
-  const mengeText =
-    stand.mengeKg === null ? t("annahmen.offen") : `${zahl(stand.mengeKg, 0)} kg`;
-  const mengeHinweis =
-    stand.mengeQuelle === "annahme"
-      ? t("annahmen.mengeAusAnnahme")
-      : stand.mengeQuelle === "lieferungen"
-        ? t("annahmen.mengeAusLieferungen")
-        : menge && menge.tageAbdeckung > 0
-          ? t("annahmen.mengeZuKurz", { tage: menge.tageAbdeckung, menge: zahl(menge.mengeKg12Monate, 0) })
-          : t("annahmen.mengeKeine");
+// --- Annahmen -------------------------------------------------------------------------------------------------------------
 
-  // Zins-Check: der Kapitalwert bei dem unteren und dem oberen Vergleichszins und beim Richtwert (Einstellungen, Quelle in docs/ENTSCHEIDUNGSGRUNDLAGEN.md).
-  const [zinsRichtwert, zinsNiedrig, zinsHoch] = await Promise.all([
+/** Der Hinweis zur Jahresmenge: woher sie kommt oder warum es keine gibt. */
+function mengeHinweisFuer(a: Anzeige, stand: Rechenstand, menge: MengeAbgeleitet | null): string {
+  const { t, zahl } = a;
+  if (stand.mengeQuelle === "annahme") return t("annahmen.mengeAusAnnahme");
+  if (stand.mengeQuelle === "lieferungen") return t("annahmen.mengeAusLieferungen");
+  return menge && menge.tageAbdeckung > 0 ? t("annahmen.mengeZuKurz", { tage: menge.tageAbdeckung, menge: zahl(menge.mengeKg12Monate, 0) }) : t("annahmen.mengeKeine");
+}
+
+/** Zins-Check: der Kapitalwert bei dem unteren und dem oberen Vergleichszins und beim Richtwert (Einstellungen, Quelle in docs/ENTSCHEIDUNGSGRUNDLAGEN.md). */
+async function zinsCheckFuer(a: Anzeige, stand: Rechenstand): Promise<{ saetze: number[]; richtwert: number | null; text: string }> {
+  const [richtwert, niedrig, hoch] = await Promise.all([
     einstellungWert("wirtschaftlichkeit.kalkulationszins_richtwert"),
     einstellungWert("wirtschaftlichkeit.zins_sensitivitaet_niedrig"),
     einstellungWert("wirtschaftlichkeit.zins_sensitivitaet_hoch"),
   ]);
-  const zinssaetze = [zinsNiedrig, zinsRichtwert, zinsHoch].filter((z): z is number => z !== null);
-  const kapitalwerte = kapitalwertBeiZinsen(stand, zinssaetze.map((z) => z / 100));
-  const zinsCheck = zinssaetze.map((z, i) => `${format.number(z, { maximumFractionDigits: 2 })} %: ${kapitalwerte[i] === null ? "-" : `${zahl(kapitalwerte[i] as number, 0)} €`}`).join(" · ");
+  const saetze = [niedrig, richtwert, hoch].filter((z): z is number => z !== null);
+  const kapitalwerte = kapitalwertBeiZinsen(stand, saetze.map((z) => z / 100));
+  const text = saetze.map((z, i) => `${a.format.number(z, { maximumFractionDigits: 2 })} %: ${kapitalwerte[i] === null ? "-" : `${a.zahl(kapitalwerte[i] as number, 0)} €`}`).join(" · ");
+  return { saetze, richtwert, text };
+}
 
-  const annahmenAnsicht = (
+function AnnahmenAnsicht({ a, annahmen, stand, menge, zins }: { a: Anzeige; annahmen: Annahmen; stand: Rechenstand; menge: MengeAbgeleitet | null; zins: { saetze: number[]; richtwert: number | null; text: string } }) {
+  const { t, format, zahl, tag, monat } = a;
+  const h = (s: keyof Annahmen["herkunft"]): "belegt" | "geschaetzt" => annahmen.herkunft[s] ?? "geschaetzt";
+  const mengeText = stand.mengeKg === null ? t("annahmen.offen") : `${zahl(stand.mengeKg, 0)} kg`;
+  return (
     <dl className="rounded-lg border border-border bg-background px-3 py-1 text-xs">
       <Zeile label={t("annahmen.zins")}>
         {format.number(annahmen.kalkulationszins, { style: "percent", maximumFractionDigits: 2 })}
         <HerkunftPille herkunft={h("kalkulationszins")} t={t} />
       </Zeile>
-      {zinssaetze.length > 0 ? (
-        <Zeile label={t("annahmen.zinsCheck")} hinweis={zinsRichtwert !== null ? t("annahmen.zinsCheckHinweis", { richtwert: format.number(zinsRichtwert, { maximumFractionDigits: 2 }) }) : undefined}>
-          {zinsCheck}
+      {zins.saetze.length > 0 ? (
+        <Zeile label={t("annahmen.zinsCheck")} hinweis={zins.richtwert !== null ? t("annahmen.zinsCheckHinweis", { richtwert: format.number(zins.richtwert, { maximumFractionDigits: 2 }) }) : undefined}>
+          {zins.text}
         </Zeile>
       ) : null}
       <Zeile label={t("annahmen.kurs")} hinweis={[annahmen.kursQuelle, t("annahmen.stichtag", { datum: tag(annahmen.kursStichtag) })].filter(Boolean).join(" · ")}>
@@ -181,7 +206,7 @@ export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen,
         {annahmen.vollkostenVorherTenge === null ? t("annahmen.offen") : `${zahl(annahmen.vollkostenVorherTenge, 0)} ₸/kg`}
         <HerkunftPille herkunft={h("vollkosten")} t={t} />
       </Zeile>
-      <Zeile label={t("annahmen.menge")} hinweis={mengeHinweis}>
+      <Zeile label={t("annahmen.menge")} hinweis={mengeHinweisFuer(a, stand, menge)}>
         {mengeText}
         {stand.mengeQuelle === "annahme" ? <HerkunftPille herkunft={h("menge")} t={t} /> : null}
       </Zeile>
@@ -192,50 +217,59 @@ export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen,
       <Zeile label={t("annahmen.echtbetrieb")}>{annahmen.echtbetriebBeginn === null ? t("annahmen.offen") : monat(annahmen.echtbetriebBeginn)}</Zeile>
     </dl>
   );
+}
 
-  // --- Plan-Ist -----------------------------------------------------------------------------------------------------
+// --- Plan und Ist ---------------------------------------------------------------------------------------------------------
+
+function PlanIstAnsicht({ a, planIst }: { a: Anzeige; planIst: PlanIst }) {
+  const { t, tenge, monat } = a;
   const abweichung = (euro: number | null) => (euro === null ? t("annahmen.offen") : `${euro > 0 ? "+" : ""}${tenge(euro)}`);
-  const planIstAnsicht =
-    planIst.zeilen.length === 0 ? (
-      <p className="text-xs text-muted-foreground">{t("planIst.leer")}</p>
-    ) : (
-      <DataTable head={[t("planIst.col.monat"), t("planIst.col.plan"), t("planIst.col.ist"), t("planIst.col.abweichung"), t("planIst.col.istKumuliert")]}>
-        {planIst.zeilen.map((z) => (
-          <tr key={z.monat}>
-            <td className="px-3 py-2.5 font-semibold text-foreground">{monat(z.monat)}</td>
-            <td className="px-3 py-2.5 text-muted-foreground">{z.planEur === null ? t("annahmen.offen") : tenge(z.planEur)}</td>
-            <td className="px-3 py-2.5 text-foreground">{tenge(z.istEur)}</td>
-            <td className={z.abweichungEur !== null && z.abweichungEur < 0 ? "px-3 py-2.5 text-destructive" : "px-3 py-2.5 text-muted-foreground"}>{abweichung(z.abweichungEur)}</td>
-            <td className="px-3 py-2.5 text-muted-foreground">{tenge(z.istKumuliertEur)}</td>
+  if (planIst.zeilen.length === 0) return <p className="text-xs text-muted-foreground">{t("planIst.leer")}</p>;
+  return (
+    <DataTable head={[t("planIst.col.monat"), t("planIst.col.plan"), t("planIst.col.ist"), t("planIst.col.abweichung"), t("planIst.col.istKumuliert")]}>
+      {planIst.zeilen.map((z) => (
+        <tr key={z.monat}>
+          <td className="px-3 py-2.5 font-semibold text-foreground">{monat(z.monat)}</td>
+          <td className="px-3 py-2.5 text-muted-foreground">{z.planEur === null ? t("annahmen.offen") : tenge(z.planEur)}</td>
+          <td className="px-3 py-2.5 text-foreground">{tenge(z.istEur)}</td>
+          <td className={z.abweichungEur !== null && z.abweichungEur < 0 ? "px-3 py-2.5 text-destructive" : "px-3 py-2.5 text-muted-foreground"}>{abweichung(z.abweichungEur)}</td>
+          <td className="px-3 py-2.5 text-muted-foreground">{tenge(z.istKumuliertEur)}</td>
+        </tr>
+      ))}
+    </DataTable>
+  );
+}
+
+function IstEintraege({ a, ist, darfSchreiben }: { a: Anzeige; ist: IstEintrag[]; darfSchreiben: boolean }) {
+  const { t, monat, betrag, kategorieText } = a;
+  if (ist.length === 0) return null;
+  return (
+    <div className="mt-4">
+      <p className="mb-1.5 text-xs font-semibold text-card-foreground">{t("planIst.eintraege")}</p>
+      <DataTable head={[t("planIst.col.monat"), t("form.kategorie"), t("form.betrag"), t("planIst.col.notiz"), ...(darfSchreiben ? [""] : [])]}>
+        {[...ist].reverse().map((e) => (
+          <tr key={e.id}>
+            <td className="px-3 py-2.5 font-semibold text-foreground">{monat(e.monat)}</td>
+            <td className="px-3 py-2.5 text-muted-foreground">{kategorieText(e)}</td>
+            <td className="px-3 py-2.5 text-foreground">{betrag(e)}</td>
+            <td className="px-3 py-2.5 text-muted-foreground">{e.notiz ?? ""}</td>
+            {darfSchreiben ? (
+              <td className="px-3 py-2.5">
+                <IstEntfernenKnopf id={e.id} />
+              </td>
+            ) : null}
           </tr>
         ))}
       </DataTable>
-    );
+    </div>
+  );
+}
 
-  const istEintraege =
-    ist.length === 0 ? null : (
-      <div className="mt-4">
-        <p className="mb-1.5 text-xs font-semibold text-card-foreground">{t("planIst.eintraege")}</p>
-        <DataTable head={[t("planIst.col.monat"), t("form.kategorie"), t("form.betrag"), t("planIst.col.notiz"), ...(darfSchreiben ? [""] : [])]}>
-          {[...ist].reverse().map((e) => (
-            <tr key={e.id}>
-              <td className="px-3 py-2.5 font-semibold text-foreground">{monat(e.monat)}</td>
-              <td className="px-3 py-2.5 text-muted-foreground">{kategorieText(e)}</td>
-              <td className="px-3 py-2.5 text-foreground">{betrag(e)}</td>
-              <td className="px-3 py-2.5 text-muted-foreground">{e.notiz ?? ""}</td>
-              {darfSchreiben ? (
-                <td className="px-3 py-2.5">
-                  <IstEntfernenKnopf id={e.id} />
-                </td>
-              ) : null}
-            </tr>
-          ))}
-        </DataTable>
-      </div>
-    );
+// --- Staende --------------------------------------------------------------------------------------------------------------
 
-  // --- Staende ------------------------------------------------------------------------------------------------------
-  const staendeAnsicht = (
+function StaendeAnsicht({ a, pfad, staende, aktiverStand, darfSchreiben }: { a: Anzeige; pfad: string; staende: StandKopf[]; aktiverStand?: string; darfSchreiben: boolean }) {
+  const { t, zeitpunkt } = a;
+  return (
     <div className="space-y-3">
       {aktiverStand ? (
         <Link href={pfad} className={textVerweisKlassen}>
@@ -272,6 +306,12 @@ export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen,
       ) : null}
     </div>
   );
+}
+
+export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen, menge, staende, stand, planIst, aktiverStand, darfSchreiben, heute }: ErfassungsEingabe) {
+  const [t, format] = await Promise.all([getTranslations("wirtschaftlichkeitErfassung"), getFormatter()]);
+  const a = anzeigeFuer(t, format, annahmen);
+  const zins = await zinsCheckFuer(a, stand);
 
   return (
     <>
@@ -283,7 +323,7 @@ export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen,
             <ModellKnopf />
           </Card>
         ) : null}
-        {postenAnsicht}
+        <PostenAnsicht a={a} posten={posten} annahmen={annahmen} lesend={!darfSchreiben} heute={heute} />
         {darfSchreiben ? (
           <div className="mt-4">
             <Aufklapper titel={t("posten.neu")} variante="aktion">
@@ -296,7 +336,7 @@ export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen,
       </Section>
 
       <Section title={t("annahmen.titel")} description={t("annahmen.lead")}>
-        {annahmenAnsicht}
+        <AnnahmenAnsicht a={a} annahmen={annahmen} stand={stand} menge={menge} zins={zins} />
         {darfSchreiben ? (
           <div className="mt-4">
             <Aufklapper titel={t("annahmen.aendern")} variante="aktion">
@@ -309,8 +349,8 @@ export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen,
       </Section>
 
       <Section title={t("planIst.titel")} description={t("planIst.lead")}>
-        {planIstAnsicht}
-        {istEintraege}
+        <PlanIstAnsicht a={a} planIst={planIst} />
+        <IstEintraege a={a} ist={ist} darfSchreiben={darfSchreiben} />
         {darfSchreiben ? (
           <div className="mt-4">
             <Aufklapper titel={t("planIst.neu")} variante="aktion">
@@ -323,7 +363,7 @@ export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen,
       </Section>
 
       <Section title={t("staende.titel")} description={t("staende.lead")}>
-        {staendeAnsicht}
+        <StaendeAnsicht a={a} pfad={pfad} staende={staende} aktiverStand={aktiverStand} darfSchreiben={darfSchreiben} />
       </Section>
     </>
   );
