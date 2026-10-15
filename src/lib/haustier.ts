@@ -422,6 +422,21 @@ export function modulAusPfad<M extends { zone: string; slug: string }>(pfad: str
   return module.find((m) => m.zone === teile[1] && m.slug === teile[2]) ?? null;
 }
 
+/** Abstand der Figur zum rechten Fensterrand (haustier.css: right: 20px) und Luft, die sie zum Panel haelt, wenn sie ihm ausweicht. */
+export const HIMBI_RAND_RECHTS = 20;
+export const PANE_LUFT = 20;
+
+/** Wie Himbi dem angedockten KI-Panel (rechter Rand, so breit wie --ki-pane-breite) begegnet. Das Panel verdeckt Himbi nur, wenn sich ihr rechter
+ *  Rand rechts von seiner linken Kante befindet. Dann (und nur dann) rueckt sie nach links, so weit, dass sie mit PANE_LUFT davor steht; steht sie
+ *  schon weiter links (zum Beispiel an den linken Rand gezogen), bleibt sie, wo sie ist (Rueckmeldung vom 15.10.2026: "wenn das Aufmachen des Panels
+ *  nicht ueber den Himbi geht, dann soll er sich nicht bewegen").
+ *  himbiRechts: rechter Rand der Figur OHNE jede Panel-Verschiebung, in Fensterpixeln. Das Ergebnis `schub` ist die Verschiebung nach links in px. */
+export function paneAusweichen(a: { himbiRechts: number; fensterBreite: number; paneBreite: number }): { verdeckt: boolean; schub: number } {
+  const paneLinks = a.fensterBreite - Math.min(Math.max(a.paneBreite, 0), a.fensterBreite);
+  const ueberlappung = a.himbiRechts - paneLinks;
+  return ueberlappung > 0 ? { verdeckt: true, schub: Math.round((ueberlappung + PANE_LUFT) * 10) / 10 } : { verdeckt: false, schub: 0 };
+}
+
 /** Die Stationen der Tour auf der oeffentlichen Startseite. anker = id des Abschnitts. */
 export const TOUR_SCHRITTE = [
   { schluessel: "himbeere", anker: "himbeere" },

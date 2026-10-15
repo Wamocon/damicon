@@ -18,7 +18,7 @@ import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { tokens } from "@/lib/wissen/sparse";
 import { schaetzeEin } from "@/lib/wissen/einschaetzung";
 import { gruppiereWissenDokumente } from "@/lib/wissen/dokumente-liste";
-import { aktiveFilter, filtere, KEIN_FILTER, zaehleMit, type ListenFilter } from "@/lib/wissen/listen-filter";
+import { aktiveFilter, filtere, KEIN_FILTER, verteilungNachVerlaesslichkeit, VERTEILUNG_KLASSEN, zaehleMit, type ListenFilter } from "@/lib/wissen/listen-filter";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 import { bereicheVon } from "@/lib/wissen/upload-konstanten";
 
@@ -495,6 +495,15 @@ async function rest() {
     const mitIso = [...alle, iso];
     pruefe("Filter Bereich: ein Dokument mit weiteren Bereichen erscheint in jedem davon", ids({ bereich: "audit" }, mitIso) === "i" && ids({ bereich: "risiko" }, mitIso) === "i" && ids({ bereich: "risiko" }) === "");
     pruefe("Filter Bereich: die anderen Bereiche bleiben unberührt (kein Doppelzählen des Hauptbereichs)", ids({ bereich: "recht" }, mitIso) === "afho" && zaehleMit(mitIso, KEIN_FILTER, "bereich", "risiko") === 1 && zaehleMit(mitIso, KEIN_FILTER, "bereich", "audit") === 1);
+    // Verteilung nach Verlässlichkeit: 15.10.2026 meldete der Assistent "310 amtlich oder gesichert" und "120 Notbehelf oder Hinweis" bei 340 Dokumenten,
+    // weil er 90 amtliche und 220 sichere addierte (der Filter "sicher" schließt die amtlichen ein).
+    const verteilung = verteilungNachVerlaesslichkeit(mitIso);
+    const klassenSumme = VERTEILUNG_KLASSEN.reduce((n, k) => n + verteilung[k], 0);
+    pruefe("Verteilung: die Klassen schließen sich aus und ergeben die Zahl der Dokumente", verteilung.summe === mitIso.length && klassenSumme === mitIso.length, JSON.stringify(verteilung));
+    pruefe("Verteilung: ein Dokument steht in genau einer Klasse, nach Nutzung und bei tragenden nach amtlich", verteilung.amtlich === ids({ verlaesslichkeit: "amtlich" }, mitIso).length && verteilung.nurHinweis === ids({ verlaesslichkeit: "hinweis" }, mitIso).length && verteilung.notbehelf === ids({ verlaesslichkeit: "unsicher" }, mitIso).length);
+    const sicherFilter = filtere(mitIso, { ...KEIN_FILTER, verlaesslichkeit: "sicher" }).length;
+    pruefe("Verteilung: der Filter sicher ist amtlich plus tragendSonstige (die amtlichen sind schon darin, nicht addieren)", sicherFilter === verteilung.amtlich + verteilung.tragendSonstige);
+    pruefe("Verteilung: Teilmenge und leere Liste", verteilungNachVerlaesslichkeit([]).summe === 0 && verteilungNachVerlaesslichkeit(filtere(mitIso, { ...KEIN_FILTER, art: "forum" })).notbehelf === 1);
     pruefe("bereicheVon: Hauptbereich zuerst, gespeichertes legal heißt recht, ohne Doppelte", JSON.stringify(bereicheVon("legal", ["risiko", "legal", "audit"])) === JSON.stringify(["recht", "risiko", "audit"]) && JSON.stringify(bereicheVon("amtlich")) === JSON.stringify(["amtlich"]));
     pruefe("Zähler: so viele Treffer hätte ein Filter bei sonst gleichen Einstellungen", zaehleMit(alle, { ...KEIN_FILTER, bereich: "steuer" }, "verlaesslichkeit", "amtlich") === 1 && zaehleMit(alle, KEIN_FILTER, "cluster", "ohne") === 1);
   }

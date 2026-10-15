@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from "react";
 import type { HaustierZustand } from "@/lib/haustier";
-import { BLICK_DENKT, blickRichtung } from "@/lib/haustier";
+import { BLICK_DENKT, blickRichtung, HIMBI_RAND_RECHTS, paneAusweichen } from "@/lib/haustier";
 
 // Das Körperliche der Hülle um Himbi (haustier-huelle.tsx), seit dem 14.10.2026 eigene Hooks: der Platz im Bild (gespeicherte
 // Position, Klemmen an den Rand, Seite und Höhe der Blase), wohin die Augen schauen, wie die Figur einem Blickziel folgt, Zeiger,
@@ -106,6 +106,73 @@ export function useHimbiPlatz(paneOffen: boolean) {
   return { griff, versatz, bereit, seite, hoehe, versatzWert, setzeVersatz, bestimmeSeite, bestimmeHoehe, klemme };
 }
 export type HimbiPlatz = ReturnType<typeof useHimbiPlatz>;
+
+// ---- Dem Panel nur ausweichen, wenn es sie verdecken wuerde ---------------------------
+/** So breit ist das Panel (oder die Schublade) gerade, auch wenn es noch aufgeht: der Wert der Variablen, nicht die animierte Breite der Hülle. */
+function messePaneBreite(): number {
+  const probe = document.createElement("div");
+  probe.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;height:0;width:min(var(--ki-pane-breite, 25rem), 100vw)";
+  document.body.appendChild(probe);
+  const breite = probe.getBoundingClientRect().width;
+  probe.remove();
+  return breite;
+}
+
+/**
+ * Setzt, wie weit Himbi dem geöffneten KI-Panel ausweicht: --hb-pane-schub (px, Desktop) und data-pane-verdeckt (Schublade). Bis 15.10.2026 rückte
+ * sie bei jedem Öffnen um die ganze Panelbreite nach links, auch wenn sie weit links stand und das Panel sie nie berührt hätte. Jetzt gilt:
+ * Verdeckt das Panel sie nicht, bleibt sie stehen. Neu gerechnet wird beim Öffnen und Schließen, bei einer neuen Panelbreite (Ziehen am Griff,
+ * Prüfungsansicht) und bei einer neuen Fenstergröße, nie beim Ziehen von Himbi selbst (sonst klebte sie am Panelrand fest).
+ * Ohne diese Werte (vor dem ersten Lauf, kein Fenster) gilt der alte Stand: ganze Panelbreite beziehungsweise ausgeblendet (haustier.css).
+ */
+export function usePaneAusweichen({
+  wurzel,
+  versatzWert,
+  paneOffen,
+  buehne,
+  bereit,
+}: {
+  wurzel: RefObject<HTMLDivElement | null>;
+  versatzWert: RefObject<{ x: number; y: number }>;
+  paneOffen: boolean;
+  buehne: boolean;
+  bereit: boolean;
+}) {
+  useLayoutEffect(() => {
+    const el = wurzel.current;
+    if (!el || !bereit) return;
+    if (!paneOffen || buehne) {
+      // Zu oder auf der Bühne (dort steht Himbi in der Mitte, haustier.css): nichts zu rechnen, die Werte fallen auf den Standard zurück.
+      if (el.style.getPropertyValue("--hb-pane-schub")) el.style.removeProperty("--hb-pane-schub");
+      if (el.hasAttribute("data-pane-verdeckt")) el.removeAttribute("data-pane-verdeckt");
+      return;
+    }
+    const rechne = () => {
+      // clientWidth ohne die Scrollleiste, wie sich das feste Himbi-Element ausrichtet; ohne Layout (Test) die Fensterbreite.
+      const fensterBreite = document.documentElement.clientWidth || window.innerWidth;
+      // Rechter Rand der Figur ohne Panel-Verschiebung: Standardrand plus gezogener Versatz. Unabhängig davon, was gerade verschoben ist oder ob sie verborgen ist.
+      const himbiRechts = fensterBreite - HIMBI_RAND_RECHTS + versatzWert.current.x;
+      const { verdeckt, schub } = paneAusweichen({ himbiRechts, fensterBreite, paneBreite: messePaneBreite() });
+      el.style.setProperty("--hb-pane-schub", `${schub}px`);
+      el.setAttribute("data-pane-verdeckt", String(verdeckt));
+    };
+    rechne();
+    let rahmen = 0;
+    const spaeter = () => {
+      window.cancelAnimationFrame(rahmen);
+      rahmen = window.requestAnimationFrame(rechne);
+    };
+    window.addEventListener("resize", spaeter);
+    // Die Breite des Panels ist eine Variable am Dokument (ki-pane-griff.tsx, ki-pane-zustand.ts): ändert sie sich, rechnet Himbi neu.
+    const beobachter = new MutationObserver(spaeter);
+    beobachter.observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
+    return () => {
+      window.cancelAnimationFrame(rahmen);
+      window.removeEventListener("resize", spaeter);
+      beobachter.disconnect();
+    };
+  }, [wurzel, versatzWert, paneOffen, buehne, bereit]);
+}
 
 // ---- Wohin geschaut wird ------------------------------------------------------------
 // Fuehrt niemand ihren Blick, schaut Himbi auf das Feld, in das gerade geschrieben

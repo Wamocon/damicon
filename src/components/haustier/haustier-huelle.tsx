@@ -4,7 +4,7 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import { Himbi } from "@/components/haustier/himbi";
 import { Wellen } from "@/components/haustier/wellen";
 import { useGriffBedienung } from "@/components/haustier/haustier-huelle-griff";
-import { useAugen, useFolgtBlick, useHimbiPlatz, useHuepfer, useKonfetti, useTippZiel, useZeigerUndSchlaf } from "@/components/haustier/haustier-huelle-koerper";
+import { useAugen, useFolgtBlick, useHimbiPlatz, useHuepfer, useKonfetti, usePaneAusweichen, useTippZiel, useZeigerUndSchlaf } from "@/components/haustier/haustier-huelle-koerper";
 import type { HaustierZustand, Inventar, Stimmung } from "@/lib/haustier";
 import "@/components/haustier/haustier.css";
 
@@ -122,6 +122,9 @@ export function HaustierHuelle({
   const koerper = useHuepfer(huepf);
   const konfettiNr = useKonfetti(zustand);
   const { wurzel, zieht, beiZiehen, beiBewegen, beiLoslassen, beiTaste, zuruecksetzen } = useGriffBedienung({ weg, onKlick, platz, stand: { schlaeft, setSchlaeft, halten, setHalten, abschied, setAbschied, setErleichtert } });
+
+  // Dem Panel nur ausweichen, wenn es sie verdecken würde (haustier.css liest --hb-pane-schub und data-pane-verdeckt).
+  usePaneAusweichen({ wurzel, versatzWert: platz.versatzWert, paneOffen, buehne, bereit });
 
   // Erst nach dem Mounten zeichnen: die gespeicherte Position und Einstellung kommen aus dem
   // Browser, ein Vorab-Render auf dem Server wuerde die Hydration verfehlen.

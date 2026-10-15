@@ -56,10 +56,53 @@ export const KEINE_STELLE: Record<AntwortSprache, string> = {
  *  und nicht als Teil der Frage. */
 export const ERINNERUNG: Record<AntwortSprache, string> = {
   de: "Antworte auf Deutsch.",
-  en: "Reply in English.",
-  ru: "Ответь на русском языке.",
-  kk: "Қазақ тілінде жауап бер.",
+  en: "Reply in English, with no German words.",
+  ru: "Ответь на русском языке, без немецких слов.",
+  kk: "Қазақ тілінде жауап бер, неміс сөздерінсіз.",
 };
+
+/** Die deutschen Begriffe, die in Werkzeugdaten und Prompt vorkommen und in einer Antwort in anderer Sprache durchrutschten (15.10.2026: eine russische
+ *  Zusammenfassung enthielt "Betrieb", "Feld" und "Hof" mitten im russischen Satz): Zonen, "wer"-Kennzeichen der Tageslage und die haeufigsten
+ *  Fachwoerter. Die Uebersetzungen sind die der Oberflaeche (src/messages, geprueft in supabase/tests/ki-assistent.mjs), damit Antwort und
+ *  Bildschirm dieselben Woerter benutzen. Deutsch braucht keine Liste. */
+export const BEGRIFFE: Record<Exclude<AntwortSprache, "de">, ReadonlyArray<readonly [string, string]>> = {
+  en: [
+    ["Betrieb", "farm"], ["Feld", "Field"], ["Hof", "Yard"], ["Büro", "Office"], ["Markt", "Market"], ["Nachbarbetrieb", "neighbouring farm"],
+    ["ich / meine Brigade / meine Rolle / Betrieb (Kennzeichen wer)", "me / my crew / my role / the farm"],
+    ["Brigade", "Field crew"], ["Pflücker", "Picker"], ["Erzeuger", "Producer"], ["Kühlkette", "Cold chain"], ["Charge", "Batch"],
+    ["Lieferung", "Delivery"], ["Reklamation", "Complaint"], ["Pflückaufgabe", "Picking task"], ["Prüfbericht", "Audit report"], ["Lohn", "Pay"],
+    ["Schulung", "Training"], ["Frist", "Deadline"], ["Kennzahl", "Figure"], ["überfällig", "Overdue"], ["heute", "Today"],
+  ],
+  ru: [
+    ["Betrieb", "Хозяйство"], ["Feld", "Поле"], ["Hof", "Двор"], ["Büro", "Офис"], ["Markt", "Рынок"], ["Nachbarbetrieb", "Соседнее хозяйство"],
+    ["ich / meine Brigade / meine Rolle / Betrieb (Kennzeichen wer)", "мне / моя бригада / моя роль / хозяйство"],
+    ["Brigade", "Бригада"], ["Pflücker", "Сборщик"], ["Erzeuger", "Производитель"], ["Kühlkette", "Холодовая цепь"], ["Charge", "Партия"],
+    ["Lieferung", "Поставка"], ["Reklamation", "Рекламация"], ["Pflückaufgabe", "Задание на сбор"], ["Prüfbericht", "Отчёт о проверке"], ["Lohn", "Оплата труда"],
+    ["Schulung", "Инструктаж"], ["Frist", "Срок"], ["Kennzahl", "Показатель"], ["überfällig", "Просрочено"], ["heute", "Сегодня"],
+  ],
+  kk: [
+    ["Betrieb", "Шаруашылық"], ["Feld", "Дала"], ["Hof", "Аула"], ["Büro", "Кеңсе"], ["Markt", "Нарық"], ["Nachbarbetrieb", "Көрші шаруашылық"],
+    ["ich / meine Brigade / meine Rolle / Betrieb (Kennzeichen wer)", "маған / менің бригадам / менің рөлім / шаруашылық"],
+    ["Brigade", "Бригада"], ["Pflücker", "Терімші"], ["Erzeuger", "Өндіруші"], ["Kühlkette", "Суық тізбек"], ["Charge", "Партия"],
+    ["Lieferung", "Жеткізу"], ["Reklamation", "Шағым"], ["Pflückaufgabe", "Теру тапсырмасы"], ["Prüfbericht", "Тексеру есебі"], ["Lohn", "Жалақы"],
+    ["Schulung", "Оқыту"], ["Frist", "Мерзім"], ["Kennzahl", "Көрсеткіш"], ["überfällig", "Мерзімі өткен"], ["heute", "Бүгін"],
+  ],
+};
+
+/** Verbot deutscher Woerter in einer Antwort in anderer Sprache, mit der Liste. Leer fuer Deutsch. Steht in der Sprachanweisung am Ende des Prompts. */
+export function begriffeAnweisung(sprache: AntwortSprache): string {
+  if (sprache === "de" || !(sprache in BEGRIFFE)) return "";
+  const liste = BEGRIFFE[sprache].map(([de, uebersetzt]) => `${de} = ${uebersetzt}`).join("; ");
+  return (
+    `NO GERMAN WORDS: The tool data and these instructions carry German labels. Translate every one of them into ${NAME_EN[sprache]}; never copy a German word into the reply ` +
+    "(a sentence with a German word like 'Betrieb', 'Feld' or 'Hof' in the middle of it is a defect, also in summaries and lists). " +
+    `Use these terms: ${liste}. ` +
+    "Every other German word from the data (labels, area and module names, status words) is translated the same way. Only names of people, places, products and varieties, " +
+    "IDs, codes and titles of quoted sources stay as they are."
+  );
+}
+
+const NAME_EN: Record<Exclude<AntwortSprache, "de">, string> = { en: "English", ru: "Russian", kk: "Kazakh" };
 
 export function spracheErinnerung(sprache: AntwortSprache): string {
   return `(${ERINNERUNG[sprache]})`;

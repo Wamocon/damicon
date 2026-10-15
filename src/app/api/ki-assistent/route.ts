@@ -27,6 +27,8 @@ import { getSessionProfile, type SessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { bestimmeAntwortsprache, zugAusNachrichten } from "@/lib/domain/antwortsprache";
 import {
+  type AntwortSprache,
+  begriffeAnweisung,
   formatAnweisung,
   heuteAnweisung,
   mitSeitenkarte,
@@ -267,8 +269,9 @@ function bauePruefBereichWerkzeug() {
 // Text. Deshalb unten ein Satz, der ausdruecklich die Eroeffnungszeile nennt.
 function spracheAnweisung(sprache: string): string {
   const name = SPRACHNAMEN[sprache] ?? SPRACHNAMEN.de;
+  const begriffe = begriffeAnweisung((sprache in SPRACHNAMEN ? sprache : "de") as AntwortSprache);
   return `LANGUAGE (highest priority, overrides everything above): The user wrote their message in ${name}. Write EVERY reply in ${name} - the whole text, including headings, table headers and the sentences before and after tool calls - even though these instructions and all tool data are in German. This holds regardless of the interface language, of the language of earlier messages, and of the language of the data your tools return: match the language the user just wrote in. Only switch language if the user explicitly asks for another one. In German use real umlauts (ä, ö, ü, ß), never ae/oe/ue.
-Your opening bold one-line Fazit is the line most likely to slip into the wrong language, because injected data (the Prüfbericht text, a quoted source) often already contains a ready-made summary sentence in German. Never reuse or lightly edit that sentence in its original language, not even for the first few words - compose your own Fazit from scratch, entirely in ${name}, like every other sentence in your reply.`;
+Your opening bold one-line Fazit is the line most likely to slip into the wrong language, because injected data (the Prüfbericht text, a quoted source) often already contains a ready-made summary sentence in German. Never reuse or lightly edit that sentence in its original language, not even for the first few words - compose your own Fazit from scratch, entirely in ${name}, like every other sentence in your reply.${begriffe ? `\n${begriffe}` : ""}`;
 }
 
 function rollenKontext(rolle: Role, vorschau: boolean): string {

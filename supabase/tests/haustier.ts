@@ -20,9 +20,12 @@ import {
   erzeugeBrowserSpeicher,
   erzeugeSchalterSpeicher,
   haustierZustand,
+  HIMBI_RAND_RECHTS,
   inventarSpeicher,
   merkeTippGezeigt,
   modulAusPfad,
+  PANE_LUFT,
+  paneAusweichen,
   sichtbareBlase,
   sichtbarkeitSpeicher,
   stimmungAusAntwort,
@@ -801,6 +804,47 @@ pruefe("Figur: mit lippen gibt es den formbaren Mund, ohne ihn bleibt Himbi wie 
   assert.ok(mit.indexOf('data-lippe="hoehle"') < mit.indexOf('data-lippe="zunge"') && mit.indexOf('data-lippe="zunge"') < mit.indexOf('data-lippe="umriss"'), "Reihenfolge Hoehle, Zunge, Umriss");
   const ohne = renderToStaticMarkup(createElement(Himbi, { zustand: "spricht" }));
   assert.ok(!ohne.includes("data-lippe") && !ohne.includes("data-lippen"));
+});
+
+// ---- Ausweichen vor dem KI-Panel (15.10.2026) -------------------------------------------------------
+// Himbi rutschte bei jedem Öffnen um die ganze Panelbreite nach links, auch wenn sie weit links stand und das Panel sie nie berührt hätte.
+// Jetzt weicht sie nur aus, wenn das Panel sie verdecken würde.
+pruefe("Panel: an der Standardposition (rechts, 20 px Rand) rückt Himbi um die ganze Panelbreite, wie bisher", () => {
+  for (const paneBreite of [352, 368, 400, 448, 640]) {
+    const r = paneAusweichen({ himbiRechts: 1600 - HIMBI_RAND_RECHTS, fensterBreite: 1600, paneBreite });
+    assert.equal(r.verdeckt, true);
+    assert.equal(r.schub, paneBreite, `Panelbreite ${paneBreite}`);
+  }
+});
+pruefe("Panel: steht Himbi weit links, verdeckt das Panel sie nicht und sie bewegt sich nicht", () => {
+  const r = paneAusweichen({ himbiRechts: 600, fensterBreite: 1600, paneBreite: 400 });
+  assert.deepEqual(r, { verdeckt: false, schub: 0 });
+});
+pruefe("Panel: genau an der linken Kante des Panels ist keine Überlappung, also keine Bewegung", () => {
+  assert.deepEqual(paneAusweichen({ himbiRechts: 1200, fensterBreite: 1600, paneBreite: 400 }), { verdeckt: false, schub: 0 });
+  assert.equal(paneAusweichen({ himbiRechts: 1201, fensterBreite: 1600, paneBreite: 400 }).verdeckt, true);
+});
+pruefe("Panel: ragt Himbi nur ein Stück in das Panel, rückt sie nur so weit, dass sie mit Luft davor steht", () => {
+  const r = paneAusweichen({ himbiRechts: 1260, fensterBreite: 1600, paneBreite: 400 });
+  assert.equal(r.verdeckt, true);
+  assert.equal(r.schub, 60 + PANE_LUFT);
+  assert.equal(1260 - r.schub, 1200 - PANE_LUFT, "danach steht ihr rechter Rand PANE_LUFT links der Panelkante");
+});
+pruefe("Panel: nie mehr als das Fenster, auch bei einer Schublade, die breiter ist als das Fenster", () => {
+  const r = paneAusweichen({ himbiRechts: 380, fensterBreite: 400, paneBreite: 960 });
+  assert.equal(r.verdeckt, true);
+  assert.deepEqual(paneAusweichen({ himbiRechts: 0, fensterBreite: 400, paneBreite: 960 }), { verdeckt: false, schub: 0 });
+  assert.deepEqual(paneAusweichen({ himbiRechts: 100, fensterBreite: 400, paneBreite: -5 }), { verdeckt: false, schub: 0 });
+});
+pruefe("Panel: Schublade auf dem Tablet verdeckt nur, was unter ihr liegt", () => {
+  assert.equal(paneAusweichen({ himbiRechts: 1000 - HIMBI_RAND_RECHTS, fensterBreite: 1000, paneBreite: 400 }).verdeckt, true);
+  assert.equal(paneAusweichen({ himbiRechts: 500, fensterBreite: 1000, paneBreite: 400 }).verdeckt, false);
+});
+pruefe("Panel: die Styles lesen --hb-pane-schub (Rückfall: ganze Panelbreite) und blenden in der Schublade nur aus, wenn sie verdeckt", () => {
+  const css = readFileSync("src/components/haustier/haustier.css", "utf8").replace(/\r\n/g, "\n");
+  assert.ok(css.includes("translate3d(calc(var(--hb-pane-schub, var(--ki-pane-breite, 27rem)) * -1), 0, 0)"), "Schub aus der Variablen mit Rückfall");
+  assert.ok(css.includes('.haustier[data-pane-offen="true"]:not([data-pane-verdeckt="false"]) .haustier__verschiebung'), "Schublade blendet nur ohne ausdrückliches false aus");
+  assert.ok(!css.includes('.haustier[data-pane-offen="true"] .haustier__verschiebung {\n    transform: translate3d(calc(var(--ki-pane-breite, 27rem) * -1), 0, 0);'), "die alte, bedingungslose Verschiebung ist weg");
 });
 
 // -------------------------------------------------------------------------------------

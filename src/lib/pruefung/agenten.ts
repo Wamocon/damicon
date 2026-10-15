@@ -6,6 +6,7 @@ import { punkteFuer, type Pruefpunkt } from "@/lib/pruefung/felder";
 import { feldTitel, titelInSprache } from "@/lib/pruefung/felder-titel";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import type { Befund, Bericht, Ereignis, Nachweis } from "@/lib/pruefung/typen";
+import { begriffeAnweisung, type AntwortSprache } from "@/lib/domain/antwort-anweisungen";
 import { sprachePasst } from "@/lib/domain/antwortsprache";
 import { fuerSprache } from "@/lib/text/umlaute";
 import { erkenneSpracheEindeutig } from "@/lib/wissen/chunker";
@@ -134,7 +135,11 @@ export function systemPrompt(bereich: Pruefbereich, rolle: Role, sprache: string
     `LANGUAGE: Write titel, befund and massnahmen ONLY in ${name}, consistently and without mixing languages. Legal citations, article numbers and short quotes of the original Russian wording may stay as they are.${
       sprache === "de" ? " Use correct German spelling with real umlauts (ä, ö, ü) and ß; never write ae, oe, ue or ss in their place." : ""
     }`,
-  ].join("\n");
+    // Kein deutsches Wort in einem russischen, kasachischen oder englischen Befund (15.10.2026: "Betrieb", "Feld", "Hof" mitten im russischen Satz)
+    begriffeAnweisung(sprache as AntwortSprache),
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 export function agentPrompt(felder: Feldstand[]): string {
@@ -410,7 +415,7 @@ export async function fuehrePruefungAus(
         system: `Du fasst eine Compliance-Prüfung für die Betriebsleitung zusammen. Nutze AUSSCHLIESSLICH die gelieferten Befunde, erfinde nichts. Prüfungsreife: ${kz.reife} von 100 (${kz.stufe}). Fasse dich kurz: die Zusammenfassung höchstens 500 Zeichen, jede Priorität höchstens 150 Zeichen.
 LANGUAGE (highest priority, overrides everything above): Write the zusammenfassung and EVERY prioritaet ONLY in ${sprache}, consistently and without mixing languages, even though these instructions and the findings' field names are German. Legal citations and article numbers may stay as they are.${
           anfrage.sprache === "de" ? " Verwende die richtige deutsche Schreibweise mit Umlauten (ä, ö, ü) und ß, nie ae, oe oder ue." : ""
-        }`,
+        }${begriffeAnweisung(anfrage.sprache as AntwortSprache) ? `\n${begriffeAnweisung(anfrage.sprache as AntwortSprache)}` : ""}`,
         prompt: liste || "Keine Befunde.",
         tools: {
           berichtAbschliessen: tool({

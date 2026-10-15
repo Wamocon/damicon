@@ -192,12 +192,16 @@ async function main() {
     pruefe("Assistent: ein unbekanntes Dokument wird gemeldet, nicht erfunden", unbekannt.fehler === "nicht-gefunden");
 
     // Filter des Assistenten: dieselben Begriffe wie die Liste der Verwaltung
-    type Gefiltert = { treffer: number; dokumente: { schluessel: string }[]; trefferNachVerlaesslichkeit: Record<string, number> };
+    type Gefiltert = { treffer: number; dokumente: { schluessel: string }[]; trefferNachVerlaesslichkeit: Record<string, number>; nachVerlaesslichkeit: Record<string, number> };
     const amtlichSteuer = (await (werkzeuge.wissensbasisAbrufen.execute as unknown as Ausfuehren)({ suche: "Umordnen", verlaesslichkeit: "amtlich" }, optionen)) as Gefiltert;
     pruefe("Assistent: Filter amtlich findet das als Rechtsnorm eingeordnete Bestandsdokument, nicht das Buch", amtlichSteuer.treffer === 1 && amtlichSteuer.dokumente[0]?.schluessel === BESTAND);
     const nachBereich = (await (werkzeuge.wissensbasisAbrufen.execute as unknown as Ausfuehren)({ suche: "Umordnen", bereich: "recht" }, optionen)) as Gefiltert;
     pruefe("Assistent: Filter nach Bereich (recht heißt gespeichert legal) und nach Status", nachBereich.treffer === 1 && nachBereich.dokumente[0]?.schluessel === quelleId && ((await (werkzeuge.wissensbasisAbrufen.execute as unknown as Ausfuehren)({ suche: "Umordnen", status: "abgelehnt" }, optionen)) as Gefiltert).treffer === 0);
-    pruefe("Assistent: die Antwort nennt die Zahl der Treffer je Verlässlichkeit", typeof nachBereich.trefferNachVerlaesslichkeit.sicher === "number");
+    pruefe(
+      "Assistent: die Treffer je Verlässlichkeit sind eine Aufteilung, deren Klassen sich ausschließen und zur Trefferzahl passen",
+      nachBereich.trefferNachVerlaesslichkeit.summe === nachBereich.treffer && ["amtlich", "tragendSonstige", "nurHinweis", "notbehelf", "gesperrt"].reduce((n, k) => n + (nachBereich.trefferNachVerlaesslichkeit[k] ?? 0), 0) === nachBereich.treffer,
+    );
+    pruefe("Assistent: dieselbe Aufteilung für die ganze Wissensbasis (Summe der Klassen gleich der Zahl der Dokumente)", nachBereich.nachVerlaesslichkeit.summe === uebersicht.gesamt.dokumente && ["amtlich", "tragendSonstige", "nurHinweis", "notbehelf", "gesperrt"].reduce((n, k) => n + (nachBereich.nachVerlaesslichkeit[k] ?? 0), 0) === uebersicht.gesamt.dokumente);
 
     // ---- Liste ------------------------------------------------------------------------------------------------------------------------------------
     const { data: liste, error: listeFehler } = await dienst.rpc("wissen_liste");
