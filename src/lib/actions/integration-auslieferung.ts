@@ -1,8 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requirePermission, type SessionProfile } from "@/lib/auth";
-import { dbFehler, fehler, ok, okMitWerten, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import type { SessionProfile } from "@/lib/auth";
+import { dbFehler, fehler, ok, okMitWerten, type AktionsStatus } from "@/lib/actions/status";
+import { mitRecht, type Zugriff } from "@/lib/actions/zugriff";
 import { text, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
 import { konfigurationFehler } from "@/lib/domain/integration-auslieferung";
 import { liefereFaelligeAus } from "@/lib/integration/speicher";
@@ -12,14 +13,12 @@ import { istUuid } from "@/lib/utils";
 // Administration: requirePermission("integrationen", "update") ist die erste Pruefung, dazu gilt nur admin und ceo (die Zeilensicherheit
 // von integrationen und integration_outbox, Migration 20261207110000, erlaubt Aenderungen ohnehin nur ueber die Rolle admin).
 
-async function zugriff(): Promise<{ profil: SessionProfile } | { status: AktionsStatus }> {
-  try {
-    const profil = await requirePermission("integrationen", "update");
-    if (profil.role !== "admin" && profil.role !== "ceo") return { status: fehler("fehler.berechtigung") };
-    return { profil };
-  } catch (error) {
-    return { status: zugriffsFehler(error) };
-  }
+// Nur die Administration und die Geschaeftsfuehrung (die Rolle steht zusaetzlich zum Recht integrationen:update, das auch das Buero hat).
+async function zugriff(): Promise<Zugriff> {
+  const z = await mitRecht("integrationen", "update");
+  if ("status" in z) return z;
+  if (z.profil.role !== "admin" && z.profil.role !== "ceo") return { status: fehler("fehler.berechtigung") };
+  return z;
 }
 
 const protokoll = (profil: SessionProfile, aktion: string, id: string | null, metadata: Record<string, string | number | boolean | null> = {}) =>

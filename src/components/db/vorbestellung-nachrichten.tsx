@@ -4,22 +4,13 @@ import { Aufklapper, Section } from "@/components/ui/kit";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { NachrichtFormular } from "@/components/db/nachricht-formular";
 import { ladeNachrichten } from "@/lib/data/nachrichten";
-import type { NachrichtZeile } from "@/lib/domain/nachrichten";
+import { sortiereFuerNachrichten } from "@/lib/domain/nachrichten";
 import type { VorbestellungZeile } from "@/lib/domain/vorbestellungen";
 
 // Nachrichten je Vorbestellung und der Lieferplan als Kalenderdatei (WMCNL-1472),
 // unter der Liste der Vorbestellungen im B2B-Portal. Wer die Vorbestellung sieht,
 // sieht ihren Verlauf: der Kunde seinen eigenen, das Buero alle.
 
-/** So viele Vorbestellungen zeigt der Abschnitt hoechstens: die mit dem juengsten Verlauf zuerst, dann die offenen. */
-const ANZEIGE_GRENZE = 30;
-
-function reihenfolge(vorbestellungen: readonly VorbestellungZeile[], nachrichten: Record<string, NachrichtZeile[]>): VorbestellungZeile[] {
-  const letzte = (id: string) => nachrichten[id]?.at(-1)?.erstelltAm ?? "";
-  return [...vorbestellungen]
-    .sort((a, b) => letzte(b.id).localeCompare(letzte(a.id)) || b.erstelltAm.localeCompare(a.erstelltAm))
-    .slice(0, ANZEIGE_GRENZE);
-}
 
 export async function LieferplanDownload() {
   const [t, sprache, dk] = await Promise.all([getTranslations("nachrichten.download"), getLocale(), getTranslations("dokument.knopf")]);
@@ -54,7 +45,7 @@ export async function VorbestellungNachrichten({
     getTranslations("roles"),
     getFormatter(),
   ]);
-  const liste = reihenfolge(vorbestellungen, nachrichten);
+  const liste = sortiereFuerNachrichten(vorbestellungen, nachrichten);
 
   return (
     <Section title={t("titel")} description={t("lead")}>
@@ -91,6 +82,9 @@ export async function VorbestellungNachrichten({
           );
         })}
       </div>
+      {liste.length < vorbestellungen.length ? (
+        <p className="text-xs text-muted-foreground">{t("gekuerzt", { gezeigt: liste.length, gesamt: vorbestellungen.length })}</p>
+      ) : null}
     </Section>
   );
 }

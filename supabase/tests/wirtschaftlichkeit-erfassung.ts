@@ -268,6 +268,20 @@ const VORGABE: Posten[] = [posten("investition", CAPEX_EUR), posten("betrieb", O
   check("Texte: keine Gedankenstriche in den Texten der Erfassung", striche.length === 0, striche.slice(0, 3).join(" | "));
 }
 
+// --- Stand nur aus vollstaendigen Daten (Pruefung PR #156, 15.10.2026) -----------------------------------------------------------------
+// Ein Stand ist unveraenderlich. Fehlte beim Lesen eine Abfrage (Timeout), rechnete die Seite mit Modellwerten, und der Stand hielte falsche Kurse und
+// Posten fuer immer fest.
+{
+  const lies = (pfad: string) => readFileSync(pfad, "utf8").replace(/\r\n/g, "\n");
+  const daten = lies("src/lib/data/wirtschaftlichkeit.ts");
+  const aktion = lies("src/lib/actions/wirtschaftlichkeit.ts");
+  check("Stand: die Daten melden einen Lesefehler (lesefehler), auch ohne Datenbank als false", daten.includes("lesefehler: lesefehler !== null") && daten.includes("lesefehler: false"));
+  check("Stand: bei einem Lesefehler wird nichts festgehalten (vor der Leer-Pruefung)", /daten\.lesefehler\) return fehler\("fehler\.wiStandLesefehler"\);[\s\S]{0,160}wiStandLeer/.test(aktion));
+  const katalog = (s: string) => JSON.parse(lies(`src/messages/${s}.json`)).aktionen?.fehler ?? JSON.parse(lies(`src/messages/${s}.json`));
+  const hatSchluessel = ["de", "en", "kk", "ru"].every((s) => JSON.stringify(katalog(s)).includes('"wiStandLesefehler"'));
+  check("Stand: die Meldung steht in allen vier Sprachen", hatSchluessel);
+}
+
 if (fehler > 0) {
   console.log(`\n${fehler} Pruefung(en) fehlgeschlagen.`);
   process.exit(1);

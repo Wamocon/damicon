@@ -75,7 +75,7 @@ await mussScheitern("Konfiguration: nur ein bekannter Adapter", `update public.i
     await db.query(`update public.esf_belege set status = 'ausgestellt', esf_nummer = 'ЭСФ-2', ausgestellt_am = current_date where id = $1;`, [mit]);
   });
   const { rows } = await db.query<{ ereignis: string; idempotenz_schluessel: string; payload: { belegId: string; esfNummer: string; status: string; entwurf: { version: number } }; integration_id: string }>(
-    `select ereignis, idempotenz_schluessel, payload, integration_id from public.integration_outbox where idempotenz_schluessel = $1;`, [`esf:${mit}:ausgestellt`]);
+    `select ereignis, idempotenz_schluessel, payload, integration_id from public.integration_outbox where idempotenz_schluessel like $1;`, [`esf:${mit}:ausgestellt:%`]);
   check("Trigger: das Ausstellen reiht ein, mit Ereignis, Schluessel und den Angaben des Belegs", rows.length === 1 && rows[0].ereignis === "esf.beleg_ausgestellt" && rows[0].payload.belegId === mit && rows[0].payload.esfNummer === "ЭСФ-2" && rows[0].payload.status === "ausgestellt" && rows[0].payload.entwurf.version === 1 && rows[0].integration_id === esf, JSON.stringify(rows[0]));
   await als("buchhaltung", async () => {
     await db.query(`update public.esf_belege set bemerkung = 'Anmerkung dazu' where id = $1;`, [mit]);
@@ -86,6 +86,23 @@ await mussScheitern("Konfiguration: nur ein bekannter Adapter", `update public.i
   });
   const { rows: zwei } = await db.query<{ ereignis: string }>(`select ereignis from public.integration_outbox where idempotenz_schluessel like $1 order by ereignis;`, [`esf:${mit}:%`]);
   check("Trigger: das Bestaetigen reiht ein zweites Ereignis ein", zwei.map((z) => z.ereignis).join(",") === "esf.beleg_ausgestellt,esf.beleg_bestaetigt");
+  // Prüfung PR #156 (15.10.2026): Wird ein abgelehnter Beleg neu ausgestellt, ist das eine NEUE Meldung. Mit dem Schlüssel esf:<id>:<status> verwarf
+  // on conflict do nothing die zweite, und der korrigierte Beleg erreichte das Zielsystem nie.
+  const neu = await beleg();
+  const ausstellen = (nummer: string) =>
+    als("buchhaltung", async () => {
+      await db.query(`update public.esf_belege set status = 'ausgestellt', esf_nummer = $2, ausgestellt_am = current_date where id = $1;`, [neu, nummer]);
+    });
+  await ausstellen("ЭСФ-3");
+  await als("buchhaltung", async () => {
+    await db.query(`update public.esf_belege set status = 'abgelehnt', bemerkung = 'Menge falsch' where id = $1;`, [neu]);
+    await db.query(`update public.esf_belege set status = 'entwurf', esf_nummer = null, ausgestellt_am = null where id = $1;`, [neu]);
+  });
+  await ausstellen("ЭСФ-3-KORR");
+  const { rows: korr } = await db.query<{ idempotenz_schluessel: string; payload: { esfNummer: string } }>(
+    `select idempotenz_schluessel, payload from public.integration_outbox where idempotenz_schluessel like $1 order by created_at, id;`, [`esf:${neu}:ausgestellt:%`]);
+  check("Trigger: die erneute Ausstellung nach einer Ablehnung reiht eine zweite Meldung ein (eigener Schlüssel), mit der neuen Nummer",
+    korr.length === 2 && korr[0].idempotenz_schluessel !== korr[1].idempotenz_schluessel && korr.map((k) => k.payload.esfNummer).sort().join() === ["ЭСФ-3", "ЭСФ-3-KORR"].sort().join(), JSON.stringify(korr.map((k) => k.payload.esfNummer)));
   await als("admin", async () => {
     await db.query(`update public.integrationen set aktiv = false where id = $1;`, [esf]);
   });

@@ -101,6 +101,10 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // abholrunde_pruefen() und abholstopp_pruefen() (WMCNL-1577): die Runde ist noch nicht gestartet (Abholung), oder es sind
       // noch Stopps offen (Abschluss).
       return fehler("fehler.abholrundeNichtGestartet");
+    case "DA017":
+      // esutd_vertrag_loeschen_pruefen() (Pruefung PR #156): ein Vertrag mit erfassten Aenderungen oder Beendigungen bleibt,
+      // die Kaskade haette sie samt Bestaetigung und Beleg geloescht.
+      return fehler("fehler.esutdErfassteMeldungen");
     case "DA012":
       // vorbestellung_nachricht_vorbereiten() (WMCNL-1472): zu einer stornierten
       // Vorbestellung gibt es keine neuen Nachrichten.

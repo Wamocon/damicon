@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { hasPermission } from "@/lib/rbac";
-import { sitzungFuerRoute } from "@/lib/api/sitzung";
+import { sitzungFuerRoute, textAntwort } from "@/lib/api/sitzung";
 import { csvDatei } from "@/lib/domain/csv";
-import { ladeEsutdMeldungen } from "@/lib/data/esutd";
+import { ladeEsutdMeldungenStreng } from "@/lib/data/esutd";
 import { protokolliere } from "@/lib/actions/formular-helfer";
 
 // Angaben der ЕСУТД-Meldungen als CSV-Datei (WMCNL-1447): GET /api/esutd/export?sprache=ru&status=offen.
@@ -20,7 +20,14 @@ export async function GET(request: Request) {
   const { profil, sprache, parameter } = sitzung;
   const nurOffene = parameter.get("status") !== "alle";
 
-  const alle = await ladeEsutdMeldungen();
+  // Ein Lesefehler ergibt einen Fehler, keine leere Datei mit 200: Wer eine leere Liste für "alles gemeldet" hält, versäumt die Meldefrist.
+  let alle;
+  try {
+    alle = await ladeEsutdMeldungenStreng();
+  } catch (error) {
+    console.error("[damicon] ЕСУТД-Export: Meldungen lesen fehlgeschlagen:", error instanceof Error ? error.message : error);
+    return textAntwort("Die Meldungen konnten nicht geladen werden.", 500);
+  }
   const meldungen = nurOffene ? alle.filter((m) => m.status === "offen") : alle;
 
   const t = await getTranslations({ locale: sprache, namespace: "esutdAnsicht" });

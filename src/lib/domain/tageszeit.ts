@@ -3,10 +3,11 @@
 // eine andere Begruessung im HTML als nach der Hydration.
 //
 // Die Zeitzone steht hier fest, weil der Betrieb im Umland von Almaty liegt.
-// next-intl hat keine konfigurierte timeZone (src/i18n/request.ts), ohne
-// diese Angabe zaehlte also die Zeitzone des Servers - auf einem Vercel-Knoten
+// Ohne Angabe zaehlte die Zeitzone des Servers - auf einem Vercel-Knoten
 // in Europa waere das drei bis fuenf Stunden daneben, und "Guten Morgen"
-// stuende am fruehen Nachmittag.
+// stuende am fruehen Nachmittag. Seit dem 15.10.2026 setzt auch next-intl
+// diese Zeitzone (src/i18n/request.ts), damit Uhrzeiten auf dem Bildschirm
+// dieselben sind wie in den Dokumenten.
 export const betriebsZeitzone = "Asia/Almaty";
 
 /** Kalendertag in der Betriebszeitzone als "JJJJ-MM-TT" - der Tag auf dem Feld. */

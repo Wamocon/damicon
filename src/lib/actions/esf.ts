@@ -1,8 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requirePermission, type SessionProfile } from "@/lib/auth";
-import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import type { SessionProfile } from "@/lib/auth";
+import { dbFehler, fehler, ok, type AktionsStatus } from "@/lib/actions/status";
+import { mitRecht } from "@/lib/actions/zugriff";
 import { text, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
 import { ladeEntwurfEingabe } from "@/lib/data/esf";
 import { baueEsfEntwurf, esfAngabenFehler, istEsfStatus, wechselErlaubt, type EsfStatus } from "@/lib/domain/esf";
@@ -14,12 +15,8 @@ import { istUuid } from "@/lib/utils";
 // "update") ist die erste Verteidigungslinie, RLS und Trigger von esf_belege (Migration 20261207070000)
 // die zweite: dort stehen die Statuswechsel und die Pflichtangaben ein zweites Mal.
 
-async function zugriff(): Promise<{ profil: SessionProfile } | { status: AktionsStatus }> {
-  try {
-    return { profil: await requirePermission("integrationen", "update") };
-  } catch (error) {
-    return { status: zugriffsFehler(error) };
-  }
+function zugriff() {
+  return mitRecht("integrationen", "update");
 }
 
 function protokoll(profil: SessionProfile, aktion: string, belegId: string | null, metadata: Record<string, string | number | boolean | null>) {

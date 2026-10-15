@@ -2,6 +2,9 @@ import { createHmac } from "node:crypto";
 import { lookup } from "node:dns/promises";
 import { ZEITLIMIT_MS, bewerteAntwort, istInternerHost, zielUrlFehler, type Umschlag, type Zustellung } from "@/lib/domain/integration-auslieferung";
 
+/** Wie lange die Namensaufloesung hoechstens dauert (sie hat von sich aus kein Zeitlimit). */
+const AUFLOESEN_ZEITLIMIT_MS = 5_000;
+
 // Der Webhook-Adapter (WMCNL-1627): sendet den Umschlag eines Ereignisses als JSON per POST an die Adresse der Integration und
 // signiert ihn mit dem gemeinsamen Geheimnis, damit das Ziel pruefen kann, dass er von Damicon kommt und nicht verfaelscht oder
 // wiederholt wurde.
@@ -42,7 +45,14 @@ export async function sendeWebhook(ziel: WebhookZiel, umschlag: Umschlag, d: Web
   // Der Name darf nicht auf eine interne Adresse zeigen: aufloesen und jede Adresse pruefen (best effort, ein Wechsel zwischen
   // Pruefung und Aufruf bleibt moeglich).
   try {
-    const adressen = await (d.aufloesen ?? ((h: string) => lookup(h, { all: true })))(url.hostname);
+    // Mit Zeitlimit: Die Namensaufloesung hat von sich aus keines, und ein haengender Name hielte den ganzen Lauf an.
+    const adressen = await Promise.race([
+      (d.aufloesen ?? ((h: string) => lookup(h, { all: true })))(url.hostname),
+      new Promise<never>((_, nein) => {
+        const uhr = setTimeout(() => nein(new Error("Zeitueberschreitung")), AUFLOESEN_ZEITLIMIT_MS);
+        uhr.unref?.();
+      }),
+    ]);
     if (adressen.length === 0 || adressen.some((a) => istInternerHost(a.address))) return { art: "abgelehnt", grund: "Adresse zeigt ins eigene Netz", status: 0 };
   } catch {
     return { art: "wiederholen", grund: "Name nicht aufloesbar", status: null };

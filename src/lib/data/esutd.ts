@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { einsAus } from "@/lib/data/util";
+import { einsAus, leseAlleZeilen } from "@/lib/data/util";
 import { istEsutdArt, sortiereMeldungen, type EsutdMeldung } from "@/lib/domain/esutd";
 
 // Offene ESUTD-Meldefristen ueber alle Pfluecker (Migration 20261025000000) -
@@ -47,12 +47,15 @@ export async function ladeOffeneEsutdFristen(): Promise<OffeneEsutdFrist[]> {
 // Abschluss, Aenderung und Beendigung als eine Liste (Sicht v_esutd_meldungen). Nur das Buero liest sie
 // (Zeilensicherheit der Tabellen). Ohne Datenbank gibt es keine Liste: erfundene Meldungen waeren Irrefuehrung.
 
-export async function ladeEsutdMeldungen(): Promise<EsutdMeldung[]> {
+/** Wie ladeEsutdMeldungen, aber ein Lesefehler wirft: Der Export darf bei einem Fehler keine leere Datei mit 200 liefern. */
+export async function ladeEsutdMeldungenStreng(): Promise<EsutdMeldung[]> {
   if (!isSupabaseConfigured()) return [];
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("v_esutd_meldungen").select("*");
-  if (error || !data) return [];
+  // Nur offene und erfasste Meldungen, in fester Reihenfolge und SEITENWEISE: Ohne beides kappt PostgREST ab 1000 Zeilen still und in beliebiger Reihenfolge.
+  const { zeilen: data } = await leseAlleZeilen((von, bis) =>
+    supabase.from("v_esutd_meldungen").select("*").in("status", ["offen", "erfasst"]).order("quelle").order("id").range(von, bis),
+  );
 
   const meldungen: EsutdMeldung[] = [];
   for (const z of data) {
@@ -75,6 +78,16 @@ export async function ladeEsutdMeldungen(): Promise<EsutdMeldung[]> {
     });
   }
   return sortiereMeldungen(meldungen);
+}
+
+/** Die Liste fuer die Ansichten: bei einem Lesefehler leer (die Seite zeigt dann "keine Meldungen") und ein Eintrag im Protokoll. */
+export async function ladeEsutdMeldungen(): Promise<EsutdMeldung[]> {
+  try {
+    return await ladeEsutdMeldungenStreng();
+  } catch (error) {
+    console.error("[damicon] ЕСУТД-Meldungen lesen fehlgeschlagen:", error instanceof Error ? error.message : error);
+    return [];
+  }
 }
 
 export interface EsutdOptionen {

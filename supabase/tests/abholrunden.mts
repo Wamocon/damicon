@@ -158,11 +158,28 @@ for (const rolle of ["admin", "ceo", "betriebsleitung", "buchhaltung"]) {
 }
 await als("brigade", async () => {
   const { rows } = await db.query(`select id from public.abholrunden where id = $1;`, [offen.runde]);
-  const { rows: nb } = await db.query<{ name: string }>(`select name from public.nachbarbetriebe order by name;`);
   check("Rechte: die Brigade liest die Runde", rows.length === 1);
-  const namen = nb.map((n) => n.name);
-  check("Rechte: die Brigade liest die Nachbarbetriebe, die in einem Stopp stehen, und keinen anderen", namen.includes("Nachbar A") && !namen.includes("Nachbar ohne Stopp"), namen.join(","));
+  // Prüfung PR #156 (15.10.2026, P1): Die Tabelle nachbarbetriebe enthält identifikationsnummer (ИИН/БИН) und identitaets_digest. Die Brigade liest
+  // sie nicht mehr, sondern nur die schmale Funktion mit den Betrieben ihrer Stopps.
+  const { rows: tabelle } = await db.query(`select id from public.nachbarbetriebe;`);
+  check("Rechte: die Brigade liest die Tabelle der Nachbarbetriebe nicht (keine Stammdaten wie ИИН/БИН)", tabelle.length === 0, `Zeilen: ${tabelle.length}`);
+  const { rows: nb } = await db.query<Record<string, unknown>>(`select * from public.abholrunde_nachbarbetriebe() order by name;`);
+  const namen = nb.map((n) => String(n.name));
+  check("Rechte: die Brigade liest über die Funktion die Nachbarbetriebe, die in einem Stopp stehen, und keinen anderen", namen.includes("Nachbar A") && !namen.includes("Nachbar ohne Stopp"), namen.join(","));
+  check("Rechte: die Funktion liefert nur Name, Ort, Anschrift, Kontakt und Koordinaten", Object.keys(nb[0] ?? {}).sort().join() === "adresse,breitengrad,id,kontakt,laengengrad,name,ort", Object.keys(nb[0] ?? {}).join());
 });
+await als("betriebsleitung", async () => {
+  const { rows } = await db.query<{ name: string }>(`select name from public.abholrunde_nachbarbetriebe();`);
+  check("Rechte: das Büro sieht über die Funktion alle Nachbarbetriebe, auch ohne Stopp", rows.some((r) => r.name === "Nachbar ohne Stopp") && rows.length >= 4, `Zeilen: ${rows.length}`);
+});
+for (const rolle of ["kunde", "picker", "erzeuger"]) {
+  await als(rolle, async () => {
+    const { rows } = await db.query(`select * from public.abholrunde_nachbarbetriebe();`);
+    check(`Rechte: ${rolle} bekommt aus der Funktion der Nachbarbetriebe nichts`, rows.length === 0);
+  });
+}
+await t.alsRolle("anon");
+await mussScheitern("Rechte: anon darf die Funktion der Nachbarbetriebe nicht aufrufen", `select * from public.abholrunde_nachbarbetriebe();`, [], "42501");
 await alsScheitert("brigade", "Rechte: die Brigade plant keine Runde", `insert into public.abholrunden (datum) values (current_date);`, []);
 await alsScheitert("brigade", "Rechte: die Brigade legt keinen Stopp an", `insert into public.abholstopps (runde_id, nachbarbetrieb_id, menge_geplant_kg) values ($1, $2, 5);`, [offen.runde, B]);
 await als("brigade", async () => {
@@ -177,6 +194,26 @@ for (const rolle of ["kunde", "picker", "erzeuger"]) {
     check(`Rechte: ${rolle} sieht keine Runde, keinen Stopp, keine Bewertung`, rows.length === 0 && s.length === 0 && v.length === 0);
   });
   await alsScheitert(rolle, `Rechte: ${rolle} plant keine Runde`, `insert into public.abholrunden (datum) values (current_date);`, []);
+}
+
+// --- 7. Stopp-Regeln (Prüfung PR #156, 15.10.2026) --------------------------------------------------------------------------------------
+{
+  const r = await runde("betriebsleitung", [A]);
+  await alsScheitert("betriebsleitung", "Stopp: ein neuer Stopp beginnt geplant, nicht schon als abgeholt (an der Geräteprüfung vorbei)",
+    `insert into public.abholstopps (runde_id, nachbarbetrieb_id, menge_geplant_kg, status, abgeholt_am, pflueckbeginn) values ($1, $2, 10, 'abgeholt', now(), now() - interval '2 hours');`, [r.runde, B], "DA015");
+  await alsScheitert("betriebsleitung", "Stopp: ein neuer Stopp trägt keine Abholmenge", `insert into public.abholstopps (runde_id, nachbarbetrieb_id, menge_geplant_kg, menge_ist_kg) values ($1, $2, 10, 5);`, [r.runde, B], "DA015");
+  await als("betriebsleitung", async () => {
+    await db.query(`update public.abholrunden set status = 'unterwegs', gestartet_am = now() where id = $1;`, [r.runde]);
+  });
+  await als("brigade", async () => {
+    await db.query(`update public.abholstopps set status = 'abgeholt', menge_ist_kg = 90, pflueckbeginn = now() - interval '30 minutes' where id = $1;`, [r.stopps[0]]);
+  });
+  await alsScheitert("brigade", "Stopp: der Pflückbeginn eines abgeholten Stopps ändert sich nicht mehr (aus Verstoß würde ok)", `update public.abholstopps set pflueckbeginn = now() - interval '5 minutes' where id = $1;`, [r.stopps[0]], "DA015");
+  await alsScheitert("brigade", "Stopp: die Abholzeit eines abgeholten Stopps ändert sich nicht mehr", `update public.abholstopps set abgeholt_am = now() - interval '3 hours' where id = $1;`, [r.stopps[0]], "DA015");
+  await als("brigade", async () => {
+    const { rows } = await db.query(`update public.abholstopps set menge_ist_kg = 95, bemerkung = 'Nachgewogen' where id = $1 returning id;`, [r.stopps[0]]);
+    check("Stopp: Menge und Bemerkung bleiben bis zum Abschluss korrigierbar", rows.length === 1);
+  });
 }
 
 t.ende("Alle Datenbank-Tests der Abholrunden gruen.");

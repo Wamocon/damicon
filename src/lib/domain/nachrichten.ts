@@ -24,6 +24,22 @@ export interface NachrichtZeile {
   erstelltAm: string;
 }
 
+/** So viele Vorbestellungen zeigt der Abschnitt im B2B-Portal hoechstens. Die Liste sagt, wenn es mehr gibt (Pruefung PR #156, 15.10.2026: Fuer aeltere fehlten
+ *  Verlauf und Schreibformular, ohne dass es jemand erfuhr). */
+export const NACHRICHTEN_ANZEIGE_GRENZE = 30;
+
+/** Reihenfolge der Vorbestellungen im Nachrichtenabschnitt: laufende (angefragt, bestaetigt) vor gelieferten vor stornierten, darin die mit dem juengsten Verlauf,
+ *  dann die juengsten Vorbestellungen; hoechstens `grenze`. */
+export function sortiereFuerNachrichten<V extends { id: string; status: string; erstelltAm: string }>(
+  vorbestellungen: readonly V[],
+  nachrichten: Record<string, NachrichtZeile[]>,
+  grenze = NACHRICHTEN_ANZEIGE_GRENZE,
+): V[] {
+  const letzte = (id: string) => nachrichten[id]?.at(-1)?.erstelltAm ?? "";
+  const rang = (v: V) => (v.status === "storniert" ? 2 : v.status === "geliefert" ? 1 : 0);
+  return [...vorbestellungen].sort((a, b) => rang(a) - rang(b) || letzte(b.id).localeCompare(letzte(a.id)) || b.erstelltAm.localeCompare(a.erstelltAm)).slice(0, grenze);
+}
+
 /** Fasst Nachrichten nach Vorbestellung zusammen, jeweils aelteste zuerst. */
 export function jeVorbestellung(zeilen: readonly NachrichtZeile[]): Record<string, NachrichtZeile[]> {
   const gruppen: Record<string, NachrichtZeile[]> = {};

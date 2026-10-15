@@ -172,4 +172,35 @@ await mussScheitern("anon darf die Sicht nicht lesen", `select * from public.v_e
   });
 }
 
+// --- 6. Nachbesserungen (Prüfung PR #156, 15.10.2026) --------------------------------------------------------------------------------
+{
+  // esutd_status_abgleichen() war security definer ohne revoke und über /rpc für jede Rolle aufrufbar.
+  await t.alsRolle("anon");
+  await mussScheitern("Nachziehen: anon ruft esutd_status_abgleichen nicht auf", `select public.esutd_status_abgleichen($1);`, [p1], "42501");
+  for (const rolle of ["admin", "betriebsleitung", "buchhaltung", "kunde"]) {
+    await als(rolle, () => mussScheitern(`Nachziehen: ${rolle} ruft esutd_status_abgleichen nicht auf`, `select public.esutd_status_abgleichen($1);`, [p1], "42501"));
+  }
+  // Die Trigger arbeiten weiter (sie sind jetzt selbst definer): ein neuer offener Abschluss macht die Person wieder offen.
+  const p3 = await pfluecker("Test Dritte", "AW-ESUTD-3");
+  await als("betriebsleitung", async () => {
+    await db.query(`insert into public.esutd_vertraege (pfluecker_id, vertragsnummer, vertrag_beginn_am) values ($1, 'V-NZ', current_date) returning id;`, [p3]);
+  });
+  check("Nachziehen: die Trigger setzen pfluecker.esutd weiterhin fort", (await esutdStatus(p3)) === "offen");
+
+  // Ein Vertrag mit erfassten Meldungen lässt sich nicht löschen (bis dahin löschte die Kaskade sie samt Bestätigung und Beleg).
+  const { rows: vz } = await db.query<{ id: string }>(`insert into public.esutd_vertraege (pfluecker_id, vertragsnummer, vertrag_beginn_am) values ($1, 'V-KASKADE', current_date - 20) returning id;`, [p3]);
+  const vk = vz[0].id;
+  await db.query(`insert into public.esutd_ereignisse (vertrag_id, art, ereignis_am, beschreibung, status, erfasst_am, bestaetigung) values ($1, 'aenderung', current_date - 5, 'Neuer Lohn', 'erfasst', public.heute_almaty(), 'BEST-1');`, [vk]);
+  await als("betriebsleitung", () => mussScheitern("Löschen: ein offener Vertrag mit erfasster Änderung bleibt (DA017), die Kaskade löscht sie nicht", `delete from public.esutd_vertraege where id = $1;`, [vk], "DA017"));
+  const { rows: bleibt } = await db.query(`select id from public.esutd_ereignisse where vertrag_id = $1 and bestaetigung = 'BEST-1';`, [vk]);
+  check("Löschen: die erfasste Änderung samt Bestätigung ist noch da", bleibt.length === 1);
+  // Mit nur offenen Ereignissen geht es weiter wie bisher (Kaskade).
+  const { rows: vo } = await db.query<{ id: string }>(`insert into public.esutd_vertraege (pfluecker_id, vertragsnummer, vertrag_beginn_am) values ($1, 'V-OFFEN', current_date - 2) returning id;`, [p3]);
+  await db.query(`insert into public.esutd_ereignisse (vertrag_id, art, ereignis_am, beschreibung) values ($1, 'aenderung', current_date, 'Noch offen');`, [vo[0].id]);
+  await als("betriebsleitung", async () => {
+    const { rows } = await db.query(`delete from public.esutd_vertraege where id = $1 returning id;`, [vo[0].id]);
+    check("Löschen: ein offener Vertrag mit nur offenen Ereignissen lässt sich löschen", rows.length === 1);
+  });
+}
+
 t.ende("Alle ЕСУТД-Datenbanktests gruen.");

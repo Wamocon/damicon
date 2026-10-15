@@ -107,4 +107,7 @@ await als("kunde", async () => {
   check("Der Kunde sieht die Messwerte seiner Lieferung samt Herkunft", rows.length === 2, rows.map((r) => r.quelle).join(","));
 });
 
+// Prüfung PR #156 (15.10.2026): logger_kennung gibt es nur bei quelle = logger (der Kommentar der Migration sagte es, der Check fehlte).
+await mussScheitern("Eine Handmessung trägt keine Logger-Kennung", `insert into public.transport_temperatur_messungen (lieferung_id, temperatur_c, geraet_zeitpunkt, quelle, logger_kennung) values ($1, 3.5, now(), 'manuell', 'TL-4711');`, [geplant], "23514");
+
 t.ende("Alle Logger-Datenbank-Tests gruen.");

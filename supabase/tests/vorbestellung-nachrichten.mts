@@ -132,4 +132,24 @@ await als("betriebsleitung", async () => {
   check("Der Verlauf beginnt mit der ersten Nachricht", rows.length === 2 && rows[0].text.startsWith("Koennt ihr"), rows.map((r) => r.text.slice(0, 20)).join(" | "));
 });
 
+// --- Anzeige im B2B-Portal (Pruefung PR #156, 15.10.2026) ----------------------------------------------------------------------------------
+// Der Abschnitt zeigte hoechstens 30 Vorbestellungen ohne Hinweis; fuer aeltere fehlten Verlauf und Schreibformular. Die Reihenfolge stellt laufende
+// vor gelieferte vor stornierte, die Liste nennt die Kuerzung.
+{
+  const { readFileSync } = await import("node:fs");
+  const { sortiereFuerNachrichten, NACHRICHTEN_ANZEIGE_GRENZE } = await import("@/lib/domain/nachrichten");
+  const v = (id: string, status: string, erstellt: string) => ({ id, status, erstelltAm: erstellt });
+  const liste = [v("alt-offen", "angefragt", "2026-01-01"), v("storno", "storniert", "2026-10-10"), v("geliefert", "geliefert", "2026-10-09"), v("neu-offen", "bestaetigt", "2026-10-01"), v("mit-verlauf", "angefragt", "2026-02-01")];
+  const nachrichten = { "mit-verlauf": [{ id: "n1", vorbestellungId: "mit-verlauf", autor: "A", rolle: "kunde", text: "x", erstelltAm: "2026-10-12T10:00:00Z" }] };
+  const sortiert = sortiereFuerNachrichten(liste, nachrichten);
+  check("Anzeige: laufende vor gelieferten vor stornierten, darin zuerst die mit dem juengsten Verlauf, dann die juengsten", sortiert.map((x) => x.id).join() === "mit-verlauf,neu-offen,alt-offen,geliefert,storno", sortiert.map((x) => x.id).join());
+  check("Anzeige: hoechstens die Grenze, und die Grenze ist 30", NACHRICHTEN_ANZEIGE_GRENZE === 30 && sortiereFuerNachrichten(liste, nachrichten, 2).length === 2);
+  const viele = Array.from({ length: 45 }, (_, i) => v(`v${i}`, i < 40 ? "angefragt" : "storniert", `2026-09-${String(10 + (i % 18)).padStart(2, "0")}`));
+  check("Anzeige: bei 45 Vorbestellungen kommen 30 laufende, keine stornierte vor einer laufenden", sortiereFuerNachrichten(viele, {}).length === 30 && sortiereFuerNachrichten(viele, {}).every((x) => x.status === "angefragt"));
+  const komponente = readFileSync("src/components/db/vorbestellung-nachrichten.tsx", "utf8");
+  check("Anzeige: die Liste nennt die Kuerzung (gezeigt von gesamt)", komponente.includes('t("gekuerzt", { gezeigt: liste.length, gesamt: vorbestellungen.length })') && komponente.includes("liste.length < vorbestellungen.length"));
+  const sprachen = ["de", "en", "kk", "ru"].map((l) => JSON.parse(readFileSync(`src/messages/${l}.json`, "utf8")).nachrichten.gekuerzt as string);
+  check("Anzeige: der Hinweis steht in vier Sprachen, mit beiden Zahlen", sprachen.every((t) => typeof t === "string" && t.includes("{gezeigt}") && t.includes("{gesamt}")));
+}
+
 t.ende("Alle Nachrichten-Tests gruen.");

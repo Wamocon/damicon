@@ -4598,6 +4598,18 @@ export type Database = {
       }
     }
     Functions: {
+      abholrunde_nachbarbetriebe: {
+        Args: never
+        Returns: {
+          adresse: string | null
+          breitengrad: number | null
+          id: string
+          kontakt: string | null
+          laengengrad: number | null
+          name: string
+          ort: string | null
+        }[]
+      }
       abrechnung_je_nachbarbetrieb: {
         Args: never
         Returns: {

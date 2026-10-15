@@ -41,19 +41,26 @@ async function leseRunden(id: string | null): Promise<AbholRundeZeile[]> {
       .from("abholrunden")
       .select(
         `id, datum, status, fahrzeug, notiz, distanz_km, dauer_minuten, ab_erstem_stopp_minuten, routen_geometrie, gestartet_am, kuehlhaus_an,
-         abholstopps ( id, nachbarbetrieb_id, reihenfolge, menge_geplant_kg, status, menge_ist_kg, pflueckbeginn, abgeholt_am, bemerkung,
-                       nachbarbetriebe ( name, ort, adresse, kontakt, breitengrad, laengengrad ), sorten ( name ) )`,
+         abholstopps ( id, nachbarbetrieb_id, reihenfolge, menge_geplant_kg, status, menge_ist_kg, pflueckbeginn, abgeholt_am, bemerkung, sorten ( name ) )`,
       )
       .order("datum", { ascending: false })
       .order("created_at", { ascending: false });
-  const [runden, bewertung] = await Promise.all([
-    id === null ? anfrage.limit(RUNDEN_MAX) : anfrage.eq("id", id).limit(1),
-    supabase.from("v_abholstopps_kuehlkette").select("stopp_id, minuten_bis_kuehlung, ergebnis"),
+  const runden = await (id === null ? anfrage.limit(RUNDEN_MAX) : anfrage.eq("id", id).limit(1));
+  const rundenIds = (runden.data ?? []).map((r) => r.id);
+  // Die Bewertung nur zu den gelesenen Runden: Ohne Filter kappt PostgREST bei 1000 Zeilen still, und eine aeltere Runde bekaeme kein Ergebnis
+  // (das versiegelte Nachweisdokument zeigte dann "-" und liesse den Verstosskasten weg; Pruefung PR #156, 15.10.2026).
+  // Die Nachbarbetriebe kommen aus der schmalen Funktion, nicht aus der Tabelle: Dort liegen ИИН/БИН, die die Brigade nicht lesen darf.
+  const [bewertung, betriebe] = await Promise.all([
+    rundenIds.length > 0
+      ? supabase.from("v_abholstopps_kuehlkette").select("stopp_id, minuten_bis_kuehlung, ergebnis").in("runde_id", rundenIds)
+      : Promise.resolve({ data: [], error: null }),
+    supabase.rpc("abholrunde_nachbarbetriebe"),
   ]);
-  const lesefehler = runden.error ?? bewertung.error;
+  const lesefehler = runden.error ?? bewertung.error ?? betriebe.error;
   if (lesefehler) console.error("[damicon] Abholrunden lesen fehlgeschlagen:", lesefehler.message);
 
   const bewertet = new Map((bewertung.data ?? []).filter((b) => b.stopp_id !== null).map((b) => [b.stopp_id as string, b]));
+  const betriebById = new Map((betriebe.data ?? []).map((b) => [b.id, b]));
 
   return (
     (runden.data ?? [])
@@ -62,7 +69,7 @@ async function leseRunden(id: string | null): Promise<AbholRundeZeile[]> {
         const stopps = (r.abholstopps ?? [])
           .filter((s) => istStoppStatus(s.status))
           .map((s): AbholStoppZeile => {
-            const betrieb = einsAus(s.nachbarbetriebe);
+            const betrieb = betriebById.get(s.nachbarbetrieb_id);
             const b = bewertet.get(s.id);
             return {
               id: s.id,

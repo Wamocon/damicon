@@ -6,6 +6,7 @@ import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, fehlerMitWerten, okMitWerten, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { text, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
 import { LOGGER_MAX_BYTES, liesLoggerDatei, waehleMesswerte } from "@/lib/domain/logger-import";
+import { leseAlleZeilen } from "@/lib/data/util";
 import { istUuid } from "@/lib/utils";
 
 // Temperaturlogger-Datei importieren (WMCNL-1517, Stufe 1). Dieselbe
@@ -41,13 +42,19 @@ export async function transportLoggerImportieren(_status: AktionsStatus, formDat
 
   const supabase = await createClient();
   // Was zu dieser Lieferung schon gespeichert ist: ein erneuter Import derselben Datei legt nichts doppelt an.
-  const { data: vorhandene, error: ladeFehler } = await supabase
-    .from("transport_temperatur_messungen")
-    .select("gemessen_am")
-    .eq("lieferung_id", lieferungId);
-  if (ladeFehler) return dbFehler(ladeFehler);
+  // SEITENWEISE: Ein Logger liefert rund 1440 Werte (einer je Minute). Ohne Seiten kappt PostgREST bei 1000 Zeilen still, und ein zweiter Import
+  // derselben Datei legte rund 440 Dubletten an (Pruefung PR #156, 15.10.2026). Feste Reihenfolge, sonst verschieben sich die Seiten.
+  let vorhandene: { gemessen_am: string | null }[];
+  try {
+    ({ zeilen: vorhandene } = await leseAlleZeilen((von, bis) =>
+      supabase.from("transport_temperatur_messungen").select("gemessen_am").eq("lieferung_id", lieferungId).order("gemessen_am").order("id").range(von, bis),
+    ));
+  } catch (error) {
+    console.error("[damicon] Logger-Import: vorhandene Messungen lesen fehlgeschlagen:", error instanceof Error ? error.message : error);
+    return fehler("fehler.unbekannt");
+  }
 
-  const vorhanden = new Set((vorhandene ?? []).map((v) => (v.gemessen_am ? new Date(v.gemessen_am).toISOString() : "")));
+  const vorhanden = new Set(vorhandene.map((v) => (v.gemessen_am ? new Date(v.gemessen_am).toISOString() : "")));
   const auswahl = waehleMesswerte(gelesen.messwerte, new Date(), vorhanden);
   const werte = {
     anzahl: auswahl.uebernehmen.length,

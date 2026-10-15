@@ -36,6 +36,8 @@ export interface WirtschaftlichkeitDaten {
   ist: IstEintrag[];
   staende: StandKopf[];
   menge: MengeAbgeleitet | null;
+  /** Mindestens eine Abfrage ist fehlgeschlagen: die Zahlen sind unvollstaendig (fehlende Annahmen ersetzt das Modell). Dann haelt niemand einen Stand fest. */
+  lesefehler: boolean;
 }
 
 const herkunftVon = (wert: unknown): PostenHerkunft | undefined => (wert === "belegt" || wert === "geschaetzt" ? wert : undefined);
@@ -63,6 +65,7 @@ function modell(): WirtschaftlichkeitDaten {
     ist: [],
     staende: [],
     menge: null,
+    lesefehler: false,
   };
 }
 
@@ -84,6 +87,7 @@ export async function ladeWirtschaftlichkeit(): Promise<WirtschaftlichkeitDaten>
   const standardAnnahmen = modellAnnahmen();
   return {
     quelle: "datenbank",
+    lesefehler: lesefehler !== null,
     annahmen: a
       ? {
           kalkulationszins: Number(a.kalkulationszins),

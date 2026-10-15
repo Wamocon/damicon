@@ -1,9 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requirePermission, type SessionProfile } from "@/lib/auth";
+import type { SessionProfile } from "@/lib/auth";
 import type { Action } from "@/lib/rbac";
-import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import { dbFehler, fehler, ok, type AktionsStatus } from "@/lib/actions/status";
+import { mitRecht } from "@/lib/actions/zugriff";
 import { text, zahl, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
 import { geokodiereAdresse } from "@/lib/tourenplanung/nominatim-client";
 import { berechneOptimierteTour, minutenAbErstemStopp, stoppPositionen } from "@/lib/tourenplanung/osrm-client";
@@ -17,12 +18,8 @@ import { istUuid } from "@/lib/utils";
 // (Zeilensicherheit, Trigger abholrunde_pruefen und abholstopp_pruefen, Migration 20261207100000): der Ablauf, die Plausibilitaet
 // der Zeiten und die Unveraenderlichkeit nach dem Abschluss.
 
-async function zugriff(aktion: Action): Promise<{ profil: SessionProfile } | { status: AktionsStatus }> {
-  try {
-    return { profil: await requirePermission("logistik", aktion) };
-  } catch (error) {
-    return { status: zugriffsFehler(error) };
-  }
+function zugriff(aktion: Action) {
+  return mitRecht("logistik", aktion);
 }
 
 const protokoll = (profil: SessionProfile, aktion: string, id: string | null, metadata: Record<string, Json> = {}) =>

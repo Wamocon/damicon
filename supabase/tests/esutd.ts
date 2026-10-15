@@ -112,6 +112,15 @@ for (const sprache of ["de", "en", "kk", "ru"]) {
   check(`${sprache}: alle ${noetig.length} Texte des Meldeprozesses vorhanden`, fehlt.length === 0, fehlt.join(", "));
 }
 
+// --- Vertrag mit erfassten Meldungen bleibt (Pruefung PR #156, 15.10.2026) -----------------------------------------------------------------
+{
+  const lies = (pfad: string) => readFileSync(pfad, "utf8").replace(/\r\n/g, "\n");
+  const status = lies("src/lib/actions/status.ts");
+  check("DA017: der Fehlercode der Datenbank wird auf die Meldung abgebildet", /case "DA017":[\s\S]{0,300}fehler\("fehler\.esutdErfassteMeldungen"\)/.test(status));
+  const alleSprachen = ["de", "en", "kk", "ru"].every((s) => lies(`src/messages/${s}.json`).includes('"esutdErfassteMeldungen"'));
+  check("DA017: die Meldung steht in allen vier Sprachen", alleSprachen);
+}
+
 if (fehler > 0) {
   console.log(`\n${fehler} Pruefung(en) fehlgeschlagen.`);
   process.exit(1);

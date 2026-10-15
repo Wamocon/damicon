@@ -364,8 +364,10 @@ export function AktionsMeldung({ status }: { status: AktionsStatus }) {
   const Symbol = gut ? CheckCircle2 : AlertCircle;
 
   return (
+    // Eine Fehlermeldung sagt role="alert" (wird sofort vorgelesen), ein Erfolg role="status" (hoeflich). Eine neu eingefuegte Statusregion mit Text sagt nicht
+    // jede Vorlesehilfe an (Pruefung PR #156, 15.10.2026).
     <p
-      role="status"
+      role={gut ? "status" : "alert"}
       className={`flex items-start gap-1.5 rounded-lg border p-2 schrift-label font-semibold ${
         gut
           ? "border-success/25 bg-success/[0.08] text-success"

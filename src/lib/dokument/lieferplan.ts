@@ -1,6 +1,6 @@
 import { absatz, leerHinweis, marke, tabelle, type DokumentEingabe } from "@/lib/dokument/damicon-dokument";
 import { dateinameFuer, kennungFuer, tagText, versiegeln, zahlText, type DokumentKontext } from "@/lib/dokument/kontext";
-import type { LieferplanQuelle } from "@/lib/domain/lieferplan";
+import { lieferplanEintraege, type LieferplanQuelle } from "@/lib/domain/lieferplan";
 
 // Lieferplan als Dokument (WMCNL-1472): die kommenden Liefertermine auf einem Blatt, daneben die Kalenderdatei (ICS). Dieselben
 // Quellen und Regeln wie die Kalenderdatei: fest eingeplante Lieferungen auf einer Tour und Vorbestellungen mit Wunschtermin,
@@ -16,15 +16,10 @@ interface Zeile {
 }
 
 export function lieferplanZeilen(q: LieferplanQuelle, heute: string): Zeile[] {
-  const feste = q.lieferungen.filter((l) => l.status === "geplant" && l.tourDatum !== null && l.tourDatum >= heute);
-  const mitTour = new Set(feste.map((l) => l.vorbestellungId).filter((id): id is string => id !== null));
-  const sorteJe = new Map(q.vorbestellungen.map((v) => [v.id, v.sorte]));
-  return [
-    ...feste.map((l): Zeile => ({ datum: l.tourDatum as string, art: "lieferung", status: l.status, kunde: l.kunde, sorte: l.vorbestellungId ? (sorteJe.get(l.vorbestellungId) ?? null) : null, mengeKg: l.mengeKg })),
-    ...q.vorbestellungen
-      .filter((v) => v.liefertermin !== null && v.liefertermin >= heute && !mitTour.has(v.id))
-      .map((v): Zeile => ({ datum: v.liefertermin as string, art: "vorbestellung", status: v.status, kunde: v.kunde, sorte: v.sorte, mengeKg: v.mengeKg })),
-  ].sort((a, b) => a.datum.localeCompare(b.datum) || (a.kunde ?? "").localeCompare(b.kunde ?? ""));
+  // Dieselbe Regel wie die Kalenderdatei (domain/lieferplan.ts): Statusfilter, Tour vor Wunschtermin, nichts Vergangenes.
+  return lieferplanEintraege(q, heute)
+    .map((e): Zeile => ({ datum: e.tag, art: e.art, status: e.status, kunde: e.kunde, sorte: e.sorte, mengeKg: e.mengeKg }))
+    .sort((a, b) => a.datum.localeCompare(b.datum) || (a.kunde ?? "").localeCompare(b.kunde ?? ""));
 }
 
 export function baueLieferplanDokument(q: LieferplanQuelle, heute: string, zeigeKunde: boolean, x: DokumentKontext): DokumentEingabe {

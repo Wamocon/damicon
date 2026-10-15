@@ -42,14 +42,33 @@ export interface AuslieferungsErgebnis {
   gescheitert: number;
   /** Eintraege, die ein anderer Lauf schon genommen hatte. */
   uebersprungen: number;
+  /** Eintraege, die noch faellig waren, als das Zeitbudget des Laufs aufgebraucht war: sie bleiben faellig und kommen im naechsten Lauf dran. */
+  zurueckgestellt: number;
 }
 
-/** Liefert bis zu `limit` faellige Eintraege aus. */
-export async function liefereAus(speicher: AuslieferungSpeicher, sender: Sender, jetzt: Date, limit = 20): Promise<AuslieferungsErgebnis> {
-  const ergebnis: AuslieferungsErgebnis = { versucht: 0, zugestellt: 0, wiederholen: 0, gescheitert: 0, uebersprungen: 0 };
+/** Wie lange ein Lauf neue Eintraege beginnt. Jeder Versuch kann bis zum Zeitlimit des Adapters (10 s) dauern, bei 20 Eintraegen nacheinander also
+ *  mehr als die 60 Sekunden, die Route und Aktion haben: Ein Lauf, der mitten im Versuch abbricht, sendet nach dem Senden, aber vor dem Speichern,
+ *  und der Eintrag geht nach der Sperre noch einmal hinaus (Pruefung PR #156, 15.10.2026). */
+export const LAUF_BUDGET_MS = 40_000;
+
+/** Liefert bis zu `limit` faellige Eintraege aus, solange das Zeitbudget reicht (`uhr` liefert Millisekunden, fuer Tests austauschbar). */
+export async function liefereAus(
+  speicher: AuslieferungSpeicher,
+  sender: Sender,
+  jetzt: Date,
+  limit = 20,
+  budgetMs = LAUF_BUDGET_MS,
+  uhr: () => number = Date.now,
+): Promise<AuslieferungsErgebnis> {
+  const ergebnis: AuslieferungsErgebnis = { versucht: 0, zugestellt: 0, wiederholen: 0, gescheitert: 0, uebersprungen: 0, zurueckgestellt: 0 };
   const faellig = await speicher.faellige(jetzt, limit);
+  const beginn = uhr();
 
   for (const { eintrag, integration } of faellig) {
+    if (uhr() - beginn >= budgetMs) {
+      ergebnis.zurueckgestellt += 1;
+      continue;
+    }
     const bis = new Date(jetzt.getTime() + SPERRE_MINUTEN * 60_000);
     if (!(await speicher.beanspruche(eintrag.id, eintrag.naechsterVersuchAm, bis))) {
       ergebnis.uebersprungen += 1;

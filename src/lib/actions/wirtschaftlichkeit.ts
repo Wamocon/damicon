@@ -2,9 +2,10 @@
 
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { requirePermission, type SessionProfile } from "@/lib/auth";
+import type { SessionProfile } from "@/lib/auth";
 import type { Action } from "@/lib/rbac";
-import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import { dbFehler, fehler, ok, type AktionsStatus } from "@/lib/actions/status";
+import { mitRecht } from "@/lib/actions/zugriff";
 import { text, zahl, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
 import { ladeWirtschaftlichkeit } from "@/lib/data/wirtschaftlichkeit";
 import { tagInZone } from "@/lib/domain/tageszeit";
@@ -27,12 +28,8 @@ import { istUuid } from "@/lib/utils";
 // Verteidigungslinie, die Zeilensicherheit der vier Tabellen (Migration 20261207090000) die zweite: dort stehen die
 // Rechte (admin, ceo ueber admin, buchhaltung), die Wertebereiche und die Unveraenderlichkeit der Staende ein zweites Mal.
 
-async function zugriff(aktion: Action): Promise<{ profil: SessionProfile } | { status: AktionsStatus }> {
-  try {
-    return { profil: await requirePermission("wirtschaftlichkeit", aktion) };
-  } catch (error) {
-    return { status: zugriffsFehler(error) };
-  }
+function zugriff(aktion: Action) {
+  return mitRecht("wirtschaftlichkeit", aktion);
 }
 
 const protokoll = (profil: SessionProfile, aktion: string, id: string | null, metadata: Record<string, Json> = {}) =>
@@ -239,6 +236,9 @@ export async function standFesthalten(_status: AktionsStatus, formData: FormData
   if (name.length < 1 || name.length > BEZEICHNUNG_MAX_ZEICHEN) return fehler("fehler.wiStandName");
 
   const daten = await ladeWirtschaftlichkeit();
+  // Ein Stand ist unveraenderlich (nur select und insert). Fehlte beim Lesen eine Abfrage, rechnete die Seite mit Modellwerten und der Stand hielte falsche
+  // Kurse und Posten fuer immer fest (Pruefung PR #156, 15.10.2026). Dann lieber nichts festhalten.
+  if (daten.quelle === "datenbank" && daten.lesefehler) return fehler("fehler.wiStandLesefehler");
   if (daten.quelle !== "datenbank" || daten.posten.length === 0) return fehler("fehler.wiStandLeer");
 
   const snapshot = baueSnapshot(new Date().toISOString(), daten.posten, daten.ist, daten.annahmen, daten.menge);

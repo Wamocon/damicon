@@ -2,8 +2,9 @@
 
 import type { PostgrestError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { requirePermission, type SessionProfile } from "@/lib/auth";
-import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import type { SessionProfile } from "@/lib/auth";
+import { dbFehler, fehler, ok, type AktionsStatus } from "@/lib/actions/status";
+import { mitRecht } from "@/lib/actions/zugriff";
 import { text, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
 import { esutdEreignisFehler, esutdErfassenFehler, esutdVertragFehler } from "@/lib/domain/esutd";
 import { tagInZone } from "@/lib/domain/tageszeit";
@@ -13,12 +14,8 @@ import { istUuid } from "@/lib/utils";
 // "update") ist die erste Verteidigungslinie, RLS und Trigger (Migration 20261207080000) die zweite.
 // Das Protokoll haelt nur Schluessel fest, keine Namen: wer gemeint ist, steht in der Liste.
 
-async function zugriff(): Promise<{ profil: SessionProfile } | { status: AktionsStatus }> {
-  try {
-    return { profil: await requirePermission("personal", "update") };
-  } catch (error) {
-    return { status: zugriffsFehler(error) };
-  }
+function zugriff() {
+  return mitRecht("personal", "update");
 }
 
 function protokoll(profil: SessionProfile, aktion: string, id: string | null, metadata: Record<string, string | number | boolean | null>) {

@@ -1,8 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requirePermission, type SessionProfile } from "@/lib/auth";
-import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import type { SessionProfile } from "@/lib/auth";
+import { dbFehler, fehler, ok, type AktionsStatus } from "@/lib/actions/status";
+import { mitRecht } from "@/lib/actions/zugriff";
 import { text, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
 import { checkpunktFehler, VORSCHLAG_PUNKTE } from "@/lib/domain/foerder-checkliste";
 import { tagInZone } from "@/lib/domain/tageszeit";
@@ -13,12 +14,8 @@ import { istUuid } from "@/lib/utils";
 // Verteidigungslinie, RLS (foerder_checkpunkte_*_buero, Migration 20261207060000) die zweite. Anlegen und
 // Aendern verlangen "update" auf dem Dossier, denn eine Checkliste ist Teil seiner Pflege.
 
-async function zugriff(): Promise<{ profil: SessionProfile } | { status: AktionsStatus }> {
-  try {
-    return { profil: await requirePermission("foerdermittel", "update") };
-  } catch (error) {
-    return { status: zugriffsFehler(error) };
-  }
+function zugriff() {
+  return mitRecht("foerdermittel", "update");
 }
 
 function protokoll(profil: SessionProfile, aktion: string, dossierId: string, metadata: Record<string, string | number | boolean | null>) {

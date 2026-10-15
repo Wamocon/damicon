@@ -8,6 +8,9 @@ import { liefereFaelligeAus } from "@/lib/integration/speicher";
 // CRON_SECRET gesetzt ist. Der Lauf nutzt den Dienstschluessel des Servers und liefert hoechstens 20 Eintraege je Aufruf aus.
 // Ob und wie oft der Dienst die Adresse aufruft, stellt der Betreiber ein; ohne Aufruf gibt es den Knopf der Administration.
 
+// Der Lauf beginnt keinen neuen Eintrag mehr nach 40 Sekunden (LAUF_BUDGET_MS); die Route darf ihn bis zum Ende des letzten Versuchs fortsetzen.
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   const erwartet = process.env.CRON_SECRET;
   if (!erwartet) return Response.json({ fehler: "nicht eingerichtet" }, { status: 503, headers: { "Cache-Control": "no-store" } });

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { DokumentEingabe, RahmenTexte } from "@/lib/dokument/damicon-dokument";
+import { tagInZone } from "@/lib/domain/tageszeit";
 
 // Was jede Dokumentvorlage braucht: Uebersetzer je Namensraum, Zeitpunkt, Sprache, Ersteller. Die Vorlagen sind
 // reine Funktionen (Daten rein, Dokument raus) und damit ohne Datenbank und ohne Server testbar. Geladen wird in
@@ -72,14 +73,16 @@ export function versiegeln(e: Omit<DokumentEingabe, "siegel">): DokumentEingabe 
 
 /** Dokumentnummer: Kuerzel, Tag und die ersten Zeichen der Pruefsumme des Inhalts oder einer Kennung. */
 export function kennungFuer(kuerzel: string, jetzt: Date, schluessel: string): string {
-  const tag = jetzt.toISOString().slice(0, 10).replace(/-/g, "");
+  // Der Tag in Almaty, wie das Deckblatt ihn zeigt: Ein Nachweis um 02:00 Almaty am 15.10. (21:00 UTC am 14.10.) hiess sonst "...-20261014-..."
+  // und trug auf dem Deckblatt den 15.10. (Pruefung PR #156, 15.10.2026).
+  const tag = tagInZone(jetzt).replace(/-/g, "");
   return `${kuerzel}-${tag}-${createHash("sha256").update(schluessel, "utf8").digest("hex").slice(0, 8)}`;
 }
 
 /** Dateiname ohne Sonderzeichen: Titel und Datum. */
 export function dateinameFuer(titel: string, jetzt: Date): string {
   const sauber = titel.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "");
-  return `${sauber}-${jetzt.toISOString().slice(0, 10)}`;
+  return `${sauber}-${tagInZone(jetzt)}`;
 }
 
 // ---- Formate ---------------------------------------------------------------------------------------------------------------

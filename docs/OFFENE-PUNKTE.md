@@ -55,6 +55,12 @@ Drei Spalten bestimmen, wie es weitergeht:
 | Wirtschaftlichkeit (2470), Werte | Das Erfassen steht. Jahresnutzen, Kalkulationszins und vermarktete Menge sind „in Klärung“ (Jira-Kommentar vom 24.09.2026) und stehen als geschätzt, bis sie belegt sind. Die Seite zeigt „offen“, wo Angaben fehlen. | Geschäftsführung |
 | Hypercare-Plan (1465) | Der Entwurf nennt Vorschläge. Go-Live-Datum, Dauer, Bereitschaftszeiten, Reaktionsziele, Meldekanal und die Namen der Rollen stehen im Abschnitt „Offene Entscheidungen“ des Plans. | Geschäftsführung, Betreiber |
 | Plattform in Kasachstan | Umzug nach der Beauftragung und vor dem Produktivbetrieb (Entscheidung vom 13.10.2026). KI- und Sprachdienste werden zuerst analysiert. | Niko |
+| Prüfung PR #156 (15.10.2026): Rechte der Buchhaltung | Die Policies der Abholrunden (planen, löschen) und der Nachrichten (schreiben) nennen `has_office_access()`, also auch die Buchhaltung. `rbac.ts` gibt ihr dort nur `b2b_portal:view` und kein `logistik`. Entweder die Matrix erweitern oder die Policies auf die Rollen der Matrix einengen. | Niko |
+| Prüfung PR #156: Brigade ändert geplante Runden | Die Brigade darf Datum und Fahrzeug einer geplanten (nicht gestarteten) Runde ändern, ohne Spalten- oder Phasenbegrenzung der Policy. Gewollt, oder nur das Büro bis zum Start? | Betreiber |
+| Prüfung PR #156: Herkunft "Messprotokoll" | Die Brigade darf Messungen als `logger` eintragen (die Datenbank unterscheidet Import und Handeingabe nicht). Die Kennzeichnung ist damit kein Fälschungsschutz. Wer sie als Nachweis nutzt, braucht einen Importweg über eine eigene Funktion oder Rolle. | Niko |
+| Prüfung PR #156: Konto löschen | Ein Konto, das einen bestätigten ЭСФ-Beleg, einen Stand der Wirtschaftlichkeit oder eine abgeschlossene Runde angelegt hat, lässt sich nicht löschen (`on delete set null` stößt auf die Unveränderlichkeit). Konten sperren statt löschen, oder die Fremdschlüssel wie bei den Nachrichten weglassen. | Niko |
+| Prüfung PR #156: Wiederöffnen eines ЕСУТД-Abschlusses | Das Wiederöffnen leert Bestätigung und Beleg, ohne Verlauf in der Datenbank. Gewollt (Korrektur) oder soll ein Verlauf bleiben? | Betreiber |
+| Prüfung PR #156: Löschweg für Nachrichten | Nachrichten zu Vorbestellungen sind unveränderlich und tragen Klarnamen. Für Datenschutzfälle gibt es keinen Löschweg. | Datenschutz, Betreiber |
 
 ## 2. Braucht Entwicklungsarbeit
 
@@ -76,6 +82,16 @@ Drei Spalten bestimmen, wie es weitergeht:
 | ЕСУТД, Altbestand | `pfluecker.esutd` folgt den Meldungen nur für Personen mit mindestens einem Vertrag. Personen ohne erfassten Vertrag behalten ihren alten Wert. |
 | Bildvergleich | Referenzbilder aus dem ersten CI-Lauf holen (Artefakt `visuelle-referenz`), prüfen, nach `e2e/visuell.spec.ts-snapshots/` kopieren, einchecken. Bis dahin erzeugt die Pipeline sie nur. |
 | Browsertests | Geschäftsführung und Erzeuger sind nur im Zugriffstest abgedeckt, nicht in einem fachlichen Ablauf. |
+| Prüfung PR #156: lange Funktionen | `WirtschaftlichkeitErfassung` (247 Zeilen), `baueWirtschaftlichkeitDokument` (173) und `baueModell` (146) gehören zerlegt. Erst ein Charakterisierungstest (Ausgabe vor dem Umbau festhalten), dann aufteilen. |
+| Prüfung PR #156: Doppelungen in der Oberfläche | Tenge-Formatierer viermal (`esf-ansicht`, `wirtschaftlichkeit-erfassung`, `wirtschaftlichkeit-modell`, `dokument/kontext`), Tagesformatierer mit `T00:00:00Z` achtmal, Auswahllisten der Wirtschaftlichkeit doppelt, Überfälligkeitsregel der Förder-Checkliste dreifach, "kg" fest in ЭСФ und Vorbestellungen (ru, kk lateinisch). Gemeinsame Helfer, wenn die Bereiche das nächste Mal angefasst werden. |
+| Prüfung PR #156: Doppelklick | `modellwerteUebernehmen` und `checklisteVorschlagUebernehmen` zählen erst und fügen dann ein. Unique-Index auf (monat, kategorie, waehrung) für die Ist-Werte, Pending-Schutz an den Knöpfen. |
+| Prüfung PR #156: Abholrunde atomar | `abholrundeErstellen` legt Runde und Stopps in zwei Einfügungen an, die Rücknahme kann scheitern. Eine Funktion in der Datenbank oder eine Transaktion. |
+| Prüfung PR #156: Geokodierung | `nachbarAdresseSetzen` verlangt nur `update`, die Brigade hat es, und die Adresse geht an Nominatim vor der Zeilensicherheit, ohne Ratenbegrenzung. Besser `create` und eine Grenze je Person. |
+| Prüfung PR #156: Protokoll | `protokolliere` schluckt Fehler: Ein ЕСУТД-Export mit Namen und Ausweisnummern kann ohne Eintrag herausgehen. Für den Export den Fehler nicht verschlucken. |
+| Prüfung PR #156: Auslieferung, Härtung | `geheimnis_name` auf ein festes Präfix (`DAMICON_HOOK_`) beschränken, sonst kann die Administration `CRON_SECRET` als Signaturschlüssel eintragen. Adressfilter um 192.0.0.0/24, 198.18.0.0/15, 224.0.0.0/4, 240.0.0.0/4, NAT64 und 6to4 ergänzen. |
+| Prüfung PR #156: Datensuche | `ILIKE '%x%'` ohne Trigramm-Index: Bei wachsenden Tabellen sequenzielle Suche. `pg_trgm` und GIN-Index. |
+| Prüfung PR #156: Block-Risiko | `risiko_parameter` ist für jede Rolle lesbar und ohne Plausibilität (Schwelle hoch kleiner als mittel). Für Erzeuger und Buchhaltung liefert die Sicht zu niedrige Werte, weil Rotationsplan und Kühlketten für sie unsichtbar sind. |
+| Prüfung PR #156: Rundung | `esf.ts` rundet über Gleitkomma (1,005 ergibt 1,00), `wirtschaftlichkeit-formulare.tsx` rundet beim Vorbefüllen (6,125 % wird beim nächsten Speichern 6,13 %). |
 
 ## 3. Braucht Inhalte
 
@@ -89,7 +105,7 @@ Drei Spalten bestimmen, wie es weitergeht:
 
 ## Was mit dem Zusammenführen live geht
 
-Die Migrationen `20261207000000` bis `20261207110000` laufen nach dem Merge automatisch auf der gemeinsamen Datenbank (`datenbank-migration.yml`). Im Pull Request laufen sie vorher auf `public_preview`.
+Die Migrationen `20261207000000` bis `20261208010000` laufen nach dem Merge automatisch auf der gemeinsamen Datenbank (`datenbank-migration.yml`). Im Pull Request laufen sie vorher auf `public_preview`.
 
 | Datei | Wirkung |
 |---|---|
@@ -105,5 +121,7 @@ Die Migrationen `20261207000000` bis `20261207110000` laufen nach dem Merge auto
 | `20261207090000_wirtschaftlichkeit_erfassung` | Tabellen `wirtschaftlichkeit_annahmen` (eine Zeile mit den bisherigen Werten, Dateneinfügung), `wirtschaftlichkeit_posten`, `wirtschaftlichkeit_ist`, `wirtschaftlichkeit_staende` (unveränderlich), Sicht `v_vermarktete_menge` |
 | `20261207100000_abholrunden` | Vier Spalten an `nachbarbetriebe`, Tabellen `abholrunden` und `abholstopps`, Sicht `v_abholstopps_kuehlkette`, **neue Lese-Policy** der Brigade auf `nachbarbetriebe` (nur Betriebe in einem Stopp) |
 | `20261207110000_integration_auslieferung` | Spalten an `integrationen` (alle Integrationen bleiben aus) und `integration_outbox` (bestehende Zeilen bekommen den Standard für den nächsten Versuch), Funktion `integration_einreihen`, Trigger auf `esf_belege`, **nimmt Tabellenrechte zurück** (`update` auf `integrationen`, `insert`, `update`, `delete` auf `integration_outbox` für `authenticated`) und vergibt sie spaltenweise an die Administration, neue Update-Policies |
+| `20261208000000_wissen_weitere_bereiche_pgvector` | Spalte `weitere_bereiche` an `wissen_chunks`, Wächter und Liste angepasst, **Datenänderung**: 13 Risiko-Dokumente (65 Abschnitte) gelten zusätzlich im Bereich `risiko`, idempotent, nur über die genannten `quelle_id` |
+| `20261208010000_cleanup_pr156_schutz` | Nachbesserungen aus der Prüfung: **Policy der Brigade auf `nachbarbetriebe` entfällt** (Funktion `abholrunde_nachbarbetriebe()` ersetzt sie, ohne ИИН/БИН), ЕСУТД-Funktionen nicht mehr über `/rpc` aufrufbar, Löschschutz für Verträge mit erfassten Meldungen (DA017), Stopp-Regeln der Abholrunden (Beginn immer geplant, Zeiten nach der Abholung fest), neuer Idempotenzschlüssel der ЭСФ-Meldungen, Check auf `logger_kennung`. Keine Datenänderung |
 
-Keine Migration ändert oder löscht bestehende Zeilen. Die Rechterücknahme in `20261207110000` ändert nichts an dem, was heute möglich ist: es gab dort keine Update-Policy, also auch kein wirksames Schreibrecht.
+Keine Migration außer `20261208000000` ändert oder löscht bestehende Zeilen (dort nur ein Eintrag in der neuen Spalte). Die Rechterücknahme in `20261207110000` ändert nichts an dem, was heute möglich ist: es gab dort keine Update-Policy, also auch kein wirksames Schreibrecht.

@@ -12,8 +12,9 @@ import { readFileSync } from "node:fs";
 const R = process.cwd().split("\\").join("/") + "/";
 const dateien = execSync("git ls-files src", { cwd: R, encoding: "utf8" }).split("\n").filter((f) => /\.(tsx?)$/.test(f));
 
-/** Aufrufe, an denen eine Prüfung erkennbar ist (getSessionProfile auch ohne Klammern: als Abhängigkeit übergeben). */
-const PRUEF = /requirePermission\(|getSessionProfile\b|requireAal2Aktuell\(|auth\.getUser\(|verwaltungsProfil\(|sitzungFuerRoute\(/;
+/** Aufrufe, an denen eine Prüfung erkennbar ist (getSessionProfile auch ohne Klammern: als Abhängigkeit übergeben). mitRecht() ist der Helfer in
+ *  src/lib/actions/zugriff.ts, der requirePermission() aufruft und den Fehler als Status zurückgibt (seit 15.10.2026, vorher sechs Kopien). */
+const PRUEF = /requirePermission\(|mitRecht\(|getSessionProfile\b|requireAal2Aktuell\(|auth\.getUser\(|verwaltungsProfil\(|sitzungFuerRoute\(/;
 
 /** Bewusst ohne Anmeldung erreichbar, jeweils mit Grund. */
 const OEFFENTLICH = new Map([

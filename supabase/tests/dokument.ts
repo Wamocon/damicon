@@ -11,7 +11,8 @@ import en from "@/messages/en.json";
 import kk from "@/messages/kk.json";
 import ru from "@/messages/ru.json";
 import { dokumentAlsHtml, esc, tabelle } from "@/lib/dokument/damicon-dokument";
-import { pruefsumme, rahmenTexte, type DokumentKontext, type Uebersetzer } from "@/lib/dokument/kontext";
+import { dateinameFuer, kennungFuer, pruefsumme, rahmenTexte, type DokumentKontext, type Uebersetzer } from "@/lib/dokument/kontext";
+import { lieferplanEintraege, lieferplanTermine } from "@/lib/domain/lieferplan";
 import { baueEsutdDokument } from "@/lib/dokument/esutd";
 import { baueEsfBelegDokument, baueEsfRegisterDokument } from "@/lib/dokument/esf";
 import { baueFoerderDokument } from "@/lib/dokument/foerderung";
@@ -237,6 +238,29 @@ for (const fall of FAELLE) {
   check("Lieferplan: Tour vor Wunsch, Doppelung und Vergangenes fehlen", zeilen.length === 2 && zeilen[0].art === "lieferung" && zeilen[0].datum === "2026-10-15" && zeilen[1].art === "vorbestellung" && zeilen[1].datum === "2026-10-20", JSON.stringify(zeilen.map((z) => [z.datum, z.art])));
   const kunde = baueLieferplanDokument(PLAN, HEUTE, false, x);
   check("Lieferplan: der Kunde sieht keine Kundenspalte", !kunde.abschnitte[0].html.includes("<th>Kunde</th>") && baueLieferplanDokument(PLAN, HEUTE, true, x).abschnitte[0].html.includes("<th>Kunde</th>"));
+}
+
+// --- Tag in Almaty statt UTC, eine Regel fuer den Lieferplan (Pruefung PR #156, 15.10.2026) --------------------------------------------------
+{
+  // 02:00 Almaty am 15.10.2026 ist 21:00 UTC am 14.10.2026: Kennung und Dateiname tragen den Tag des Deckblatts (15.10.).
+  const nachts = new Date("2026-10-14T21:00:00Z");
+  check("Kennung: der Tag ist der Tag in Almaty, nicht der in UTC", kennungFuer("ABHOL", nachts, "x").startsWith("ABHOL-20261015-"), kennungFuer("ABHOL", nachts, "x"));
+  check("Dateiname: dasselbe, mit dem Tag in Almaty", dateinameFuer("Abholauftrag", nachts) === "Abholauftrag-2026-10-15", dateinameFuer("Abholauftrag", nachts));
+  const mittags = new Date("2026-10-14T09:00:00Z");
+  check("Kennung und Dateiname: mittags (UTC und Almaty am selben Tag) wie bisher", kennungFuer("PLAN", mittags, "x").startsWith("PLAN-20261014-") && dateinameFuer("Plan", mittags) === "Plan-2026-10-14");
+  check("Kennung: Mitternacht Almaty (19:00 UTC am Vortag) gehoert schon zum neuen Tag", kennungFuer("PLAN", new Date("2026-10-14T19:00:00Z"), "x").startsWith("PLAN-20261015-"));
+
+  const mitStorno = {
+    ...PLAN,
+    vorbestellungen: [...PLAN.vorbestellungen, { id: "v4", status: "storniert", mengeKg: 77, liefertermin: "2026-10-22", sorte: "Polka", kunde: "Storno" }, { id: "v5", status: "geliefert", mengeKg: 11, liefertermin: "2026-10-23", sorte: "Polka", kunde: "Fertig" }],
+  };
+  const eintraege = lieferplanEintraege(mitStorno, HEUTE);
+  check("Lieferplan: stornierte und gelieferte Vorbestellungen stehen nicht im Plan (eine Regel, das Dokument hatte den Filter nicht)", !eintraege.some((e) => e.id === "v4" || e.id === "v5") && eintraege.length === 2, JSON.stringify(eintraege.map((e) => e.id)));
+  const dokZeilen = lieferplanZeilen(mitStorno, HEUTE);
+  const ics = lieferplanTermine(mitStorno, HEUTE, () => ({ titel: "t", beschreibung: "b" }));
+  check("Lieferplan: Dokument und Kalenderdatei zeigen dieselben Termine", dokZeilen.length === ics.length && dokZeilen.length === eintraege.length);
+  check("Lieferplan: die Kalenderdatei behaelt Kennung und Zustand (Lieferung fest, bestaetigt fest, angefragt vorlaeufig)",
+    ics.some((t) => t.uid === "lieferung-p1@damicon" && t.zustand === "CONFIRMED") && ics.some((t) => t.uid === "vorbestellung-v2@damicon" && t.zustand === "TENTATIVE") && !ics.some((t) => t.uid === "vorbestellung-v1@damicon"));
 }
 
 // --- 5. Rechte je Art --------------------------------------------------------------------------------------------------------------

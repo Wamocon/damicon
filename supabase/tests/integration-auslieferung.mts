@@ -228,6 +228,24 @@ const zeile = (id: string, extra: Partial<Zeile> = {}): Zeile => ({
   check("Lauf: hoechstens so viele Eintraege wie das Limit je Lauf", erg.versucht === 20 && stapel.filter((z) => z.status === "sent").length === 20);
 }
 
+// --- Zeitbudget (Pruefung PR #156, 15.10.2026) ------------------------------------------------------------------------------------------
+{
+  const stapel = Array.from({ length: 20 }, (_, i) => zeile(`b${i}`));
+  let jetztMs = 0;
+  // Jeder Versuch kostet 12 Sekunden Uhrzeit: nach 40 Sekunden beginnt der Lauf keinen neuen Eintrag mehr.
+  const sender: Sender = async () => {
+    jetztMs += 12_000;
+    return bewerteAntwort(200);
+  };
+  const erg = await liefereAus(speicher(stapel), sender, JETZT, 20, 40_000, () => jetztMs);
+  check("Zeitbudget: nach 40 Sekunden beginnt der Lauf keinen neuen Eintrag, die uebrigen bleiben zurueckgestellt", erg.versucht === 4 && erg.zugestellt === 4 && erg.zurueckgestellt === 16, JSON.stringify(erg));
+  check("Zeitbudget: zurueckgestellte Eintraege bleiben unberuehrt faellig (kein Versuch gezaehlt, nicht gesperrt)", stapel.filter((z) => z.status === "pending" && z.versuche === 0).length === 16);
+  const weiter = await liefereAus(speicher(stapel), async () => bewerteAntwort(200), JETZT, 20);
+  check("Zeitbudget: der naechste Lauf liefert den Rest aus", weiter.zugestellt === 16 && stapel.every((z) => z.status === "sent"));
+  const unbegrenzt = await liefereAus(speicher([zeile("x1"), zeile("x2")]), async () => bewerteAntwort(200), JETZT);
+  check("Zeitbudget: bei wenigen Eintraegen aendert sich nichts (zurueckgestellt 0)", unbegrenzt.zugestellt === 2 && unbegrenzt.zurueckgestellt === 0);
+}
+
 // --- 6. Texte -----------------------------------------------------------------------------------------------------------------------------------
 {
   const holen = (objekt: unknown, pfad: string): unknown => pfad.split(".").reduce<unknown>((o, teil) => (o as Record<string, unknown> | undefined)?.[teil], objekt);
