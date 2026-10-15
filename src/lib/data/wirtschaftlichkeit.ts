@@ -3,6 +3,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import type { Json } from "@/lib/database.types";
 import {
   ANNAHME_SCHLUESSEL,
+  herleiteSchwundNutzen,
+  prozentAusText,
   istNutzenKategorie,
   istPostenArt,
   istWaehrung,
@@ -14,6 +16,8 @@ import {
   type MengeAbgeleitet,
   type Posten,
   type PostenHerkunft,
+  type SchwundEingabe,
+  type SchwundErgebnis,
   type StandSnapshot,
 } from "@/lib/domain/wirtschaftlichkeit-erfassung";
 import { heuteIso } from "@/lib/data/util";
@@ -148,4 +152,39 @@ export async function ladeStand(id: string): Promise<{ kopf: StandKopf; snapshot
   const snapshot = liesSnapshot(data.snapshot);
   if (!snapshot) return null;
   return { kopf: { id: data.id, bezeichnung: data.bezeichnung, standAm: data.stand_am }, snapshot };
+}
+
+export interface SchwundHerleitung {
+  eingabe: SchwundEingabe;
+  ergebnis: SchwundErgebnis;
+  /** Zeitraum der Chargen, auf denen die heutige Quote beruht. */
+  von: string | null;
+  bis: string | null;
+}
+
+/**
+ * Die Herleitung des Schwund-Nutzens aus der Baseline und den Chargen (Migration 20261208140000). Null ohne Datenbank oder wenn das Lesen scheitert: eine
+ * Herleitung aus erfundenen Zahlen waere schlimmer als keine.
+ */
+export async function ladeSchwundHerleitung(annahmen: Pick<Annahmen, "vollkostenVorherTenge" | "kurse">): Promise<SchwundHerleitung | null> {
+  if (!isSupabaseConfigured()) return null;
+  const supabase = await createClient();
+  const [baseline, betrieb] = await Promise.all([
+    supabase.from("kpi_baseline").select("baseline_wert").eq("key", "verlustquote").maybeSingle(),
+    supabase.rpc("schwund_herleitung"),
+  ]);
+  if (baseline.error || betrieb.error) {
+    console.error("[damicon] Schwund-Herleitung lesen fehlgeschlagen:", (baseline.error ?? betrieb.error)?.message);
+    return null;
+  }
+  const zeile = betrieb.data?.[0] ?? null;
+  const eingabe: SchwundEingabe = {
+    verlustVorherProzent: prozentAusText(baseline.data?.baseline_wert ?? null),
+    verlustJetztProzent: zeile ? Number(zeile.verlust_prozent) : null,
+    gesamtMengeKg: zeile ? Number(zeile.gesamt_kg) : null,
+    chargen: zeile ? Number(zeile.chargen) : 0,
+    kostenJeKgTenge: annahmen.vollkostenVorherTenge,
+    kursEurTenge: annahmen.kurse.eurTenge,
+  };
+  return { eingabe, ergebnis: herleiteSchwundNutzen(eingabe), von: zeile?.von ?? null, bis: zeile?.bis ?? null };
 }

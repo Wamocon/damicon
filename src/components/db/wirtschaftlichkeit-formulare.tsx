@@ -9,6 +9,7 @@ import {
   modellwerteUebernehmen,
   postenEntfernen,
   postenSpeichern,
+  schwundNutzenUebernehmen,
   standFesthalten,
 } from "@/lib/actions/wirtschaftlichkeit";
 import { AktionsMeldung, Auswahl, Feld, MiniAktion, PfadFeld, SubmitKnopf, useBehalteEingaben } from "@/components/db/formular-kit";
@@ -129,6 +130,11 @@ export function IstEntfernenKnopf({ id }: { id: string }) {
 export function ModellKnopf() {
   const t = useTranslations("wirtschaftlichkeitErfassung");
   return <MiniAktion aktion={modellwerteUebernehmen} felder={{}} label={t("modell.knopf")} />;
+}
+
+export function SchwundKnopf() {
+  const t = useTranslations("wirtschaftlichkeitErfassung");
+  return <MiniAktion aktion={schwundNutzenUebernehmen} felder={{}} label={t("schwund.knopf")} />;
 }
 
 export function IstFormular({ monat }: { monat: string }) {

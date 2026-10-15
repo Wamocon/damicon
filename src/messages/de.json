@@ -1025,7 +1025,8 @@
       "kontoEntsperrt": "Konto von „{wert}“ entsperrt.",
       "passwortGeaendert": "Passwort geändert.",
       "dokumentVersion": "Neue Version „{wert}“ angelegt.",
-      "videoEntfernt": "Videodatei entfernt."
+      "videoEntfernt": "Videodatei entfernt.",
+      "wiSchwundUebernommen": "Der Schwund-Nutzen ist als Posten übernommen."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1201,7 +1202,8 @@
       "risikoAusschuss": "Der kritische Ausschuss muss über dem Zielwert liegen.",
       "risikoGewichte": "Mindestens ein Gewicht muss über null liegen.",
       "versionSchonErsetzt": "Dieser Nachweis hat schon eine neuere Version. Bitte die Seite neu laden und die aktuelle Version erneuern.",
-      "versionRegel": "Eine neue Version hat dieselbe Kategorie wie die ersetzte, und ihre Vorversion ändert sich nicht mehr."
+      "versionRegel": "Eine neue Version hat dieselbe Kategorie wie die ersetzte, und ihre Vorversion ändert sich nicht mehr.",
+      "wiSchwundOffen": "Aus den Betriebsdaten lässt sich zurzeit kein Nutzen herleiten."
     },
     "einladungen": {
       "erfolg": {
@@ -5362,6 +5364,28 @@
       "name": "Bezeichnung des Standes",
       "nameBeispiel": "z. B. Quartalsstand Q1 2027",
       "festhalten": "Stand festhalten"
+    },
+    "schwund": {
+      "titel": "Schwund-Nutzen aus den Betriebsdaten",
+      "lead": "Was der geringere Schwund wert ist, hergeleitet aus der Verlustquote vor der Einführung und der der letzten 365 Tage.",
+      "vorher": "Verlustquote vor der Einführung (Baseline)",
+      "jetzt": "Verlustquote der letzten 365 Tage",
+      "menge": "Jahresmenge (Menge plus Ausschuss)",
+      "kosten": "Vollkosten je Kilogramm",
+      "offen": "offen",
+      "zeitraum": "Grundlage: {chargen} Chargen von {von} bis {bis}.",
+      "ergebnis": "Vermiedene Verluste: {kg} kg im Jahr, bewertet mit den Vollkosten: {nutzen} EUR im Jahr.",
+      "hinweis": "Ein Vorschlag, kein Messwert. Bewertet wird mit den Vollkosten, nicht mit dem Verkaufserlös, das ist vorsichtig. Der Posten bekommt die Herkunft „geschätzt“ und lässt sich wie jeder andere ändern.",
+      "knopf": "Als Nutzen-Posten übernehmen",
+      "bezeichnung": "Schwund (aus der Verlustquote hergeleitet)",
+      "notiz": "Verlustquote von {vorher} % auf {jetzt} %, Jahresmenge {menge} kg, Vollkosten {kosten} KZT je kg, vermiedene Verluste {kg} kg.",
+      "grund": {
+        "keineBaseline": "Die Baseline nennt keine Verlustquote als Zahl. Sie wird in den Kennzahlen der Baseline gepflegt.",
+        "keineBetriebsdaten": "Es gibt noch keine Chargen mit Menge und Ausschuss aus den letzten 365 Tagen.",
+        "zuWenigDaten": "Zu wenige Chargen für eine belastbare Quote (mindestens zehn). Die Herleitung folgt, sobald mehr erfasst sind.",
+        "keineKosten": "Es fehlen die Vollkosten je Kilogramm in den Annahmen.",
+        "keineBesserung": "Die Verlustquote liegt nicht unter der Baseline: daraus folgt kein Nutzen."
+      }
     }
   },
   "abholrundenAnsicht": {

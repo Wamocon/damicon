@@ -5013,6 +5013,16 @@ export type Database = {
           name: string
         }[]
       }
+      schwund_herleitung: {
+        Args: { p_stichtag?: string }
+        Returns: {
+          bis: string
+          chargen: number
+          gesamt_kg: number
+          verlust_prozent: number
+          von: string
+        }[]
+      }
       risiko_parameter_setzen: {
         Args: { p_grund: string | null; p_schluessel: string; p_wert: number }
         Returns: undefined

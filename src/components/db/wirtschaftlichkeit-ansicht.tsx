@@ -30,9 +30,10 @@ import {
   type Rechnung,
 } from "@/components/db/wirtschaftlichkeit-modell";
 import { WirtschaftlichkeitErfassung } from "@/components/db/wirtschaftlichkeit-erfassung";
+import { WirtschaftlichkeitHerleitung } from "@/components/db/wirtschaftlichkeit-herleitung";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
-import { ladeStand, ladeWirtschaftlichkeit } from "@/lib/data/wirtschaftlichkeit";
+import { ladeSchwundHerleitung, ladeStand, ladeWirtschaftlichkeit } from "@/lib/data/wirtschaftlichkeit";
 import { tagInZone } from "@/lib/domain/tageszeit";
 import {
   barwertIstPunkte,
@@ -167,6 +168,8 @@ export async function WirtschaftlichkeitAnsicht({ pfad, standId }: { pfad: strin
   });
 
   const darfSchreiben = quelle === "erfasst" && hasPermission(profil?.role, "wirtschaftlichkeit", "create");
+  // Die Herleitung aus den Betriebsdaten gehoert zur laufenden Rechnung, nicht zu einem festgehaltenen Stand (der haelt seine Werte fest).
+  const herleitung = quelle === "erfasst" ? await ladeSchwundHerleitung(annahmen) : null;
 
   return (
     <div className="space-y-6">
@@ -224,6 +227,8 @@ export async function WirtschaftlichkeitAnsicht({ pfad, standId }: { pfad: strin
           heute={heute}
         />
       ) : null}
+
+      {herleitung ? <WirtschaftlichkeitHerleitung herleitung={herleitung} darfSchreiben={darfSchreiben} /> : null}
 
       <Card ton="innen" className="p-4">
         <p className="schrift-dense text-muted-foreground">{t("fussnote")}</p>

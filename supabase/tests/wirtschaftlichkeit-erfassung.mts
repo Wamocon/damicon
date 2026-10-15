@@ -174,4 +174,42 @@ await mussScheitern("Stand: Bezeichnung nicht leer", `insert into public.wirtsch
   });
 }
 
+// --- Schwund-Herleitung (Migration 20261208140000) ----------------------------------------------------------------------------------------------
+{
+  const { rows: bloecke } = await db.query<{ id: string }>(`select id from public.reihenbloecke limit 1;`);
+  const block = bloecke[0].id;
+  await db.query(`delete from public.chargen where code like 'SCHW-%';`);
+  const leer = await db.query(`select * from public.schwund_herleitung();`);
+  const vorher = (await db.query<{ n: number }>(`select count(*)::int as n from public.chargen where menge_kg + ausschuss_kg > 0 and ernte_datum <= public.heute_almaty() and ernte_datum > public.heute_almaty() - 365;`)).rows[0].n;
+  check("Schwund-Herleitung: ohne passende Chargen gibt es keine Zeile", (vorher === 0) === (leer.rows.length === 0));
+  // Zwei Chargen im Fenster (90 kg + 10 kg Ausschuss, 190 kg + 10 kg), eine zu alt (ausserhalb der 365 Tage), eine ohne Menge.
+  await db.query(
+    `insert into public.chargen (code, reihenblock_id, menge_kg, ausschuss_kg, ernte_datum) values
+       ('SCHW-1', $1, 90, 10, public.heute_almaty() - 10),
+       ('SCHW-2', $1, 190, 10, public.heute_almaty() - 20),
+       ('SCHW-ALT', $1, 10, 90, public.heute_almaty() - 400),
+       ('SCHW-LEER', $1, 0, 0, public.heute_almaty() - 5);`,
+    [block],
+  );
+  const { rows } = await db.query<{ verlust_prozent: string; gesamt_kg: string; chargen: number }>(`select verlust_prozent::text, gesamt_kg::text, chargen from public.schwund_herleitung();`);
+  const grundlage = (await db.query<{ ausschuss: string; gesamt: string; n: number }>(
+    `select sum(ausschuss_kg)::text as ausschuss, sum(menge_kg + ausschuss_kg)::text as gesamt, count(*)::int as n from public.chargen where menge_kg + ausschuss_kg > 0 and ernte_datum <= public.heute_almaty() and ernte_datum > public.heute_almaty() - 365;`,
+  )).rows[0];
+  const soll = Math.round((10000 * Number(grundlage.ausschuss)) / Number(grundlage.gesamt)) / 100;
+  check("Schwund-Herleitung: Quote und Menge der Chargen der letzten 365 Tage, ohne zu alte und leere", rows.length === 1 && Number(rows[0].verlust_prozent) === soll && Number(rows[0].gesamt_kg) === Number(grundlage.gesamt) && rows[0].chargen === grundlage.n, JSON.stringify([rows[0], grundlage, soll]));
+  check("Schwund-Herleitung: die alte Charge (400 Tage) und die leere zaehlen nicht", rows[0].chargen === grundlage.n && Number(grundlage.gesamt) >= 300);
+  for (const rolle of ["admin", "ceo", "buchhaltung"]) {
+    await als(rolle, async () => {
+      const r = await db.query(`select * from public.schwund_herleitung();`);
+      check(`Schwund-Herleitung: ${rolle} bekommt die Betriebszahlen`, r.rows.length === 1);
+    });
+  }
+  await t.alsRolle("anon");
+  await mussScheitern("Schwund-Herleitung: anon ruft die Funktion nicht auf (42501)", `select * from public.schwund_herleitung();`, [], "42501");
+  await t.alsAdmin();
+  const { rows: baseline } = await db.query<{ baseline_wert: string | null }>(`select baseline_wert from public.kpi_baseline where key = 'verlustquote';`);
+  check("Schwund-Herleitung: die Baseline nennt die Verlustquote als Prozentangabe (8,4 %)", baseline[0]?.baseline_wert === "8,4 %", JSON.stringify(baseline));
+  await db.query(`delete from public.chargen where code like 'SCHW-%';`);
+}
+
 t.ende("Alle Datenbank-Tests der Wirtschaftlichkeit gruen.");

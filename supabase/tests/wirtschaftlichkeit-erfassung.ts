@@ -38,6 +38,10 @@ import {
   postenFehler,
   rechneStand,
   kapitalwertBeiZinsen,
+  herleiteSchwundNutzen,
+  prozentAusText,
+  SCHWUND_MIN_CHARGEN,
+  type SchwundEingabe,
   roiIstPunkte,
   schwaechste,
   summiere,
@@ -291,6 +295,26 @@ const VORGABE: Posten[] = [posten("investition", CAPEX_EUR), posten("betrieb", O
   check("Zins-Check: beim Zins der Annahme kommt der Kapitalwert der Kennzahl heraus", nahe(kapitalwertBeiZinsen(s, [ANNAHMEN.kalkulationszins])[0], s.kennzahlen.kapitalwert, 4));
   const offen = rechneStand([posten("investition", 1000)], ANNAHMEN, null);
   check("Zins-Check: fehlt eine der drei Arten, gibt es keine Werte statt geratener", kapitalwertBeiZinsen(offen, [0.16, 0.2]).every((w) => w === null) && kapitalwertBeiZinsen(s, []).length === 0);
+}
+
+// --- Schwund-Nutzen aus den Betriebsdaten (15.10.2026) ----------------------------------------------------------------------------------------
+{
+  const basis: SchwundEingabe = { verlustVorherProzent: 8.4, verlustJetztProzent: 5.9, gesamtMengeKg: 100_000, chargen: 40, kostenJeKgTenge: 1500, kursEurTenge: 500 };
+  const r = herleiteSchwundNutzen(basis);
+  // (8,4 minus 5,9) Prozent von 100.000 kg sind 2.500 kg, mal 1.500 KZT sind 3.750.000 KZT, durch 500 sind 7.500 EUR.
+  check("Schwund: 2,5 Punkte weniger Verlust bei 100.000 kg und 1.500 KZT je kg ergeben 7.500 EUR im Jahr", r.stand === "ok" && r.vermiedeneKg === 2500 && r.nutzenEurJahr === 7500, JSON.stringify(r));
+  const grund = (e: Partial<SchwundEingabe>) => {
+    const x = herleiteSchwundNutzen({ ...basis, ...e });
+    return x.stand === "offen" ? x.grund : "ok";
+  };
+  check("Schwund: ohne Baseline-Quote bleibt es offen", grund({ verlustVorherProzent: null }) === "keineBaseline");
+  check("Schwund: ohne Quote oder Menge der Betriebsdaten bleibt es offen", grund({ verlustJetztProzent: null }) === "keineBetriebsdaten" && grund({ gesamtMengeKg: null }) === "keineBetriebsdaten" && grund({ gesamtMengeKg: 0 }) === "keineBetriebsdaten");
+  check("Schwund: unter zehn Chargen ist die Quote nicht belastbar", grund({ chargen: SCHWUND_MIN_CHARGEN - 1 }) === "zuWenigDaten" && grund({ chargen: SCHWUND_MIN_CHARGEN }) === "ok");
+  check("Schwund: ohne Kosten je Kilogramm oder Kurs bleibt es offen", grund({ kostenJeKgTenge: null }) === "keineKosten" && grund({ kostenJeKgTenge: 0 }) === "keineKosten" && grund({ kursEurTenge: 0 }) === "keineKosten");
+  check("Schwund: keine Besserung ergibt keinen Nutzen (gleich oder schlechter als die Baseline)", grund({ verlustJetztProzent: 8.4 }) === "keineBesserung" && grund({ verlustJetztProzent: 12 }) === "keineBesserung");
+  check("Schwund: nicht endliche Zahlen werden nicht gerechnet", grund({ verlustVorherProzent: Number.NaN }) === "keineBaseline" && grund({ verlustJetztProzent: Number.POSITIVE_INFINITY }) === "keineBetriebsdaten");
+  check("Prozent: aus Text, Komma und Punkt", prozentAusText("8,4 %") === 8.4 && prozentAusText("12 %") === 12 && prozentAusText(" 6.5% ") === 6.5);
+  check("Prozent: Grenzen, Spannen und Text sind keine Zahl", ["< 6 %", "6 bis 8 %", "ca. 8 %", "", "8,4"].every((x) => prozentAusText(x) === null) && prozentAusText(null) === null);
 }
 
 if (fehler > 0) {

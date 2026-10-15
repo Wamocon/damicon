@@ -459,3 +459,51 @@ export function annahmenFehler(e: {
   if (e.echtbetriebMonat !== "" && monatAusEingabe(e.echtbetriebMonat) === null) return "wiMonat";
   return null;
 }
+
+// --- Schwund-Nutzen aus den Betriebsdaten (15.10.2026) ------------------------------------------------------------------------------------------
+//
+// Der geringere Schwund ist ein Nutzen, den die Betriebsdaten belegen koennen: Die Verlustquote vor der Einfuehrung steht in der Baseline (kpi_baseline), die heutige
+// folgt aus den Chargen (Ausschuss gegen Menge plus Ausschuss). Jedes Kilogramm, das nicht mehr verloren geht, hat Vollkosten verursacht, die sonst umsonst waeren:
+//
+//   vermiedene kg   = (Quote vorher minus Quote jetzt) / 100 mal Jahresmenge (Menge plus Ausschuss der letzten 365 Tage)
+//   Nutzen je Jahr  = vermiedene kg mal Vollkosten je kg (Tenge) / Kurs (Tenge je Euro)
+//
+// Bewusst vorsichtig: Bewertet wird mit den Vollkosten, nicht mit dem Verkaufserloes. Der Erloes wuerde den Nutzen erhoehen, haengt aber von Preis und Absatz ab, die
+// Kosten sind belegt. Die Herleitung ist ein Vorschlag mit sichtbarer Eingabe, kein Messwert; der Posten bekommt die Herkunft "geschaetzt".
+
+/** Weniger Chargen tragen keine Quote: eine einzelne schlechte oder gute Ernte waere das Ergebnis. */
+export const SCHWUND_MIN_CHARGEN = 10;
+
+export interface SchwundEingabe {
+  /** Verlustquote vor der Einfuehrung in Prozent (Baseline). */
+  verlustVorherProzent: number | null;
+  /** Verlustquote der letzten 365 Tage in Prozent. */
+  verlustJetztProzent: number | null;
+  /** Menge plus Ausschuss der letzten 365 Tage in kg. */
+  gesamtMengeKg: number | null;
+  chargen: number;
+  kostenJeKgTenge: number | null;
+  kursEurTenge: number;
+}
+
+export type SchwundGrund = "keineBaseline" | "keineBetriebsdaten" | "zuWenigDaten" | "keineKosten" | "keineBesserung";
+
+export type SchwundErgebnis = { stand: "ok"; vermiedeneKg: number; nutzenEurJahr: number } | { stand: "offen"; grund: SchwundGrund };
+
+export function herleiteSchwundNutzen(e: SchwundEingabe): SchwundErgebnis {
+  const positiv = (n: number | null): n is number => n !== null && Number.isFinite(n) && n > 0;
+  if (e.verlustVorherProzent === null || !Number.isFinite(e.verlustVorherProzent)) return { stand: "offen", grund: "keineBaseline" };
+  if (e.verlustJetztProzent === null || !Number.isFinite(e.verlustJetztProzent) || !positiv(e.gesamtMengeKg)) return { stand: "offen", grund: "keineBetriebsdaten" };
+  if (e.chargen < SCHWUND_MIN_CHARGEN) return { stand: "offen", grund: "zuWenigDaten" };
+  if (!positiv(e.kostenJeKgTenge) || !positiv(e.kursEurTenge)) return { stand: "offen", grund: "keineKosten" };
+  if (e.verlustJetztProzent >= e.verlustVorherProzent) return { stand: "offen", grund: "keineBesserung" };
+  const vermiedeneKg = ((e.verlustVorherProzent - e.verlustJetztProzent) / 100) * e.gesamtMengeKg;
+  return { stand: "ok", vermiedeneKg: Math.round(vermiedeneKg), nutzenEurJahr: Math.round((vermiedeneKg * e.kostenJeKgTenge) / e.kursEurTenge) };
+}
+
+/** Eine Prozentangabe aus Text ("8,4 %"); null bei allem anderen, auch bei Spannen und Grenzen ("< 6 %"). */
+export function prozentAusText(text: string | null): number | null {
+  if (text === null) return null;
+  const treffer = /^\s*(\d+(?:[.,]\d+)?)\s*%\s*$/.exec(text);
+  return treffer ? Number(treffer[1].replace(",", ".")) : null;
+}

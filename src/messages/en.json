@@ -1025,7 +1025,8 @@
       "kontoEntsperrt": "Account of \"{wert}\" unblocked.",
       "passwortGeaendert": "Password changed.",
       "dokumentVersion": "New version “{wert}” created.",
-      "videoEntfernt": "Video file removed."
+      "videoEntfernt": "Video file removed.",
+      "wiSchwundUebernommen": "The loss benefit was adopted as an item."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1201,7 +1202,8 @@
       "risikoAusschuss": "The critical reject rate must be above the target.",
       "risikoGewichte": "At least one weight must be above zero.",
       "versionSchonErsetzt": "This proof already has a newer version. Please reload the page and renew the current version.",
-      "versionRegel": "A new version has the same category as the one it replaces, and its predecessor can no longer be changed."
+      "versionRegel": "A new version has the same category as the one it replaces, and its predecessor can no longer be changed.",
+      "wiSchwundOffen": "No benefit can currently be derived from the operating data."
     },
     "einladungen": {
       "erfolg": {
@@ -5362,6 +5364,28 @@
       "name": "Name of the snapshot",
       "nameBeispiel": "e.g. quarterly snapshot Q1 2027",
       "festhalten": "Save snapshot"
+    },
+    "schwund": {
+      "titel": "Loss benefit from operating data",
+      "lead": "What the lower loss is worth, derived from the loss rate before introduction and that of the last 365 days.",
+      "vorher": "Loss rate before introduction (baseline)",
+      "jetzt": "Loss rate of the last 365 days",
+      "menge": "Annual volume (quantity plus rejects)",
+      "kosten": "Full cost per kilogram",
+      "offen": "open",
+      "zeitraum": "Basis: {chargen} batches from {von} to {bis}.",
+      "ergebnis": "Losses avoided: {kg} kg per year, valued at full cost: {nutzen} EUR per year.",
+      "hinweis": "A proposal, not a measurement. It is valued at full cost, not at the sales revenue, which is cautious. The item gets the origin “estimated” and can be changed like any other.",
+      "knopf": "Adopt as benefit item",
+      "bezeichnung": "Loss (derived from the loss rate)",
+      "notiz": "Loss rate from {vorher} % to {jetzt} %, annual volume {menge} kg, full cost {kosten} KZT per kg, losses avoided {kg} kg.",
+      "grund": {
+        "keineBaseline": "The baseline does not state a loss rate as a number. It is maintained in the baseline metrics.",
+        "keineBetriebsdaten": "There are no batches with quantity and rejects from the last 365 days yet.",
+        "zuWenigDaten": "Too few batches for a reliable rate (at least ten). The derivation follows once more are recorded.",
+        "keineKosten": "The full cost per kilogram is missing in the assumptions.",
+        "keineBesserung": "The loss rate is not below the baseline: no benefit follows."
+      }
     }
   },
   "abholrundenAnsicht": {

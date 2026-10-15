@@ -7,7 +7,7 @@ import type { Action } from "@/lib/rbac";
 import { dbFehler, fehler, ok, type AktionsStatus } from "@/lib/actions/status";
 import { mitRecht } from "@/lib/actions/zugriff";
 import { text, zahl, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
-import { ladeWirtschaftlichkeit } from "@/lib/data/wirtschaftlichkeit";
+import { ladeSchwundHerleitung, ladeWirtschaftlichkeit } from "@/lib/data/wirtschaftlichkeit";
 import { tagInZone } from "@/lib/domain/tageszeit";
 import {
   ANNAHME_SCHLUESSEL,
@@ -300,4 +300,51 @@ export async function modellwerteUebernehmen(_status: AktionsStatus, formData: F
   await protokoll(z.profil, "wirtschaftlichkeit.modellwerte_uebernommen", null, { posten: MODELL_POSTEN.length });
   aktualisiere(formData);
   return ok("ok.wiModellUebernommen");
+}
+
+/**
+ * Den aus den Betriebsdaten hergeleiteten Schwund-Nutzen als Posten uebernehmen (Migration 20261208140000). Der Server rechnet selbst, aus der Baseline, den
+ * Chargen und den Annahmen; eine Zahl aus dem Formular gibt es nicht. Ein Posten dieser Herleitung wird fortgeschrieben (gleiche Bezeichnung), nicht verdoppelt.
+ */
+export async function schwundNutzenUebernehmen(_status: AktionsStatus, formData: FormData): Promise<AktionsStatus> {
+  const z = await zugriff("create");
+  if ("status" in z) return z.status;
+
+  const daten = await ladeWirtschaftlichkeit();
+  if (daten.quelle !== "datenbank" || daten.lesefehler) return fehler("fehler.wiSchwundOffen");
+  const herleitung = await ladeSchwundHerleitung(daten.annahmen);
+  if (!herleitung || herleitung.ergebnis.stand !== "ok") return fehler("fehler.wiSchwundOffen");
+  const { nutzenEurJahr, vermiedeneKg } = herleitung.ergebnis;
+  const e = herleitung.eingabe;
+
+  const t = await getTranslations("wirtschaftlichkeitErfassung.schwund");
+  const bezeichnung = t("bezeichnung");
+  const notiz = t("notiz", {
+    vorher: e.verlustVorherProzent ?? 0,
+    jetzt: e.verlustJetztProzent ?? 0,
+    menge: Math.round(e.gesamtMengeKg ?? 0),
+    kosten: e.kostenJeKgTenge ?? 0,
+    kg: vermiedeneKg,
+  });
+  const zeile = { art: "nutzen", kategorie: "schwund", bezeichnung, betrag: nutzenEurJahr, waehrung: "EUR", datum: tagInZone(new Date()), herkunft: "geschaetzt", notiz };
+
+  const supabase = await createClient();
+  const { data: vorhanden, error: leseFehler } = await supabase
+    .from("wirtschaftlichkeit_posten")
+    .select("id")
+    .eq("art", "nutzen")
+    .eq("kategorie", "schwund")
+    .eq("bezeichnung", bezeichnung)
+    .limit(1)
+    .maybeSingle();
+  if (leseFehler) return dbFehler(leseFehler);
+
+  const { data, error } = vorhanden
+    ? await supabase.from("wirtschaftlichkeit_posten").update(zeile).eq("id", vorhanden.id).select("id").single()
+    : await supabase.from("wirtschaftlichkeit_posten").insert({ ...zeile, erfasst_von_profil_id: z.profil.id }).select("id").single();
+  if (error) return dbFehler(error);
+
+  await protokoll(z.profil, "wirtschaftlichkeit.schwund_uebernommen", data.id, { betrag: nutzenEurJahr, vermiedene_kg: vermiedeneKg, ersetzt: Boolean(vorhanden) });
+  aktualisiere(formData);
+  return ok("ok.wiSchwundUebernommen");
 }
