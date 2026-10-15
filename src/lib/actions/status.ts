@@ -105,6 +105,10 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // esutd_vertrag_loeschen_pruefen() (Pruefung PR #156): ein Vertrag mit erfassten Aenderungen oder Beendigungen bleibt,
       // die Kaskade haette sie samt Bestaetigung und Beleg geloescht.
       return fehler("fehler.esutdErfassteMeldungen");
+    case "DA018":
+      // vorbestellung_nachricht_schuetzen(), transport_logger_quelle_pruefen() und die Unveraenderlichkeit des ЕСУТД-Verlaufs (15.10.2026):
+      // die Zeile ist unveraenderlich, oder die Herkunft "logger" setzt nur der Import.
+      return fehler("fehler.unveraenderlich");
     case "DA012":
       // vorbestellung_nachricht_vorbereiten() (WMCNL-1472): zu einer stornierten
       // Vorbestellung gibt es keine neuen Nachrichten.

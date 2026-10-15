@@ -3,6 +3,7 @@ import { Download } from "lucide-react";
 import { Aufklapper, Section } from "@/components/ui/kit";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { NachrichtFormular } from "@/components/db/nachricht-formular";
+import { NachrichtAnonymisieren } from "@/components/db/nachricht-anonymisieren";
 import { ladeNachrichten } from "@/lib/data/nachrichten";
 import { sortiereFuerNachrichten } from "@/lib/domain/nachrichten";
 import type { VorbestellungZeile } from "@/lib/domain/vorbestellungen";
@@ -34,10 +35,13 @@ export async function VorbestellungNachrichten({
   vorbestellungen,
   darfSchreiben,
   zeigeKunde,
+  darfAnonymisieren = false,
 }: {
   vorbestellungen: readonly VorbestellungZeile[];
   darfSchreiben: boolean;
   zeigeKunde: boolean;
+  /** Datenschutz: Administration und Geschaeftsfuehrung (compliance:manage). */
+  darfAnonymisieren?: boolean;
 }) {
   const [nachrichten, t, rollenT, format] = await Promise.all([
     ladeNachrichten(),
@@ -68,7 +72,15 @@ export async function VorbestellungNachrichten({
                         <span className="font-semibold text-foreground">{n.autor}</span> ({rollenT(n.rolle as never)}) ·{" "}
                         {format.dateTime(new Date(n.erstelltAm), { dateStyle: "medium", timeStyle: "short" })}
                       </p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{n.text}</p>
+                      <p className={`mt-1 whitespace-pre-wrap text-sm ${n.anonymisiertAm ? "italic text-muted-foreground" : "text-foreground"}`}>{n.text}</p>
+                      {n.anonymisiertAm ? (
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          {t("anonymisiert", { datum: format.dateTime(new Date(n.anonymisiertAm), { dateStyle: "medium" }) })}
+                          {darfAnonymisieren && n.anonymisierungsgrund ? ` · ${t("anonymisieren.grundVermerk", { grund: n.anonymisierungsgrund })}` : ""}
+                        </p>
+                      ) : darfAnonymisieren ? (
+                        <NachrichtAnonymisieren nachrichtId={n.id} />
+                      ) : null}
                     </li>
                   ))}
                 </ul>

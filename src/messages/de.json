@@ -1009,7 +1009,8 @@
       "integrationGespeichertOhneGeheimnis": "Konfiguration gespeichert. Die Umgebungsvariable {wert} ist auf dem Server noch nicht gesetzt, bis dahin wird nichts ausgeliefert.",
       "integrationWiederholt": "Der Eintrag wartet wieder auf die Auslieferung.",
       "auslieferung": "{versucht} versucht: {zugestellt} zugestellt, {wiederholen} warten auf die Wiederholung, {gescheitert} gescheitert.",
-      "auslieferungNichts": "Nichts fällig."
+      "auslieferungNichts": "Nichts fällig.",
+      "nachrichtAnonymisiert": "Nachricht anonymisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1148,7 +1149,9 @@
       "integrationGeheimnis": "Bitte nur den Namen der Umgebungsvariable angeben: Großbuchstaben, Ziffern und Unterstriche, beginnend mit einem Buchstaben, 3 bis 64 Zeichen. Nicht das Geheimnis selbst.",
       "integrationUnvollstaendig": "Aktiv gibt es nur als Webhook mit Adresse und dem Namen des Geheimnisses.",
       "integrationNichtGescheitert": "Nur ein gescheiterter Eintrag lässt sich erneut versuchen.",
-      "auslieferung": "Die Auslieferung ist fehlgeschlagen. Details stehen im Server-Log."
+      "auslieferung": "Die Auslieferung ist fehlgeschlagen. Details stehen im Server-Log.",
+      "unveraenderlich": "Dieser Eintrag ist unveränderlich.",
+      "anonymisierungGrund": "Bitte einen Grund mit 3 bis 300 Zeichen angeben, ohne personenbezogene Angaben."
     },
     "einladungen": {
       "erfolg": {
@@ -4664,6 +4667,14 @@
     "download": {
       "knopf": "Lieferplan als Kalenderdatei",
       "hinweis": "Die Kalenderdatei (ICS) enthält die kommenden Liefertermine. Zum Aktualisieren erneut herunterladen."
+    },
+    "anonymisiert": "Anonymisiert am {datum}",
+    "anonymisieren": {
+      "knopf": "Anonymisieren",
+      "grund": "Grund (ohne personenbezogene Angaben)",
+      "hinweis": "Text und Name werden entfernt, der Verlauf bleibt. Das lässt sich nicht rückgängig machen.",
+      "bestaetigen": "Endgültig anonymisieren",
+      "grundVermerk": "Grund: {grund}"
     }
   },
   "lieferplan": {
@@ -4887,6 +4898,12 @@
         "erfasstAm": "Gemeldet am",
         "bestaetigung": "Bestätigungsnummer"
       }
+    },
+    "verlauf": {
+      "titel": "Verlauf der Meldungen",
+      "lead": "Jedes Erfassen und Wiederöffnen, mit den Angaben, die beim Wiederöffnen aus der Meldung verschwinden. Der Verlauf lässt sich nicht ändern.",
+      "erfasst": "gemeldet am {datum}",
+      "geoeffnet": "wieder geöffnet (vorher gemeldet am {datum})"
     }
   },
   "dokument": {

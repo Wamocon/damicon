@@ -16,7 +16,7 @@ export async function ladeNachrichten(): Promise<Record<string, NachrichtZeile[]
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("vorbestellung_nachrichten")
-    .select("id, vorbestellung_id, autor_name, autor_rolle, text, created_at")
+    .select("id, vorbestellung_id, autor_name, autor_rolle, text, created_at, anonymisiert_am, anonymisiert_grund")
     .order("created_at", { ascending: false })
     .limit(GRENZE);
   if (error || !data) return {};
@@ -29,6 +29,8 @@ export async function ladeNachrichten(): Promise<Record<string, NachrichtZeile[]
       rolle: n.autor_rolle ?? "",
       text: n.text,
       erstelltAm: n.created_at,
+      anonymisiertAm: n.anonymisiert_am,
+      anonymisierungsgrund: n.anonymisiert_grund,
     })),
   );
 }

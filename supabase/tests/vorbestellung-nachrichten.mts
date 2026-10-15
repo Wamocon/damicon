@@ -46,10 +46,14 @@ const schreibe = (vb: string, text: string, rolle: string) =>
   const { rows } = await schreibe(eigene, "Ja, Donnerstag passt.", "betriebsleitung");
   check("Die Betriebsleitung antwortet", rows.length === 1 && rows[0].autor_rolle === "betriebsleitung");
 }
-for (const rolle of ["admin", "buchhaltung"]) {
-  const { rows } = await schreibe(eigene, `Notiz von ${rolle}`, rolle);
-  check(`${rolle} darf schreiben`, rows.length === 1);
+{
+  const { rows } = await schreibe(eigene, "Notiz von admin", "admin");
+  check("admin darf schreiben", rows.length === 1);
 }
+// Entschieden am 15.10.2026: Die Buchhaltung liest (b2b_portal ist ihr in der Matrix nur "sehen"), sie schreibt nicht im Verlauf der Vorbestellungen.
+await als("buchhaltung", async () => {
+  await mussScheitern("Die Buchhaltung darf keine Nachricht schreiben", `insert into public.vorbestellung_nachrichten (vorbestellung_id, text) values ($1, 'Notiz');`, [eigene]);
+});
 
 // Ein mitgeschickter Autor wird ueberschrieben: niemand schreibt im Namen eines anderen.
 await als("kunde", async () => {
@@ -150,6 +154,37 @@ await als("betriebsleitung", async () => {
   check("Anzeige: die Liste nennt die Kuerzung (gezeigt von gesamt)", komponente.includes('t("gekuerzt", { gezeigt: liste.length, gesamt: vorbestellungen.length })') && komponente.includes("liste.length < vorbestellungen.length"));
   const sprachen = ["de", "en", "kk", "ru"].map((l) => JSON.parse(readFileSync(`src/messages/${l}.json`, "utf8")).nachrichten.gekuerzt as string);
   check("Anzeige: der Hinweis steht in vier Sprachen, mit beiden Zahlen", sprachen.every((t) => typeof t === "string" && t.includes("{gezeigt}") && t.includes("{gesamt}")));
+}
+
+// --- 6. Anonymisieren (Datenschutz, 15.10.2026) --------------------------------------------------------------------------------------------------
+// Nachrichten tragen Klarnamen und sind unveraenderlich. Fuer Datenschutzfaelle gibt es einen Weg: die Administration ersetzt Text und Namen und
+// begruendet es. Der Verlauf (wer in welcher Rolle wann etwas schrieb) bleibt.
+{
+  const { rows: ziel } = await schreibe(eigene, "Bitte meine Telefonnummer 0700 123 loeschen", "kunde");
+  const id = ziel[0].id;
+  for (const rolle of ["kunde", "betriebsleitung", "buchhaltung", "brigade"]) {
+    await als(rolle, async () => {
+      await mussScheitern(`${rolle} darf eine Nachricht nicht anonymisieren`, `select public.vorbestellung_nachricht_anonymisieren($1, 'Datenschutz');`, [id], "42501");
+    });
+  }
+  // mussScheitern() setzt die Rolle danach zurueck (alsAdmin): jede Pruefung bekommt deshalb ihren eigenen Rollenwechsel.
+  await als("admin", () => mussScheitern("Ohne Grund wird nicht anonymisiert", `select public.vorbestellung_nachricht_anonymisieren($1, '  ');`, [id], "23514"));
+  await als("admin", async () => {
+    await db.query(`select public.vorbestellung_nachricht_anonymisieren($1, 'Antrag auf Loeschung nach Art. 17 vom 15.10.2026');`, [id]);
+    const { rows } = await db.query<{ text: string; autor_name: string; autor_profil_id: string | null; autor_rolle: string; anonymisiert_am: string | null; anonymisiert_von: string | null; anonymisiert_grund: string | null }>(
+      `select text, autor_name, autor_profil_id, autor_rolle::text, anonymisiert_am, anonymisiert_von, anonymisiert_grund from public.vorbestellung_nachrichten where id = $1;`,
+      [id],
+    );
+    const z = rows[0];
+    check("Anonymisiert: Text und Name sind entfernt, der Autor ist keiner Person mehr zugeordnet", z.text === "[entfernt]" && z.autor_name === "[entfernt]" && z.autor_profil_id === null, JSON.stringify(z));
+    check("Anonymisiert: die Rolle bleibt, wer wann warum anonymisiert hat steht an der Zeile", z.autor_rolle === "kunde" && z.anonymisiert_am !== null && z.anonymisiert_von !== null && z.anonymisiert_grund?.startsWith("Antrag") === true, JSON.stringify(z));
+  });
+  await als("admin", () => mussScheitern("Eine anonymisierte Nachricht wird nicht noch einmal anonymisiert", `select public.vorbestellung_nachricht_anonymisieren($1, 'zweiter Versuch');`, [id], "DA018"));
+  await als("admin", () => mussScheitern("Eine unbekannte Nachricht meldet einen Fehler", `select public.vorbestellung_nachricht_anonymisieren(gen_random_uuid(), 'Datenschutz');`, [], "DA018"));
+  await mussScheitern("Auch nach der Anonymisierung lassen sich Nachrichten nicht frei aendern", `update public.vorbestellung_nachrichten set text = 'x' where id = $1;`, [id], "DA018");
+  await mussScheitern("Nachrichten lassen sich weiterhin nicht loeschen (DA018)", `delete from public.vorbestellung_nachrichten where id = $1;`, [id], "DA018");
+  // Die Markierung laesst sich von aussen nicht setzen: ohne die Funktion bleibt jede Aenderung verboten, auch fuer die Administration.
+  await als("admin", () => mussScheitern("Ohne die Funktion bleibt auch fuer die Administration jede Aenderung verboten", `update public.vorbestellung_nachrichten set text = 'x' where id = (select id from public.vorbestellung_nachrichten where anonymisiert_am is null limit 1);`, []));
 }
 
 t.ende("Alle Nachrichten-Tests gruen.");

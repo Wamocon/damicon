@@ -313,6 +313,7 @@ export async function B2bPortalAnsicht() {
           vorbestellungen={vorbestellungen.vorbestellungen}
           darfSchreiben={darfAnlegen}
           zeigeKunde={fuerBuero}
+          darfAnonymisieren={hasPermission(profil?.role, "compliance", "manage")}
         />
       ) : null}
 

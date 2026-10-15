@@ -203,4 +203,45 @@ await mussScheitern("anon darf die Sicht nicht lesen", `select * from public.v_e
   });
 }
 
+// --- 5. Verlauf (15.10.2026) -----------------------------------------------------------------------------------------------
+// Das Wiederoeffnen leert Meldedatum, Bestaetigung und Beleg der Meldung. Der Verlauf behaelt, was vorher galt, und ist unveraenderlich.
+{
+  const p4 = await pfluecker("Test Vierte", "AW-ESUTD-4");
+  const { rows: v } = await db.query<{ id: string }>(`insert into public.esutd_vertraege (pfluecker_id, vertragsnummer, vertrag_beginn_am) values ($1, 'V-VERLAUF', current_date - 3) returning id;`, [p4]);
+  const id = v[0].id;
+  await als("betriebsleitung", async () => {
+    await db.query(`update public.esutd_vertraege set status = 'erfasst', erfasst_am = public.heute_almaty() - 1, bestaetigung = 'BEST-VERLAUF', beleg_dokument_id = $2 where id = $1;`, [id, beleg]);
+    await db.query(`update public.esutd_vertraege set status = 'offen' where id = $1;`, [id]);
+  });
+  const { rows } = await db.query<{ aktion: string; art: string; bestaetigung: string | null; beleg_dokument_id: string | null; erfasst_am: string | null; von_profil_id: string | null; pfluecker_id: string }>(
+    `select aktion, art, bestaetigung, beleg_dokument_id, erfasst_am::text, von_profil_id, pfluecker_id from public.esutd_meldeverlauf where vertrag_id = $1 order by created_at, aktion;`, [id]);
+  check("Verlauf: Erfassen und Wiederoeffnen stehen je als Eintrag im Verlauf", rows.length === 2 && rows.some((r) => r.aktion === "erfasst") && rows.some((r) => r.aktion === "geoeffnet"), JSON.stringify(rows.map((r) => r.aktion)));
+  const geoeffnet = rows.find((r) => r.aktion === "geoeffnet");
+  check("Verlauf: beim Wiederoeffnen bleiben Bestaetigung, Beleg und Meldedatum erhalten, die in der Meldung verschwinden", geoeffnet?.bestaetigung === "BEST-VERLAUF" && geoeffnet?.beleg_dokument_id === beleg && geoeffnet?.erfasst_am !== null);
+  check("Verlauf: Art, Person und handelnde Person stehen am Eintrag", rows.every((r) => r.art === "abschluss" && r.pfluecker_id === p4 && r.von_profil_id !== null));
+  const { rows: meldung } = await db.query<{ bestaetigung: string | null }>(`select bestaetigung from public.esutd_vertraege where id = $1;`, [id]);
+  check("Verlauf: die Meldung selbst ist nach dem Wiederoeffnen leer (wie bisher)", meldung[0].bestaetigung === null);
+  await mussScheitern("Verlauf: ein Eintrag laesst sich nicht aendern (DA018)", `update public.esutd_meldeverlauf set bestaetigung = 'x' where vertrag_id = $1;`, [id], "DA018");
+  await mussScheitern("Verlauf: ein Eintrag laesst sich nicht loeschen (DA018)", `delete from public.esutd_meldeverlauf where vertrag_id = $1;`, [id], "DA018");
+  // Ereignisse (Aenderung, Beendigung) schreiben ebenfalls in den Verlauf.
+  const { rows: e } = await db.query<{ id: string }>(`insert into public.esutd_ereignisse (vertrag_id, art, ereignis_am) values ($1, 'beendigung', current_date) returning id;`, [id]);
+  await als("betriebsleitung", async () => {
+    await db.query(`update public.esutd_ereignisse set status = 'erfasst', erfasst_am = public.heute_almaty(), bestaetigung = 'BEST-E' where id = $1;`, [e[0].id]);
+  });
+  const { rows: ev } = await db.query<{ art: string; ereignis_id: string | null }>(`select art, ereignis_id from public.esutd_meldeverlauf where ereignis_id = $1;`, [e[0].id]);
+  check("Verlauf: auch das Erfassen einer Beendigung steht im Verlauf, mit der Art und dem Ereignis", ev.length === 1 && ev[0].art === "beendigung");
+  for (const rolle of ["admin", "ceo", "betriebsleitung", "buchhaltung"]) {
+    await als(rolle, async () => {
+      const { rows: sicht } = await db.query(`select id from public.esutd_meldeverlauf where vertrag_id = $1;`, [id]);
+      check(`Verlauf: ${rolle} liest ihn`, sicht.length >= 2);
+    });
+  }
+  for (const rolle of ["brigade", "picker", "erzeuger", "kunde"]) {
+    await als(rolle, async () => {
+      const { rows: sicht } = await db.query(`select id from public.esutd_meldeverlauf;`);
+      check(`Verlauf: ${rolle} liest ihn nicht`, sicht.length === 0);
+    });
+  }
+}
+
 t.ende("Alle ЕСУТД-Datenbanktests gruen.");

@@ -1009,7 +1009,8 @@
       "integrationGespeichertOhneGeheimnis": "Configuration saved. The environment variable {wert} is not yet set on the server, so nothing is delivered until then.",
       "integrationWiederholt": "The entry is waiting for delivery again.",
       "auslieferung": "{versucht} attempted: {zugestellt} delivered, {wiederholen} waiting for retry, {gescheitert} failed.",
-      "auslieferungNichts": "Nothing due."
+      "auslieferungNichts": "Nothing due.",
+      "nachrichtAnonymisiert": "Message anonymised."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1148,7 +1149,9 @@
       "integrationGeheimnis": "Please enter only the name of the environment variable: capital letters, digits and underscores, starting with a letter, 3 to 64 characters. Not the secret itself.",
       "integrationUnvollstaendig": "Active exists only as a webhook with an address and the name of the secret.",
       "integrationNichtGescheitert": "Only a failed entry can be tried again.",
-      "auslieferung": "The delivery failed. Details are in the server log."
+      "auslieferung": "The delivery failed. Details are in the server log.",
+      "unveraenderlich": "This entry cannot be changed.",
+      "anonymisierungGrund": "Please give a reason of 3 to 300 characters, without personal data."
     },
     "einladungen": {
       "erfolg": {
@@ -4664,6 +4667,14 @@
     "download": {
       "knopf": "Delivery plan as calendar file",
       "hinweis": "The calendar file (ICS) contains the upcoming delivery dates. Download again to refresh."
+    },
+    "anonymisiert": "Anonymised on {datum}",
+    "anonymisieren": {
+      "knopf": "Anonymise",
+      "grund": "Reason (without personal data)",
+      "hinweis": "Text and name are removed, the history stays. This cannot be undone.",
+      "bestaetigen": "Anonymise permanently",
+      "grundVermerk": "Reason: {grund}"
     }
   },
   "lieferplan": {
@@ -4887,6 +4898,12 @@
         "erfasstAm": "Reported on",
         "bestaetigung": "Confirmation number"
       }
+    },
+    "verlauf": {
+      "titel": "History of reports",
+      "lead": "Every recording and reopening, including the details that disappear from the report on reopening. The history cannot be changed.",
+      "erfasst": "reported on {datum}",
+      "geoeffnet": "reopened (previously reported on {datum})"
     }
   },
   "dokument": {

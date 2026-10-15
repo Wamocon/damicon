@@ -90,6 +90,52 @@ export async function ladeEsutdMeldungen(): Promise<EsutdMeldung[]> {
   }
 }
 
+// --- Verlauf der Meldungen (15.10.2026) ---------------------------------------------------------------------------------
+// Jedes Erfassen und jedes Wiederoeffnen steht in esutd_meldeverlauf (unveraenderlich). Beim Wiederoeffnen verschwinden Bestaetigung und Beleg aus
+// der Meldung, der Verlauf behaelt sie. Nur das Buero liest ihn.
+
+export interface EsutdVerlaufEintrag {
+  id: string;
+  art: "abschluss" | "aenderung" | "beendigung";
+  aktion: "erfasst" | "geoeffnet";
+  pfluecker: string;
+  /** Bei "geoeffnet" das Meldedatum, das vorher galt. */
+  erfasstAm: string | null;
+  bestaetigung: string | null;
+  zeitpunkt: string;
+}
+
+export async function ladeEsutdVerlauf(grenze = 30): Promise<EsutdVerlaufEintrag[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("esutd_meldeverlauf")
+    .select("id, art, aktion, pfluecker_id, erfasst_am, bestaetigung, created_at")
+    .order("created_at", { ascending: false })
+    .limit(grenze);
+  if (error || !data) {
+    if (error) console.error("[damicon] ЕСУТД-Verlauf lesen fehlgeschlagen:", error.message);
+    return [];
+  }
+
+  const ids = [...new Set(data.map((z) => z.pfluecker_id))];
+  const { data: personen } = ids.length > 0 ? await supabase.from("pfluecker").select("id, name").in("id", ids) : { data: [] as { id: string; name: string }[] };
+  const namen = new Map((personen ?? []).map((p) => [p.id, p.name]));
+
+  return data
+    .filter((z): z is typeof z & { art: EsutdVerlaufEintrag["art"]; aktion: EsutdVerlaufEintrag["aktion"] } => ["abschluss", "aenderung", "beendigung"].includes(z.art) && ["erfasst", "geoeffnet"].includes(z.aktion))
+    .map((z) => ({
+      id: z.id,
+      art: z.art,
+      aktion: z.aktion,
+      pfluecker: namen.get(z.pfluecker_id) ?? "-",
+      erfasstAm: z.erfasst_am,
+      bestaetigung: z.bestaetigung,
+      zeitpunkt: z.created_at,
+    }));
+}
+
 export interface EsutdOptionen {
   pfluecker: { id: string; name: string; ausweis: string }[];
   /** Die Vertraege, zu denen sich eine Aenderung oder Beendigung melden laesst. */

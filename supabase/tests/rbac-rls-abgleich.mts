@@ -79,19 +79,14 @@ const BEKANNTE_REGELN: { rollen: Role[]; ressource: Resource; aktionen: ProbeAkt
   { rollen: ["brigade", "buchhaltung", "picker"], ressource: "sortenkatalog", aktionen: ["view"], grund: "Sorten sind Stammdaten fuer Auswahllisten (sorten_select_public), jede Rolle braucht sie" },
   { rollen: ["erzeuger"], ressource: "sortenkatalog", aktionen: ["view"], grund: "wie oben: Sorten sind fuer alle lesbar" },
   { rollen: ["kunde"], ressource: "schulungen", aktionen: ["view"], grund: "Schulungsvideos sind oeffentlich lesbar (schulungsvideos_select_public)" },
-  { rollen: ["brigade", "erzeuger", "kunde", "picker"], ressource: "preislisten", aktionen: ["view"], grund: "ENTSCHEIDUNG: preislisten_select_intern laesst jede angemeldete Rolle lesen (WMCNL-2451, Rechnung und Preiskontrolle). Ein Kunde kann damit auch die Preislisten anderer Kundengruppen lesen" },
-  { rollen: ["buchhaltung"], ressource: "preislisten", aktionen: ["create", "update", "delete"], grund: "ENTSCHEIDUNG: preislisten_write_buero erlaubt dem ganzen Buero (has_office_access) das Schreiben, die Matrix gibt der Buchhaltung nur view" },
+  { rollen: ["kunde"], ressource: "preislisten", aktionen: ["view"], grund: "entschieden am 15.10.2026: der Kunde liest die Preislisten seiner eigenen Kundengruppe und die gruppenlosen Standardlisten (preislisten_select_rollen), im B2B-Portal. Das Verwaltungsmodul Preislisten bleibt ihm verschlossen" },
   { rollen: ["brigade", "buchhaltung", "picker"], ressource: "personal", aktionen: ["view"], grund: "pfluecker_select_personal (Lohn und Einsatzplanung brauchen die Pflueckernamen) und pfluecker_select_own (die eigene Zeile des Pfluecker)" },
-  { rollen: ["buchhaltung", "erzeuger"], ressource: "pflanzenschutz", aktionen: ["view"], grund: "ENTSCHEIDUNG: pflanzenschutz_behandlungen_select_produktion nennt buchhaltung und erzeuger, die Matrix nicht. Ein Nachbarbetrieb liest damit alle Behandlungen des Betriebs" },
   { rollen: ["buchhaltung"], ressource: "kuehlkette", aktionen: ["view"], grund: "kuehlketten_messungen_select_feld nennt die Buchhaltung (Nachweis zur Rechnung), die Matrix nicht" },
   { rollen: ["betriebsleitung", "brigade"], ressource: "kuehlkette", aktionen: ["create"], grund: "kuehlketten_messungen_insert_hof erlaubt der Feldarbeit das Erfassen einer Messung (Nachweiskette einer Pflueckaufgabe), die Matrix kennt kuehlkette nur als view" },
   { rollen: ["buchhaltung"], ressource: "qr_steigen", aktionen: ["view"], grund: "steigen_select_feld nennt die Buchhaltung, die Matrix nicht" },
   { rollen: ["betriebsleitung"], ressource: "qr_steigen", aktionen: ["create", "update"], grund: "steigen_insert_feld und _update_feld erlauben der Betriebsleitung das Erfassen und Korrigieren von Steigen, die Matrix kennt qr_steigen nur als view" },
   { rollen: ["buchhaltung", "kunde"], ressource: "logistik", aktionen: ["view"], grund: "Lieferungen sind fuers Buero lesbar, der Kunde liest seine eigenen (lieferungen_select_kunde_buero), das B2B-Portal zeigt sie" },
-  // Matrix erlaubt mehr als die Datenbank
-  { rollen: ["erzeuger", "kunde"], ressource: "dokumente", aktionen: ["view"], grund: "bekannt: die Matrix gibt dokumente:view, die Zeilensicherheit laesst beide nichts lesen (nur Buero)" },
-  { rollen: ["erzeuger"], ressource: "b2b_portal", aktionen: ["view"], grund: "das Modul oeffnet, aber Vorbestellungen sieht nur der Kunde (eigene) und das Buero" },
-  { rollen: ["erzeuger"], ressource: "finanzen", aktionen: ["view"], grund: "die Matrix nennt den eigenen Deckungsbeitrag, finance_ledger_entries lesen aber nur Buero und Brigade-Auswertungen" },
+  // Matrix erlaubt mehr als die Datenbank: seit dem 15.10.2026 keine Ausnahme mehr (dokumente, b2b_portal, finanzen sind aus der Matrix entfallen)
 ];
 
 const BEKANNT: Record<string, string> = {};

@@ -11,7 +11,7 @@ import { istUuid } from "@/lib/utils";
 
 // Temperaturlogger-Datei importieren (WMCNL-1517, Stufe 1). Dieselbe
 // Berechtigung wie die Handerfassung einer Transportmessung (logistik:update);
-// die RLS-Policy transport_messungen_insert_feld prueft dieselben Rollen ein
+// die Funktion transport_logger_messungen_importieren() prueft dieselben Rollen ein
 // zweites Mal, der Trigger transport_kuehlkette_bewerten() bewertet die Werte
 // und lehnt Messungen auf stornierten und zugestellten Lieferungen ab. Den
 // Messzeitpunkt setzt der Server aus dem Geraetezeitpunkt, hier wird er nicht
@@ -66,17 +66,14 @@ export async function transportLoggerImportieren(_status: AktionsStatus, formDat
   if (auswahl.uebernehmen.length === 0) return fehlerMitWerten("fehler.loggerKeineNeuen", werte);
 
   for (let i = 0; i < auswahl.uebernehmen.length; i += PAKET) {
-    const { error } = await supabase.from("transport_temperatur_messungen").insert(
-      auswahl.uebernehmen.slice(i, i + PAKET).map((m) => ({
-        lieferung_id: lieferungId,
-        temperatur_c: m.temperaturC,
-        geraet_zeitpunkt: m.zeitpunkt,
-        // Wie bei transportMessungErfassen: der Trigger berechnet den Messzeitpunkt aus dem Geraetezeitpunkt.
-        gemessen_am: null as unknown as string,
-        quelle: "logger",
-        logger_kennung: kennung,
-      })),
-    );
+    // Die Herkunft "logger" setzt nur die Funktion der Datenbank (Entscheidung vom 15.10.2026): Ein Direktinsert mit quelle = logger lehnt sie ab,
+    // damit die Kennzeichnung ein Nachweis der Importstrecke ist und keine Angabe, die jede Person eintragen kann. Der Messzeitpunkt wird wie bei
+    // der Handerfassung aus dem Geraetezeitpunkt berechnet.
+    const { error } = await supabase.rpc("transport_logger_messungen_importieren", {
+      p_lieferung_id: lieferungId,
+      p_logger_kennung: kennung ?? "",
+      p_messwerte: auswahl.uebernehmen.slice(i, i + PAKET).map((m) => ({ temperatur_c: m.temperaturC, geraet_zeitpunkt: m.zeitpunkt })),
+    });
     // Ein Fehler mitten im Import laesst die schon geschriebenen Pakete stehen: sie sind echte
     // Messwerte, und ein erneuter Import ergaenzt den Rest (Duplikate werden erkannt).
     if (error) return dbFehler(error);

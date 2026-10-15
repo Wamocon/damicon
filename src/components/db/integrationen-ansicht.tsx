@@ -10,7 +10,7 @@ import {
   EsutdErfassenFormular,
   EsutdOeffnenKnopf,
 } from "@/components/db/esutd-formulare";
-import { ladeEsutdMeldungen, ladeEsutdOptionen } from "@/lib/data/esutd";
+import { ladeEsutdMeldungen, ladeEsutdOptionen, ladeEsutdVerlauf } from "@/lib/data/esutd";
 import { esutdTon, meldungUeberfaellig, zaehleMeldungen, type EsutdMeldung } from "@/lib/domain/esutd";
 import { tagInZone } from "@/lib/domain/tageszeit";
 import { getSessionProfile } from "@/lib/auth";
@@ -47,9 +47,10 @@ function Detail({ m, t, belegName }: { m: EsutdMeldung; t: Uebersetzer; belegNam
 }
 
 export async function IntegrationenAnsicht() {
-  const [meldungen, optionen, profil, t, format, sprache, dk] = await Promise.all([
+  const [meldungen, optionen, verlauf, profil, t, format, sprache, dk] = await Promise.all([
     ladeEsutdMeldungen(),
     ladeEsutdOptionen(),
+    ladeEsutdVerlauf(),
     getSessionProfile(),
     getTranslations("esutdAnsicht"),
     getFormatter(),
@@ -147,6 +148,27 @@ export async function IntegrationenAnsicht() {
           </DataTable>
         )}
       </Section>
+
+      {verlauf.length > 0 ? (
+        <Section title={t("verlauf.titel")} description={t("verlauf.lead")}>
+          <ul className="space-y-1.5">
+            {verlauf.map((v) => (
+              <li key={v.id} className="text-xs text-muted-foreground">
+                <span className="text-foreground">{format.dateTime(new Date(v.zeitpunkt), { dateStyle: "medium", timeStyle: "short" })}</span>
+                {" · "}
+                {v.pfluecker}
+                {" · "}
+                {t(`art.${v.art}`)}
+                {": "}
+                {v.aktion === "erfasst"
+                  ? t("verlauf.erfasst", { datum: v.erfasstAm ? tag(v.erfasstAm) : "-" })
+                  : t("verlauf.geoeffnet", { datum: v.erfasstAm ? tag(v.erfasstAm) : "-" })}
+                {v.bestaetigung ? ` · ${t("liste.bestaetigung", { nummer: v.bestaetigung })}` : ""}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ) : null}
 
       {darfAendern ? (
         <div className="grid gap-4 lg:grid-cols-2">

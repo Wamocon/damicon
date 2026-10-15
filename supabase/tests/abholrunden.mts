@@ -148,7 +148,7 @@ await alsScheitert("admin", "Abschluss: ein Stopp einer abgeschlossenen Runde la
 
 // --- 6. Rechte ----------------------------------------------------------------------------------------------------------------------
 const offen = await runde("admin", [A]);
-for (const rolle of ["admin", "ceo", "betriebsleitung", "buchhaltung"]) {
+for (const rolle of ["admin", "ceo", "betriebsleitung"]) {
   await als(rolle, async () => {
     const { rows } = await db.query(`select id from public.abholrunden where id = $1;`, [offen.runde]);
     check(`Rechte: ${rolle} liest die Runden`, rows.length === 1);
@@ -156,6 +156,29 @@ for (const rolle of ["admin", "ceo", "betriebsleitung", "buchhaltung"]) {
     check(`Rechte: ${rolle} plant eine Runde`, neu.length === 1);
   });
 }
+// Entschieden am 15.10.2026: Planen ist Sache der Leitung (logistik in der Matrix). Die Buchhaltung hat dort kein Recht und bekommt es
+// auch nicht ueber has_office_access().
+await als("buchhaltung", async () => {
+  const { rows } = await db.query(`select id from public.abholrunden;`);
+  const { rows: s } = await db.query(`select id from public.abholstopps;`);
+  const { rows: nb } = await db.query(`select * from public.abholrunde_nachbarbetriebe();`);
+  check("Rechte: die Buchhaltung sieht keine Runde, keinen Stopp und bekommt keine Nachbarbetriebe der Runde", rows.length === 0 && s.length === 0 && nb.length === 0);
+});
+await alsScheitert("buchhaltung", "Rechte: die Buchhaltung plant keine Runde", `insert into public.abholrunden (datum) values (current_date);`, []);
+await alsScheitert("buchhaltung", "Rechte: die Buchhaltung legt keinen Stopp an", `insert into public.abholstopps (runde_id, nachbarbetrieb_id, menge_geplant_kg) values ($1, $2, 5);`, [offen.runde, B]);
+
+// Entschieden am 15.10.2026: Die Brigade faehrt die Runde, sie plant sie nicht. Datum, Fahrzeug, Notiz, Strecke und geplante Mengen aendert nur die Leitung.
+for (const [spalte, wert] of [["datum", "current_date + 3"], ["fahrzeug", "'Anderer Wagen'"], ["notiz", "'neu'"], ["distanz_km", "12.5"]]) {
+  await alsScheitert("brigade", `Rechte: die Brigade aendert ${spalte} einer geplanten Runde nicht (DA015)`, `update public.abholrunden set ${spalte} = ${wert} where id = $1;`, [offen.runde], "DA015");
+}
+await alsScheitert("brigade", "Rechte: die Brigade aendert die geplante Menge eines Stopps nicht (DA015)", `update public.abholstopps set menge_geplant_kg = 999 where id = $1;`, [offen.stopps[0]], "DA015");
+await alsScheitert("brigade", "Rechte: die Brigade aendert die Reihenfolge eines Stopps nicht (DA015)", `update public.abholstopps set reihenfolge = 7 where id = $1;`, [offen.stopps[0]], "DA015");
+await als("betriebsleitung", async () => {
+  await db.query(`update public.abholrunden set fahrzeug = 'Kuehlwagen 2', notiz = 'Plan geaendert' where id = $1;`, [offen.runde]);
+  await db.query(`update public.abholstopps set menge_geplant_kg = 120, reihenfolge = 3 where id = $1;`, [offen.stopps[0]]);
+  const { rows } = await db.query<{ fahrzeug: string }>(`select fahrzeug from public.abholrunden where id = $1;`, [offen.runde]);
+  check("Rechte: die Betriebsleitung aendert Fahrzeug, Notiz, Menge und Reihenfolge einer geplanten Runde", rows[0].fahrzeug === "Kuehlwagen 2");
+});
 await als("brigade", async () => {
   const { rows } = await db.query(`select id from public.abholrunden where id = $1;`, [offen.runde]);
   check("Rechte: die Brigade liest die Runde", rows.length === 1);

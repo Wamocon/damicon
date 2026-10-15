@@ -22,6 +22,19 @@ export interface NachrichtZeile {
   rolle: string;
   text: string;
   erstelltAm: string;
+  /** Zeitpunkt der Anonymisierung (Datenschutz): Text und Name sind dann entfernt, der Verlauf bleibt. */
+  anonymisiertAm?: string | null;
+  /** Grund der Anonymisierung, nur fuer die Administration gedacht. */
+  anonymisierungsgrund?: string | null;
+}
+
+export const ANONYMISIERUNG_GRUND_MIN = 3;
+export const ANONYMISIERUNG_GRUND_MAX = 300;
+
+/** Grund einer Anonymisierung: 3 bis 300 Zeichen (Codepunkte wie in Postgres). */
+export function anonymisierungFehler(roh: string): "anonymisierungGrund" | null {
+  const laenge = [...roh.trim()].length;
+  return laenge < ANONYMISIERUNG_GRUND_MIN || laenge > ANONYMISIERUNG_GRUND_MAX ? "anonymisierungGrund" : null;
 }
 
 /** So viele Vorbestellungen zeigt der Abschnitt im B2B-Portal hoechstens. Die Liste sagt, wenn es mehr gibt (Pruefung PR #156, 15.10.2026: Fuer aeltere fehlten

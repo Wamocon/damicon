@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { text, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
-import { nachrichtFehler } from "@/lib/domain/nachrichten";
+import { anonymisierungFehler, nachrichtFehler } from "@/lib/domain/nachrichten";
 import { istUuid } from "@/lib/utils";
 
 // Nachricht zu einer Vorbestellung (WMCNL-1472). requirePermission() ist die
@@ -40,4 +40,32 @@ export async function nachrichtSenden(_status: AktionsStatus, formData: FormData
 
   aktualisiere(formData);
   return ok("ok.nachricht");
+}
+
+// Datenschutz (15.10.2026): Nachrichten sind unveraenderlich und tragen Klarnamen. Auf Anweisung ersetzt die Administration Text und Namen
+// durch einen Vermerk, der Verlauf (Rolle, Zeitpunkt) bleibt. Recht: compliance:manage (Administration und Geschaeftsfuehrung). Die Funktion
+// vorbestellung_nachricht_anonymisieren() prueft dieselbe Rolle noch einmal und haelt Zeitpunkt, Person und Grund an der Zeile fest.
+export async function nachrichtAnonymisieren(_status: AktionsStatus, formData: FormData): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("compliance", "manage");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const id = text(formData, "nachricht_id");
+  const grund = text(formData, "grund");
+  if (!istUuid(id)) return fehler("fehler.eingabe");
+  const abgelehnt = anonymisierungFehler(grund);
+  if (abgelehnt) return fehler(`fehler.${abgelehnt}`);
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("vorbestellung_nachricht_anonymisieren", { p_id: id, p_grund: grund });
+  if (error) return dbFehler(error);
+
+  // Das Protokoll nennt die Nachricht, nicht den Grund: der steht an der Zeile.
+  await protokolliere(profil, "vorbestellung.nachricht_anonymisiert", "compliance", id, {});
+
+  aktualisiere(formData);
+  return ok("ok.nachrichtAnonymisiert");
 }

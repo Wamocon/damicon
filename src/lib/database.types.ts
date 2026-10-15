@@ -1056,6 +1056,48 @@ export type Database = {
           },
         ]
       }
+      esutd_meldeverlauf: {
+        Row: {
+          aktion: string
+          art: string
+          beleg_dokument_id: string | null
+          bestaetigung: string | null
+          created_at: string
+          ereignis_id: string | null
+          erfasst_am: string | null
+          id: string
+          pfluecker_id: string
+          von_profil_id: string | null
+          vertrag_id: string
+        }
+        Insert: {
+          aktion: string
+          art: string
+          beleg_dokument_id?: string | null
+          bestaetigung?: string | null
+          created_at?: string
+          ereignis_id?: string | null
+          erfasst_am?: string | null
+          id?: string
+          pfluecker_id: string
+          von_profil_id?: string | null
+          vertrag_id: string
+        }
+        Update: {
+          aktion?: string
+          art?: string
+          beleg_dokument_id?: string | null
+          bestaetigung?: string | null
+          created_at?: string
+          ereignis_id?: string | null
+          erfasst_am?: string | null
+          id?: string
+          pfluecker_id?: string
+          von_profil_id?: string | null
+          vertrag_id?: string
+        }
+        Relationships: []
+      }
       esutd_vertraege: {
         Row: {
           beleg_dokument_id: string | null
@@ -3771,6 +3813,9 @@ export type Database = {
       }
       vorbestellung_nachrichten: {
         Row: {
+          anonymisiert_am: string | null
+          anonymisiert_grund: string | null
+          anonymisiert_von: string | null
           autor_name: string | null
           autor_profil_id: string | null
           autor_rolle: Database["public"]["Enums"]["app_role"] | null
@@ -3780,6 +3825,9 @@ export type Database = {
           vorbestellung_id: string
         }
         Insert: {
+          anonymisiert_am?: string | null
+          anonymisiert_grund?: string | null
+          anonymisiert_von?: string | null
           autor_name?: string | null
           autor_profil_id?: string | null
           autor_rolle?: Database["public"]["Enums"]["app_role"] | null
@@ -3789,6 +3837,9 @@ export type Database = {
           vorbestellung_id: string
         }
         Update: {
+          anonymisiert_am?: string | null
+          anonymisiert_grund?: string | null
+          anonymisiert_von?: string | null
           autor_name?: string | null
           autor_profil_id?: string | null
           autor_rolle?: Database["public"]["Enums"]["app_role"] | null
@@ -4475,6 +4526,25 @@ export type Database = {
           },
         ]
       }
+      v_block_sperre: {
+        Row: {
+          behandelt_am: string | null
+          freigabe_am: string | null
+          mittel_name: string | null
+          mittel_wirkstoff: string | null
+          reihenblock_id: string | null
+          wartezeit_tage: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pflanzenschutz_behandlungen_reihenblock_id_fkey"
+            columns: ["reihenblock_id"]
+            isOneToOne: false
+            referencedRelation: "reihenbloecke"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_dokumente: {
         Row: {
           b2b_kunde_id: string | null
@@ -4631,6 +4701,10 @@ export type Database = {
       }
       current_b2b_kunde_id: { Args: never; Returns: string }
       current_brigade_id: { Args: never; Returns: string }
+      current_kundengruppe: {
+        Args: never
+        Returns: Database["public"]["Enums"]["kundengruppe"]
+      }
       current_profil_id: { Args: never; Returns: string }
       einladung_abschliessen: {
         Args: { p_auth_user_id: string; p_code_digest: string; p_email: string }
@@ -4898,6 +4972,14 @@ export type Database = {
       temperaturband_bewerten: {
         Args: { grad: number }
         Returns: Database["public"]["Enums"]["kuehlkette_ergebnis"]
+      }
+      transport_logger_messungen_importieren: {
+        Args: { p_lieferung_id: string; p_logger_kennung: string; p_messwerte: Json }
+        Returns: number
+      }
+      vorbestellung_nachricht_anonymisieren: {
+        Args: { p_grund: string; p_id: string }
+        Returns: undefined
       }
       werktage_addieren: {
         Args: { p_anzahl: number; p_start: string }
