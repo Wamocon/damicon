@@ -61,6 +61,7 @@ export async function B2bPortalAnsicht() {
   const kkT = await getTranslations("nachweiskette");
   const dk = await getTranslations("dokument.knopf");
   const kg = await getTranslations("kundengruppen");
+  const plt = await getTranslations("preislistenAnsicht");
   const format = await getFormatter();
 
   const live = uebersicht.quelle === "db";
@@ -226,9 +227,10 @@ export async function B2bPortalAnsicht() {
             <Card key={p.id} className="mb-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-black text-card-foreground">{p.name}</p>
-                {p.kundengruppe ? (
-                  <StatusPill tone="info">{kg(p.kundengruppe)}</StatusPill>
-                ) : null}
+                <div className="flex items-center gap-2">
+                  {p.kundengruppe ? <StatusPill tone="info">{kg(p.kundengruppe)}</StatusPill> : null}
+                  <StatusPill tone="neutral">{p.inklMwst ? plt("brutto") : plt("netto")}</StatusPill>
+                </div>
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {t("gueltigAb")} {tag(p.gueltigAb)}

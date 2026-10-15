@@ -54,6 +54,8 @@ export interface PreislisteZeile {
   gueltigBis: string | null;
   aktiv: boolean;
   kundengruppe: Kundengruppe | null;
+  /** true: die Preise enthalten die MwSt (brutto). Fehlend: netto. */
+  inklMwst?: boolean;
   positionen: PreislistenPositionZeile[];
 }
 

@@ -70,6 +70,7 @@ export async function PreislistenAnsicht() {
                     ) : (
                       <StatusPill tone="neutral">{kg("standard")}</StatusPill>
                     )}
+                    <StatusPill tone="neutral">{p.inklMwst ? t("brutto") : t("netto")}</StatusPill>
                     <StatusPill tone={aktivTon[p.aktiv ? "aktiv" : "inaktiv"]}>
                       {t(p.aktiv ? "aktiv" : "inaktiv")}
                     </StatusPill>

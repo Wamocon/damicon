@@ -2997,6 +2997,7 @@ export type Database = {
           id: string
           kundengruppe: Database["public"]["Enums"]["kundengruppe"] | null
           name: string
+          preise_inkl_mwst: boolean
         }
         Insert: {
           aktiv?: boolean
@@ -3006,6 +3007,7 @@ export type Database = {
           id?: string
           kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           name: string
+          preise_inkl_mwst?: boolean
         }
         Update: {
           aktiv?: boolean
@@ -3015,6 +3017,7 @@ export type Database = {
           id?: string
           kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           name?: string
+          preise_inkl_mwst?: boolean
         }
         Relationships: []
       }

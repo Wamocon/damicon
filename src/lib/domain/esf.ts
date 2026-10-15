@@ -1,5 +1,5 @@
 import { istGueltigerTag } from "@/lib/listen/zeitraum";
-import { preisAmStichtag, type PreislisteEintrag } from "@/lib/domain/rechnungshistorie";
+import { preisPositionAmStichtag, type PreislisteEintrag } from "@/lib/domain/rechnungshistorie";
 import { rundeKaufmaennisch } from "@/lib/domain/runden";
 
 // Belegregister der elektronischen Rechnung (ЭСФ), Stufe 1 (WMCNL-1440). Reine Rechen- und
@@ -75,7 +75,8 @@ export interface EsfEntwurf {
     betragTenge: number | null;
     gesamtTenge: number | null;
     /** Die Preisliste wird als Nettopreis gelesen. Ob das stimmt, klaert die Buchhaltung. */
-    annahme: "netto";
+    /** Wie die Preisliste die Preise fuehrt: netto (Vorgabe) oder brutto (inklusive MwSt). */
+    annahme: "netto" | "brutto";
   };
   /** Was dem Entwurf fehlt, damit er sich ohne Nachfragen ins Portal uebertragen laesst. */
   luecken: EsfLuecke[];
@@ -109,13 +110,40 @@ export function warRegistriertAm(registriert: boolean, registriertAm: string | n
   return registriert && (registriertAm === null || registriertAm <= tag);
 }
 
+/**
+ * Betrag ohne MwSt, MwSt und Gesamtbetrag einer Lieferung. Die ЭСФ fuehrt den Wert "ohne indirekte Steuern" und rechnet Satz und Betrag dazu (Erlass Nr. 629 vom
+ * 28.10.2025, Anlage 2). Zwei Faelle:
+ *   - Preisliste netto (Vorgabe), oder der Betrieb ist nicht MwSt-registriert (dann ist der Preis der Endpreis): Betrag = Preis mal Menge, MwSt obendrauf.
+ *   - Preisliste brutto und der Betrieb ist registriert: Gesamt = Preis mal Menge, Betrag = Gesamt geteilt durch (1 + Satz), MwSt = Gesamt minus Betrag.
+ * Ohne Satz bei einer Bruttoliste laesst sich nichts trennen: dann bleiben Betrag und MwSt leer (die Luecke "mwstSatz" meldet es).
+ */
+function rechneBetraege(
+  preis: number | null,
+  mengeKg: number,
+  bruttoRechnen: boolean,
+  registriert: boolean,
+  prozent: number | null,
+): { betrag: number | null; mwstBetrag: number | null; gesamt: number | null } {
+  if (preis === null) return { betrag: null, mwstBetrag: null, gesamt: null };
+  if (bruttoRechnen) {
+    if (prozent === null) return { betrag: null, mwstBetrag: null, gesamt: runde(preis * mengeKg) };
+    const gesamt = runde(preis * mengeKg);
+    const betrag = runde(gesamt / (1 + prozent / 100));
+    return { betrag, mwstBetrag: runde(gesamt - betrag), gesamt };
+  }
+  const betrag = runde(preis * mengeKg);
+  const mwstBetrag = prozent !== null ? runde((betrag * prozent) / 100) : null;
+  const gesamt = registriert ? (mwstBetrag === null ? null : runde(betrag + mwstBetrag)) : betrag;
+  return { betrag, mwstBetrag, gesamt };
+}
+
 export function baueEsfEntwurf(e: EsfEntwurfEingabe): EsfEntwurf {
-  const preis = e.sorteId ? preisAmStichtag(e.preislisten, e.sorteId, e.stichtag, e.kunde.kundengruppe) : null;
-  const betrag = preis === null ? null : runde(preis * e.mengeKg);
+  const treffer = e.sorteId ? preisPositionAmStichtag(e.preislisten, e.sorteId, e.stichtag, e.kunde.kundengruppe) : null;
+  const preis = treffer?.preisTengeKg ?? null;
+  const brutto = treffer?.inklMwst === true;
   const registriert = warRegistriertAm(e.mwstRegistriert, e.mwstRegistriertAm, e.stichtag);
   const prozent = registriert ? mwstSatzAm(e.mwstSaetze, e.stichtag) : null;
-  const mwstBetrag = betrag !== null && prozent !== null ? runde((betrag * prozent) / 100) : null;
-  const gesamt = betrag === null ? null : registriert ? (mwstBetrag === null ? null : runde(betrag + mwstBetrag)) : betrag;
+  const { betrag, mwstBetrag, gesamt } = rechneBetraege(preis, e.mengeKg, brutto && registriert, registriert, prozent);
 
   const luecken: EsfLuecke[] = [];
   if (!e.sorteName) luecken.push("sorte");
@@ -128,7 +156,7 @@ export function baueEsfEntwurf(e: EsfEntwurfEingabe): EsfEntwurf {
     stichtag: e.stichtag,
     kunde: { name: e.kunde.name, identifikationsnummer: e.kunde.identifikationsnummer, rechtsform: e.kunde.rechtsform },
     ware: { sorte: e.sorteName, chargeCode: e.chargeCode, mengeKg: e.mengeKg, preisTengeKg: preis, betragTenge: betrag },
-    mwst: { registriert, prozent, betragTenge: mwstBetrag, gesamtTenge: gesamt, annahme: "netto" },
+    mwst: { registriert, prozent, betragTenge: mwstBetrag, gesamtTenge: gesamt, annahme: brutto ? "brutto" : "netto" },
     luecken,
   };
 }
@@ -157,7 +185,7 @@ export function liesEntwurf(wert: unknown): EsfEntwurf | null {
       preisTengeKg: zahl(ware.preisTengeKg),
       betragTenge: zahl(ware.betragTenge),
     },
-    mwst: { registriert: mwst.registriert, prozent: zahl(mwst.prozent), betragTenge: zahl(mwst.betragTenge), gesamtTenge: zahl(mwst.gesamtTenge), annahme: "netto" },
+    mwst: { registriert: mwst.registriert, prozent: zahl(mwst.prozent), betragTenge: zahl(mwst.betragTenge), gesamtTenge: zahl(mwst.gesamtTenge), annahme: mwst.annahme === "brutto" ? "brutto" : "netto" },
     luecken: Array.isArray(e.luecken) ? e.luecken.filter((l): l is EsfLuecke => (LUECKEN as readonly unknown[]).includes(l)) : [],
   };
 }

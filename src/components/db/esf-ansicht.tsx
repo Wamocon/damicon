@@ -51,7 +51,7 @@ function EntwurfAngaben({ entwurf, t, format, tag }: { entwurf: EsfEntwurf; t: U
         ) : null}
       </dl>
       {!entwurf.mwst.registriert ? <p className="text-xs text-muted-foreground">{t("entwurf.nichtRegistriert")}</p> : null}
-      {entwurf.mwst.registriert ? <p className="text-xs text-muted-foreground">{t("entwurf.annahme")}</p> : null}
+      {entwurf.mwst.registriert ? <p className="text-xs text-muted-foreground">{entwurf.mwst.annahme === "brutto" ? t("entwurf.annahmeBrutto") : t("entwurf.annahme")}</p> : null}
       {entwurf.luecken.length > 0 ? (
         <div className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs">
           <p className="font-semibold text-warning">{t("entwurf.lueckenTitel")}</p>

@@ -3897,7 +3897,9 @@
         "gueltigAb": "Valid from",
         "gueltigBis": "Valid until (optional)",
         "kundengruppe": "Client group (optional)",
-        "knopf": "Create price list"
+        "knopf": "Create price list",
+        "inklMwst": "Prices include VAT (gross)",
+        "inklMwstHinweis": "Default: net. The ЭСФ always calculates net plus rate. With a gross list it splits the total. The setting applies to the whole list and cannot be changed afterwards."
       },
       "position": {
         "sorte": "Variety",
@@ -3909,7 +3911,9 @@
         "label": "Client group",
         "knopf": "Save"
       }
-    }
+    },
+    "netto": "net",
+    "brutto": "incl. VAT"
   },
   "sortenkatalogAnsicht": {
     "sortenTitel": "Varieties",
@@ -4793,9 +4797,10 @@
       "mwst": "VAT {prozent} %",
       "nichtRegistriert": "The farm was not VAT-registered on the delivery day, no VAT in the draft.",
       "gesamt": "Total",
-      "annahme": "Assumption: the price list holds net prices. Please check with accounting before issuing.",
+      "annahme": "Assumption: the price list holds net prices, VAT is added on top. The setting is kept on the price list.",
       "lueckenTitel": "The draft still lacks:",
-      "unlesbar": "The stored draft cannot be read. Please recalculate."
+      "unlesbar": "The stored draft cannot be read. Please recalculate.",
+      "annahmeBrutto": "Assumption: the price list holds gross prices (including VAT). The amount without VAT is the total divided by 1 plus the rate. The setting is kept on the price list."
     },
     "luecke": {
       "preis": "No price in the price list on the delivery day",

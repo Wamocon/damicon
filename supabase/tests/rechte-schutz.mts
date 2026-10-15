@@ -82,6 +82,13 @@ await als("betriebsleitung", async () => {
   check("Preislisten: die Betriebsleitung entfernt die Position einer Liste", rows.length === 1);
 });
 
+// Netto oder brutto (15.10.2026): Vorgabe netto, brutto setzt die Leitung beim Anlegen.
+await als("betriebsleitung", async () => {
+  const { rows: a } = await db.query<{ preise_inkl_mwst: boolean }>(`insert into public.preislisten (name) values ('RS netto') returning preise_inkl_mwst;`);
+  const { rows: b } = await db.query<{ preise_inkl_mwst: boolean }>(`insert into public.preislisten (name, preise_inkl_mwst) values ('RS brutto', true) returning preise_inkl_mwst;`);
+  check("Preislisten: eine neue Liste ist netto, brutto setzt die Leitung beim Anlegen", a[0].preise_inkl_mwst === false && b[0].preise_inkl_mwst === true);
+});
+
 // --- 3. Pflanzenschutz ----------------------------------------------------------------------------------------------------------------------
 await als("admin", async () => {
   const { rows } = await db.query<{ n: number }>(`select count(*)::int as n from public.v_block_sperre;`);

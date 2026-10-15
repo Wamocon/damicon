@@ -44,6 +44,13 @@ export function PreisListeErstellenFormular() {
             <Auswahl label={t("kundengruppe")} name="kundengruppe" options={kundengruppenOptionen(kg, true)} />
           </div>
         </div>
+        <label className="flex items-start gap-2 text-xs text-card-foreground">
+          <input type="checkbox" name="inkl_mwst" className="mt-0.5" />
+          <span>
+            <span className="font-semibold">{t("inklMwst")}</span>
+            <span className="block text-muted-foreground">{t("inklMwstHinweis")}</span>
+          </span>
+        </label>
         <SubmitKnopf label={t("knopf")} status={status} />
         <AktionsMeldung status={status} />
       </form>

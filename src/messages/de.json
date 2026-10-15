@@ -3897,7 +3897,9 @@
         "gueltigAb": "Gültig ab",
         "gueltigBis": "Gültig bis (optional)",
         "kundengruppe": "Kundengruppe (optional)",
-        "knopf": "Preisliste anlegen"
+        "knopf": "Preisliste anlegen",
+        "inklMwst": "Preise enthalten die MwSt (brutto)",
+        "inklMwstHinweis": "Vorgabe: netto. Die ЭСФ rechnet immer netto plus Satz. Bei einer Bruttoliste teilt sie den Gesamtbetrag. Die Angabe gilt für die ganze Liste und lässt sich nicht mehr ändern."
       },
       "position": {
         "sorte": "Sorte",
@@ -3909,7 +3911,9 @@
         "label": "Kundengruppe",
         "knopf": "Speichern"
       }
-    }
+    },
+    "netto": "netto",
+    "brutto": "inkl. MwSt"
   },
   "sortenkatalogAnsicht": {
     "sortenTitel": "Sorten",
@@ -4793,9 +4797,10 @@
       "mwst": "MwSt {prozent} %",
       "nichtRegistriert": "Der Betrieb war am Liefertag nicht MwSt-registriert, keine MwSt im Entwurf.",
       "gesamt": "Gesamt",
-      "annahme": "Annahme: Die Preisliste führt Nettopreise. Bitte vor dem Ausstellen mit der Buchhaltung abgleichen.",
+      "annahme": "Annahme: Die Preisliste führt Nettopreise, die MwSt kommt obendrauf. Die Angabe steht an der Preisliste.",
       "lueckenTitel": "Dem Entwurf fehlt noch:",
-      "unlesbar": "Der gespeicherte Entwurf ist nicht lesbar. Bitte neu berechnen."
+      "unlesbar": "Der gespeicherte Entwurf ist nicht lesbar. Bitte neu berechnen.",
+      "annahmeBrutto": "Annahme: Die Preisliste führt Bruttopreise (inklusive MwSt). Der Betrag ohne MwSt ist der Gesamtbetrag geteilt durch 1 plus Satz. Die Angabe steht an der Preisliste."
     },
     "luecke": {
       "preis": "Kein Preis in der Preisliste am Liefertag",

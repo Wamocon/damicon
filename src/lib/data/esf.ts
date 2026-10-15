@@ -119,7 +119,7 @@ export async function ladeEntwurfEingabe(supabase: SupabaseClient<Database>, lie
 
   const [sorte, preislisten, saetze, mwst] = await Promise.all([
     sorteId ? supabase.from("sorten").select("name").eq("id", sorteId).maybeSingle() : Promise.resolve({ data: null, error: null }),
-    supabase.from("preislisten").select("gueltig_ab, gueltig_bis, kundengruppe, preislisten_positionen ( sorte_id, preis_tenge_kg )"),
+    supabase.from("preislisten").select("gueltig_ab, gueltig_bis, kundengruppe, preise_inkl_mwst, preislisten_positionen ( sorte_id, preis_tenge_kg )"),
     supabase.from("mwst_saetze").select("gueltig_ab, gueltig_bis, standard_prozent"),
     supabase.from("betriebe_mwst_status").select("mwst_registriert, mwst_registriert_am").limit(1),
   ]);
@@ -139,6 +139,7 @@ export async function ladeEntwurfEingabe(supabase: SupabaseClient<Database>, lie
         gueltigAb: p.gueltig_ab,
         gueltigBis: p.gueltig_bis,
         kundengruppe: p.kundengruppe,
+        inklMwst: p.preise_inkl_mwst,
         positionen: (p.preislisten_positionen ?? []).map((pos) => ({ sorteId: pos.sorte_id, preisTengeKg: Number(pos.preis_tenge_kg) })),
       })),
       mwstSaetze: (saetze.data ?? []).map((s) => ({ gueltigAb: s.gueltig_ab, gueltigBis: s.gueltig_bis, prozent: Number(s.standard_prozent) })),

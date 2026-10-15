@@ -92,7 +92,7 @@ export function baueEsfBelegDokument(b: EsfBelegZeile, x: DokumentKontext): Doku
 
   const hinweise: string[] = [];
   if (e && !e.mwst.registriert) hinweise.push(a("entwurf.nichtRegistriert"));
-  if (e?.mwst.registriert) hinweise.push(a("entwurf.annahme"));
+  if (e?.mwst.registriert) hinweise.push(a(e.mwst.annahme === "brutto" ? "entwurf.annahmeBrutto" : "entwurf.annahme"));
   const luecken = e && e.luecken.length > 0 ? kasten(a("entwurf.lueckenTitel"), e.luecken.map((l) => a(`luecke.${l}`)), "warnung") : "";
 
   return versiegeln({

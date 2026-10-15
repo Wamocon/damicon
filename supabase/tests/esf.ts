@@ -143,6 +143,27 @@ const wert = (baum: Baum, pfad: string): unknown => pfad.split(".").reduce<unkno
 const quelle = `${readFileSync("src/lib/actions/esf.ts", "utf8")}\n${readFileSync("src/lib/actions/status.ts", "utf8")}`;
 const schluesselAusCode = [...quelle.matchAll(/"(ok|fehler)\.(esf\w+)"/g)].map((m) => `aktionen.${m[1]}.${m[2]}`);
 const zusaetzlich = ["esfNummer", "esfDatum", "esfBemerkung"].map((k) => `aktionen.fehler.${k}`); // aus esfAngabenFehler, ueber fehler.${...} gebildet
+// --- Netto oder brutto (15.10.2026) -----------------------------------------------------------------------------------------------------------
+{
+  const brutto = (extra: Partial<EsfEntwurfEingabe> = {}) =>
+    eingabe({ preislisten: [{ gueltigAb: "2026-01-01", gueltigBis: null, kundengruppe: null, inklMwst: true, positionen: [{ sorteId: S1, preisTengeKg: 3200 }] }], ...extra });
+  const netto = baueEsfEntwurf(eingabe({ mwstRegistriert: true, mwstRegistriertAm: "2026-01-01" }));
+  check("Netto: die Vorgabe bleibt, 80 kg zu 3200 ergeben 256000 ohne MwSt, 40960 MwSt, 296960 gesamt, Annahme netto", netto.ware.betragTenge === 256000 && netto.mwst.betragTenge === 40960 && netto.mwst.gesamtTenge === 296960 && netto.mwst.annahme === "netto");
+  const b = baueEsfEntwurf(brutto({ mwstRegistriert: true, mwstRegistriertAm: "2026-01-01" }));
+  // 80 kg zu 3200 brutto = 256000 gesamt; ohne MwSt 256000 / 1,16 = 220689,66; MwSt = 35310,34.
+  check("Brutto: registriert, der Gesamtbetrag ist Preis mal Menge, der Betrag ohne MwSt ist Gesamt geteilt durch 1,16", b.mwst.gesamtTenge === 256000 && b.ware.betragTenge === 220689.66 && b.mwst.betragTenge === 35310.34 && b.mwst.annahme === "brutto", JSON.stringify([b.ware.betragTenge, b.mwst]));
+  check("Brutto: Betrag und MwSt ergeben genau den Gesamtbetrag", Math.round(((b.ware.betragTenge ?? 0) + (b.mwst.betragTenge ?? 0)) * 100) === 25600000);
+  const unreg = baueEsfEntwurf(brutto());
+  check("Brutto: ohne MwSt-Registrierung ist der Preis der Endpreis, keine MwSt, kein Abzug", unreg.ware.betragTenge === 256000 && unreg.mwst.betragTenge === null && unreg.mwst.gesamtTenge === 256000);
+  const ohneSatz = baueEsfEntwurf(brutto({ mwstRegistriert: true, mwstRegistriertAm: "2026-01-01", mwstSaetze: [] }));
+  check("Brutto: ohne Satz laesst sich nichts trennen, die Luecke meldet es und Betrag und MwSt bleiben leer", ohneSatz.ware.betragTenge === null && ohneSatz.mwst.betragTenge === null && ohneSatz.luecken.includes("mwstSatz"));
+  check("Brutto: das Standbild kehrt gelesen mit der Annahme zurueck, ein alter Entwurf ohne Angabe gilt als netto", liesEntwurf(JSON.parse(JSON.stringify(b)))?.mwst.annahme === "brutto" && liesEntwurf(JSON.parse(JSON.stringify({ ...netto, mwst: { ...netto.mwst, annahme: undefined } })))?.mwst.annahme === "netto");
+  check("Brutto: eine gruppengenaue Liste traegt ihre eigene Angabe", baueEsfEntwurf(eingabe({ kunde: { name: "X", identifikationsnummer: "1", rechtsform: null, kundengruppe: "handel" }, mwstRegistriert: true, mwstRegistriertAm: "2026-01-01", preislisten: [
+    { gueltigAb: "2026-01-01", gueltigBis: null, kundengruppe: null, positionen: [{ sorteId: S1, preisTengeKg: 3200 }] },
+    { gueltigAb: "2026-01-01", gueltigBis: null, kundengruppe: "handel", inklMwst: true, positionen: [{ sorteId: S1, preisTengeKg: 3200 }] },
+  ] })).mwst.annahme === "brutto");
+}
+
 // --- Frist (15.10.2026) -------------------------------------------------------------------------------------------------------------------
 // Steuerkodex 214-VIII, Art. 493 Abs. 1: spaetestens 15 Kalendertage nach dem Umsatztag. Der letzte Tag zaehlt noch, die Frist kommt aus der Einstellung.
 check("Frist: am Liefertag laufen noch alle Tage", JSON.stringify(esfFristStand(0, 15)) === JSON.stringify({ art: "laeuft", verbleibend: 15 }));
@@ -154,6 +175,7 @@ check("Frist: der Standard im Code ist 15 Kalendertage", einstellungStandard("es
 
 const noetig = [
   ...new Set([...schluesselAusCode, ...zusaetzlich]),
+  "esfAnsicht.entwurf.annahmeBrutto", "preislistenAnsicht.netto", "preislistenAnsicht.brutto", "preislistenAnsicht.formular.erstellen.inklMwst", "preislistenAnsicht.formular.erstellen.inklMwstHinweis",
   "esfAnsicht.zaehlUeberfaellig", "esfAnsicht.offen.leadOhneFrist", "esfAnsicht.offen.ueberfaellig", "esfAnsicht.offen.nochTage", "esfAnsicht.offen.letzterTag",
   "esfAnsicht.titel", "esfAnsicht.lead", "esfAnsicht.stufeHinweis", "esfAnsicht.nurLesen", "esfAnsicht.zaehlOffen",
   "esfAnsicht.offen.titel", "esfAnsicht.offen.lead", "esfAnsicht.offen.leer", "esfAnsicht.offen.heute", "esfAnsicht.offen.tage", "esfAnsicht.offen.keinBeleg",
