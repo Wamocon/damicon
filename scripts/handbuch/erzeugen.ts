@@ -30,6 +30,7 @@ import { de as textDe } from "./texte-de";
 import { en as textEn } from "./texte-en";
 import { kk as textKk } from "./texte-kk";
 import { ru as textRu } from "./texte-ru";
+import { einleitungen, ergaenzungen, wendeErgaenzungenAn } from "./ergaenzungen";
 
 const texte: Record<Sprache, HandbuchTexte> = {
   de: textDe,
@@ -37,6 +38,15 @@ const texte: Record<Sprache, HandbuchTexte> = {
   kk: textKk,
   ru: textRu,
 };
+
+// Neue Abläufe und Zusatzschritte (ergaenzungen.ts): nach den Texten angewendet, damit die vier Sprachen nebeneinander gepflegt werden und die Pfade zu den
+// Modulen aus den Sprachkatalogen kommen.
+for (const s of sprachen) {
+  texte[s] = {
+    ...texte[s],
+    anleitungen: { ...texte[s].anleitungen, einleitung: einleitungen[s], liste: wendeErgaenzungenAn(texte[s].anleitungen.liste, ergaenzungen[s]) },
+  };
+}
 
 // Die Sprachkataloge der Anwendung. Der Typ ist bewusst weich: hier wird nur
 // gelesen, und jede Sprache traegt dieselben Schluessel.

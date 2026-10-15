@@ -274,8 +274,8 @@ export const en: HandbuchTexte = {
         einleitung:
           "Since 1 January 2026 every delivery must be documented through the state ЭСФ system. The portal does not issue the ЭСФ. It keeps the register, prepares the details and shows which delivery has no document yet.",
         schritte: [
-          "As administration, CEO or accounting open Yard → Delivery note (ЭСФ). “Deliveries without ЭСФ” lists all delivered shipments without an issued document, the oldest first. The age counts from the delivery day. The portal stores no deadline, accounting decides which one applies.",
-          "“Create draft” stores a snapshot of the details: buyer with identification number, variety, quantity, price per the price list on the delivery day and, if the farm was VAT-registered on that day, the VAT. What is missing (price, variety, identification number, VAT rate) is listed under “The draft still lacks”. The draft assumes the price list holds net prices: check this with accounting before issuing.",
+          "As administration, CEO or accounting open Yard → Delivery note (ЭСФ). “Deliveries without ЭСФ” lists all delivered shipments without an issued document, the oldest first. The age counts from the delivery day. The deadline is set under Office → Settings (default 15 calendar days after the delivery day, Tax Code art. 493) and can be changed there. Deliveries past the deadline are marked.",
+          "“Create draft” stores a snapshot of the details: buyer with identification number, variety, quantity, price per the price list on the delivery day and, if the farm was VAT-registered on that day, the VAT. What is missing (price, variety, identification number, VAT rate) is listed under “The draft still lacks”. Whether the price list holds net or gross prices is set on the price list. The ЭСФ always calculates net plus rate; for a gross list the draft splits the total. Check the draft with accounting before issuing.",
           "Issue the ЭСФ in the state portal with these details. Then record it in the register with “Record as issued”: enter the ЭСФ number and date. From here on the draft no longer changes.",
           "If the ЭСФ is confirmed, “Record confirmation”. If it is rejected, “Record rejection” with a reason, then “Start a new draft”.",
           "Paper is only permitted during an outage of the state system. “Keep on paper” therefore requires a reason. Confirmed documents and documents kept on paper are closed.",
@@ -289,8 +289,8 @@ export const en: HandbuchTexte = {
           "The conclusion, change and termination of every seasonal contract belong in the state unified system ЕСУТД. The portal does not report by itself. It shows what is to be reported and records what has been reported and what proves it.",
         schritte: [
           "As administration, CEO or farm management open Office → Integrations.",
-          "Under “Create a new conclusion” enter the person, the start of the contract and optionally the contract number. For the conclusion the portal calculates the deadline: five working days from the start of the contract, without a holiday calendar. Once it has passed, “Deadline passed” appears on the row and in the risk radar.",
-          "Enter changes and terminations under “Create a change or termination”: contract, type, date and, for a change, what changes. No deadline is stored for either.",
+          "Under “Create a new conclusion” enter the person, the start of the contract and optionally the contract number. For the conclusion the portal calculates the deadline: five working days after both parties have signed (without a date: from the start of the contract), without a holiday calendar. Once it has passed, “Deadline passed” appears on the row and in the risk radar.",
+          "Enter changes and terminations under “Create a change or termination”: contract, type, date and, for a change, what changes. A change must be reported within 15 calendar days of its date, a termination within three working days of its end. The days are set under Office → Settings.",
           "“Open reports as CSV” downloads the details (name, ID, type, date, contract number) as a plain table for entry in the state system. There is no official import format. The file contains personal data: delete it after entry. Every download is logged.",
           "After reporting in the state system choose “Record as reported”: report date (not in the future), optionally a confirmation number and a proof. Upload the proof first in the evidence register (Office → Documents, category ЕСУТД proof), then select it here.",
           "A wrongly recorded report can be reopened: date, confirmation and proof are cleared. A report that is still open can be removed. In the personnel view the ЕСУТД field of a person shows “open” as long as one of their reports is open. Accounting can see the list but records nothing.",
@@ -316,7 +316,7 @@ export const en: HandbuchTexte = {
         schritte: [
           "Open Yard → Collection rounds and unfold “Import logger file” at the planned delivery.",
           "Choose the logger’s file, CSV or JSON. CSV: time and temperature per line, separator comma, semicolon or tab, decimal comma or decimal point, up to 2 MB. Optionally enter a serial number or vehicle as identifier. JSON: a list with time and temperature per entry, the time as text or as Unix time.",
-          "Times without a time zone count as Almaty time. Values of the last 24 hours are taken over. Older rows, rows in the future, duplicates and unreadable rows are left out, and the portal gives the numbers after the import.",
+          "Times without a time zone use the zone chosen under “Logger clock” (default Almaty, also UTC, Berlin and Moscow). Values of the last 24 hours are taken over. Older rows, rows in the future, duplicates and unreadable rows are left out, and the portal gives the numbers after the import.",
           "Each value is rated like a manual measurement (up to 4 degrees fine, up to 8 degrees warning, above that violation) and carries the origin “logger”. A delivered or cancelled delivery no longer accepts values.",
         ],
       },

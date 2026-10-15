@@ -823,7 +823,7 @@
       "title": "Settings",
       "navTitle": "Settings",
       "description": "Deadlines, capacities and reference values that administration, management and the responsible specialist roles maintain themselves.",
-      "summary": "Ten business values with limits, source and change history. Access rights are not up for choice here.",
+      "summary": "Eleven business values and the weights of the block-risk rating, with limits, source and change history. Access rights are not up for choice here.",
       "todo": "Nothing open."
     }
   },
@@ -4689,7 +4689,7 @@
     },
     "erklaerung": {
       "titel": "How the risk score is built",
-      "lead": "Five weighted factors. Weights and thresholds are stored with their rationale in the database (table risiko_parameter); only admin and ceo may change them.",
+      "lead": "Five factors, weighted. Weights and thresholds are stored with their reasoning in the database. Administration and CEO may change them under Office → Settings.",
       "gewicht": "Weight {gewicht}",
       "faktor": {
         "ueberfaellig": {
@@ -5645,7 +5645,7 @@
       },
       "esutd_frist_abschluss_tage": {
         "label": "ЕСУТД: deadline for a conclusion",
-        "beschreibung": "Working days after the start of the contract until it must be reported in the unified system. Saturday and Sunday do not count, public holidays are not stored."
+        "beschreibung": "Working days after both parties have signed (without a date: after the start of the contract) until the contract must be reported in the unified system. Saturdays and Sundays do not count, public holidays are not stored."
       },
       "esutd_frist_aenderung_tage": {
         "label": "ЕСУТД: deadline for an amendment",

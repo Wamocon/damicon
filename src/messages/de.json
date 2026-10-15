@@ -823,7 +823,7 @@
       "title": "Einstellungen",
       "navTitle": "Einstellungen",
       "description": "Fristen, Kapazitäten und Richtwerte, die Administration, Geschäftsführung und die zuständigen Fachrollen selbst pflegen.",
-      "summary": "Zehn fachliche Werte mit Grenzen, Quelle und Änderungsverlauf. Zugriffsrechte stehen hier nicht zur Wahl.",
+      "summary": "Elf fachliche Werte und die Gewichte der Block-Risiko-Bewertung, mit Grenzen, Quelle und Änderungsverlauf. Zugriffsrechte stehen hier nicht zur Wahl.",
       "todo": "Nichts mehr offen."
     }
   },
@@ -4689,7 +4689,7 @@
     },
     "erklaerung": {
       "titel": "So entsteht der Risikowert",
-      "lead": "Fünf Faktoren, gewichtet. Gewichte und Schwellen stehen mit Begründung in der Datenbank (Tabelle risiko_parameter), ändern dürfen nur admin und ceo.",
+      "lead": "Fünf Faktoren, gewichtet. Gewichte und Schwellen stehen mit Begründung in der Datenbank. Ändern dürfen Administration und Geschäftsführung unter Büro → Einstellungen.",
       "gewicht": "Gewicht {gewicht}",
       "faktor": {
         "ueberfaellig": {
@@ -5645,7 +5645,7 @@
       },
       "esutd_frist_abschluss_tage": {
         "label": "ЕСУТД: Frist für den Abschluss",
-        "beschreibung": "Arbeitstage nach Vertragsbeginn, bis der Vertrag im Einheitssystem gemeldet sein muss. Samstag und Sonntag zählen nicht, Feiertage sind nicht hinterlegt."
+        "beschreibung": "Arbeitstage nach der Unterschrift beider Seiten (ohne Angabe: nach Vertragsbeginn), bis der Vertrag im Einheitssystem gemeldet sein muss. Samstag und Sonntag zählen nicht, Feiertage sind nicht hinterlegt."
       },
       "esutd_frist_aenderung_tage": {
         "label": "ЕСУТД: Frist für eine Änderung",
