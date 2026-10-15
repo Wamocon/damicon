@@ -189,7 +189,7 @@ await als("brigade", async () => {
   const { rows: nb } = await db.query<Record<string, unknown>>(`select * from public.abholrunde_nachbarbetriebe() order by name;`);
   const namen = nb.map((n) => String(n.name));
   check("Rechte: die Brigade liest über die Funktion die Nachbarbetriebe, die in einem Stopp stehen, und keinen anderen", namen.includes("Nachbar A") && !namen.includes("Nachbar ohne Stopp"), namen.join(","));
-  check("Rechte: die Funktion liefert nur Name, Ort, Anschrift, Kontakt und Koordinaten", Object.keys(nb[0] ?? {}).sort().join() === "adresse,breitengrad,id,kontakt,laengengrad,name,ort", Object.keys(nb[0] ?? {}).join());
+  check("Rechte: die Funktion liefert nur Name, Ort, Anschrift, Kontakt, Koordinaten und das Abholfenster", Object.keys(nb[0] ?? {}).sort().join() === "abhol_bis,abhol_von,adresse,breitengrad,id,kontakt,laengengrad,name,ort", Object.keys(nb[0] ?? {}).join());
 });
 await als("betriebsleitung", async () => {
   const { rows } = await db.query<{ name: string }>(`select name from public.abholrunde_nachbarbetriebe();`);
@@ -236,6 +236,51 @@ for (const rolle of ["kunde", "picker", "erzeuger"]) {
   await als("brigade", async () => {
     const { rows } = await db.query(`update public.abholstopps set menge_ist_kg = 95, bemerkung = 'Nachgewogen' where id = $1 returning id;`, [r.stopps[0]]);
     check("Stopp: Menge und Bemerkung bleiben bis zum Abschluss korrigierbar", rows.length === 1);
+  });
+}
+
+// --- 8. Ausbau (15.10.2026): Kapazitaet, Abholfenster, geschaetzte Ankunft ------------------------------------------------------------------
+{
+  // Abholfenster: beides oder nichts, Beginn vor Ende.
+  await alsScheitert("betriebsleitung", "Fenster: nur ein Ende ohne Beginn wird abgelehnt (23514)", `update public.nachbarbetriebe set abhol_bis = '10:00' where id = $1;`, [A], "23514");
+  await alsScheitert("betriebsleitung", "Fenster: Beginn nach dem Ende wird abgelehnt (23514)", `update public.nachbarbetriebe set abhol_von = '11:00', abhol_bis = '10:00' where id = $1;`, [A], "23514");
+  await als("betriebsleitung", async () => {
+    const { rows } = await db.query(`update public.nachbarbetriebe set abhol_von = '08:00', abhol_bis = '10:30' where id = $1 returning id;`, [A]);
+    check("Fenster: die Betriebsleitung setzt das Abholfenster eines Nachbarbetriebs", rows.length === 1);
+  });
+  await als("brigade", async () => {
+    const { rows } = await db.query(`update public.nachbarbetriebe set abhol_von = '05:00', abhol_bis = '06:00' where id = $1 returning id;`, [A]);
+    check("Fenster: die Brigade aendert kein Abholfenster (die Zeile bleibt fuer sie unsichtbar)", rows.length === 0);
+  });
+  await als("brigade", async () => {
+    const { rows } = await db.query<{ abhol_von: string | null; abhol_bis: string | null }>(`select abhol_von::text, abhol_bis::text from public.abholrunde_nachbarbetriebe() where id = $1;`, [A]);
+    check("Fenster: die Funktion der Nachbarbetriebe liefert der Brigade das Fenster der Betriebe ihrer Stopps", rows.length === 1 && rows[0].abhol_von?.startsWith("08:00") === true && rows[0].abhol_bis?.startsWith("10:30") === true, JSON.stringify(rows));
+  });
+
+  // Kapazitaet und Abfahrt; die Funktion legt Runde und Stopps mit der geschaetzten Ankunft an.
+  await alsScheitert("betriebsleitung", "Kapazitaet: null oder negativ wird abgelehnt (23514)", `insert into public.abholrunden (datum, kapazitaet_kg) values (current_date, 0);`, [], "23514");
+  await alsScheitert("betriebsleitung", "Kapazitaet: ueber 100000 kg wird abgelehnt (23514)", `insert into public.abholrunden (datum, kapazitaet_kg) values (current_date, 100001);`, [], "23514");
+  const stopps = JSON.stringify([
+    { nachbarbetrieb_id: A, reihenfolge: 0, menge_geplant_kg: 300, ankunft_geplant: "2026-10-21T01:50:00Z" },
+    { nachbarbetrieb_id: B, reihenfolge: 1, menge_geplant_kg: 200, ankunft_geplant: null },
+  ]);
+  const id = await als("betriebsleitung", async () =>
+    (await db.query<{ id: string }>(`select public.abholrunde_anlegen(date '2026-10-21', 'Wagen K', null, 450, '06:30', 20, 60, 30, null, $1::jsonb) as id;`, [stopps])).rows[0].id);
+  {
+    const { rows } = await db.query<{ kapazitaet_kg: string; start_zeit: string; ankunft: string | null; ohne: number }>(
+      `select r.kapazitaet_kg::text, r.start_zeit::text, (select s.ankunft_geplant::text from public.abholstopps s where s.runde_id = r.id and s.reihenfolge = 0) as ankunft,
+              (select count(*)::int from public.abholstopps s where s.runde_id = r.id and s.ankunft_geplant is null) as ohne from public.abholrunden r where r.id = $1;`, [id]);
+    check("Ausbau: die Runde traegt Kapazitaet und Abfahrt, der erste Stopp die geschaetzte Ankunft, der zweite keine", Number(rows[0].kapazitaet_kg) === 450 && rows[0].start_zeit.startsWith("06:30") && rows[0].ankunft !== null && rows[0].ohne === 1, JSON.stringify(rows[0]));
+  }
+
+  // Die Brigade fuehrt die Runde, sie plant sie nicht: Kapazitaet, Abfahrt und geplante Ankunft bleiben der Leitung.
+  const stoppId = (await db.query<{ id: string }>(`select id from public.abholstopps where runde_id = $1 and reihenfolge = 0;`, [id])).rows[0].id;
+  await alsScheitert("brigade", "Ausbau: die Brigade aendert die Kapazitaet einer Runde nicht (DA015)", `update public.abholrunden set kapazitaet_kg = 9999 where id = $1;`, [id], "DA015");
+  await alsScheitert("brigade", "Ausbau: die Brigade aendert die Abfahrt einer Runde nicht (DA015)", `update public.abholrunden set start_zeit = '03:00' where id = $1;`, [id], "DA015");
+  await alsScheitert("brigade", "Ausbau: die Brigade aendert die geschaetzte Ankunft eines Stopps nicht (DA015)", `update public.abholstopps set ankunft_geplant = now() where id = $1;`, [stoppId], "DA015");
+  await als("betriebsleitung", async () => {
+    await db.query(`update public.abholrunden set kapazitaet_kg = 600, start_zeit = '06:00' where id = $1;`, [id]);
+    check("Ausbau: die Betriebsleitung aendert Kapazitaet und Abfahrt einer geplanten Runde", true);
   });
 }
 

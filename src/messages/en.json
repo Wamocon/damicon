@@ -1018,7 +1018,8 @@
       "auslieferung": "{versucht} attempted: {zugestellt} delivered, {wiederholen} waiting for retry, {gescheitert} failed.",
       "auslieferungNichts": "Nothing due.",
       "nachrichtAnonymisiert": "Message anonymised.",
-      "einstellungGespeichert": "Setting saved."
+      "einstellungGespeichert": "Setting saved.",
+      "zeitfensterGespeichert": "Pickup window saved."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1163,7 +1164,10 @@
       "einstellungGrenzen": "The value is outside the permitted limits.",
       "einstellungGanzzahl": "Please enter a whole number.",
       "wiIstSchonDa": "There is already a value for this month, category and currency. Remove the existing one and enter it again.",
-      "adresssucheGrenze": "Too many address searches in the last hour. Please try again later (limit in the settings)."
+      "adresssucheGrenze": "Too many address searches in the last hour. Please try again later (limit in the settings).",
+      "arKapazitaet": "Please enter a capacity between 1 and 100000 kg or leave the field empty.",
+      "arStartzeit": "Please enter the departure as a time (HH:MM) or leave it empty.",
+      "arFenster": "The pickup window needs a start and an end (HH:MM), the start before the end."
     },
     "einladungen": {
       "erfolg": {
@@ -5141,7 +5145,9 @@
         "datum": "Date",
         "fahrzeug": "Vehicle",
         "status": "Status",
-        "ankunft": "Arrival at the cold store"
+        "ankunft": "Arrival at the cold store",
+        "kapazitaet": "Capacity",
+        "abfahrt": "Departure"
       },
       "kennzahl": {
         "stopps": "Stops",
@@ -5151,7 +5157,9 @@
       },
       "zusammenfassungAbgeschlossen": "The round is completed: {abgeholt} pickups, {entfallen} cancelled. This document no longer changes.",
       "zusammenfassungOffen": "Order for {anzahl} stops. The driver records each pickup with the quantity and the start of picking that the neighbouring farm states.",
-      "fahrer": "Driver"
+      "fahrer": "Driver",
+      "ankunftCa": "Arrival approx. {zeit}",
+      "fensterZeit": "Window {von} to {bis}"
     }
   },
   "wirtschaftlichkeitErfassung": {
@@ -5319,7 +5327,12 @@
       "ergebnisse": "{ok} fine, {warnung} warnings, {rot} violations",
       "auftrag": "Pickup order (PDF)",
       "abgeschlossenTitel": "Completed rounds ({anzahl})",
-      "abgeschlossenLead": "Completed rounds no longer change. They are the evidence for the 60-minute rule."
+      "abgeschlossenLead": "Completed rounds no longer change. They are the evidence for the 60-minute rule.",
+      "kapazitaet": "Capacity {kapazitaet} kg, load {prozent} %",
+      "ueberKapazitaet": "over capacity",
+      "knapp": "capacity tight",
+      "platz": "capacity sufficient",
+      "start": "Departure {zeit}"
     },
     "planung": {
       "ok": "Drive fits",
@@ -5332,7 +5345,13 @@
       "pflueckbeginn": "picking began {zeit}",
       "pflueckUnbekannt": "picking start unknown, counted as a warning",
       "abgeholtAm": "collected {zeit}",
-      "minuten": "{minuten} minutes to the cold store"
+      "minuten": "{minuten} minutes to the cold store",
+      "ankunft": "Arrival approx. {zeit}",
+      "fenster": "Window {von} to {bis}",
+      "fensterFrueh": "before the window",
+      "fensterSpaet": "after the window",
+      "fensterIm": "within the window",
+      "doppelt": "also in another round on this day"
     },
     "aktion": {
       "starten": "Start round",
@@ -5363,12 +5382,23 @@
       "menge": "Quantity (kg)",
       "keineBetriebe": "No neighbouring farms are set up yet. They are created in the aggregator module.",
       "keineKoordinaten": "No address, goes to the end",
-      "knopf": "Create pickup round"
+      "knopf": "Create pickup round",
+      "kapazitaet": "Vehicle capacity (kg)",
+      "kapazitaetHinweis": "Empty: no check. Default from the settings.",
+      "start": "Departure at the farm",
+      "startHinweis": "The planning uses it to estimate the arrival at each stop."
     },
     "adresse": {
       "label": "Address",
       "platzhalter": "Street, town",
       "knopf": "Save address"
+    },
+    "zeitfenster": {
+      "keins": "No pickup window",
+      "gesetzt": "Pickup window {von} to {bis}",
+      "von": "from",
+      "bis": "to",
+      "knopf": "Save window"
     }
   },
   "integrationAuslieferung": {
@@ -5464,7 +5494,8 @@
       "kg": "kg",
       "prozent": "percent",
       "sekunden": "seconds",
-      "anfragen_je_stunde": "requests per person and hour"
+      "anfragen_je_stunde": "requests per person and hour",
+      "minuten": "minutes"
     },
     "formular": {
       "wert": "Value",
@@ -5516,6 +5547,10 @@
       "sicherheit_adresssuche_je_stunde": {
         "label": "Limit of the address search",
         "beschreibung": "How often a person may have an address converted into coordinates per hour (geocoding)."
+      },
+      "abholung_aufenthalt_minuten": {
+        "label": "Time per stop of the pickup round",
+        "beschreibung": "Minutes for weighing, loading and handover at a neighbouring farm. The planning adds them to the driving time when it estimates the arrival at each stop. A planning assumption, to be checked after the first rounds."
       }
     }
   }

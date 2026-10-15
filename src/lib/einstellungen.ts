@@ -30,6 +30,7 @@ export const einstellungen = [
   { schluessel: "esutd.frist_abschluss_tage", bereich: "arbeitsrecht", typ: "ganzzahl", standard: 5, einheit: "arbeitstage", min: 1, max: 60, bearbeiter: ARBEITSRECHT },
   { schluessel: "esutd.frist_aenderung_tage", bereich: "arbeitsrecht", typ: "ganzzahl", standard: 15, einheit: "kalendertage", min: 1, max: 90, bearbeiter: ARBEITSRECHT },
   { schluessel: "esutd.frist_beendigung_tage", bereich: "arbeitsrecht", typ: "ganzzahl", standard: 3, einheit: "arbeitstage", min: 1, max: 60, bearbeiter: ARBEITSRECHT },
+  { schluessel: "abholung.aufenthalt_minuten", bereich: "abholung", typ: "ganzzahl", standard: 10, einheit: "minuten", min: 0, max: 120, bearbeiter: ["betriebsleitung"] },
   { schluessel: "abholung.fahrzeug_kapazitaet_kg", bereich: "abholung", typ: "dezimal", standard: null, einheit: "kg", min: 1, max: 100000, bearbeiter: ["betriebsleitung"] },
   { schluessel: "wirtschaftlichkeit.kalkulationszins_richtwert", bereich: "finanzen", typ: "dezimal", standard: 20, einheit: "prozent", min: 1, max: 60, bearbeiter: [] },
   { schluessel: "wirtschaftlichkeit.zins_sensitivitaet_niedrig", bereich: "finanzen", typ: "dezimal", standard: 16, einheit: "prozent", min: 1, max: 60, bearbeiter: [] },

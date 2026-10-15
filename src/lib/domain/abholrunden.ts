@@ -87,6 +87,11 @@ export interface AbholStoppZeile {
   /** Nur bei einer abgeschlossenen Runde und einem abgeholten Stopp. */
   minutenBisKuehlung: number | null;
   ergebnis: KuehlErgebnis | null;
+  /** Geschaetzte Ankunft beim Nachbarbetrieb (Planung), eine Schaetzung. */
+  ankunftGeplant?: string | null;
+  /** Abholfenster des Nachbarbetriebs (HH:MM, Ortszeit Almaty). */
+  abholVon?: string | null;
+  abholBis?: string | null;
 }
 
 export interface AbholRundeZeile {
@@ -101,6 +106,10 @@ export interface AbholRundeZeile {
   geometrie: GeoJSON.LineString | null;
   gestartetAm: string | null;
   kuehlhausAn: string | null;
+  /** Nutzlast des Fahrzeugs in kg; null = keine Pruefung. */
+  kapazitaetKg?: number | null;
+  /** Geplante Abfahrt am Betrieb (HH:MM, Ortszeit Almaty). */
+  startZeit?: string | null;
   stopps: AbholStoppZeile[];
 }
 
@@ -112,6 +121,8 @@ export interface NachbarbetriebOption {
   adresse: string | null;
   breitengrad: number | null;
   laengengrad: number | null;
+  abholVon?: string | null;
+  abholBis?: string | null;
 }
 
 export interface RundenZusammenfassung {
@@ -146,17 +157,76 @@ export function rundenZusammenfassung(stopps: readonly AbholStoppZeile[]): Runde
   };
 }
 
+// --- Kapazitaet, Abholfenster, geschaetzte Ankunft ----------------------------------------------------------------------------
+
+/** Obergrenze der Nutzlast in kg (die Datenbank prueft dieselbe). */
+export const KAPAZITAET_MAX_KG = 100_000;
+/** Ab diesem Anteil der Kapazitaet gilt die Auslastung als knapp. */
+export const AUSLASTUNG_KNAPP_PROZENT = 90;
+
+export type AuslastungStufe = "ok" | "knapp" | "ueber";
+
+/** Auslastung des Fahrzeugs in Prozent (gerundet) und ihre Stufe; null, wenn die Runde keine Kapazitaet traegt. */
+export function auslastung(geplantKg: number, kapazitaetKg: number | null): { prozent: number; stufe: AuslastungStufe } | null {
+  if (kapazitaetKg === null || !Number.isFinite(kapazitaetKg) || kapazitaetKg <= 0) return null;
+  const anteil = (geplantKg / kapazitaetKg) * 100;
+  return { prozent: Math.round(anteil), stufe: geplantKg > kapazitaetKg ? "ueber" : anteil >= AUSLASTUNG_KNAPP_PROZENT ? "knapp" : "ok" };
+}
+
+/** Uhrzeit im Format HH:MM (00:00 bis 23:59). */
+export const istUhrzeit = (w: string): boolean => /^([01]\d|2[0-3]):[0-5]\d$/.test(w);
+
+/** Die Postgres-Zeit "HH:MM:SS" oder "HH:MM" als "HH:MM"; null bleibt null. */
+export const kurzeUhrzeit = (w: string | null | undefined): string | null => (w ? w.slice(0, 5) : null);
+
+export type FensterStand = "im" | "frueh" | "spaet";
+
+/** Liegt die Uhrzeit im Abholfenster? Das Ende zaehlt noch. Ohne Fenster (null) keine Aussage. */
+export function fensterStand(uhrzeit: string, von: string | null, bis: string | null): FensterStand | null {
+  if (von === null || bis === null) return null;
+  if (uhrzeit < von) return "frueh";
+  if (uhrzeit > bis) return "spaet";
+  return "im";
+}
+
+/**
+ * Minuten nach der Abfahrt, zu denen das Fahrzeug bei jedem der ersten `anzahlStopps` Stopps ankommt: die Fahrzeit der Teilstrecken bis dorthin
+ * plus die Zeit auf den Stopps davor. Die Teilstrecken stehen in der Reihenfolge der Route (Start zum ersten Stopp, dann Stopp zu Stopp). Fehlen
+ * Teilstrecken, gibt es keine Schaetzung (null).
+ */
+export function ankuenfteNachMinuten(teilstreckenSekunden: readonly number[], anzahlStopps: number, aufenthaltMinuten: number): number[] | null {
+  if (anzahlStopps <= 0 || teilstreckenSekunden.length < anzahlStopps) return null;
+  const ergebnis: number[] = [];
+  let sekunden = 0;
+  for (let i = 0; i < anzahlStopps; i++) {
+    sekunden += teilstreckenSekunden[i];
+    ergebnis.push(Math.round(sekunden / 60 + i * aufenthaltMinuten));
+  }
+  return ergebnis;
+}
+
+/** Prueft ein Abholfenster: beides oder nichts, von vor bis. Gibt den Schluessel der Fehlermeldung zurueck. */
+export function fensterFehler(von: string, bis: string): AbholFehler | null {
+  if (von === "" && bis === "") return null;
+  if (!istUhrzeit(von) || !istUhrzeit(bis) || von >= bis) return "arFenster";
+  return null;
+}
+
 // --- Eingaben ------------------------------------------------------------------------------------------------------------------
 
-export type AbholFehler = "arDatum" | "arFahrzeug" | "arNotiz" | "arStopps" | "arMenge" | "arDoppelt" | "arVorlauf" | "arBemerkung";
+export type AbholFehler = "arDatum" | "arFahrzeug" | "arNotiz" | "arStopps" | "arMenge" | "arDoppelt" | "arVorlauf" | "arBemerkung" | "arKapazitaet" | "arStartzeit" | "arFenster";
 
 export function rundeFehler(e: {
   datum: string;
   fahrzeug: string;
   notiz: string;
+  kapazitaetKg?: number | null;
+  startZeit?: string;
   stopps: { nachbarbetriebId: string; mengeKg: number | null }[];
 }): AbholFehler | null {
   if (!istGueltigerTag(e.datum)) return "arDatum";
+  if (e.kapazitaetKg !== undefined && e.kapazitaetKg !== null && (!Number.isFinite(e.kapazitaetKg) || e.kapazitaetKg <= 0 || e.kapazitaetKg > KAPAZITAET_MAX_KG)) return "arKapazitaet";
+  if (e.startZeit && !istUhrzeit(e.startZeit)) return "arStartzeit";
   if (e.fahrzeug.trim().length > FAHRZEUG_MAX_ZEICHEN) return "arFahrzeug";
   if (e.notiz.trim().length > NOTIZ_MAX_ZEICHEN) return "arNotiz";
   if (e.stopps.length === 0) return "arStopps";

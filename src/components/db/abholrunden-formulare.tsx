@@ -9,6 +9,7 @@ import {
   abholrundeVerwerfen,
   abholungErfassen,
   nachbarAdresseSetzen,
+  nachbarZeitfensterSetzen,
   stoppEntfaellt,
 } from "@/lib/actions/abholrunden";
 import { AktionsMeldung, Feld, FormularKarte, MiniAktion, PfadFeld, SubmitKnopf, mitGeraetZeitstempel, useBehalteEingaben } from "@/components/db/formular-kit";
@@ -35,7 +36,32 @@ export function NachbarAdresseFormular({ id, adresse }: { id: string; adresse: s
   );
 }
 
-export function AbholrundePlanenFormular({ betriebe, heute }: { betriebe: NachbarbetriebOption[]; heute: string }) {
+/** Das Abholfenster eines Nachbarbetriebs (Ortszeit Almaty), beides oder nichts. Eingeklappt, weil es selten geändert wird. */
+export function NachbarZeitfensterFormular({ id, von, bis }: { id: string; von: string | null; bis: string | null }) {
+  const t = useTranslations("abholrundenAnsicht.zeitfenster");
+  const { status, formProps } = useBehalteEingaben(nachbarZeitfensterSetzen, "immer");
+  return (
+    <details className="text-[11px]">
+      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">{von && bis ? t("gesetzt", { von, bis }) : t("keins")}</summary>
+      <form {...formProps} className="mt-1.5 flex flex-wrap items-end gap-2.5">
+        <PfadFeld />
+        <input type="hidden" name="id" value={id} />
+        <div className="w-28">
+          <Feld label={t("von")} name="abhol_von" type="time" defaultValue={von ?? ""} />
+        </div>
+        <div className="w-28">
+          <Feld label={t("bis")} name="abhol_bis" type="time" defaultValue={bis ?? ""} />
+        </div>
+        <SubmitKnopf label={t("knopf")} variante="leise" status={status} />
+        <div className="w-full">
+          <AktionsMeldung status={status} />
+        </div>
+      </form>
+    </details>
+  );
+}
+
+export function AbholrundePlanenFormular({ betriebe, heute, kapazitaetVorgabe }: { betriebe: NachbarbetriebOption[]; heute: string; kapazitaetVorgabe: number | null }) {
   const t = useTranslations("abholrundenAnsicht.planen");
   const { status, formProps } = useBehalteEingaben(abholrundeErstellen);
   const [gewaehlt, setGewaehlt] = useState<Set<string>>(new Set());
@@ -67,6 +93,8 @@ export function AbholrundePlanenFormular({ betriebe, heute }: { betriebe: Nachba
         <Feld label={t("datum")} name="datum" type="date" required defaultValue={heute} form={formularId} />
         <Feld label={t("fahrzeug")} name="fahrzeug" form={formularId} placeholder={t("fahrzeugBeispiel")} />
         <Feld label={t("notiz")} name="notiz" form={formularId} />
+        <Feld label={t("kapazitaet")} name="kapazitaet_kg" inputMode="decimal" form={formularId} defaultValue={kapazitaetVorgabe === null ? "" : String(kapazitaetVorgabe)} hinweis={t("kapazitaetHinweis")} />
+        <Feld label={t("start")} name="start_zeit" type="time" form={formularId} hinweis={t("startHinweis")} />
       </div>
       {betriebe.length === 0 ? (
         <p className="text-xs text-muted-foreground">{t("keineBetriebe")}</p>
@@ -86,6 +114,9 @@ export function AbholrundePlanenFormular({ betriebe, heute }: { betriebe: Nachba
                   </div>
                 ) : null}
                 {b.breitengrad === null ? <span className="text-[11px] text-warning">{t("keineKoordinaten")}</span> : null}
+              </div>
+              <div className="mt-1 pl-6">
+                <NachbarZeitfensterFormular id={b.id} von={b.abholVon ?? null} bis={b.abholBis ?? null} />
               </div>
               {b.breitengrad === null ? (
                 <div className="mt-1.5">

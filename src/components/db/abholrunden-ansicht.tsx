@@ -12,10 +12,11 @@ import {
 } from "@/components/db/abholrunden-formulare";
 import { kuehlErgebnisTon } from "@/components/db/toene";
 import { ladeAbholrunden, ladeNachbarbetriebeFuerRunde } from "@/lib/data/abholrunden";
-import { bewertePlanung, rundenZusammenfassung, type AbholRundeZeile, type AbholStoppZeile } from "@/lib/domain/abholrunden";
+import { auslastung, bewertePlanung, fensterStand, rundenZusammenfassung, type AbholRundeZeile, type AbholStoppZeile } from "@/lib/domain/abholrunden";
+import { einstellungWert } from "@/lib/data/einstellungen";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
-import { tagInZone } from "@/lib/domain/tageszeit";
+import { tagInZone, uhrzeitInZone } from "@/lib/domain/tageszeit";
 
 // Abholrunden bei Nachbarbetrieben (WMCNL-1577): die Gegenrichtung zur Tourenplanung. Das Buero plant (Datum, Fahrzeug, Stopps),
 // der Fahrer startet die Runde, erfasst je Stopp die Abholung mit der Menge und dem Pflueckbeginn, den der Nachbarbetrieb nennt, und
@@ -28,7 +29,43 @@ type Format = Awaited<ReturnType<typeof getFormatter>>;
 const rundenTon: Record<string, Tone> = { geplant: "neutral", unterwegs: "warning", abgeschlossen: "success" };
 const stoppTon: Record<string, Tone> = { geplant: "neutral", abgeholt: "success", entfallen: "neutral" };
 
-function StoppZeile({ stopp, nummer, t, format, darfErfassen, laeuft }: { stopp: AbholStoppZeile; nummer: number; t: Uebersetzer; format: Format; darfErfassen: boolean; laeuft: boolean }) {
+/** Geschaetzte Ankunft gegen das Abholfenster des Nachbarbetriebs (nur solange der Stopp offen ist), dazu der Hinweis auf eine zweite Runde am selben Tag. */
+function ZeitHinweis({ stopp, t, doppelt }: { stopp: AbholStoppZeile; t: Uebersetzer; doppelt: boolean }) {
+  const ankunftUhr = stopp.ankunftGeplant ? uhrzeitInZone(new Date(stopp.ankunftGeplant)) : null;
+  const fenster = stopp.abholVon && stopp.abholBis ? { von: stopp.abholVon, bis: stopp.abholBis } : null;
+  const stand = stopp.status === "geplant" && ankunftUhr && fenster ? fensterStand(ankunftUhr, fenster.von, fenster.bis) : null;
+  if (!ankunftUhr && !fenster && !doppelt) return null;
+  return (
+    <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-muted-foreground">
+      {ankunftUhr ? <span>{t("stopp.ankunft", { zeit: ankunftUhr })}</span> : null}
+      {fenster ? <span>{t("stopp.fenster", { von: fenster.von, bis: fenster.bis })}</span> : null}
+      {stand === "frueh" ? <StatusPill tone="warning">{t("stopp.fensterFrueh")}</StatusPill> : null}
+      {stand === "spaet" ? <StatusPill tone="danger">{t("stopp.fensterSpaet")}</StatusPill> : null}
+      {stand === "im" ? <StatusPill tone="success">{t("stopp.fensterIm")}</StatusPill> : null}
+      {doppelt && stopp.status === "geplant" ? <StatusPill tone="warning">{t("stopp.doppelt")}</StatusPill> : null}
+    </p>
+  );
+}
+
+/** Kapazitaet des Fahrzeugs und Auslastung der geplanten Menge (solange die Runde nicht abgeschlossen ist), dazu die Abfahrt. */
+function KapazitaetZeilen({ runde, geplantKg, t, format }: { runde: AbholRundeZeile; geplantKg: number; t: Uebersetzer; format: Format }) {
+  const auslast = runde.status === "abgeschlossen" ? null : auslastung(geplantKg, runde.kapazitaetKg ?? null);
+  return (
+    <>
+      {auslast && runde.kapazitaetKg ? (
+        <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <StatusPill tone={auslast.stufe === "ueber" ? "danger" : auslast.stufe === "knapp" ? "warning" : "success"}>
+            {auslast.stufe === "ueber" ? t("runde.ueberKapazitaet") : auslast.stufe === "knapp" ? t("runde.knapp") : t("runde.platz")}
+          </StatusPill>
+          <span>{t("runde.kapazitaet", { kapazitaet: format.number(runde.kapazitaetKg), prozent: auslast.prozent })}</span>
+        </p>
+      ) : null}
+      {runde.startZeit ? <p className="text-xs text-muted-foreground">{t("runde.start", { zeit: runde.startZeit })}</p> : null}
+    </>
+  );
+}
+
+function StoppZeile({ stopp, nummer, t, format, darfErfassen, laeuft, doppelt }: { stopp: AbholStoppZeile; nummer: number; t: Uebersetzer; format: Format; darfErfassen: boolean; laeuft: boolean; doppelt: boolean }) {
   const zeit = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "short", timeStyle: "short" });
   const stoppStatus: Record<string, string> = { geplant: t("stoppStatus.geplant"), abgeholt: t("stoppStatus.abgeholt"), entfallen: t("stoppStatus.entfallen") };
   const ergebnis: Record<string, string> = { ok: t("ergebnis.ok"), warnung: t("ergebnis.warnung"), verstoss: t("ergebnis.verstoss") };
@@ -52,6 +89,7 @@ function StoppZeile({ stopp, nummer, t, format, darfErfassen, laeuft }: { stopp:
         {stopp.sorte ? ` · ${stopp.sorte}` : ""}
         {stopp.status === "abgeholt" && stopp.mengeIstKg !== null ? ` · ${t("stopp.ist", { menge: format.number(stopp.mengeIstKg) })}` : ""}
       </p>
+      <ZeitHinweis stopp={stopp} t={t} doppelt={doppelt} />
       {stopp.status === "abgeholt" ? (
         <p className="mt-0.5 text-muted-foreground">
           {stopp.pflueckbeginn ? t("stopp.pflueckbeginn", { zeit: zeit(stopp.pflueckbeginn) }) : t("stopp.pflueckUnbekannt")}
@@ -72,7 +110,7 @@ function StoppZeile({ stopp, nummer, t, format, darfErfassen, laeuft }: { stopp:
   );
 }
 
-function RundeKarte({ runde, t, format, darfPlanen, darfErfassen, mitKarte }: { runde: AbholRundeZeile; t: Uebersetzer; format: Format; darfPlanen: boolean; darfErfassen: boolean; mitKarte: boolean }) {
+function RundeKarte({ runde, t, format, darfPlanen, darfErfassen, mitKarte, doppelt }: { runde: AbholRundeZeile; t: Uebersetzer; format: Format; darfPlanen: boolean; darfErfassen: boolean; mitKarte: boolean; doppelt: ReadonlySet<string> }) {
   const z = rundenZusammenfassung(runde.stopps);
   const planung = bewertePlanung(runde.abErstemStoppMinuten);
   const status: Record<string, string> = { geplant: t("status.geplant"), unterwegs: t("status.unterwegs"), abgeschlossen: t("status.abgeschlossen") };
@@ -96,6 +134,7 @@ function RundeKarte({ runde, t, format, darfPlanen, darfErfassen, mitKarte }: { 
         {runde.gestartetAm ? ` · ${t("runde.gestartet", { zeit: zeit(runde.gestartetAm) })}` : ""}
         {runde.kuehlhausAn ? ` · ${t("runde.ankunft", { zeit: zeit(runde.kuehlhausAn) })}` : ""}
       </p>
+      <KapazitaetZeilen runde={runde} geplantKg={z.geplantKg} t={t} format={format} />
       {runde.notiz ? <p className="text-xs text-muted-foreground">{runde.notiz}</p> : null}
 
       {runde.distanzKm !== null ? (
@@ -128,7 +167,7 @@ function RundeKarte({ runde, t, format, darfPlanen, darfErfassen, mitKarte }: { 
 
       <ol className="space-y-2">
         {runde.stopps.map((s, i) => (
-          <StoppZeile key={s.id} stopp={s} nummer={i + 1} t={t} format={format} darfErfassen={darfErfassen} laeuft={laeuft} />
+          <StoppZeile key={s.id} stopp={s} nummer={i + 1} t={t} format={format} darfErfassen={darfErfassen} laeuft={laeuft} doppelt={runde.status === "geplant" && doppelt.has(`${runde.datum}|${s.nachbarbetriebId}`)} />
         ))}
       </ol>
 
@@ -154,7 +193,11 @@ export async function AbholrundenAnsicht() {
 
   const darfPlanen = hasPermission(profil?.role, "logistik", "create");
   const darfErfassen = hasPermission(profil?.role, "logistik", "update");
-  const betriebe = darfPlanen ? await ladeNachbarbetriebeFuerRunde() : [];
+  const [betriebe, kapazitaetVorgabe] = await Promise.all([darfPlanen ? ladeNachbarbetriebeFuerRunde() : Promise.resolve([]), einstellungWert("abholung.fahrzeug_kapazitaet_kg")]);
+  // Ein Betrieb in zwei geplanten Runden am selben Tag: kein Fehler (das zweite Fahrzeug kann noetig sein), aber ein Hinweis an beiden Stopps.
+  const jeTagUndBetrieb = new Map<string, number>();
+  for (const r of uebersicht.runden.filter((x) => x.status === "geplant")) for (const s of r.stopps) jeTagUndBetrieb.set(`${r.datum}|${s.nachbarbetriebId}`, (jeTagUndBetrieb.get(`${r.datum}|${s.nachbarbetriebId}`) ?? 0) + 1);
+  const doppelt = new Set([...jeTagUndBetrieb].filter(([, n]) => n > 1).map(([k]) => k));
   const aktiv = uebersicht.runden.filter((r) => r.status !== "abgeschlossen");
   const fertig = uebersicht.runden.filter((r) => r.status === "abgeschlossen");
 
@@ -169,20 +212,20 @@ export async function AbholrundenAnsicht() {
         {uebersicht.runden.length === 0 ? <p className="text-xs text-muted-foreground">{t("leer")}</p> : null}
 
         {aktiv.map((r) => (
-          <RundeKarte key={r.id} runde={r} t={t} format={format} darfPlanen={darfPlanen} darfErfassen={darfErfassen} mitKarte />
+          <RundeKarte key={r.id} runde={r} t={t} format={format} darfPlanen={darfPlanen} darfErfassen={darfErfassen} mitKarte doppelt={doppelt} />
         ))}
 
         {fertig.length > 0 ? (
           <Aufklapper titel={t("runde.abgeschlossenTitel", { anzahl: fertig.length })} beschreibung={t("runde.abgeschlossenLead")}>
             <div className="space-y-3">
               {fertig.map((r) => (
-                <RundeKarte key={r.id} runde={r} t={t} format={format} darfPlanen={darfPlanen} darfErfassen={darfErfassen} mitKarte={false} />
+                <RundeKarte key={r.id} runde={r} t={t} format={format} darfPlanen={darfPlanen} darfErfassen={darfErfassen} mitKarte={false} doppelt={doppelt} />
               ))}
             </div>
           </Aufklapper>
         ) : null}
 
-        {darfPlanen ? <AbholrundePlanenFormular betriebe={betriebe} heute={tagInZone(new Date())} /> : null}
+        {darfPlanen ? <AbholrundePlanenFormular betriebe={betriebe} heute={tagInZone(new Date())} kapazitaetVorgabe={kapazitaetVorgabe} /> : null}
       </div>
     </Section>
   );

@@ -9,7 +9,9 @@ import { text, zahl, aktualisiere, protokolliere } from "@/lib/actions/formular-
 import { geokodiereAdresse } from "@/lib/tourenplanung/nominatim-client";
 import { berechneOptimierteTour, minutenAbErstemStopp, stoppPositionen } from "@/lib/tourenplanung/osrm-client";
 import { WETTER_BREITENGRAD, WETTER_LAENGENGRAD } from "@/lib/domain/wetter";
-import { abholungFehler, pflueckbeginnAus, rundeFehler } from "@/lib/domain/abholrunden";
+import { abholungFehler, ankuenfteNachMinuten, fensterFehler, pflueckbeginnAus, rundeFehler } from "@/lib/domain/abholrunden";
+import { ortszeitAlsInstant } from "@/lib/domain/tageszeit";
+import { einstellungWert } from "@/lib/data/einstellungen";
 import type { Json } from "@/lib/database.types";
 import { istUuid } from "@/lib/utils";
 
@@ -76,7 +78,18 @@ export async function abholrundeErstellen(_status: AktionsStatus, formData: Form
 
   const betriebIds = formData.getAll("betrieb_id").map(String).filter(istUuid);
   const stopps = betriebIds.map((id) => ({ nachbarbetriebId: id, mengeKg: zahl(formData, `menge_${id}`) }));
-  const eingabe = { datum: text(formData, "datum"), fahrzeug: text(formData, "fahrzeug"), notiz: text(formData, "notiz"), stopps };
+  // Kapazitaet des Fahrzeugs (leer = keine Pruefung) und Abfahrt am Betrieb (leer = keine Schaetzung der Ankunft).
+  const kapazitaetRoh = text(formData, "kapazitaet_kg");
+  const kapazitaetKg = kapazitaetRoh === "" ? null : zahl(formData, "kapazitaet_kg");
+  const startZeit = text(formData, "start_zeit");
+  const eingabe = {
+    datum: text(formData, "datum"),
+    fahrzeug: text(formData, "fahrzeug"),
+    notiz: text(formData, "notiz"),
+    kapazitaetKg: kapazitaetRoh !== "" && kapazitaetKg === null ? Number.NaN : kapazitaetKg,
+    startZeit,
+    stopps,
+  };
   const abgelehnt = rundeFehler(eingabe);
   if (abgelehnt) return fehler(`fehler.${abgelehnt}`);
 
@@ -99,17 +112,27 @@ export async function abholrundeErstellen(_status: AktionsStatus, formData: Form
     ? [...mitOrt.map((s, i) => ({ s, position: positionen[i] })).sort((a, b) => a.position - b.position).map((x) => x.s), ...ohneOrt]
     : [...mitOrt, ...ohneOrt];
 
+  // Geschaetzte Ankunft je Stopp mit Koordinaten: Abfahrt plus Fahrzeit der Teilstrecken plus Zeit je Stopp (Einstellung abholung.aufenthalt_minuten).
+  // Ohne Abfahrt oder Route gibt es keine Schaetzung, die Stopps ohne Koordinaten bekommen keine.
+  const aufenthalt = (await einstellungWert("abholung.aufenthalt_minuten")) ?? 0;
+  const nachMinuten = trip && startZeit !== "" ? ankuenfteNachMinuten(trip.teilstreckenSekunden, mitOrt.length, aufenthalt) : null;
+  const abfahrt = startZeit !== "" ? ortszeitAlsInstant(eingabe.datum, startZeit) : null;
+  const ankunft = (position: number): string | null =>
+    nachMinuten && abfahrt && position < nachMinuten.length ? new Date(abfahrt.getTime() + nachMinuten[position] * 60_000).toISOString() : null;
+
   // Runde und Stopps in einer Transaktion (Funktion abholrunde_anlegen): scheitert ein Stopp, gibt es auch die Runde nicht, und es bleibt kein Rest,
   // den eine zweite Anweisung wieder aufraeumen muesste (die konnte selbst scheitern).
   const { data: rundeId, error: rundeFehlerDb } = await supabase.rpc("abholrunde_anlegen", {
     p_datum: eingabe.datum,
     p_fahrzeug: eingabe.fahrzeug,
     p_notiz: eingabe.notiz,
+    p_kapazitaet: eingabe.kapazitaetKg,
+    p_start_zeit: startZeit === "" ? null : startZeit,
     p_distanz_km: trip?.distanzKm ?? null,
     p_dauer_min: trip?.dauerMinuten ?? null,
     p_ab_erstem: trip ? minutenAbErstemStopp(trip) : null,
     p_geometrie: (trip?.geometrie as unknown as Json) ?? null,
-    p_stopps: geordnet.map((s, position) => ({ nachbarbetrieb_id: s.nachbarbetriebId, reihenfolge: position, menge_geplant_kg: s.mengeKg as number })),
+    p_stopps: geordnet.map((s, position) => ({ nachbarbetrieb_id: s.nachbarbetriebId, reihenfolge: position, menge_geplant_kg: s.mengeKg as number, ankunft_geplant: ankunft(position) })),
   });
   if (rundeFehlerDb || !rundeId) return rundeFehlerDb ? dbFehler(rundeFehlerDb) : fehler("fehler.unbekannt");
   const runde = { id: rundeId };
@@ -117,6 +140,34 @@ export async function abholrundeErstellen(_status: AktionsStatus, formData: Form
   await protokoll(z.profil, "abholrunde.erstellt", runde.id, { datum: eingabe.datum, stopps: geordnet.length, optimiert: trip !== null });
   aktualisiere(formData);
   return ok(trip && ohneOrt.length === 0 ? "ok.abholrundeErstellt" : "ok.abholrundeOhneRoute");
+}
+
+/** Abholfenster eines Nachbarbetriebs (Ortszeit Almaty): beides oder nichts. Wie die Adresse nur von der Leitung (Zeilensicherheit von nachbarbetriebe). */
+export async function nachbarZeitfensterSetzen(_status: AktionsStatus, formData: FormData): Promise<AktionsStatus> {
+  const z = await zugriff("create");
+  if ("status" in z) return z.status;
+
+  const id = text(formData, "id");
+  const von = text(formData, "abhol_von");
+  const bis = text(formData, "abhol_bis");
+  if (!istUuid(id)) return fehler("fehler.eingabe");
+  const abgelehnt = fensterFehler(von, bis);
+  if (abgelehnt) return fehler(`fehler.${abgelehnt}`);
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("nachbarbetriebe")
+    .update({ abhol_von: von === "" ? null : von, abhol_bis: bis === "" ? null : bis })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+  if (error) return dbFehler(error);
+  // Die Zeilensicherheit laesst nur die Leitung schreiben; null Zeilen heisst: nicht gefunden oder nicht erlaubt.
+  if (!data) return fehler("fehler.berechtigung");
+
+  await protokoll(z.profil, "nachbarbetrieb.abholfenster", id, { von: von === "" ? null : von, bis: bis === "" ? null : bis });
+  aktualisiere(formData);
+  return ok("ok.zeitfensterGespeichert");
 }
 
 /** Verwirft eine noch geplante Runde. Wer planen darf (create), darf sie auch wieder verwerfen. */

@@ -2,6 +2,7 @@ import { absatz, esc, kasten, leerHinweis, marke, tabelle, type Ton } from "@/li
 import type { DokumentEingabe, Zelle } from "@/lib/dokument/damicon-dokument";
 import { dateinameFuer, kennungFuer, tagText, versiegeln, zahlText, zeitText, type DokumentKontext } from "@/lib/dokument/kontext";
 import { VERSTOSS_AB_MINUTEN, WARNUNG_AB_MINUTEN, bewertePlanung, rundenZusammenfassung, type AbholRundeZeile, type KuehlErgebnis } from "@/lib/domain/abholrunden";
+import { uhrzeitInZone } from "@/lib/domain/tageszeit";
 
 // Der Abholauftrag einer Runde als Dokument (WMCNL-1577): was der Fahrer abholt, wo, in welcher Reihenfolge, und welche Regel gilt.
 // Nach dem Abschluss ist es der Nachweis: Menge, Pflueckbeginn, Abholung, Ankunft im Kuehlhaus und das Ergebnis je Stopp.
@@ -21,9 +22,17 @@ export function baueAbholauftragDokument(runde: AbholRundeZeile, x: DokumentKont
   const ergebnisTexte: Record<KuehlErgebnis, string> = { ok: a("ergebnis.ok"), warnung: a("ergebnis.warnung"), verstoss: a("ergebnis.verstoss") };
   const stoppStatus: Record<string, string> = { geplant: a("stoppStatus.geplant"), abgeholt: a("stoppStatus.abgeholt"), entfallen: a("stoppStatus.entfallen") };
 
+  // Geschaetzte Ankunft und Abholfenster stehen unter dem Betrieb, solange sie bekannt sind (eine Schaetzung der Planung, kein Nachweis).
+  const zeitHinweis = (s: AbholRundeZeile["stopps"][number]): string => {
+    const teile = [
+      s.ankunftGeplant ? t("ankunftCa", { zeit: uhrzeitInZone(new Date(s.ankunftGeplant)) }) : null,
+      s.abholVon && s.abholBis ? t("fensterZeit", { von: s.abholVon, bis: s.abholBis }) : null,
+    ].filter(Boolean);
+    return teile.length > 0 ? `<br><span class="klein">${esc(teile.join(" · "))}</span>` : "";
+  };
   const stoppZeilen: Zelle[][] = runde.stopps.map((s, i) => [
     String(i + 1),
-    { html: `${esc(s.nachbarbetrieb)}${s.adresse || s.ort ? `<br><span class="klein">${esc([s.adresse ?? s.ort, s.kontakt].filter(Boolean).join(" · "))}</span>` : ""}` },
+    { html: `${esc(s.nachbarbetrieb)}${s.adresse || s.ort ? `<br><span class="klein">${esc([s.adresse ?? s.ort, s.kontakt].filter(Boolean).join(" · "))}</span>` : ""}${zeitHinweis(s)}` },
     { html: kg(s.mengeGeplantKg), zahl: true },
     s.status === "abgeholt" ? { html: kg(s.mengeIstKg), zahl: true } : { html: "", zahl: true },
     stoppStatus[s.status],
@@ -69,7 +78,7 @@ export function baueAbholauftragDokument(runde: AbholRundeZeile, x: DokumentKont
   ];
 
   return versiegeln({
-    kennung: kennungFuer("ABHOL", x.jetzt, `${runde.id}|${runde.status}|${runde.stopps.map((s) => `${s.id}:${s.status}:${s.mengeIstKg ?? ""}:${s.pflueckbeginn ?? ""}:${s.abgeholtAm ?? ""}`).join(",")}|${runde.kuehlhausAn ?? ""}`),
+    kennung: kennungFuer("ABHOL", x.jetzt, `${runde.id}|${runde.status}|${runde.stopps.map((s) => `${s.id}:${s.status}:${s.mengeIstKg ?? ""}:${s.pflueckbeginn ?? ""}:${s.abgeholtAm ?? ""}:${s.ankunftGeplant ?? ""}`).join(",")}|${runde.kapazitaetKg ?? ""}|${runde.startZeit ?? ""}|${runde.kuehlhausAn ?? ""}`),
     dateiname: dateinameFuer(t("dateiname", { datum: runde.datum }), x.jetzt),
     art: t("art"),
     titel: abgeschlossen ? t("titelNachweis") : t("titel"),
@@ -79,6 +88,8 @@ export function baueAbholauftragDokument(runde: AbholRundeZeile, x: DokumentKont
     meta: [
       { label: t("meta.datum"), wert: tagText(runde.datum, sprache) },
       { label: t("meta.fahrzeug"), wert: runde.fahrzeug ?? "-" },
+      ...(runde.kapazitaetKg ? [{ label: t("meta.kapazitaet"), wert: kg(runde.kapazitaetKg) }] : []),
+      ...(runde.startZeit ? [{ label: t("meta.abfahrt"), wert: runde.startZeit }] : []),
       { label: t("meta.status"), wert: a(`status.${runde.status}`) },
       { label: t("meta.ankunft"), wert: runde.kuehlhausAn ? zeitText(runde.kuehlhausAn, sprache) : "-" },
     ],

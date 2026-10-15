@@ -20,6 +20,31 @@ export function tagInZone(zeitpunkt: Date, zeitzone: string = betriebsZeitzone):
   }).format(zeitpunkt);
 }
 
+/** Versatz der Zone zu UTC in Minuten zu einem Zeitpunkt (Almaty: 300). Aus Intl gelesen, denn er hat sich in Kasachstan schon geaendert (2024 von +6 auf +5). */
+function versatzMinuten(zeitpunkt: Date, zeitzone: string): number {
+  const teile = new Intl.DateTimeFormat("en-CA", { timeZone: zeitzone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(zeitpunkt);
+  const wert = (art: string) => Number(teile.find((t) => t.type === art)?.value);
+  const lokalAlsUtc = Date.UTC(wert("year"), wert("month") - 1, wert("day"), wert("hour"), wert("minute"), wert("second"));
+  return Math.round((lokalAlsUtc - Math.floor(zeitpunkt.getTime() / 1000) * 1000) / 60_000);
+}
+
+/** Der Zeitpunkt, an dem es in der Zone am Tag `tag` (JJJJ-MM-TT) `uhrzeit` (HH:MM) ist. */
+export function ortszeitAlsInstant(tag: string, uhrzeit: string, zeitzone: string = betriebsZeitzone): Date {
+  const [jahr, monat, tagImMonat] = tag.split("-").map(Number);
+  const [stunde, minute] = uhrzeit.split(":").map(Number);
+  const alsUtc = Date.UTC(jahr, monat - 1, tagImMonat, stunde, minute);
+  // Der Versatz gilt am gesuchten Zeitpunkt, nicht an der Naeherung: einmal nachziehen (relevant nur bei einer Zeitumstellung).
+  const erster = alsUtc - versatzMinuten(new Date(alsUtc), zeitzone) * 60_000;
+  return new Date(alsUtc - versatzMinuten(new Date(erster), zeitzone) * 60_000);
+}
+
+/** Uhrzeit "HH:MM" eines Zeitpunkts in der Zone. */
+export function uhrzeitInZone(zeitpunkt: Date, zeitzone: string = betriebsZeitzone): string {
+  const teile = new Intl.DateTimeFormat("en-CA", { timeZone: zeitzone, hourCycle: "h23", hour: "2-digit", minute: "2-digit" }).formatToParts(zeitpunkt);
+  const wert = (art: string) => teile.find((t) => t.type === art)?.value ?? "00";
+  return `${wert("hour")}:${wert("minute")}`;
+}
+
 export type Tageszeit = "morgen" | "tag" | "abend";
 
 export function tageszeitBestimmen(

@@ -234,6 +234,14 @@ for (const fall of FAELLE) {
   check("Abholauftrag: abgeschlossen zeigt Ergebnis je Abholung, den Verstoss als Kasten und den Nachweis im Titel", abholFertig.titel === "Nachweis der Abholrunde" && abholFertig.abschnitte.some((a) => a.html.includes("Verstoß")) && abholFertig.abschnitte.at(-1)?.html.includes('class="kasten"') === true && abholFertig.kennzahlen?.[2].ton === "schlecht");
   check("Abholauftrag: Fahrer und Betriebsleitung unterschreiben, jede Aenderung der Runde aendert das Siegel", abholFertig.freigabe?.length === 2 && abholFertig.siegel !== abholOffen.siegel && abholFertig.siegel === baueAbholauftragDokument(ABHOL_FERTIG, { ...x, jetzt: new Date("2026-10-14T18:00:00Z") }).siegel);
 
+  // Ausbau (15.10.2026): Kapazitaet und Abfahrt in den Eckdaten, geschaetzte Ankunft und Abholfenster unter dem Betrieb, beides ins Siegel.
+  const ausgebaut = ABHOL_RUNDE("geplant", [ABHOL_STOPP("a", { ankunftGeplant: "2026-10-14T01:40:00Z", abholVon: "08:00", abholBis: "10:00" }), ABHOL_STOPP("b", { reihenfolge: 1, mengeGeplantKg: 80 })]);
+  const mitAusbau = baueAbholauftragDokument({ ...ausgebaut, kapazitaetKg: 450, startZeit: "06:30" }, x);
+  const htmlAusbau = JSON.stringify(mitAusbau);
+  check("Abholauftrag: Kapazitaet und Abfahrt stehen in den Eckdaten, nur wenn die Runde sie traegt", htmlAusbau.includes("Kapazität") && htmlAusbau.includes("450") && htmlAusbau.includes("06:30") && !JSON.stringify(abholOffen).includes("Kapazität"));
+  check("Abholauftrag: die geschaetzte Ankunft (Ortszeit Almaty) und das Abholfenster stehen unter dem Betrieb", htmlAusbau.includes("Ankunft ca. 06:40") && htmlAusbau.includes("Fenster 08:00 bis 10:00"), htmlAusbau.slice(htmlAusbau.indexOf("Ankunft"), htmlAusbau.indexOf("Ankunft") + 60));
+  check("Abholauftrag: Kapazitaet, Abfahrt und Ankunft aendern das Siegel", mitAusbau.siegel !== abholOffen.siegel && baueAbholauftragDokument({ ...ausgebaut, kapazitaetKg: 450, startZeit: "06:30" }, x).siegel === mitAusbau.siegel && baueAbholauftragDokument({ ...ausgebaut, kapazitaetKg: 500, startZeit: "06:30" }, x).siegel !== mitAusbau.siegel);
+
   const zeilen = lieferplanZeilen(PLAN, HEUTE);
   check("Lieferplan: Tour vor Wunsch, Doppelung und Vergangenes fehlen", zeilen.length === 2 && zeilen[0].art === "lieferung" && zeilen[0].datum === "2026-10-15" && zeilen[1].art === "vorbestellung" && zeilen[1].datum === "2026-10-20", JSON.stringify(zeilen.map((z) => [z.datum, z.art])));
   const kunde = baueLieferplanDokument(PLAN, HEUTE, false, x);

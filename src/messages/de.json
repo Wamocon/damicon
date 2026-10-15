@@ -1018,7 +1018,8 @@
       "auslieferung": "{versucht} versucht: {zugestellt} zugestellt, {wiederholen} warten auf die Wiederholung, {gescheitert} gescheitert.",
       "auslieferungNichts": "Nichts fällig.",
       "nachrichtAnonymisiert": "Nachricht anonymisiert.",
-      "einstellungGespeichert": "Einstellung gespeichert."
+      "einstellungGespeichert": "Einstellung gespeichert.",
+      "zeitfensterGespeichert": "Abholfenster gespeichert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1163,7 +1164,10 @@
       "einstellungGrenzen": "Der Wert liegt außerhalb der erlaubten Grenzen.",
       "einstellungGanzzahl": "Bitte eine ganze Zahl angeben.",
       "wiIstSchonDa": "Für diesen Monat, diese Kategorie und diese Währung gibt es schon einen Wert. Den vorhandenen entfernen und neu erfassen.",
-      "adresssucheGrenze": "Zu viele Adresssuchen in der letzten Stunde. Bitte später noch einmal versuchen (Grenze in den Einstellungen)."
+      "adresssucheGrenze": "Zu viele Adresssuchen in der letzten Stunde. Bitte später noch einmal versuchen (Grenze in den Einstellungen).",
+      "arKapazitaet": "Bitte eine Kapazität zwischen 1 und 100000 kg angeben oder das Feld leer lassen.",
+      "arStartzeit": "Bitte die Abfahrt als Uhrzeit angeben (HH:MM) oder leer lassen.",
+      "arFenster": "Das Abholfenster braucht Beginn und Ende (HH:MM), der Beginn liegt vor dem Ende."
     },
     "einladungen": {
       "erfolg": {
@@ -5141,7 +5145,9 @@
         "datum": "Datum",
         "fahrzeug": "Fahrzeug",
         "status": "Status",
-        "ankunft": "Ankunft im Kühlhaus"
+        "ankunft": "Ankunft im Kühlhaus",
+        "kapazitaet": "Kapazität",
+        "abfahrt": "Abfahrt"
       },
       "kennzahl": {
         "stopps": "Stopps",
@@ -5151,7 +5157,9 @@
       },
       "zusammenfassungAbgeschlossen": "Die Runde ist abgeschlossen: {abgeholt} Abholungen, {entfallen} entfallen. Das Dokument ändert sich nicht mehr.",
       "zusammenfassungOffen": "Auftrag für {anzahl} Stopps. Der Fahrer erfasst jede Abholung mit der Menge und dem Pflückbeginn, den der Nachbarbetrieb nennt.",
-      "fahrer": "Fahrer"
+      "fahrer": "Fahrer",
+      "ankunftCa": "Ankunft ca. {zeit}",
+      "fensterZeit": "Fenster {von} bis {bis}"
     }
   },
   "wirtschaftlichkeitErfassung": {
@@ -5319,7 +5327,12 @@
       "ergebnisse": "{ok} in Ordnung, {warnung} Warnungen, {rot} Verstöße",
       "auftrag": "Abholauftrag (PDF)",
       "abgeschlossenTitel": "Abgeschlossene Runden ({anzahl})",
-      "abgeschlossenLead": "Abgeschlossene Runden ändern sich nicht mehr. Sie sind der Nachweis der 60-Minuten-Regel."
+      "abgeschlossenLead": "Abgeschlossene Runden ändern sich nicht mehr. Sie sind der Nachweis der 60-Minuten-Regel.",
+      "kapazitaet": "Kapazität {kapazitaet} kg, Auslastung {prozent} %",
+      "ueberKapazitaet": "über der Kapazität",
+      "knapp": "Kapazität knapp",
+      "platz": "Kapazität reicht",
+      "start": "Abfahrt {zeit}"
     },
     "planung": {
       "ok": "Fahrt passt",
@@ -5332,7 +5345,13 @@
       "pflueckbeginn": "Pflückbeginn {zeit}",
       "pflueckUnbekannt": "Pflückbeginn unbekannt, als Warnung gewertet",
       "abgeholtAm": "abgeholt {zeit}",
-      "minuten": "{minuten} Minuten bis zum Kühlhaus"
+      "minuten": "{minuten} Minuten bis zum Kühlhaus",
+      "ankunft": "Ankunft ca. {zeit}",
+      "fenster": "Fenster {von} bis {bis}",
+      "fensterFrueh": "vor dem Fenster",
+      "fensterSpaet": "nach dem Fenster",
+      "fensterIm": "im Fenster",
+      "doppelt": "auch in einer anderen Runde dieses Tages"
     },
     "aktion": {
       "starten": "Runde starten",
@@ -5363,12 +5382,23 @@
       "menge": "Menge (kg)",
       "keineBetriebe": "Es sind noch keine Nachbarbetriebe angelegt. Sie entstehen im Aggregator-Modul.",
       "keineKoordinaten": "Ohne Anschrift, kommt ans Ende",
-      "knopf": "Abholrunde anlegen"
+      "knopf": "Abholrunde anlegen",
+      "kapazitaet": "Kapazität des Fahrzeugs (kg)",
+      "kapazitaetHinweis": "Leer: keine Prüfung. Vorgabe aus den Einstellungen.",
+      "start": "Abfahrt am Betrieb",
+      "startHinweis": "Damit schätzt die Planung die Ankunft je Stopp."
     },
     "adresse": {
       "label": "Anschrift",
       "platzhalter": "Straße, Ort",
       "knopf": "Anschrift speichern"
+    },
+    "zeitfenster": {
+      "keins": "Kein Abholfenster",
+      "gesetzt": "Abholfenster {von} bis {bis}",
+      "von": "von",
+      "bis": "bis",
+      "knopf": "Fenster speichern"
     }
   },
   "integrationAuslieferung": {
@@ -5464,7 +5494,8 @@
       "kg": "kg",
       "prozent": "Prozent",
       "sekunden": "Sekunden",
-      "anfragen_je_stunde": "Anfragen je Person und Stunde"
+      "anfragen_je_stunde": "Anfragen je Person und Stunde",
+      "minuten": "Minuten"
     },
     "formular": {
       "wert": "Wert",
@@ -5516,6 +5547,10 @@
       "sicherheit_adresssuche_je_stunde": {
         "label": "Grenze der Adresssuche",
         "beschreibung": "Wie oft eine Person je Stunde eine Anschrift in Koordinaten umrechnen lassen darf (Geokodierung)."
+      },
+      "abholung_aufenthalt_minuten": {
+        "label": "Zeit je Stopp der Abholrunde",
+        "beschreibung": "Minuten für Wiegen, Verladen und Übergabe bei einem Nachbarbetrieb. Die Planung rechnet sie zur Fahrzeit, wenn sie die Ankunft je Stopp schätzt. Eine Planungsannahme, nach den ersten Runden zu prüfen."
       }
     }
   }

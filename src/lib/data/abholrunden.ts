@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { einsAus } from "@/lib/data/util";
 import {
+  kurzeUhrzeit,
   istAbholrundeStatus,
   istStoppStatus,
   type AbholRundeZeile,
@@ -40,8 +41,8 @@ async function leseRunden(id: string | null): Promise<AbholRundeZeile[]> {
   const anfrage = supabase
       .from("abholrunden")
       .select(
-        `id, datum, status, fahrzeug, notiz, distanz_km, dauer_minuten, ab_erstem_stopp_minuten, routen_geometrie, gestartet_am, kuehlhaus_an,
-         abholstopps ( id, nachbarbetrieb_id, reihenfolge, menge_geplant_kg, status, menge_ist_kg, pflueckbeginn, abgeholt_am, bemerkung, sorten ( name ) )`,
+        `id, datum, status, fahrzeug, notiz, distanz_km, dauer_minuten, ab_erstem_stopp_minuten, routen_geometrie, gestartet_am, kuehlhaus_an, kapazitaet_kg, start_zeit,
+         abholstopps ( id, nachbarbetrieb_id, reihenfolge, menge_geplant_kg, status, menge_ist_kg, pflueckbeginn, abgeholt_am, bemerkung, ankunft_geplant, sorten ( name ) )`,
       )
       .order("datum", { ascending: false })
       .order("created_at", { ascending: false });
@@ -91,6 +92,9 @@ async function leseRunden(id: string | null): Promise<AbholRundeZeile[]> {
               minutenBisKuehlung: b?.minuten_bis_kuehlung ?? null,
               // Das Ergebnis kommt aus der Sicht; ohne sie (Lesefehler) bleibt es leer statt geraten.
               ergebnis: (b?.ergebnis ?? null) as KuehlErgebnis | null,
+              ankunftGeplant: s.ankunft_geplant,
+              abholVon: kurzeUhrzeit(betrieb?.abhol_von),
+              abholBis: kurzeUhrzeit(betrieb?.abhol_bis),
             };
           })
           .sort((a, b) => a.reihenfolge - b.reihenfolge);
@@ -106,6 +110,8 @@ async function leseRunden(id: string | null): Promise<AbholRundeZeile[]> {
           geometrie: (r.routen_geometrie as GeoJSON.LineString | null) ?? null,
           gestartetAm: r.gestartet_am,
           kuehlhausAn: r.kuehlhaus_an,
+          kapazitaetKg: zahlOderNull(r.kapazitaet_kg),
+          startZeit: kurzeUhrzeit(r.start_zeit),
           stopps,
         };
       })
@@ -116,7 +122,7 @@ async function leseRunden(id: string | null): Promise<AbholRundeZeile[]> {
 export async function ladeNachbarbetriebeFuerRunde(): Promise<NachbarbetriebOption[]> {
   if (!isSupabaseConfigured()) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase.from("nachbarbetriebe").select("id, name, ort, adresse, breitengrad, laengengrad").order("name");
+  const { data, error } = await supabase.from("nachbarbetriebe").select("id, name, ort, adresse, breitengrad, laengengrad, abhol_von, abhol_bis").order("name");
   if (error) console.error("[damicon] Nachbarbetriebe lesen fehlgeschlagen:", error.message);
   return (data ?? []).map((b) => ({
     id: b.id,
@@ -125,5 +131,7 @@ export async function ladeNachbarbetriebeFuerRunde(): Promise<NachbarbetriebOpti
     adresse: b.adresse,
     breitengrad: zahlOderNull(b.breitengrad),
     laengengrad: zahlOderNull(b.laengengrad),
+    abholVon: kurzeUhrzeit(b.abhol_von),
+    abholBis: kurzeUhrzeit(b.abhol_bis),
   }));
 }

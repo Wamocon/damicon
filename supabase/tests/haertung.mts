@@ -57,7 +57,7 @@ const B = await nachbar("Härtung B");
     { nachbarbetrieb_id: A, reihenfolge: 0, menge_geplant_kg: 100 },
     { nachbarbetrieb_id: B, reihenfolge: 1, menge_geplant_kg: 50 },
   ]);
-  const id = await als("betriebsleitung", async () => (await db.query<{ id: string }>(`select public.abholrunde_anlegen(current_date + 2, 'Wagen H', null, 12.5, 40, 25, null, $1::jsonb) as id;`, [stopps])).rows[0].id);
+  const id = await als("betriebsleitung", async () => (await db.query<{ id: string }>(`select public.abholrunde_anlegen(current_date + 2, 'Wagen H', null, 800, '06:30', 12.5, 40, 25, null, $1::jsonb) as id;`, [stopps])).rows[0].id);
   const { rows } = await db.query<{ fahrzeug: string; erstellt: string | null; n: number }>(
     `select r.fahrzeug, r.erstellt_von_profil_id::text as erstellt, (select count(*)::int from public.abholstopps s where s.runde_id = r.id) as n from public.abholrunden r where r.id = $1;`, [id]);
   check("Abholrunde: Runde mit zwei Stopps in einem Aufruf, die planende Person ist eingetragen", rows[0].fahrzeug === "Wagen H" && rows[0].n === 2 && rows[0].erstellt !== null, JSON.stringify(rows[0]));
@@ -69,11 +69,11 @@ const B = await nachbar("Härtung B");
     { nachbarbetrieb_id: A, reihenfolge: 0, menge_geplant_kg: 100 },
     { nachbarbetrieb_id: A, reihenfolge: 1, menge_geplant_kg: 50 },
   ]);
-  await alsScheitert("betriebsleitung", "Abholrunde: ein fehlerhafter Stopp lässt keine Runde zurück (23505)", `select public.abholrunde_anlegen(current_date + 3, 'Wagen X', null, null, null, null, null, $1::jsonb);`, [doppelt], "23505");
+  await alsScheitert("betriebsleitung", "Abholrunde: ein fehlerhafter Stopp lässt keine Runde zurück (23505)", `select public.abholrunde_anlegen(current_date + 3, 'Wagen X', null, null, null, null, null, null, null, $1::jsonb);`, [doppelt], "23505");
   const nachher = (await db.query<{ n: number }>(`select count(*)::int as n from public.abholrunden;`)).rows[0].n;
   check("Abholrunde: nach dem Fehler gibt es keine zusätzliche Runde", nachher === vorher, `${vorher} -> ${nachher}`);
   for (const rolle of ["brigade", "buchhaltung", "kunde"]) {
-    await alsScheitert(rolle, `Abholrunde: ${rolle} legt über die Funktion keine Runde an`, `select public.abholrunde_anlegen(current_date + 4, null, null, null, null, null, null, '[]'::jsonb);`, []);
+    await alsScheitert(rolle, `Abholrunde: ${rolle} legt über die Funktion keine Runde an`, `select public.abholrunde_anlegen(current_date + 4, null, null, null, null, null, null, null, null, '[]'::jsonb);`, []);
   }
 }
 

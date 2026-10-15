@@ -51,9 +51,11 @@ export type Database = {
           fahrzeug: string | null
           gestartet_am: string | null
           id: string
+          kapazitaet_kg: number | null
           kuehlhaus_an: string | null
           notiz: string | null
           routen_geometrie: Json | null
+          start_zeit: string | null
           status: Database["public"]["Enums"]["tour_status"]
           updated_at: string
         }
@@ -68,9 +70,11 @@ export type Database = {
           fahrzeug?: string | null
           gestartet_am?: string | null
           id?: string
+          kapazitaet_kg?: number | null
           kuehlhaus_an?: string | null
           notiz?: string | null
           routen_geometrie?: Json | null
+          start_zeit?: string | null
           status?: Database["public"]["Enums"]["tour_status"]
           updated_at?: string
         }
@@ -85,9 +89,11 @@ export type Database = {
           fahrzeug?: string | null
           gestartet_am?: string | null
           id?: string
+          kapazitaet_kg?: number | null
           kuehlhaus_an?: string | null
           notiz?: string | null
           routen_geometrie?: Json | null
+          start_zeit?: string | null
           status?: Database["public"]["Enums"]["tour_status"]
           updated_at?: string
         }
@@ -104,6 +110,7 @@ export type Database = {
       abholstopps: {
         Row: {
           abgeholt_am: string | null
+          ankunft_geplant: string | null
           bemerkung: string | null
           created_at: string
           geraet_zeitpunkt: string | null
@@ -120,6 +127,7 @@ export type Database = {
         }
         Insert: {
           abgeholt_am?: string | null
+          ankunft_geplant?: string | null
           bemerkung?: string | null
           created_at?: string
           geraet_zeitpunkt?: string | null
@@ -136,6 +144,7 @@ export type Database = {
         }
         Update: {
           abgeholt_am?: string | null
+          ankunft_geplant?: string | null
           bemerkung?: string | null
           created_at?: string
           geraet_zeitpunkt?: string | null
@@ -2542,6 +2551,8 @@ export type Database = {
       }
       nachbarbetriebe: {
         Row: {
+          abhol_bis: string | null
+          abhol_von: string | null
           adresse: string | null
           breitengrad: number | null
           created_at: string
@@ -2557,6 +2568,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          abhol_bis?: string | null
+          abhol_von?: string | null
           adresse?: string | null
           breitengrad?: number | null
           created_at?: string
@@ -2572,6 +2585,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          abhol_bis?: string | null
+          abhol_von?: string | null
           adresse?: string | null
           breitengrad?: number | null
           created_at?: string
@@ -4769,7 +4784,9 @@ export type Database = {
           p_distanz_km: number | null
           p_fahrzeug: string | null
           p_geometrie: Json | null
+          p_kapazitaet: number | null
           p_notiz: string | null
+          p_start_zeit: string | null
           p_stopps: Json
         }
         Returns: string
@@ -4777,6 +4794,8 @@ export type Database = {
       abholrunde_nachbarbetriebe: {
         Args: never
         Returns: {
+          abhol_bis: string | null
+          abhol_von: string | null
           adresse: string | null
           breitengrad: number | null
           id: string
