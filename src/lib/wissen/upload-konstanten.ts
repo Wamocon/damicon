@@ -28,6 +28,12 @@ export function bereichSchluessel(gespeichert: string): string {
   return treffer ?? gespeichert;
 }
 
+/** Die Bereiche eines Dokuments als Schluessel (recht, risiko, amtlich ...): der Hauptbereich zuerst, dann die weiteren, ohne Doppelte. `weitere` sind
+ *  die gespeicherten Werte aus wissen_chunks.weitere_bereiche (legal statt recht). */
+export function bereicheVon(bereich: string, weitere: readonly string[] = []): string[] {
+  return [...new Set([bereichSchluessel(bereich), ...weitere.map(bereichSchluessel)])];
+}
+
 /** Rollen, die der Upload anbietet: genau die Bueroeinheit der Wissensbasis. Die Wissenssuche ist ohnehin nur
  *  fuer sie freigeschaltet (darfWissenNutzen), weitere Rollen waeren wirkungslos. */
 export const UPLOAD_ROLLEN: readonly Role[] = BUERO_ROLLEN;

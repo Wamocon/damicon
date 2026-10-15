@@ -21,6 +21,7 @@ const dok = (schluessel: string, teil: Partial<WissenDokumentZeile> = {}): Wisse
   schluesselSpalte: "quelle_id",
   titel: `Dokument ${schluessel}`,
   bereich: "steuer",
+  weitereBereiche: [],
   rollen: ["admin"],
   datum: null,
   hochgeladenVon: null,

@@ -23,6 +23,7 @@ function dok(teil: Partial<WissenDokumentZeile> & { titel: string }): WissenDoku
     schluessel: teil.schluessel ?? `bestand/${teil.titel}.md`,
     schluesselSpalte: "quelle_id",
     bereich: "legal",
+    weitereBereiche: [],
     rollen: ["admin"],
     datum: null,
     hochgeladenVon: null,

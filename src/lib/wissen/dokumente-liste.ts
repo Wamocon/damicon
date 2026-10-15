@@ -22,6 +22,8 @@ export interface WissenListeZeile {
   pfad: string | null;
   titel: string | null;
   bereich: string | null;
+  /** Bereiche, in denen das Dokument zusaetzlich gilt (Migration 20261208000000, gespeicherte Werte wie legal und risiko). Nur aus wissen_liste(). */
+  weitere_bereiche?: string[] | null;
   rollen: string[] | null;
   eingelesen_am: string | null;
   /** extra->>quelle: "upload" bei hochgeladenen Zeilen. */
@@ -71,6 +73,8 @@ export interface WissenDokumentZeile {
   schluesselSpalte: SchluesselSpalte;
   titel: string;
   bereich: string;
+  /** Bereiche, in denen das Dokument zusaetzlich zum Hauptbereich gilt (gespeicherte Werte, in der Reihenfolge der Bereiche). */
+  weitereBereiche: string[];
   rollen: string[];
   /** ISO-Datum oder -Zeitpunkt aus eingelesen_am; null, wenn die Quelle keines nennt. */
   datum: string | null;
@@ -144,6 +148,7 @@ function neuesDokument(z: WissenListeZeile, schluessel: string, schluesselSpalte
     schluesselSpalte,
     titel: z.titel ?? z.pfad ?? schluessel,
     bereich: z.bereich ?? "",
+    weitereBereiche: [...(z.weitere_bereiche ?? [])],
     rollen: [...(z.rollen ?? [])],
     datum: z.eingelesen_am,
     hochgeladenVon: z.hochgeladen_von,
@@ -212,6 +217,7 @@ function fuelleSeitenLuecken(d: WissenDokumentZeile, z: WissenListeZeile): void 
 function vereinigeZeilenwerte(d: WissenDokumentZeile, z: WissenListeZeile, status: Pruefstatus): void {
   d.loeschbar &&= istUploadZeile(z);
   for (const r of z.rollen ?? []) if (!d.rollen.includes(r)) d.rollen.push(r);
+  for (const b of z.weitere_bereiche ?? []) if (!d.weitereBereiche.includes(b)) d.weitereBereiche.push(b);
   if (z.pakete_gesamt) d.paketeGesamt = Math.max(d.paketeGesamt ?? 0, Number(z.pakete_gesamt));
   if (z.eingelesen_am && (!d.datum || z.eingelesen_am > d.datum)) d.datum = z.eingelesen_am;
   // Ein Dokument gilt so streng wie seine strengste Zeile (ungeprueft vor abgelehnt vor freigegeben).

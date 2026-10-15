@@ -391,6 +391,15 @@ const rechtsfragen = [
   "What is the VAT registration threshold in Kazakhstan?",
   "Какой порог постановки на учет по НДС?",
   "ЭСФ кімге міндетті?",
+  // Risikomanagement (15.10.2026: Himbi antwortete auf "Hast du Quellen für die Themen Risiko im Unternehmen?" ohne Suche)
+  "Hast du Quellen für die Themen Risiko im Unternehmen?",
+  "Schau bitte nochmal nach Risiko in dem Wissen nach!",
+  "Wie funktioniert Risikomanagement nach ISO 31000?",
+  "Wie bewerte ich ein Risiko nach COSO ERM?",
+  "Wie ist das interne Kontrollsystem aufzubauen?",
+  "What does the knowledge base say about risk management?",
+  "Как оценивать риски по ISO 31000?",
+  "Тәуекелді басқару қалай жүргізіледі?",
 ];
 const keineRechtsfragen = [
   "Zeig mir die Rechte der Rolle Admin",
@@ -400,6 +409,11 @@ const keineRechtsfragen = [
   "Lege eine Pflueckaufgabe fuer Block 3 an",
   "Wie viele Schalen wurden gestern geerntet?",
   "Hallo Himbi",
+  // Die eigenen Auswertungen der Anwendung sind Datenfragen, keine Frage an die Wissensbasis
+  "Wie ist das Risiko-Radar heute?",
+  "Zeig mir das Block-Risiko von Block 3",
+  "Setze ein Sternchen (asterisk) vor die Zeile",
+  "Контроль температуры в камере",
 ];
 pruefe("Rechtsfragen in allen vier Sprachen werden erkannt", rechtsfragen.every((f) => istRechtsfrage(f)), rechtsfragen.filter((f) => !istRechtsfrage(f)).join(" | "));
 pruefe("Bedienung und Betriebsfragen loesen KEINE erzwungene Suche aus", keineRechtsfragen.every((f) => !istRechtsfrage(f)), keineRechtsfragen.filter((f) => istRechtsfrage(f)).join(" | "));

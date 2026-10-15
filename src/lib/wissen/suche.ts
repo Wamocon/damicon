@@ -194,12 +194,14 @@ function nutzungVon(t: Treffer): Nutzung {
 }
 
 export async function sucheWissen(
-  fragen: { frage: string; frageRussisch?: string | null },
+  fragen: { frage: string; frageRussisch?: string | null; frageEnglisch?: string | null },
   rolle: Role,
   opts: { limit?: number; nurAktuell?: boolean; einbettung?: Einbettung; supabase?: RpcKlient } = {},
 ): Promise<SuchErgebnis> {
   const t0 = performance.now();
-  const formulierungen = [fragen.frage, fragen.frageRussisch ?? ""].map((t) => t.trim()).filter(Boolean);
+  // Dieselbe Frage in bis zu drei Sprachen: Die Stichwortsuche trifft nur Woerter der jeweiligen Sprache (Risk Management steht in den englischen
+  // Standards, Риск-менеджмент in den russischen Texten), die dichte Suche ist sprachuebergreifend.
+  const formulierungen = [fragen.frage, fragen.frageRussisch ?? "", fragen.frageEnglisch ?? ""].map((t) => t.trim()).filter(Boolean);
   const einbettung = opts.einbettung ?? wissenEinbettung();
   const dense = await einbettenMitCache(einbettung, formulierungen);
   const t1 = performance.now();

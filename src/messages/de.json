@@ -2414,6 +2414,7 @@
         "periodeEnde": "Bis",
         "dokument": "Dokument",
         "bereich": "Bereich",
+        "weitereBereiche": "Gilt auch in",
         "quellenart": "Quellenart",
         "cluster": "Cluster",
         "textgrundlage": "Textgrundlage",
@@ -2554,6 +2555,8 @@
       },
       "formular": {
         "bereich": "Bereich",
+        "weitereBereiche": "Gilt auch in",
+        "weitereBereicheHinweis": "Ein Dokument, das für mehrere Bereiche gilt (zum Beispiel ISO 31000 für Audit und Risiko), erscheint in jedem davon. Der Hauptbereich bestimmt weiter, wofür die Quelle taugt.",
         "cluster": "Cluster",
         "bitteWaehlen": "Bitte wählen",
         "rollen": "Wer darf das Dokument sehen?",

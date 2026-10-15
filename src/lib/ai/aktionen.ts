@@ -235,16 +235,21 @@ const einschalten = tool({
 
 const wissenEinordnungAendern = tool({
   description:
-    "Ändert die Einordnung EINES Dokuments der Wissensbasis: Bereich, Quellenart, Cluster und/oder Textgrundlage (gib nur an, was sich ändern soll). Das Dokument gibst du mit seiner Kennung (schluessel aus wissensbasisAbrufen) an. Nur Administration. Die Stufe folgt der Quellenart. Bei einem freigegebenen Upload darf die Person, die hochgeladen hat, Bereich, Quellenart und Textgrundlage nicht ändern (Vier-Augen-Prinzip); dann sagst du das und bittest eine zweite Person. Prüfe vorher mit wissenDokumentAnalysieren und begründe die Änderung.",
+    "Ändert die Einordnung EINES Dokuments der Wissensbasis: Bereich, weitere Bereiche (ein Dokument kann in mehreren Bereichen gelten, zum Beispiel ISO 31000 in audit und risiko), Quellenart, Cluster und/oder Textgrundlage (gib nur an, was sich ändern soll). Das Dokument gibst du mit seiner Kennung (schluessel aus wissensbasisAbrufen) an. Nur Administration. Die Stufe folgt der Quellenart. Bei einem freigegebenen Upload darf die Person, die hochgeladen hat, Bereich, weitere Bereiche, Quellenart und Textgrundlage nicht ändern (Vier-Augen-Prinzip); dann sagst du das und bittest eine zweite Person. Prüfe vorher mit wissenDokumentAnalysieren und begründe die Änderung.",
   inputSchema: z.object({
     dokument: z.string().min(2).max(300).describe("Kennung (schluessel) des Dokuments"),
-    bereich: z.enum(UPLOAD_BEREICHE).optional(),
+    bereich: z.enum(UPLOAD_BEREICHE).optional().describe("Hauptbereich"),
+    weitereBereiche: z
+      .array(z.enum(UPLOAD_BEREICHE))
+      .max(4)
+      .optional()
+      .describe("ALLE weiteren Bereiche, in denen das Dokument zusätzlich gilt (zum Beispiel risiko bei ISO 31000 im Bereich audit); ersetzt die bisherigen, leer = keine. Weglassen, wenn sie bleiben sollen."),
     quellenart: z.enum(QUELLENARTEN).optional(),
     cluster: z.enum(CLUSTER).optional(),
     textgrundlage: z.enum(TEXTGRUNDLAGEN).optional(),
   }),
   needsApproval: true,
-  execute: async ({ dokument, bereich, quellenart, cluster, textgrundlage }) => {
+  execute: async ({ dokument, bereich, weitereBereiche, quellenart, cluster, textgrundlage }) => {
     let liste;
     try {
       liste = await ladeDokumente();
@@ -255,7 +260,12 @@ const wissenEinordnungAendern = tool({
     if (!treffer) {
       return { ...nichtGefunden("Dokument", dokument), text: kandidaten.length > 1 ? `Das Dokument '${dokument}' ist nicht eindeutig. Nimm die Kennung aus wissensbasisAbrufen.` : `Dokument '${dokument}' wurde nicht gefunden.` };
     }
-    const status = await wissenDokumentUmordnen(leer, formular({ schluessel: treffer.schluessel, spalte: treffer.schluesselSpalte, bereich, quellenart, cluster, textgrundlage }));
+    const daten = formular({ schluessel: treffer.schluessel, spalte: treffer.schluesselSpalte, bereich, quellenart, cluster, textgrundlage });
+    if (weitereBereiche) {
+      daten.set("weitereBereicheGesetzt", "1");
+      for (const b of weitereBereiche) daten.append("weitereBereiche", b);
+    }
+    const status = await wissenDokumentUmordnen(leer, daten);
     return ergebnis(status, ZIEL_WISSENSBASIS);
   },
 });

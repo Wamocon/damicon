@@ -13,7 +13,7 @@
 
 import { ohneEinordnung, type WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 import type { Cluster, Quellenart } from "@/lib/wissen/quellenart";
-import { bereichSchluessel } from "@/lib/wissen/upload-konstanten";
+import { bereicheVon } from "@/lib/wissen/upload-konstanten";
 
 export const VERLAESSLICHKEITEN = ["amtlich", "sicher", "hinweis", "unsicher", "ohne"] as const;
 export type Verlaesslichkeit = (typeof VERLAESSLICHKEITEN)[number];
@@ -86,7 +86,7 @@ export function statusVon(d: WissenDokumentZeile, s: StatusFilter): boolean {
 /** Passt das Dokument zu allen gesetzten Filtern? `ausser` laesst einen Filter weg (fuer die Zaehler an den Auswahlfeldern). */
 export function passtZumFilter(d: WissenDokumentZeile, f: ListenFilter, ausser?: keyof ListenFilter): boolean {
   if (ausser !== "cluster" && f.cluster !== null && (f.cluster === "ohne" ? !ohneEinordnung(d) : d.cluster !== f.cluster)) return false;
-  if (ausser !== "bereich" && f.bereich !== null && bereichSchluessel(d.bereich) !== f.bereich) return false;
+  if (ausser !== "bereich" && f.bereich !== null && !bereicheVon(d.bereich, d.weitereBereiche).includes(f.bereich)) return false;
   if (ausser !== "art" && f.art !== null && d.quellenart !== f.art) return false;
   if (ausser !== "verlaesslichkeit" && f.verlaesslichkeit !== null && !verlaesslichkeitVon(d, f.verlaesslichkeit)) return false;
   if (ausser !== "status" && f.status !== null && !statusVon(d, f.status)) return false;

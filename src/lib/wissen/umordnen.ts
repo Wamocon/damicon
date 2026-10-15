@@ -27,6 +27,8 @@ import { UPLOAD_QUELLE, UPLOAD_QUELLE_MUSTER } from "@/lib/wissen/upload-quelle"
 export interface Umordnung {
   /** Schluessel des Bereichs (recht, steuer ...) oder, bei Bestand mit Korpusbereich (amtlich, fachquellen ...), der unveraenderte gespeicherte Wert. */
   bereich?: string;
+  /** Die weiteren Bereiche, in denen das Dokument zusaetzlich gilt (Schluessel wie recht, risiko): ersetzt die bisherigen, leer = keine. Fehlt die Angabe, bleiben sie. */
+  weitereBereiche?: string[];
   quellenart?: string;
   cluster?: string;
   textgrundlage?: string;
@@ -40,6 +42,8 @@ export interface UmordnungsZiel {
 
 export interface Einordnung {
   bereich: string;
+  /** Gespeicherte Werte der weiteren Bereiche (legal, risiko ...). */
+  weitereBereiche: string[];
   quellenart: string | null;
   cluster: string | null;
   textgrundlage: string | null;
@@ -62,6 +66,7 @@ const STAPEL = 100; // Kennungen je Anweisung: mehr passt nicht in die Adresse (
 interface ZeileKopf {
   titel: string | null;
   bereich: string;
+  weitere_bereiche: string[] | null;
   quellenart: string | null;
   cluster: string | null;
   textgrundlage: string | null;
@@ -84,6 +89,7 @@ export async function ordneUm(db: SupabaseClient, ziel: UmordnungsZiel, aenderun
 
   const vorher: Einordnung = {
     bereich: kopf.bereich,
+    weitereBereiche: kopf.weitere_bereiche ?? [],
     quellenart: kopf.quellenart,
     cluster: kopf.cluster,
     textgrundlage: kopf.textgrundlage,
@@ -91,12 +97,13 @@ export async function ordneUm(db: SupabaseClient, ziel: UmordnungsZiel, aenderun
     pruefenBis: kopf.pruefen_bis,
   };
 
-  const { bereichNeu, art, clusterNeu, textNeu } = neueEinordnung(kopf, aenderung);
+  const { bereichNeu, weitereNeu, art, clusterNeu, textNeu } = neueEinordnung(kopf, aenderung);
 
   const artGeaendert = art !== null && art !== kopf.quellenart;
   const stufeNeu = artGeaendert ? standardStufe(art) : kopf.autoritaetsstufe;
-  const wirkt = artGeaendert || bereichNeu !== kopf.bereich || textNeu !== (kopf.textgrundlage ?? "original");
-  const aendertAlles = artGeaendert || bereichNeu !== kopf.bereich || textNeu !== (kopf.textgrundlage ?? "original") || clusterNeu !== kopf.cluster;
+  const weitereGeaendert = !gleicheMenge(weitereNeu, kopf.weitere_bereiche ?? []);
+  const wirkt = artGeaendert || bereichNeu !== kopf.bereich || weitereGeaendert || textNeu !== (kopf.textgrundlage ?? "original");
+  const aendertAlles = wirkt || clusterNeu !== kopf.cluster;
   if (!aendertAlles) throw new UploadFehler("keineAenderung");
 
   // --- Vier-Augen-Prinzip bei einem freigegebenen Upload ---
@@ -105,6 +112,7 @@ export async function ordneUm(db: SupabaseClient, ziel: UmordnungsZiel, aenderun
 
   const nachher: Einordnung = {
     bereich: bereichNeu,
+    weitereBereiche: weitereNeu,
     quellenart: art,
     cluster: clusterNeu,
     textgrundlage: textNeu,
@@ -115,6 +123,7 @@ export async function ordneUm(db: SupabaseClient, ziel: UmordnungsZiel, aenderun
 
   const set: Record<string, unknown> = {
     bereich: bereichNeu,
+    weitere_bereiche: weitereNeu,
     quellenart: art,
     cluster: clusterNeu,
     textgrundlage: textNeu,
@@ -135,7 +144,7 @@ export async function ordneUm(db: SupabaseClient, ziel: UmordnungsZiel, aenderun
 async function ladeDokument(db: SupabaseClient, spalte: UmordnungsZiel["schluesselSpalte"], schluessel: string): Promise<{ kopf: ZeileKopf; istUpload: boolean }> {
   const { data: kopfZeilen, error: kopfFehler } = await db
     .from("wissen_chunks")
-    .select("titel, bereich, quellenart, cluster, textgrundlage, autoritaetsstufe, pruefstatus, pruefen_bis, url, extra")
+    .select("titel, bereich, weitere_bereiche, quellenart, cluster, textgrundlage, autoritaetsstufe, pruefstatus, pruefen_bis, url, extra")
     .eq(spalte, schluessel)
     .limit(1);
   if (kopfFehler) throw new UploadFehler("speichern", undefined, new Error(kopfFehler.message));
@@ -157,12 +166,16 @@ async function ladeDokument(db: SupabaseClient, spalte: UmordnungsZiel["schluess
 }
 
 /** Die neuen Werte (nur, was angegeben ist, aendert sich) und die Regeln wie beim Hochladen. Wirft UploadFehler bei unzulaessiger Einordnung. */
-function neueEinordnung(kopf: ZeileKopf, aenderung: Umordnung): { bereichNeu: string; art: Quellenart | null; clusterNeu: string | null; textNeu: Textgrundlage } {
+function neueEinordnung(
+  kopf: ZeileKopf,
+  aenderung: Umordnung,
+): { bereichNeu: string; weitereNeu: string[]; art: Quellenart | null; clusterNeu: string | null; textNeu: Textgrundlage } {
   let bereichNeu = kopf.bereich;
   if (aenderung.bereich !== undefined && aenderung.bereich !== "") {
     if ((UPLOAD_BEREICHE as readonly string[]).includes(aenderung.bereich)) bereichNeu = BEREICH_WERT[aenderung.bereich as UploadBereich];
     else if (aenderung.bereich !== kopf.bereich) throw new UploadFehler("eingabe"); // ein Korpusbereich bleibt nur, wie er ist
   }
+  const weitereNeu = neueWeitere(kopf, aenderung, bereichNeu);
   const artRoh = aenderung.quellenart ?? kopf.quellenart ?? "";
   if (artRoh !== "" && !istQuellenart(artRoh)) throw new UploadFehler("eingabe");
   const art: Quellenart | null = artRoh === "" ? null : (artRoh as Quellenart);
@@ -177,8 +190,20 @@ function neueEinordnung(kopf: ZeileKopf, aenderung: Umordnung): { bereichNeu: st
     if (clusterNeu && !clusterPasst(art, clusterNeu)) throw new UploadFehler("clusterPasstNicht");
     if (QUELLENART_INFO[art].urlPflicht && !/^https?:\/\//i.test((kopf.url ?? "").trim())) throw new UploadFehler("urlFehlt");
   }
-  return { bereichNeu, art, clusterNeu, textNeu };
+  return { bereichNeu, weitereNeu, art, clusterNeu, textNeu };
 }
+
+/** Die weiteren Bereiche nach der Aenderung: nur die fuenf Bereiche des Uploads, in deren Reihenfolge, ohne Doppelte und ohne den Hauptbereich selbst
+ *  (die Datenbank verbietet ihn). Fehlt die Angabe, bleiben die bisherigen. Wirft UploadFehler bei einem unbekannten Bereich. */
+function neueWeitere(kopf: ZeileKopf, aenderung: Umordnung, bereichNeu: string): string[] {
+  const bisher = kopf.weitere_bereiche ?? [];
+  if (aenderung.weitereBereiche === undefined) return bereichNeu === kopf.bereich ? bisher : bisher.filter((w) => w !== bereichNeu);
+  if (aenderung.weitereBereiche.some((b) => !(UPLOAD_BEREICHE as readonly string[]).includes(b))) throw new UploadFehler("eingabe");
+  return UPLOAD_BEREICHE.filter((b) => aenderung.weitereBereiche!.includes(b)).map((b) => BEREICH_WERT[b]).filter((w) => w !== bereichNeu);
+}
+
+/** Gleiche Eintraege, unabhaengig von der Reihenfolge. */
+const gleicheMenge = (a: readonly string[], b: readonly string[]): boolean => a.length === b.length && a.every((x) => b.includes(x));
 
 /** Schreiben in Stapeln nach Kennung (Adresslaenge); liefert die Zahl der geaenderten Zeilen. */
 async function schreibeInStapeln(db: SupabaseClient, spalte: UmordnungsZiel["schluesselSpalte"], schluessel: string, set: Record<string, unknown>): Promise<number> {

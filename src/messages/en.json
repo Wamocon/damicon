@@ -2414,6 +2414,7 @@
         "periodeEnde": "To",
         "dokument": "Document",
         "bereich": "Area",
+        "weitereBereiche": "Also applies to",
         "quellenart": "Source type",
         "cluster": "Cluster",
         "textgrundlage": "Text basis",
@@ -2554,6 +2555,8 @@
       },
       "formular": {
         "bereich": "Area",
+        "weitereBereiche": "Also applies to",
+        "weitereBereicheHinweis": "A document that applies to several areas (for example ISO 31000 for audit and risk) appears in each of them. The main area still decides what the source is good for.",
         "cluster": "Cluster",
         "bitteWaehlen": "Please choose",
         "rollen": "Who may see the document?",

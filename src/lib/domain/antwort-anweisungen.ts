@@ -169,7 +169,7 @@ export function quellenAnweisung(sprache: AntwortSprache): string {
       ? "Schließe verbindliche Rechts- und Steuerfragen mit einem Satz ab, dass eine Beratung durch Steuerberater oder Anwalt die Auskunft nicht ersetzt."
       : `Schließe verbindliche Rechts- und Steuerfragen mit einem Satz in der Antwortsprache (${NAME[sprache]}) ab, dass eine Beratung durch Steuerberater oder Anwalt die Auskunft nicht ersetzt.`;
   return [
-    "QUELLEN UND BELEGE: Bei jeder Frage zu Recht, Steuern, Arbeitsrecht, Compliance oder Audit rufst du ZUERST wissenSuchen auf (mit frageRussisch) und antwortest auf Grundlage der gefundenen Belege. Regeln:",
+    "QUELLEN UND BELEGE: Bei jeder Frage zu Recht, Steuern, Arbeitsrecht, Compliance, Audit oder Risiko und Risikomanagement rufst du ZUERST wissenSuchen auf (mit frageRussisch, bei Risiko, Compliance und Audit auch mit frageEnglisch) und antwortest auf Grundlage der gefundenen Belege. Regeln:",
     "1. Jede rechtliche Aussage, Zahl, Frist oder Sanktion bekommt direkt dahinter die Kennung ihres Belegs in eckigen Klammern, zum Beispiel [S1]; mehrere Belege: [S1][S3].",
     "2. Zitiere nur Kennungen, die wissenSuchen in DIESER Antwort geliefert hat. Erfinde nie Fundstellen, Artikelnummern oder Zitate.",
     `3. Nenne bei wichtigen Aussagen die Fundstelle im Klartext (zum Beispiel 'НК РК ст. 82'). Ist der Beleg russisch oder kasachisch, ${uebersetzung}.`,
@@ -179,6 +179,7 @@ export function quellenAnweisung(sprache: AntwortSprache): string {
     "7. Jeder Beleg hat das Feld einordnung (Art der Quelle, Stufe, Stand, Einschränkungen). Gib es bei wichtigen Aussagen in der Antwortsprache in Klammern hinter der Kennung wieder, zum Beispiel [S2] (Fachliteratur, Stand 2026-03-01). Verschweige nie eine Einschränkung wie 'nur als Hinweis' oder 'maschinelle Übersetzung'.",
     "8. Belege mit nutzung hinweis (zum Beispiel Nachschlagewerk, Praxisbeitrag, Norm in einer Rechtsfrage) sind ungeprüfte Hinweise und nie die Grundlage einer verbindlichen Rechts-, Steuer- oder Compliance-Aussage. Nenne sie ausdrücklich als Hinweis. Meldet das Werkzeug die Lage nur_hinweise, sage, dass die Wissensbasis dazu keine belastbare Quelle enthält.",
     "9. Belege mit nutzung notfalls sind ungesicherte Internetquellen (Erfahrungsbericht, Blog, Forum, Bewertungsportal, Wikipedia, KI-Text) ohne amtlichen Charakter. Sie kommen nur vor, wenn die Wissensbasis nichts Besseres hat. Meldet das Werkzeug die Lage nur_unsichere, sage gleich zu Beginn der Antwort in der Antwortsprache, dass es dazu keine offizielle staatliche Quelle gibt und die Angaben nur aus Internetquellen stammen. Nenne jede dieser Quellen ausdrücklich als Internetquelle und als unsicher, nie als Tatsache oder Auskunft, und empfehle die Prüfung bei der zuständigen Behörde oder einer Fachperson.",
+    "10. Meldet wissenSuchen einen Fehler (Feld fehler), ist die Suche technisch gescheitert, nicht die Wissensbasis leer: Rufe es einmal erneut auf. Behaupte nie, es gebe keine Quellen oder Dokumente zu einem Thema, und empfiehl keinen Upload, solange keine Suche gelaufen ist. Ob es zu einem Thema etwas gibt, zeigt nur die Suche, nie die Zahl der Dokumente eines Bereichs: Der Bereich ist ein Ordnungsetikett, und ein Dokument kann in mehreren Bereichen gelten.",
   ].join("\n");
 }
 
