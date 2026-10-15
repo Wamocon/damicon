@@ -50,6 +50,10 @@ export async function IntegrationAuslieferungAnsicht() {
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
                     <StatusPill tone={i.aktiv ? "success" : "neutral"}>{i.aktiv ? t("integrationen.aktiv") : t("integrationen.aus")}</StatusPill>
+                    {i.vorlage !== "" ? <StatusPill tone="info">{t("integrationen.vorlage")}</StatusPill> : null}
+                    {i.adapter === "webhook" && i.authArt === "basic" ? (
+                      <StatusPill tone={i.zugangGesetzt ? "success" : "warning"}>{i.zugangGesetzt ? t("integrationen.zugangGesetzt") : t("integrationen.zugangFehlt", { name: i.zugangName ?? "-" })}</StatusPill>
+                    ) : null}
                     {i.adapter === "webhook" && i.geheimnisName ? (
                       <StatusPill tone={i.geheimnisGesetzt ? "success" : "warning"}>{i.geheimnisGesetzt ? t("integrationen.geheimnisGesetzt") : t("integrationen.geheimnisFehlt", { name: i.geheimnisName })}</StatusPill>
                     ) : null}
@@ -92,6 +96,7 @@ export async function IntegrationAuslieferungAnsicht() {
                   </td>
                   <td className="px-3 py-2.5">
                     <StatusPill tone={statusTon[e.status]}>{statusText[e.status]}</StatusPill>
+                    {e.status === "sent" && e.bestaetigungErwartet ? <StatusPill tone="warning">{t("warteschlange.bestaetigungOffen")}</StatusPill> : null}
                     {e.antwortStatus ? <span className="ml-1.5 text-[11px] text-muted-foreground">HTTP {e.antwortStatus}</span> : null}
                   </td>
                   <td className="px-3 py-2.5 text-muted-foreground">{t("warteschlange.versucheVon", { versuche: e.versuche, max: MAX_VERSUCHE })}</td>

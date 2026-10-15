@@ -12,9 +12,11 @@ import {
   StandFormular,
 } from "@/components/db/wirtschaftlichkeit-formulare";
 import type { StandKopf } from "@/lib/data/wirtschaftlichkeit";
+import { einstellungWert } from "@/lib/data/einstellungen";
 import {
   POSTEN_ARTEN,
   euroInTengeMit,
+  kapitalwertBeiZinsen,
   summiere,
   type Annahmen,
   type IstEintrag,
@@ -150,12 +152,27 @@ export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen,
           ? t("annahmen.mengeZuKurz", { tage: menge.tageAbdeckung, menge: zahl(menge.mengeKg12Monate, 0) })
           : t("annahmen.mengeKeine");
 
+  // Zins-Check: der Kapitalwert bei dem unteren und dem oberen Vergleichszins und beim Richtwert (Einstellungen, Quelle in docs/ENTSCHEIDUNGSGRUNDLAGEN.md).
+  const [zinsRichtwert, zinsNiedrig, zinsHoch] = await Promise.all([
+    einstellungWert("wirtschaftlichkeit.kalkulationszins_richtwert"),
+    einstellungWert("wirtschaftlichkeit.zins_sensitivitaet_niedrig"),
+    einstellungWert("wirtschaftlichkeit.zins_sensitivitaet_hoch"),
+  ]);
+  const zinssaetze = [zinsNiedrig, zinsRichtwert, zinsHoch].filter((z): z is number => z !== null);
+  const kapitalwerte = kapitalwertBeiZinsen(stand, zinssaetze.map((z) => z / 100));
+  const zinsCheck = zinssaetze.map((z, i) => `${format.number(z, { maximumFractionDigits: 2 })} %: ${kapitalwerte[i] === null ? "-" : `${zahl(kapitalwerte[i] as number, 0)} €`}`).join(" · ");
+
   const annahmenAnsicht = (
     <dl className="rounded-lg border border-border bg-background px-3 py-1 text-xs">
       <Zeile label={t("annahmen.zins")}>
         {format.number(annahmen.kalkulationszins, { style: "percent", maximumFractionDigits: 2 })}
         <HerkunftPille herkunft={h("kalkulationszins")} t={t} />
       </Zeile>
+      {zinssaetze.length > 0 ? (
+        <Zeile label={t("annahmen.zinsCheck")} hinweis={zinsRichtwert !== null ? t("annahmen.zinsCheckHinweis", { richtwert: format.number(zinsRichtwert, { maximumFractionDigits: 2 }) }) : undefined}>
+          {zinsCheck}
+        </Zeile>
+      ) : null}
       <Zeile label={t("annahmen.kurs")} hinweis={[annahmen.kursQuelle, t("annahmen.stichtag", { datum: tag(annahmen.kursStichtag) })].filter(Boolean).join(" · ")}>
         1 EUR = {zahl(annahmen.kurse.eurTenge)} ₸, 1 RUB = {zahl(annahmen.kurse.rubTenge)} ₸
         <HerkunftPille herkunft={h("kurs")} t={t} />

@@ -24,6 +24,10 @@ export interface IntegrationsZiel {
   adapter: string;
   zielUrl: string | null;
   geheimnisName: string | null;
+  authArt?: string;
+  zugangName?: string | null;
+  vorlage?: unknown;
+  bestaetigungErwartet?: boolean;
 }
 
 export interface AuslieferungSpeicher {

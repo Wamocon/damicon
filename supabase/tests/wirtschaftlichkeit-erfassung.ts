@@ -37,6 +37,7 @@ import {
   planIst,
   postenFehler,
   rechneStand,
+  kapitalwertBeiZinsen,
   roiIstPunkte,
   schwaechste,
   summiere,
@@ -280,6 +281,16 @@ const VORGABE: Posten[] = [posten("investition", CAPEX_EUR), posten("betrieb", O
   const katalog = (s: string) => JSON.parse(lies(`src/messages/${s}.json`)).aktionen?.fehler ?? JSON.parse(lies(`src/messages/${s}.json`));
   const hatSchluessel = ["de", "en", "kk", "ru"].every((s) => JSON.stringify(katalog(s)).includes('"wiStandLesefehler"'));
   check("Stand: die Meldung steht in allen vier Sprachen", hatSchluessel);
+}
+
+// --- Zins-Check (15.10.2026) ----------------------------------------------------------------------------------------------------------------------
+{
+  const s = rechneStand(VORGABE, ANNAHMEN, null);
+  const [niedrig, mittel, hoch] = kapitalwertBeiZinsen(s, [0.16, 0.2, 0.24]);
+  check("Zins-Check: der Kapitalwert faellt mit dem Zins (16 vor 20 vor 24 Prozent)", niedrig !== null && mittel !== null && hoch !== null && niedrig > mittel && mittel > hoch, JSON.stringify([niedrig, mittel, hoch]));
+  check("Zins-Check: beim Zins der Annahme kommt der Kapitalwert der Kennzahl heraus", nahe(kapitalwertBeiZinsen(s, [ANNAHMEN.kalkulationszins])[0], s.kennzahlen.kapitalwert, 4));
+  const offen = rechneStand([posten("investition", 1000)], ANNAHMEN, null);
+  check("Zins-Check: fehlt eine der drei Arten, gibt es keine Werte statt geratener", kapitalwertBeiZinsen(offen, [0.16, 0.2]).every((w) => w === null) && kapitalwertBeiZinsen(s, []).length === 0);
 }
 
 if (fehler > 0) {

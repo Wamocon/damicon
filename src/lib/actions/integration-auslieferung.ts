@@ -6,6 +6,8 @@ import { dbFehler, fehler, ok, okMitWerten, type AktionsStatus } from "@/lib/act
 import { mitRecht, type Zugriff } from "@/lib/actions/zugriff";
 import { text, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
 import { konfigurationFehler } from "@/lib/domain/integration-auslieferung";
+import { pruefeVorlage } from "@/lib/domain/integration-vorlage";
+import type { Json } from "@/lib/database.types";
 import { liefereFaelligeAus } from "@/lib/integration/speicher";
 import { istUuid } from "@/lib/utils";
 
@@ -30,14 +32,34 @@ export async function integrationKonfigurieren(_status: AktionsStatus, formData:
   const id = text(formData, "id");
   if (!istUuid(id)) return fehler("fehler.eingabe");
 
-  const e = { adapter: text(formData, "adapter"), zielUrl: text(formData, "ziel_url"), geheimnisName: text(formData, "geheimnis_name"), aktiv: formData.get("aktiv") === "on" };
+  const e = {
+    adapter: text(formData, "adapter"),
+    zielUrl: text(formData, "ziel_url"),
+    geheimnisName: text(formData, "geheimnis_name"),
+    authArt: text(formData, "auth_art") || "hmac",
+    zugangName: text(formData, "zugang_name"),
+    aktiv: formData.get("aktiv") === "on",
+  };
   const abgelehnt = konfigurationFehler(e);
   if (abgelehnt) return fehler(`fehler.${abgelehnt}`);
+  // Das Mapping auf das Zielformat des Partners: JSON mit Platzhaltern oder leer (der Umschlag geht unveraendert hinaus).
+  const vorlage = pruefeVorlage(text(formData, "vorlage"));
+  if (!vorlage.ok) return fehler(`fehler.integrationVorlage_${vorlage.fehler}`, vorlage.detail);
+  const bestaetigungErwartet = formData.get("bestaetigung_erwartet") === "on";
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("integrationen")
-    .update({ adapter: e.adapter, ziel_url: e.zielUrl === "" ? null : e.zielUrl, geheimnis_name: e.geheimnisName === "" ? null : e.geheimnisName, aktiv: e.aktiv })
+    .update({
+      adapter: e.adapter,
+      ziel_url: e.zielUrl === "" ? null : e.zielUrl,
+      geheimnis_name: e.geheimnisName === "" ? null : e.geheimnisName,
+      auth_art: e.authArt,
+      zugang_name: e.zugangName === "" ? null : e.zugangName,
+      vorlage: vorlage.vorlage as Json | null,
+      bestaetigung_erwartet: bestaetigungErwartet,
+      aktiv: e.aktiv,
+    })
     .eq("id", id)
     .select("key")
     .maybeSingle();
@@ -45,10 +67,10 @@ export async function integrationKonfigurieren(_status: AktionsStatus, formData:
   if (!data) return fehler("fehler.berechtigung");
 
   // Die Adresse steht nicht im Protokoll (sie kann Zugangsteile tragen), nur ob und wohin grob: der Adapter und der Zustand.
-  await protokoll(z.profil, "integration.konfiguriert", id, { key: data.key, adapter: e.adapter, aktiv: e.aktiv });
+  await protokoll(z.profil, "integration.konfiguriert", id, { key: data.key, adapter: e.adapter, aktiv: e.aktiv, auth: e.authArt, vorlage: vorlage.vorlage !== null, bestaetigung: bestaetigungErwartet });
   aktualisiere(formData);
   // Ein aktiver Webhook ohne gesetztes Geheimnis liefert nichts aus: das sagt die Meldung gleich dazu.
-  const geheimnisFehlt = e.aktiv && e.geheimnisName !== "" && !process.env[e.geheimnisName];
+  const geheimnisFehlt = e.aktiv && ((e.geheimnisName !== "" && !process.env[e.geheimnisName]) || (e.authArt === "basic" && e.zugangName !== "" && !process.env[e.zugangName]));
   return ok(geheimnisFehlt ? "ok.integrationGespeichertOhneGeheimnis" : "ok.integrationGespeichert", e.geheimnisName);
 }
 

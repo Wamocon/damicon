@@ -255,6 +255,17 @@ export function rechneStand(posten: readonly Posten[], a: Annahmen, menge: Menge
   return { capexEur: c, opexEur: o, nutzenEur: n, mengeKg, mengeQuelle, vollkostenVorherTenge: a.vollkostenVorherTenge, kennzahlen, herkunft };
 }
 
+/**
+ * Kapitalwert (Euro, Horizont der Investitionsrechnung) bei verschiedenen Zinssaetzen, gerechnet aus denselben Summen wie die Kennzahl. Die Spanne zeigt, wie
+ * stark das Ergebnis am Kalkulationszins haengt, den niemand vorgegeben hat. Ohne Posten in allen drei Arten (offen) gibt es keine Werte.
+ * zinsen: Jahreszinsen als Anteil (0,2 fuer 20 Prozent).
+ */
+export function kapitalwertBeiZinsen(stand: Pick<Rechenstand, "capexEur" | "opexEur" | "nutzenEur">, zinsen: readonly number[]): (number | null)[] {
+  const { capexEur: c, opexEur: o, nutzenEur: n } = stand;
+  if (c === null || o === null || n === null) return zinsen.map(() => null);
+  return zinsen.map((z) => kapitalwert(HORIZONT_JAHRE * 12, c, o, n, z));
+}
+
 // --- Plan-Ist ----------------------------------------------------------------------------------------------------------------------
 
 export interface PlanIstZeile {

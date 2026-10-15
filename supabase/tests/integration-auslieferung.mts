@@ -20,7 +20,8 @@ import {
   zielUrlFehler,
   type Fortschritt,
 } from "@/lib/domain/integration-auslieferung";
-import { sendeWebhook, signiere } from "@/lib/integration/webhook-adapter";
+import { SIGNATUR_TOLERANZ_SEKUNDEN, pruefeSignatur, sendeWebhook, signiere } from "@/lib/integration/webhook-adapter";
+import { VORLAGE_BEISPIEL_1C, VORSCHAU_UMSCHLAG, baueKoerper, pruefeVorlage, schlageNach, wendeVorlageAn } from "@/lib/domain/integration-vorlage";
 import { liefereAus, type AuslieferungSpeicher, type IntegrationsZiel, type OutboxEintrag, type Sender } from "@/lib/integration/auslieferung";
 
 let fehler = 0;
@@ -136,7 +137,6 @@ const sende = (extra: Parameters<typeof sendeWebhook>[2] = {}) => sendeWebhook(z
   const netz = await sende({ abruf: async () => { throw new TypeError("fetch failed"); } });
   check("Webhook: Zeitlimit und Netzfehler sind vorlaeufig", zeitlimit.art === "wiederholen" && zeitlimit.grund === "Zeitlimit" && netz.art === "wiederholen" && netz.grund.includes("Netzfehler"));
 }
-server.close();
 
 // --- 5. Auslieferung mit Speicher im Arbeitsspeicher --------------------------------------------------------------------------------------
 interface Zeile extends OutboxEintrag {
@@ -254,6 +254,60 @@ const zeile = (id: string, extra: Partial<Zeile> = {}): Zeile => ({
   const fehlerSchluessel = ["integrationAdapter", "integrationUrl", "integrationUrlIntern", "integrationGeheimnis", "integrationUnvollstaendig"];
   check("Texte: die Fehlermeldungen der Konfiguration stehen in vier Sprachen", fehlend("aktionen.fehler", fehlerSchluessel).length === 0, fehlend("aktionen.fehler", fehlerSchluessel).slice(0, 4).join(", "));
 }
+
+// --- Ausbau (15.10.2026): Vorlage, Zugang per Basic, Rueckmeldung des Partners ---------------------------------------------------------------------------
+{
+  const kontext = { umschlag: { id: "u1", idempotenzSchluessel: "esf:1:x" }, daten: { esfNummer: "E-7", entwurf: { kunde: { name: "Handelskette A" }, ware: { mengeKg: 80, positionen: [{ sorte: "Tulameen" }] } }, leer: null } };
+  check("Vorlage: ein ganzer Platzhalter behaelt den Typ, ein Platzhalter im Text wird Text", JSON.stringify(wendeVorlageAn({ menge: "{{daten.entwurf.ware.mengeKg}}", text: "Menge {{daten.entwurf.ware.mengeKg}} kg" }, kontext)) === JSON.stringify({ menge: 80, text: "Menge 80 kg" }));
+  check("Vorlage: Listen werden durchlaufen, Eintraege einer Liste mit [0] erreicht", JSON.stringify(wendeVorlageAn({ liste: [{ s: "{{daten.entwurf.ware.positionen[0].sorte}}" }] }, kontext)) === JSON.stringify({ liste: [{ s: "Tulameen" }] }));
+  check("Vorlage: ein fehlender Wert wird null (ganzer Platzhalter) oder leer (im Text), nie das Wort undefined", JSON.stringify(wendeVorlageAn({ a: "{{daten.gibt.es.nicht}}", b: "x{{daten.gibt}}y", c: "{{daten.leer}}" }, kontext)) === JSON.stringify({ a: null, b: "xy", c: null }));
+  check("Vorlage: Zahlen, Wahrheitswerte und feste Texte bleiben, ein Platzhalter im Schluessel wird eingesetzt", JSON.stringify(wendeVorlageAn({ n: 1, w: true, t: "fest", "{{umschlag.id}}": "x" }, kontext)) === JSON.stringify({ n: 1, w: true, t: "fest", u1: "x" }));
+  check("Vorlage: nachgeschlagen wird nur, was eigen ist (__proto__, constructor, toString)", schlageNach(kontext, "daten.__proto__") === undefined && schlageNach(kontext, "daten.constructor") === undefined && schlageNach({ daten: {} }, "daten.toString") === undefined);
+  check("Vorlage: Umgebungsvariablen und fremde Wurzeln sind nicht erreichbar", schlageNach(kontext, "process.env.CRON_SECRET") === undefined && schlageNach(kontext, "env.X") === undefined && pruefeVorlage('{"a":"{{process.env.CRON_SECRET}}"}').ok === false);
+  check("Vorlage: Eingabe leer heisst keine Vorlage", JSON.stringify(pruefeVorlage("  ")) === JSON.stringify({ ok: true, vorlage: null }));
+  check("Vorlage: kein JSON, kein Objekt, zu gross und zu tief werden abgelehnt", (pruefeVorlage("{kaputt") as { fehler: string }).fehler === "kein_json" && (pruefeVorlage("[1]") as { fehler: string }).fehler === "kein_objekt" && (pruefeVorlage("3") as { fehler: string }).fehler === "kein_objekt" && (pruefeVorlage(JSON.stringify({ a: "x".repeat(21_000) })) as { fehler: string }).fehler === "zu_gross" && (pruefeVorlage('{"a":{"b":{"c":{"d":{"e":{"f":{"g":{"h":{"i":1}}}}}}}}}') as { fehler: string }).fehler === "zu_tief");
+  check("Vorlage: ein unbekannter Pfad und zu viele Platzhalter werden abgelehnt, der Pfad steht im Fehler", (() => { const p = pruefeVorlage('{"a":"{{daten..x}}"}'); return !p.ok && p.fehler === "pfad" && p.detail === "daten..x"; })() && (pruefeVorlage(JSON.stringify({ a: Array.from({ length: 201 }, () => "{{daten.a}}") })) as { fehler: string }).fehler === "zu_viele_platzhalter");
+  check("Vorlage: ein einzelnes Klammerzeichen oder unvollstaendiger Platzhalter ist Text und stoert nicht", pruefeVorlage('{"a":"{ x }","b":"{{daten.x"}').ok === true);
+  const beispiel = pruefeVorlage(VORLAGE_BEISPIEL_1C);
+  const koerper = beispiel.ok ? (baueKoerper(VORSCHAU_UMSCHLAG, beispiel.vorlage) as Record<string, unknown>) : null;
+  check("Vorlage: das Beispiel fuer 1C ist gueltig und fuellt sich aus dem Beispiel-Umschlag (Summe als Zahl, Nummer, Kunde, Position)", koerper !== null && koerper["СуммаДокумента"] === 296960 && koerper["НомерЭСФ"] === "ESF-2026-000123" && koerper["ИННКонтрагента"] === "123456789012" && (koerper["Товары"] as { Количество: number }[])[0].Количество === 80, JSON.stringify(koerper).slice(0, 160));
+  check("Vorlage: ohne Vorlage geht der Umschlag unveraendert hinaus", baueKoerper(VORSCHAU_UMSCHLAG, null) === VORSCHAU_UMSCHLAG && baueKoerper(VORSCHAU_UMSCHLAG, undefined) === VORSCHAU_UMSCHLAG);
+
+  // Webhook mit Vorlage und mit HTTP Basic gegen den lokalen Server.
+  empfangen.length = 0;
+  antwortStatus = 200;
+  const mitVorlage = await sendeWebhook(
+    { ...ziel, authArt: "basic", zugangName: "DAMICON_HOOK_ESF_ZUGANG", vorlage: { id: "{{umschlag.id}}", daten: "{{daten.belegId}}" } },
+    umschlag,
+    { umgebung: { ...umgebung, DAMICON_HOOK_ESF_ZUGANG: "1c-dienst:geheim:mit:doppelpunkt" }, jetzt: () => 1_760_000_000_000, abruf: lokal, aufloesen: oeffentlich },
+  );
+  const e = empfangen[0];
+  check("Webhook: mit Vorlage geht das Mapping hinaus, nicht der Umschlag", mitVorlage.art === "zugestellt" && JSON.parse(e.koerper).id === umschlag.id && JSON.parse(e.koerper).daten === "b1" && !("idempotenzSchluessel" in JSON.parse(e.koerper)));
+  check("Webhook: HTTP Basic traegt Benutzer und Kennwort (das Kennwort darf Doppelpunkte enthalten), die Signatur gilt dem Koerper, der wirklich hinausgeht",
+    e.kopf["authorization"] === `Basic ${Buffer.from("1c-dienst:geheim:mit:doppelpunkt").toString("base64")}` && e.kopf["x-damicon-signatur"] === signiere(GEHEIMNIS, 1_760_000_000, e.koerper) && e.kopf["accept"] === "application/json");
+  check("Webhook: ohne Basic gibt es keinen Authorization-Kopf", (await sende(), !("authorization" in empfangen.at(-1)!.kopf)));
+  const ohneZugang = await sendeWebhook({ ...ziel, authArt: "basic", zugangName: "DAMICON_HOOK_ESF_ZUGANG" }, umschlag, { umgebung, abruf: lokal, aufloesen: oeffentlich });
+  const ohneDoppelpunkt = await sendeWebhook({ ...ziel, authArt: "basic", zugangName: "DAMICON_HOOK_ESF_ZUGANG" }, umschlag, { umgebung: { ...umgebung, DAMICON_HOOK_ESF_ZUGANG: "nurbenutzer" }, abruf: lokal, aufloesen: oeffentlich });
+  check("Webhook: fehlt der Zugang oder hat er nicht die Form Benutzer:Kennwort, wartet der Eintrag", ohneZugang.art === "wiederholen" && ohneZugang.grund.includes("DAMICON_HOOK_ESF_ZUGANG") && ohneDoppelpunkt.art === "wiederholen");
+  const vorlageMitGeheimnis = await sendeWebhook({ ...ziel, vorlage: { x: "{{process.env.DAMICON_HOOK_ESF}}" } }, umschlag, { umgebung, jetzt: () => 1_760_000_000_000, abruf: lokal, aufloesen: oeffentlich });
+  check("Webhook: eine Vorlage kann die Umgebung nicht lesen (das Geheimnis geht nicht hinaus)", vorlageMitGeheimnis.art === "zugestellt" && !empfangen.at(-1)!.koerper.includes(GEHEIMNIS) && JSON.parse(empfangen.at(-1)!.koerper).x === null);
+
+  // Rueckmeldung des Partners: Signatur und Zeitstempel.
+  const jetzt = 1_760_000_000;
+  const rueck = JSON.stringify({ idempotenzSchluessel: "esf:b1:ausgestellt", ok: true });
+  check("Rueckmeldung: eine richtig signierte Nachricht mit frischem Zeitstempel ist in Ordnung", pruefeSignatur(GEHEIMNIS, String(jetzt - 10), signiere(GEHEIMNIS, jetzt - 10, rueck), rueck, jetzt) === "ok");
+  check("Rueckmeldung: ein veraenderter Koerper, ein falsches Geheimnis oder eine fehlende Signatur werden abgewiesen", pruefeSignatur(GEHEIMNIS, String(jetzt), signiere(GEHEIMNIS, jetzt, rueck), rueck.replace("true", "false"), jetzt) === "signatur" && pruefeSignatur("anderes", String(jetzt), signiere(GEHEIMNIS, jetzt, rueck), rueck, jetzt) === "signatur" && pruefeSignatur(GEHEIMNIS, String(jetzt), null, rueck, jetzt) === "signatur" && pruefeSignatur(GEHEIMNIS, String(jetzt), "sha256=00", rueck, jetzt) === "signatur");
+  check("Rueckmeldung: ein zu alter oder zu junger Zeitstempel wird abgewiesen (Wiederholung einer abgefangenen Nachricht)", pruefeSignatur(GEHEIMNIS, String(jetzt - SIGNATUR_TOLERANZ_SEKUNDEN - 1), signiere(GEHEIMNIS, jetzt - SIGNATUR_TOLERANZ_SEKUNDEN - 1, rueck), rueck, jetzt) === "zeit" && pruefeSignatur(GEHEIMNIS, String(jetzt + SIGNATUR_TOLERANZ_SEKUNDEN + 1), signiere(GEHEIMNIS, jetzt + SIGNATUR_TOLERANZ_SEKUNDEN + 1, rueck), rueck, jetzt) === "zeit" && pruefeSignatur(GEHEIMNIS, SIGNATUR_TOLERANZ_SEKUNDEN > 0 ? "abc" : null, "x", rueck, jetzt) === "zeit" && pruefeSignatur(GEHEIMNIS, null, "x", rueck, jetzt) === "zeit");
+  check("Rueckmeldung: die Toleranz selbst ist noch in Ordnung", pruefeSignatur(GEHEIMNIS, String(jetzt - SIGNATUR_TOLERANZ_SEKUNDEN), signiere(GEHEIMNIS, jetzt - SIGNATUR_TOLERANZ_SEKUNDEN, rueck), rueck, jetzt) === "ok");
+
+  // Konfiguration: Authentifizierung und Zugang.
+  const ok = { adapter: "webhook", zielUrl: "https://hooks.example.kz/x", geheimnisName: "DAMICON_HOOK_ESF", aktiv: true };
+  check("Konfiguration: Basic aktiv braucht den Namen des Zugangs, hmac nicht", konfigurationFehler({ ...ok, authArt: "basic", zugangName: "" }) === "integrationZugang" && konfigurationFehler({ ...ok, authArt: "basic", zugangName: "DAMICON_HOOK_ESF_ZUGANG" }) === null && konfigurationFehler({ ...ok, authArt: "hmac" }) === null && konfigurationFehler(ok) === null);
+  check("Konfiguration: eine unbekannte Authentifizierung und ein Zugangsname ausserhalb des Praefixes werden abgelehnt", konfigurationFehler({ ...ok, authArt: "bearer" }) === "integrationAuth" && konfigurationFehler({ ...ok, authArt: "basic", zugangName: "CRON_SECRET" }) === "integrationZugang" && konfigurationFehler({ ...ok, geheimnisName: "CRON_SECRET" }) === "integrationGeheimnis");
+  check("Konfiguration: inaktiv und manuell ohne Zugang ist in Ordnung", konfigurationFehler({ adapter: "manuell", zielUrl: "", geheimnisName: "", aktiv: false, authArt: "hmac" }) === null);
+}
+
+server.close();
 
 if (fehler > 0) {
   console.log(`\n${fehler} Pruefung(en) fehlgeschlagen.`);

@@ -18,6 +18,13 @@ export interface IntegrationZeile {
   geheimnisName: string | null;
   /** Ist die Umgebungsvariable auf dem Server gesetzt? Der Wert verlaesst den Server nie. */
   geheimnisGesetzt: boolean;
+  /** hmac (nur Signatur) oder basic (zusaetzlich Benutzer und Kennwort). */
+  authArt: string;
+  zugangName: string | null;
+  zugangGesetzt: boolean;
+  /** Die Vorlage als gut lesbarer JSON-Text; leer, wenn der Umschlag unveraendert hinausgeht. */
+  vorlage: string;
+  bestaetigungErwartet: boolean;
   aktiv: boolean;
 }
 
@@ -31,6 +38,8 @@ export interface OutboxZeile {
   letzterFehler: string | null;
   naechsterVersuchAm: string;
   antwortStatus: number | null;
+  /** Die Integration erwartet eine Rueckmeldung des Partners: ein gesendeter Eintrag ist dann noch nicht bestaetigt. */
+  bestaetigungErwartet: boolean;
   erstelltAm: string;
   verarbeitetAm: string | null;
 }
@@ -57,10 +66,10 @@ export async function ladeAuslieferung(): Promise<AuslieferungUebersicht | null>
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const [integrationen, eintraege, ...zaehlungen] = await Promise.all([
-    supabase.from("integrationen").select("id, key, name, system, adapter, ziel_url, geheimnis_name, aktiv").order("name"),
+    supabase.from("integrationen").select("id, key, name, system, adapter, ziel_url, geheimnis_name, auth_art, zugang_name, vorlage, bestaetigung_erwartet, aktiv").order("name"),
     supabase
       .from("integration_outbox")
-      .select("id, ziel_system, ereignis, status, versuche, letzter_fehler, naechster_versuch_am, antwort_status, created_at, verarbeitet_am, integrationen ( key )")
+      .select("id, ziel_system, ereignis, status, versuche, letzter_fehler, naechster_versuch_am, antwort_status, created_at, verarbeitet_am, integrationen ( key, bestaetigung_erwartet )")
       .order("created_at", { ascending: false })
       .limit(EINTRAEGE_MAX),
     ...OUTBOX_STATUS.map((s) => supabase.from("integration_outbox").select("id", { count: "exact", head: true }).eq("status", s)),
@@ -84,6 +93,11 @@ export async function ladeAuslieferung(): Promise<AuslieferungUebersicht | null>
       zielHost: hostVon(i.ziel_url),
       geheimnisName: i.geheimnis_name,
       geheimnisGesetzt: i.geheimnis_name !== null && Boolean(process.env[i.geheimnis_name]),
+      authArt: i.auth_art,
+      zugangName: i.zugang_name,
+      zugangGesetzt: i.zugang_name !== null && Boolean(process.env[i.zugang_name]),
+      vorlage: i.vorlage === null ? "" : JSON.stringify(i.vorlage, null, 2),
+      bestaetigungErwartet: i.bestaetigung_erwartet,
       aktiv: i.aktiv,
     })),
     eintraege: (eintraege.data ?? [])
@@ -98,6 +112,7 @@ export async function ladeAuslieferung(): Promise<AuslieferungUebersicht | null>
         letzterFehler: e.letzter_fehler,
         naechsterVersuchAm: e.naechster_versuch_am,
         antwortStatus: e.antwort_status,
+        bestaetigungErwartet: einsAus(e.integrationen)?.bestaetigung_erwartet === true,
         erstelltAm: e.created_at,
         verarbeitetAm: e.verarbeitet_am,
       })),

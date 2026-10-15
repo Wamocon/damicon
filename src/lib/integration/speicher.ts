@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { liefereAus, type AuslieferungSpeicher, type AuslieferungsErgebnis, type Sender } from "@/lib/integration/auslieferung";
+import { LAUF_BUDGET_MS, liefereAus, type AuslieferungSpeicher, type AuslieferungsErgebnis, type Sender } from "@/lib/integration/auslieferung";
 import { sendeWebhook } from "@/lib/integration/webhook-adapter";
 import type { Fortschritt } from "@/lib/domain/integration-auslieferung";
 import { einsAus } from "@/lib/data/util";
@@ -15,7 +15,7 @@ export function supabaseSpeicher(supabase: SupabaseClient<Database>): Auslieferu
     async faellige(jetzt, limit) {
       const { data, error } = await supabase
         .from("integration_outbox")
-        .select("id, ereignis, idempotenz_schluessel, payload, versuche, created_at, naechster_versuch_am, integrationen!inner ( id, key, adapter, ziel_url, geheimnis_name, aktiv )")
+        .select("id, ereignis, idempotenz_schluessel, payload, versuche, created_at, naechster_versuch_am, integrationen!inner ( id, key, adapter, ziel_url, geheimnis_name, auth_art, zugang_name, vorlage, bestaetigung_erwartet, aktiv )")
         .eq("status", "pending")
         .lte("naechster_versuch_am", jetzt.toISOString())
         .eq("integrationen.aktiv", true)
@@ -29,7 +29,7 @@ export function supabaseSpeicher(supabase: SupabaseClient<Database>): Auslieferu
           ? [
               {
                 eintrag: { id: z.id, ereignis: z.ereignis, idempotenzSchluessel: z.idempotenz_schluessel, payload: z.payload, versuche: z.versuche, erstelltAm: z.created_at, naechsterVersuchAm: z.naechster_versuch_am },
-                integration: { id: i.id, key: i.key, adapter: i.adapter, zielUrl: i.ziel_url, geheimnisName: i.geheimnis_name },
+                integration: { id: i.id, key: i.key, adapter: i.adapter, zielUrl: i.ziel_url, geheimnisName: i.geheimnis_name, authArt: i.auth_art, zugangName: i.zugang_name, vorlage: i.vorlage, bestaetigungErwartet: i.bestaetigung_erwartet },
               },
             ]
           : [];
@@ -69,12 +69,32 @@ export function supabaseSpeicher(supabase: SupabaseClient<Database>): Auslieferu
 /** Waehlt den Adapter der Integration. Ohne Webhook-Konfiguration gibt es keinen Weg hinaus. */
 export const adapterSender: Sender = async (integration, umschlag) => {
   if (integration.adapter === "webhook" && integration.zielUrl && integration.geheimnisName) {
-    return sendeWebhook({ zielUrl: integration.zielUrl, geheimnisName: integration.geheimnisName }, umschlag);
+    return sendeWebhook(
+      {
+        zielUrl: integration.zielUrl,
+        geheimnisName: integration.geheimnisName,
+        authArt: integration.authArt === "basic" ? "basic" : "hmac",
+        zugangName: integration.zugangName ?? null,
+        vorlage: integration.vorlage ?? null,
+      },
+      umschlag,
+    );
   }
   return { art: "abgelehnt", grund: "Kein Adapter eingerichtet", status: 0 };
 };
 
 /** Ein Lauf mit dem Dienstschluessel: fuer die Route des Cron-Dienstes und fuer den Knopf der Administration. */
-export function liefereFaelligeAus(limit = 20): Promise<AuslieferungsErgebnis> {
-  return liefereAus(supabaseSpeicher(createServiceRoleClient()), adapterSender, new Date(), limit);
+export async function liefereFaelligeAus(limit = 20): Promise<AuslieferungsErgebnis> {
+  const supabase = createServiceRoleClient();
+  return liefereAus(supabaseSpeicher(supabase), adapterSender, new Date(), limit, await ladeBudgetMs(supabase));
+}
+
+/**
+ * Das Zeitbudget eines Laufs aus der Einstellung auslieferung.zeitbudget_sekunden (Standard 40, hoechstens 55: die Funktion der Plattform laeuft 60 Sekunden). Nicht
+ * gesetzt oder nicht lesbar heisst hier: der Standard, nicht "ohne Grenze", denn ein Lauf ohne Grenze laeuft in das Zeitlimit der Funktion.
+ */
+export async function ladeBudgetMs(supabase: SupabaseClient<Database>): Promise<number> {
+  const { data } = await supabase.from("betriebs_einstellungen").select("wert").eq("schluessel", "auslieferung.zeitbudget_sekunden").maybeSingle();
+  const sekunden = data?.wert === null || data?.wert === undefined ? null : Number(data.wert);
+  return sekunden !== null && Number.isFinite(sekunden) && sekunden >= 5 && sekunden <= 55 ? sekunden * 1000 : LAUF_BUDGET_MS;
 }

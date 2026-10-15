@@ -1523,6 +1523,8 @@ export type Database = {
         Row: {
           adapter: string
           aktiv: boolean
+          auth_art: string
+          bestaetigung_erwartet: boolean
           created_at: string
           geheimnis_name: string | null
           id: string
@@ -1531,11 +1533,15 @@ export type Database = {
           status: Database["public"]["Enums"]["integration_status"]
           system: string
           updated_at: string
+          vorlage: Json | null
           ziel_url: string | null
+          zugang_name: string | null
         }
         Insert: {
           adapter?: string
           aktiv?: boolean
+          auth_art?: string
+          bestaetigung_erwartet?: boolean
           created_at?: string
           geheimnis_name?: string | null
           id?: string
@@ -1544,11 +1550,15 @@ export type Database = {
           status?: Database["public"]["Enums"]["integration_status"]
           system: string
           updated_at?: string
+          vorlage?: Json | null
           ziel_url?: string | null
+          zugang_name?: string | null
         }
         Update: {
           adapter?: string
           aktiv?: boolean
+          auth_art?: string
+          bestaetigung_erwartet?: boolean
           created_at?: string
           geheimnis_name?: string | null
           id?: string
@@ -1557,7 +1567,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["integration_status"]
           system?: string
           updated_at?: string
+          vorlage?: Json | null
           ziel_url?: string | null
+          zugang_name?: string | null
         }
         Relationships: []
       }
@@ -4912,6 +4924,10 @@ export type Database = {
           sorte_id: string
           sorte_name: string
         }[]
+      }
+      integration_bestaetigen: {
+        Args: { p_hinweis: string | null; p_idempotenz: string; p_key: string; p_ok: boolean }
+        Returns: string
       }
       kpi_aktuell: {
         Args: never

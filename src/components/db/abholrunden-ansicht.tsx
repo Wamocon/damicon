@@ -57,7 +57,7 @@ function KapazitaetZeilen({ runde, geplantKg, t, format }: { runde: AbholRundeZe
           <StatusPill tone={auslast.stufe === "ueber" ? "danger" : auslast.stufe === "knapp" ? "warning" : "success"}>
             {auslast.stufe === "ueber" ? t("runde.ueberKapazitaet") : auslast.stufe === "knapp" ? t("runde.knapp") : t("runde.platz")}
           </StatusPill>
-          <span>{t("runde.kapazitaet", { kapazitaet: format.number(runde.kapazitaetKg), prozent: auslast.prozent })}</span>
+          <span>{t("runde.kapazitaet", { nutzlast: format.number(runde.kapazitaetKg), prozent: auslast.prozent })}</span>
         </p>
       ) : null}
       {runde.startZeit ? <p className="text-xs text-muted-foreground">{t("runde.start", { zeit: runde.startZeit })}</p> : null}

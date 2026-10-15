@@ -1167,7 +1167,16 @@
       "adresssucheGrenze": "Too many address searches in the last hour. Please try again later (limit in the settings).",
       "arKapazitaet": "Please enter a capacity between 1 and 100000 kg or leave the field empty.",
       "arStartzeit": "Please enter the departure as a time (HH:MM) or leave it empty.",
-      "arFenster": "The pickup window needs a start and an end (HH:MM), the start before the end."
+      "arFenster": "The pickup window needs a start and an end (HH:MM), the start before the end.",
+      "integrationAuth": "Please choose signature or HTTP Basic.",
+      "integrationZugang": "For HTTP Basic the name of the environment variable is missing (DAMICON_HOOK_ plus capital letters, digits and underscores).",
+      "integrationVorlage_kein_json": "The template is not valid JSON.",
+      "integrationVorlage_kein_objekt": "The template must be a JSON object.",
+      "integrationVorlage_zu_gross": "The template is longer than 20000 characters.",
+      "integrationVorlage_zu_tief": "The template is nested too deeply (at most 8 levels).",
+      "integrationVorlage_zu_viele_platzhalter": "The template has more than 200 placeholders.",
+      "integrationVorlage_pfad": "Unknown path in the template: {wert}.",
+      "integrationVorlage_leer": "The template is empty."
     },
     "einladungen": {
       "erfolg": {
@@ -5266,7 +5275,9 @@
         "wochenBis": "Benefit starts at the latest (weeks)",
         "echtbetrieb": "First month of live operation",
         "echtbetriebHinweis": "The plan versus actual comparison runs from here."
-      }
+      },
+      "zinsCheck": "Rate check (net present value)",
+      "zinsCheckHinweis": "For comparison: the reference value is {richtwert} %. Derivation and sources are in the settings. The rate above stays your assumption."
     },
     "planIst": {
       "titel": "Plan and actual",
@@ -5333,7 +5344,7 @@
       "auftrag": "Pickup order (PDF)",
       "abgeschlossenTitel": "Completed rounds ({anzahl})",
       "abgeschlossenLead": "Completed rounds no longer change. They are the evidence for the 60-minute rule.",
-      "kapazitaet": "Capacity {kapazitaet} kg, load {prozent} %",
+      "kapazitaet": "Capacity {nutzlast} kg, load {prozent} %",
       "ueberKapazitaet": "over capacity",
       "knapp": "capacity tight",
       "platz": "capacity sufficient",
@@ -5423,7 +5434,10 @@
       "aus": "off",
       "geheimnisGesetzt": "secret set",
       "geheimnisFehlt": "secret missing ({name})",
-      "aendern": "Configure"
+      "aendern": "Configure",
+      "vorlage": "Template active",
+      "zugangGesetzt": "Access set",
+      "zugangFehlt": "Access missing ({name})"
     },
     "form": {
       "adapter": "Type of connection",
@@ -5434,7 +5448,30 @@
       "geheimnis": "Name of the environment variable holding the secret",
       "geheimnisHinweis": "The value is never in the database, only its name, for example DAMICON_HOOK_ESF. It is set in the server environment.",
       "aktiv": "Delivery active",
-      "knopf": "Save"
+      "knopf": "Save",
+      "auth": "Access at the target",
+      "authHmac": "Signature only (HMAC)",
+      "authBasic": "Signature and user with password (HTTP Basic)",
+      "zugang": "Name of the environment variable with user:password",
+      "zugangHinweis": "Only for HTTP Basic (for example OData of 1C). The value has the form user:password and is never stored in the database. Starts with DAMICON_HOOK_.",
+      "bestaetigung": "The partner reports receipt back",
+      "bestaetigungHinweis": "The partner calls {pfad}, signed like our message, with idempotenzSchluessel and ok. Until then a sent entry counts as unconfirmed.",
+      "vorlage": {
+        "label": "Template for the target format (JSON)",
+        "beispiel": "Insert example for 1C",
+        "platzhalter": "Empty: the envelope is sent unchanged.",
+        "hinweis": "Placeholders such as '{{daten.entwurf.kunde.name}}' or '{{umschlag.idempotenzSchluessel}}'. A text that consists only of a placeholder keeps the type of the value (a number stays a number). Lookup only, no expressions.",
+        "vorschau": "Preview with an example (ЭСФ issued)",
+        "fehler": {
+          "kein_json": "This is not valid JSON.",
+          "kein_objekt": "The template is a JSON object in curly braces.",
+          "zu_gross": "The template is longer than 20000 characters.",
+          "zu_tief": "The template is nested deeper than 8 levels.",
+          "zu_viele_platzhalter": "More than 200 placeholders.",
+          "pfad": "Unknown path \"{wert}\". Allowed: umschlag or daten, then names with a dot, list entries as [0].",
+          "leer": "Empty."
+        }
+      }
     },
     "warteschlange": {
       "titel": "Queue",
@@ -5456,7 +5493,8 @@
       "ohneIntegration": "not assigned to an integration, will not be delivered",
       "versucheVon": "{versuche} of {max}",
       "wiederholen": "Try again",
-      "jetzt": "Deliver now"
+      "jetzt": "Deliver now",
+      "bestaetigungOffen": "Confirmation pending"
     }
   },
   "einstellungen": {

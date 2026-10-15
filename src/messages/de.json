@@ -1167,7 +1167,16 @@
       "adresssucheGrenze": "Zu viele Adresssuchen in der letzten Stunde. Bitte später noch einmal versuchen (Grenze in den Einstellungen).",
       "arKapazitaet": "Bitte eine Kapazität zwischen 1 und 100000 kg angeben oder das Feld leer lassen.",
       "arStartzeit": "Bitte die Abfahrt als Uhrzeit angeben (HH:MM) oder leer lassen.",
-      "arFenster": "Das Abholfenster braucht Beginn und Ende (HH:MM), der Beginn liegt vor dem Ende."
+      "arFenster": "Das Abholfenster braucht Beginn und Ende (HH:MM), der Beginn liegt vor dem Ende.",
+      "integrationAuth": "Bitte Signatur oder HTTP Basic wählen.",
+      "integrationZugang": "Für HTTP Basic fehlt der Name der Umgebungsvariable (DAMICON_HOOK_ plus Großbuchstaben, Ziffern und Unterstriche).",
+      "integrationVorlage_kein_json": "Die Vorlage ist kein gültiges JSON.",
+      "integrationVorlage_kein_objekt": "Die Vorlage muss ein JSON-Objekt sein.",
+      "integrationVorlage_zu_gross": "Die Vorlage ist länger als 20000 Zeichen.",
+      "integrationVorlage_zu_tief": "Die Vorlage ist zu tief verschachtelt (höchstens 8 Ebenen).",
+      "integrationVorlage_zu_viele_platzhalter": "Die Vorlage hat mehr als 200 Platzhalter.",
+      "integrationVorlage_pfad": "Unbekannter Pfad in der Vorlage: {wert}.",
+      "integrationVorlage_leer": "Die Vorlage ist leer."
     },
     "einladungen": {
       "erfolg": {
@@ -5266,7 +5275,9 @@
         "wochenBis": "Nutzenbeginn spätestens (Wochen)",
         "echtbetrieb": "Erster Monat des Echtbetriebs",
         "echtbetriebHinweis": "Ab hier läuft der Plan-Ist-Vergleich."
-      }
+      },
+      "zinsCheck": "Zins-Check (Kapitalwert)",
+      "zinsCheckHinweis": "Zum Vergleich: Der Richtwert liegt bei {richtwert} %. Herleitung und Quellen stehen in den Einstellungen. Der Zins oben bleibt Ihre Annahme."
     },
     "planIst": {
       "titel": "Plan und Ist",
@@ -5333,7 +5344,7 @@
       "auftrag": "Abholauftrag (PDF)",
       "abgeschlossenTitel": "Abgeschlossene Runden ({anzahl})",
       "abgeschlossenLead": "Abgeschlossene Runden ändern sich nicht mehr. Sie sind der Nachweis der 60-Minuten-Regel.",
-      "kapazitaet": "Kapazität {kapazitaet} kg, Auslastung {prozent} %",
+      "kapazitaet": "Kapazität {nutzlast} kg, Auslastung {prozent} %",
       "ueberKapazitaet": "über der Kapazität",
       "knapp": "Kapazität knapp",
       "platz": "Kapazität reicht",
@@ -5423,7 +5434,10 @@
       "aus": "aus",
       "geheimnisGesetzt": "Geheimnis gesetzt",
       "geheimnisFehlt": "Geheimnis fehlt ({name})",
-      "aendern": "Konfigurieren"
+      "aendern": "Konfigurieren",
+      "vorlage": "Vorlage aktiv",
+      "zugangGesetzt": "Zugang gesetzt",
+      "zugangFehlt": "Zugang fehlt ({name})"
     },
     "form": {
       "adapter": "Art der Anbindung",
@@ -5434,7 +5448,30 @@
       "geheimnis": "Name der Umgebungsvariable mit dem Geheimnis",
       "geheimnisHinweis": "Der Wert steht nie in der Datenbank, nur sein Name, zum Beispiel DAMICON_HOOK_ESF. Gesetzt wird er in der Umgebung des Servers.",
       "aktiv": "Auslieferung aktiv",
-      "knopf": "Speichern"
+      "knopf": "Speichern",
+      "auth": "Zugang beim Ziel",
+      "authHmac": "Nur Signatur (HMAC)",
+      "authBasic": "Signatur und Benutzer mit Kennwort (HTTP Basic)",
+      "zugang": "Name der Umgebungsvariable mit Benutzer:Kennwort",
+      "zugangHinweis": "Nur bei HTTP Basic (zum Beispiel OData von 1C). Der Wert hat die Form Benutzer:Kennwort und steht nie in der Datenbank. Beginnt mit DAMICON_HOOK_.",
+      "bestaetigung": "Der Partner meldet den Eingang zurück",
+      "bestaetigungHinweis": "Der Partner ruft {pfad} auf, signiert wie unsere Nachricht, mit idempotenzSchluessel und ok. Bis dahin gilt ein gesendeter Eintrag als unbestätigt.",
+      "vorlage": {
+        "label": "Vorlage für das Zielformat (JSON)",
+        "beispiel": "Beispiel für 1C einfügen",
+        "platzhalter": "Leer: der Umschlag geht unverändert hinaus.",
+        "hinweis": "Platzhalter wie '{{daten.entwurf.kunde.name}}' oder '{{umschlag.idempotenzSchluessel}}'. Ein Text, der nur aus einem Platzhalter besteht, behält den Typ des Werts (Zahl bleibt Zahl). Nur Nachschlagen, keine Ausdrücke.",
+        "vorschau": "Vorschau mit einem Beispiel (ЭСФ ausgestellt)",
+        "fehler": {
+          "kein_json": "Das ist kein gültiges JSON.",
+          "kein_objekt": "Die Vorlage ist ein JSON-Objekt mit geschweiften Klammern.",
+          "zu_gross": "Die Vorlage ist länger als 20000 Zeichen.",
+          "zu_tief": "Die Vorlage ist tiefer als 8 Ebenen verschachtelt.",
+          "zu_viele_platzhalter": "Mehr als 200 Platzhalter.",
+          "pfad": "Unbekannter Pfad „{wert}“. Erlaubt: umschlag oder daten, danach Namen mit Punkt, Listeneinträge als [0].",
+          "leer": "Leer."
+        }
+      }
     },
     "warteschlange": {
       "titel": "Warteschlange",
@@ -5456,7 +5493,8 @@
       "ohneIntegration": "keiner Integration zugeordnet, wird nicht ausgeliefert",
       "versucheVon": "{versuche} von {max}",
       "wiederholen": "Erneut versuchen",
-      "jetzt": "Jetzt ausliefern"
+      "jetzt": "Jetzt ausliefern",
+      "bestaetigungOffen": "Bestätigung offen"
     }
   },
   "einstellungen": {

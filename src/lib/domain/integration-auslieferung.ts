@@ -117,11 +117,27 @@ export function zielUrlFehler(roh: string): "integrationUrl" | "integrationUrlIn
 
 export const geheimnisNameGueltig = (w: string): boolean => GEHEIMNIS_MUSTER.test(w);
 
-export type KonfigurationsFehler = "integrationAdapter" | "integrationUrl" | "integrationUrlIntern" | "integrationGeheimnis" | "integrationUnvollstaendig";
+export type KonfigurationsFehler =
+  | "integrationAdapter"
+  | "integrationUrl"
+  | "integrationUrlIntern"
+  | "integrationGeheimnis"
+  | "integrationUnvollstaendig"
+  | "integrationAuth"
+  | "integrationZugang";
+
+export const AUTH_ARTEN = ["hmac", "basic"] as const;
+export type AuthArt = (typeof AUTH_ARTEN)[number];
+export const istAuthArt = (w: string): w is AuthArt => (AUTH_ARTEN as readonly string[]).includes(w);
 
 /** Prueft die Konfiguration einer Integration. Aktiv gibt es nur als Webhook mit Adresse und dem Namen des Geheimnisses. */
-export function konfigurationFehler(e: { adapter: string; zielUrl: string; geheimnisName: string; aktiv: boolean }): KonfigurationsFehler | null {
+export function konfigurationFehler(e: { adapter: string; zielUrl: string; geheimnisName: string; aktiv: boolean; authArt?: string; zugangName?: string }): KonfigurationsFehler | null {
   if (!istAdapter(e.adapter)) return "integrationAdapter";
+  const authArt = e.authArt ?? "hmac";
+  if (!istAuthArt(authArt)) return "integrationAuth";
+  const zugang = (e.zugangName ?? "").trim();
+  if (zugang !== "" && !geheimnisNameGueltig(zugang)) return "integrationZugang";
+  if (e.adapter === "webhook" && authArt === "basic" && e.aktiv && zugang === "") return "integrationZugang";
   if (e.adapter === "manuell") return e.aktiv ? "integrationUnvollstaendig" : null;
   const url = e.zielUrl.trim();
   const geheimnis = e.geheimnisName.trim();

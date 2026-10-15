@@ -1,0 +1,42 @@
+name: Integrationen ausliefern
+
+# Stößt alle fünf Minuten die Auslieferung der Integrations-Warteschlange an (GET /api/integrationen/ausliefern, WMCNL-1627). Ohne diesen Aufruf liefert
+# nur der Knopf der Administration aus. Der Lauf tut nichts, solange keine Integration aktiv ist.
+#
+# Einzurichten (Betreiber, einmal): in den Repository-Geheimnissen DAMICON_APP_URL (die Adresse der Produktivseite, ohne Schrägstrich am Ende) und CRON_SECRET
+# (derselbe Wert wie auf dem Server). Fehlt eines, meldet der Lauf es und endet ohne Fehler.
+#
+# Geplante Läufe laufen nur auf dem Standardzweig (main). Von Hand lässt sich der Lauf über „Run workflow“ starten.
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: integrationen-ausliefern
+  cancel-in-progress: false
+
+jobs:
+  ausliefern:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Auslieferung anstoßen
+        env:
+          APP_URL: ${{ secrets.DAMICON_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::notice::DAMICON_APP_URL oder CRON_SECRET fehlt als Repository-Geheimnis: nichts angestoßen."
+            exit 0
+          fi
+          status=$(curl -sS -o antwort.json -w '%{http_code}' --max-time 70 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/integrationen/ausliefern" || echo "000")
+          echo "HTTP $status"
+          cat antwort.json 2>/dev/null || true
+          echo
+          if [ "$status" != "200" ]; then
+            echo "::warning::Die Auslieferung antwortete mit HTTP $status (401: Geheimnis stimmt nicht, 503: CRON_SECRET fehlt auf dem Server, 000: keine Verbindung)."
+          fi

@@ -165,4 +165,50 @@ for (const rolle of ["kunde", "picker", "erzeuger"]) {
   check("Loeschen: der Eintrag bleibt, ohne Integration, und wird dann nicht mehr ausgeliefert", e[0].id !== null && rest.length === 1 && rest[0].integration_id === null);
 }
 
+// --- Ausbau (15.10.2026): Zugang, Vorlage, Rueckmeldung des Partners ----------------------------------------------------------------------
+{
+  const id = await integration("esf");
+  // Vorgabe: nur Signatur, keine Vorlage, keine erwartete Rueckmeldung.
+  const { rows: v } = await db.query<{ auth_art: string; vorlage: unknown; bestaetigung_erwartet: boolean; zugang_name: string | null }>(`select auth_art, vorlage, bestaetigung_erwartet, zugang_name from public.integrationen where key = 'wegwerf2' or key = 'esf' order by key limit 1;`);
+  check("Ausbau: Vorgabe hmac, ohne Vorlage und Zugang, keine Rueckmeldung erwartet", v[0].auth_art === "hmac" && v[0].vorlage === null && v[0].zugang_name === null && v[0].bestaetigung_erwartet === false);
+  await alsScheitert("admin", "Ausbau: eine unbekannte Authentifizierung wird abgelehnt (23514)", `update public.integrationen set auth_art = 'bearer' where id = $1;`, [id], "23514");
+  await alsScheitert("admin", "Ausbau: der Zugang braucht das Praefix DAMICON_HOOK_ (23514)", `update public.integrationen set zugang_name = 'CRON_SECRET' where id = $1;`, [id], "23514");
+  await alsScheitert("admin", "Ausbau: eine Vorlage ist ein JSON-Objekt, keine Liste (23514)", `update public.integrationen set vorlage = '[1,2]'::jsonb where id = $1;`, [id], "23514");
+  await alsScheitert("admin", "Ausbau: eine Vorlage ueber 20000 Byte wird abgelehnt (23514)", `update public.integrationen set vorlage = jsonb_build_object('a', repeat('x', 21000)) where id = $1;`, [id], "23514");
+  await alsScheitert("admin", "Ausbau: aktiv mit HTTP Basic braucht den Namen des Zugangs (23514)", `update public.integrationen set auth_art = 'basic', zugang_name = null, aktiv = true where id = $1;`, [id], "23514");
+  await als("admin", async () => {
+    await db.query(`update public.integrationen set auth_art = 'basic', zugang_name = 'DAMICON_HOOK_ESF_ZUGANG', vorlage = '{"a":"{{daten.belegId}}"}'::jsonb, bestaetigung_erwartet = true where id = $1;`, [id]);
+    check("Ausbau: die Administration setzt Zugang, Vorlage und erwartete Rueckmeldung", true);
+  });
+  for (const rolle of ["betriebsleitung", "buchhaltung"]) {
+    await als(rolle, async () => {
+      const { rows } = await db.query(`update public.integrationen set vorlage = '{}'::jsonb where id = $1 returning id;`, [id]);
+      check(`Ausbau: ${rolle} aendert die Vorlage nicht`, rows.length === 0);
+    });
+  }
+
+  // Rueckmeldung: nur der Dienstschluessel ruft die Funktion auf. Die Integration muss aktiv sein, damit etwas eingereiht wird.
+  await db.query(`update public.integrationen set adapter = 'webhook', ziel_url = 'https://hooks.example.kz/damicon', geheimnis_name = 'DAMICON_HOOK_ESF', aktiv = true where id = $1;`, [id]);
+  const einreihen = (idempotenz: string) => db.query<{ id: string | null }>(`select public.integration_einreihen('esf', 'esf.test', '{"a":1}'::jsonb, $1) as id;`, [idempotenz]);
+  const e1 = (await einreihen("rueck-1")).rows[0].id as string;
+  const bestaetigen = (key: string, idempotenz: string, ok: boolean, hinweis: string | null = null) =>
+    db.query<{ r: string }>(`select public.integration_bestaetigen($1, $2, $3, $4) as r;`, [key, idempotenz, ok, hinweis]).then((x) => x.rows[0].r);
+  const status = async (eintrag: string) => (await db.query<{ status: string; letzter_fehler: string | null }>(`select status, letzter_fehler from public.integration_outbox where id = $1;`, [eintrag])).rows[0];
+
+  check("Rueckmeldung: ein Eintrag, der noch nicht gesendet ist, wird nicht bestaetigt (noch_nicht)", (await bestaetigen("esf", "rueck-1", true)) === "noch_nicht" && (await status(e1)).status === "pending");
+  await db.query(`update public.integration_outbox set status = 'sent', verarbeitet_am = now() where id = $1;`, [e1]);
+  check("Rueckmeldung: ein gesendeter Eintrag wird bestaetigt (acked)", (await bestaetigen("esf", "rueck-1", true)) === "bestaetigt" && (await status(e1)).status === "acked");
+  check("Rueckmeldung: dieselbe Bestaetigung noch einmal aendert nichts (schon)", (await bestaetigen("esf", "rueck-1", true)) === "schon" && (await status(e1)).status === "acked");
+  check("Rueckmeldung: ein unbekannter Schluessel oder eine unbekannte Integration ergibt unbekannt", (await bestaetigen("esf", "gibt-es-nicht", true)) === "unbekannt" && (await bestaetigen("gibt-es-nicht", "rueck-1", true)) === "unbekannt");
+  const e2 = (await einreihen("rueck-2")).rows[0].id as string;
+  await db.query(`update public.integration_outbox set status = 'sent' where id = $1;`, [e2]);
+  check("Rueckmeldung: lehnt der Partner ab, steht der Eintrag bei failed mit seinem Hinweis", (await bestaetigen("esf", "rueck-2", false, "Kontrahent unbekannt")) === "abgelehnt" && (await status(e2)).status === "failed" && (await status(e2)).letzter_fehler === "Vom Partner abgelehnt: Kontrahent unbekannt");
+  for (const rolle of ["admin", "ceo", "betriebsleitung", "buchhaltung", "kunde"]) {
+    await alsScheitert(rolle, `Rueckmeldung: ${rolle} ruft die Funktion nicht auf (42501)`, `select public.integration_bestaetigen('esf', 'rueck-1', true, null);`, [], "42501");
+  }
+  await t.alsRolle("anon");
+  await mussScheitern("Rueckmeldung: anon ruft die Funktion nicht auf (42501)", `select public.integration_bestaetigen('esf', 'rueck-1', true, null);`, [], "42501");
+  await t.alsAdmin();
+}
+
 t.ende("Alle Datenbank-Tests der Auslieferung gruen.");
