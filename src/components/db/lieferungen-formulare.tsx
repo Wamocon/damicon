@@ -13,6 +13,7 @@ import { transportLoggerImportieren } from "@/lib/actions/logger-import";
 import { leer } from "@/lib/actions/status";
 import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, StornoKnopf, SubmitKnopf } from "@/components/db/formular-kit";
 import type { AuswahlZeile } from "@/lib/domain/lieferungen";
+import { LOGGER_ZEITZONEN } from "@/lib/domain/logger-import";
 import { formularZiel } from "@/lib/formular-ziele";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 
@@ -188,6 +189,12 @@ export function TransportLoggerFormular({ lieferungId }: { lieferungId: string }
           />
         </label>
         <Feld label={t("kennung")} name="logger_kennung" placeholder={t("kennungBeispiel")} hinweis={t("hinweis")} />
+        <Auswahl
+          label={t("zeitzone")}
+          name="zeitzone"
+          defaultValue={LOGGER_ZEITZONEN[0]}
+          options={LOGGER_ZEITZONEN.map((zone) => ({ wert: zone, text: t(`zonen.${zone.replace("/", "_")}` as never) }))}
+        />
         <div className="flex flex-wrap items-center gap-3">
           <SubmitKnopf label={t("knopf")} status={status} />
           <AktionsMeldung status={status} />

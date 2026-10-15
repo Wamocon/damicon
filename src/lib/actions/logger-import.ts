@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, fehlerMitWerten, okMitWerten, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { text, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
-import { LOGGER_MAX_BYTES, liesLoggerDatei, waehleMesswerte } from "@/lib/domain/logger-import";
+import { LOGGER_MAX_BYTES, LOGGER_ZEITZONEN, dekodiereLoggerDatei, istLoggerZeitzone, liesLoggerDatei, waehleMesswerte } from "@/lib/domain/logger-import";
 import { leseAlleZeilen } from "@/lib/data/util";
 import { istUuid } from "@/lib/utils";
 
@@ -36,8 +36,12 @@ export async function transportLoggerImportieren(_status: AktionsStatus, formDat
   if (kennung && kennung.length > MAX_KENNUNG) return fehler("fehler.eingabe");
   if (datei.size > LOGGER_MAX_BYTES) return fehler("fehler.loggerDateiZuGross");
 
+  // Die Uhr des Geraets: leer heisst Betriebszeit, eine andere Angabe als die Liste ist ein Eingabefehler.
+  const zone = text(formData, "zeitzone") || LOGGER_ZEITZONEN[0];
+  if (!istLoggerZeitzone(zone)) return fehler("fehler.eingabe");
+
   const bytes = Buffer.from(await datei.arrayBuffer());
-  const gelesen = liesLoggerDatei(bytes.toString("utf8"));
+  const gelesen = liesLoggerDatei(dekodiereLoggerDatei(bytes), zone);
   if (gelesen.messwerte.length === 0) return fehler("fehler.loggerDateiLeer");
 
   const supabase = await createClient();
@@ -82,6 +86,7 @@ export async function transportLoggerImportieren(_status: AktionsStatus, formDat
   await protokolliere(profil, "lieferung.logger_import", "logistik", lieferungId, {
     ...werte,
     logger: kennung,
+    zeitzone: zone,
     datei: datei.name.slice(0, 120),
     // Der Fingerabdruck der Datei: wer spaeter fragt, ob die Werte aus genau dieser Datei stammen, kann es pruefen.
     sha256: createHash("sha256").update(bytes).digest("hex"),

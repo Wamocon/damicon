@@ -3826,8 +3826,15 @@
       "datei": "CSV or JSON file of the temperature logger",
       "kennung": "Logger (optional)",
       "kennungBeispiel": "e.g. serial number or vehicle",
-      "hinweis": "Time and temperature per line, or as JSON a list with time and temperature per entry. Times without a time zone count as Almaty time. Values older than 24 hours are not accepted.",
-      "knopf": "Import"
+      "hinweis": "Time and temperature per row, or a JSON list with time and temperature per entry. Times without a time zone use the zone chosen here. Kelvin and Fahrenheit are converted to degrees Celsius. Values older than 24 hours are not accepted.",
+      "knopf": "Import",
+      "zeitzone": "Logger clock",
+      "zonen": {
+        "Asia_Almaty": "Almaty (farm time)",
+        "UTC": "UTC",
+        "Europe_Berlin": "Berlin (CET/CEST)",
+        "Europe_Moscow": "Moscow"
+      }
     }
   },
   "b2bPortalAnsicht": {

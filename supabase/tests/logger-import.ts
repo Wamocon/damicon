@@ -7,6 +7,10 @@ import {
   FENSTER_VERGANGENHEIT_MS,
   FENSTER_ZUKUNFT_MS,
   LOGGER_MAX_MESSWERTE,
+  LOGGER_ZEITZONEN,
+  dekodiereLoggerDatei,
+  einheitAusKopf,
+  istLoggerZeitzone,
   liesLoggerDatei,
   liesExcelZeitpunkt,
   liesLoggerJson,
@@ -201,6 +205,64 @@ pruefe("Fenster: die Grenzen sind enger als die der Datenbank (24 Stunden, 5 Min
   pruefe("Obergrenze: hoechstens 5000 Werte, bei mehr bleiben die neuesten", a.uebernehmen.length === LOGGER_MAX_MESSWERTE && a.uebernehmen.at(-1)?.zeitpunkt === viele[0].zeitpunkt);
 }
 pruefe("Leere Eingabe", waehleMesswerte([], JETZT).uebernehmen.length === 0);
+
+// --- Kodierung, Einheit, elproCLOUD, Zeitzone (15.10.2026) ---------------------------------------------------------------------------------------
+{
+  const csv = "Zeit;Temperatur (°C)\r\n14.10.2026 08:00;3,5\r\n";
+  pruefe("Kodierung: UTF-8 bleibt UTF-8, auch mit Byte-Reihenfolge-Marke", dekodiereLoggerDatei(Buffer.from(csv, "utf8")) === csv && dekodiereLoggerDatei(Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from(csv, "utf8")])) === csv);
+  const utf16 = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(csv, "utf16le")]);
+  pruefe("Kodierung: UTF-16 mit Byte-Reihenfolge-Marke wird gelesen", dekodiereLoggerDatei(utf16) === csv, JSON.stringify(dekodiereLoggerDatei(utf16)));
+  // Windows-1252: Das Gradzeichen und Umlaute sind je ein Byte (0xB0, 0xE4); als UTF-8 gelesen waeren sie ungueltig.
+  const w1252 = Buffer.from([...Buffer.from("Ger", "latin1"), 0xe4, ...Buffer.from("t;Logger 1\nZeit;Temperatur (", "latin1"), 0xb0, ...Buffer.from("C)\n14.10.2026 08:00;3,5\n", "latin1")]);
+  const t1252 = dekodiereLoggerDatei(w1252);
+  pruefe("Kodierung: Windows-1252 mit Gradzeichen und Umlaut", t1252.includes("(°C)") && t1252.includes("Gerät"), JSON.stringify(t1252));
+  const r1252 = liesLoggerDatei(t1252);
+  pruefe("Kodierung: eine Windows-1252-Datei ergibt dieselben Messwerte", r1252.messwerte.length === 1 && r1252.messwerte[0].temperaturC === 3.5 && r1252.ungueltig === 0);
+  // Windows-1251: kyrillische Kopfzeile (Дата и время; Температура)
+  const k1251 = new Uint8Array([0xc4, 0xe0, 0xf2, 0xe0, 0x3b, 0xd2, 0xe5, 0xec, 0xef, 0xe5, 0xf0, 0xe0, 0xf2, 0xf3, 0xf0, 0xe0, 0x0a, ...Buffer.from("14.10.2026 08:00;3,5\n", "latin1")]);
+  const t1251 = dekodiereLoggerDatei(k1251);
+  pruefe("Kodierung: Windows-1251 mit kyrillischer Kopfzeile", t1251.startsWith("Дата;Температура"), JSON.stringify(t1251.slice(0, 20)));
+  const r1251 = liesLoggerDatei(t1251);
+  pruefe("Kodierung: eine Windows-1251-Datei ergibt die Messwerte (Spaltennamen Дата, Температура)", r1251.messwerte.length === 1 && r1251.messwerte[0].temperaturC === 3.5, JSON.stringify(r1251));
+}
+{
+  pruefe("Einheit: Kopf mit Klammern oder Gradzeichen", einheitAusKopf("Temperatur [K]") === "K" && einheitAusKopf("Temp. (°F)") === "F" && einheitAusKopf("Temperatur [°C]") === "C" && einheitAusKopf("Temperatur") === "C" && einheitAusKopf("Temp °F") === "F");
+  pruefe("Einheit: Kelvin wird umgerechnet (277,15 K sind 4,0 °C)", liesTemperatur("277,15", "K") === 4 && liesTemperatur("273.15", "K") === 0);
+  pruefe("Einheit: Fahrenheit wird umgerechnet (39,2 °F sind 4,0 °C)", liesTemperatur("39.2", "F") === 4 && liesTemperatur("32", "F") === 0);
+  pruefe("Einheit: nach der Umrechnung gilt der Bereich (400 K sind ausserhalb)", liesTemperatur("400", "K") === null && liesTemperatur("5", "K") === null);
+  const k = liesLoggerDatei("Zeit;Temperatur [K]\n14.10.2026 08:00;277,15\n14.10.2026 08:01;278,15\n");
+  pruefe("Datei: Temperatur in Kelvin laut Kopf", k.messwerte.map((m) => m.temperaturC).join() === "4,5" && k.ungueltig === 0, JSON.stringify(k.messwerte));
+  const f = liesLoggerDatei("Zeit,Temperature (°F)\n2026-10-14 08:00:00,39.2\n");
+  pruefe("Datei: Temperatur in Fahrenheit laut Kopf", f.messwerte.length === 1 && f.messwerte[0].temperaturC === 4);
+}
+{
+  const elpro = JSON.stringify({
+    data: [
+      { sensorId: "S-1", deviceId: "D-9", value: 277.15, timeStamp: "2026-10-14T03:00:00", unit: "K" },
+      { sensorId: "S-1", deviceId: "D-9", value: 4.5, timeStamp: "2026-10-14T03:01:00Z", unit: "°C" },
+      { sensorId: "S-1", deviceId: "D-9", value: 41, timeStamp: 1791946860, unit: "F" },
+    ],
+  });
+  const r = liesLoggerJson(elpro);
+  pruefe("elproCLOUD: Eintraege mit sensorId, Kelvin, Celsius und Fahrenheit werden gelesen", r.messwerte.length === 3 && r.ungueltig === 0, JSON.stringify(r));
+  pruefe("elproCLOUD: eine Zeit ohne Zone gilt als UTC (nicht als Almaty-Zeit)", r.messwerte[0].zeitpunkt === "2026-10-14T03:00:00.000Z" && r.messwerte[0].temperaturC === 4, JSON.stringify(r.messwerte[0]));
+  pruefe("elproCLOUD: 41 °F sind 5,0 °C", r.messwerte[2].temperaturC === 5, JSON.stringify(r.messwerte[2]));
+  const ohneKennung = liesLoggerJson(JSON.stringify([{ time: "2026-10-14 08:00:00", temperature: 4.5 }]));
+  pruefe("JSON ohne Geraetekennung: eine Zeit ohne Zone gilt weiter als Almaty-Zeit", ohneKennung.messwerte[0]?.zeitpunkt === "2026-10-14T03:00:00.000Z");
+  const objekt = liesLoggerJson(JSON.stringify({ unit: "K", readings: [{ time: "2026-10-14T03:00:00Z", value: 277.15 }, { time: "2026-10-14T03:01:00Z", value: 278.15, unit: "C" }] }));
+  pruefe("JSON: die Einheit am Objekt gilt, wo der Eintrag keine eigene hat (der Eintrag in °C wird als 278 °C abgelehnt)", objekt.messwerte.length === 1 && objekt.messwerte[0].temperaturC === 4 && objekt.ungueltig === 1, JSON.stringify(objekt));
+  const unbekannt = liesLoggerJson(JSON.stringify([{ time: "2026-10-14T03:00:00Z", value: 4.5, unit: "Rankine" }]));
+  pruefe("JSON: eine unbekannte Einheit wird nicht erraten", unbekannt.messwerte.length === 0 && unbekannt.ungueltig === 1);
+}
+{
+  const csv = "Zeit;Temperatur\n14.10.2026 08:00;3,5\n";
+  const almaty = liesLoggerDatei(csv).messwerte[0].zeitpunkt;
+  const utc = liesLoggerDatei(csv, "UTC").messwerte[0].zeitpunkt;
+  const berlin = liesLoggerDatei(csv, "Europe/Berlin").messwerte[0].zeitpunkt;
+  const moskau = liesLoggerDatei(csv, "Europe/Moscow").messwerte[0].zeitpunkt;
+  pruefe("Zeitzone: dieselbe Uhrzeit ergibt je nach gewählter Uhr des Loggers andere Zeitpunkte", almaty === "2026-10-14T03:00:00.000Z" && utc === "2026-10-14T08:00:00.000Z" && berlin === "2026-10-14T06:00:00.000Z" && moskau === "2026-10-14T05:00:00.000Z", JSON.stringify([almaty, utc, berlin, moskau]));
+  pruefe("Zeitzone: die Auswahl nennt die Betriebszeit zuerst und lehnt andere Angaben ab", LOGGER_ZEITZONEN[0] === "Asia/Almaty" && istLoggerZeitzone("UTC") && !istLoggerZeitzone("America/New_York") && !istLoggerZeitzone(""));
+}
 
 console.log("");
 if (fehlgeschlagen > 0) {

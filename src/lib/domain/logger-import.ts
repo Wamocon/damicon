@@ -32,6 +32,13 @@ import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
 // Die Zeit darf Text (wie oben) oder eine Zahl sein: Unix-Sekunden oder Unix-Millisekunden. Die Temperatur darf Zahl oder Text sein.
 // Ohne Zeitzonenangabe im Text gilt auch hier die Betriebszeit. Die Pruefung des Zeitfensters ist dieselbe.
 //
+// Weitere Eigenheiten (15.10.2026, docs/ENTSCHEIDUNGSGRUNDLAGEN.md Kapitel 7):
+//   * Kodierung: UTF-8, UTF-16 (mit Byte-Reihenfolge-Marke), Windows-1251 (kyrillische Kopfzeile) und Windows-1252 (Umlaute, "°") werden erkannt
+//     (dekodiereLoggerDatei). Der Import dekodiert, bevor er liest.
+//   * Zeitzone des Geraets: die Person waehlt sie beim Import (LOGGER_ZEITZONEN); Zeiten mit eigenem Versatz und Spaltenkoepfe mit "UTC+x" gehen vor.
+//   * Einheit: Kelvin und Fahrenheit werden in Grad Celsius umgerechnet, aus dem Spaltenkopf ("Temperatur [K]") oder aus einem Feld "unit" im JSON.
+//   * elproCLOUD: Eintraege mit sensorId oder deviceId (Felder value, timeStamp, unit) tragen ihre Zeit in UTC, auch ohne Angabe der Zone.
+//
 // Die Pruefung des Zeitfensters folgt der Regel der Datenbank (geraet_zeitpunkt_pruefen):
 // ein Messzeitpunkt darf hoechstens fuenf Minuten in der Zukunft und hoechstens 24 Stunden
 // in der Vergangenheit liegen. Aeltere Werte lehnt die Datenbank ab, weil sie eine falsch
@@ -39,6 +46,30 @@ import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
 // vorab aussortiert und gemeldet, damit eine einzige alte Zeile nicht den ganzen Import kippt.
 
 export const LOGGER_MAX_BYTES = 2 * 1024 * 1024;
+
+/** Zeitzonen, die die Person fuer die Uhr des Geraets waehlen kann. Die erste ist die Betriebszeit. */
+export const LOGGER_ZEITZONEN = [betriebsZeitzone, "UTC", "Europe/Berlin", "Europe/Moscow"] as const;
+export type LoggerZeitzone = (typeof LOGGER_ZEITZONEN)[number];
+
+export function istLoggerZeitzone(wert: string): wert is LoggerZeitzone {
+  return (LOGGER_ZEITZONEN as readonly string[]).includes(wert);
+}
+
+/**
+ * Den Text einer Loggerdatei aus ihren Bytes. UTF-16 erkennt man an der Byte-Reihenfolge-Marke, UTF-8 daran, dass die Bytes gueltiges UTF-8 sind (eine Datei
+ * in einer 8-Bit-Kodierung ist es fast nie). Sonst Windows-1251, wenn die Kopfzeile kyrillische Woerter fuer Zeit oder Temperatur traegt, und sonst Windows-1252.
+ */
+export function dekodiereLoggerDatei(bytes: Uint8Array): string {
+  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder("utf-16le").decode(bytes.subarray(2));
+  if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) return new TextDecoder("utf-16be").decode(bytes.subarray(2));
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    // keine UTF-8-Datei
+  }
+  const kyrillisch = new TextDecoder("windows-1251").decode(bytes);
+  return /(дата|время|температур)/i.test(kyrillisch) ? kyrillisch : new TextDecoder("windows-1252").decode(bytes);
+}
 /** So viele Messwerte nimmt ein Import hoechstens an (eine Minute Takt ueber 24 Stunden sind 1440). */
 export const LOGGER_MAX_MESSWERTE = 5000;
 export const TEMPERATUR_MIN = -50;
@@ -136,13 +167,39 @@ export function zeitzoneAusKopf(kopf: string, vorgabe: string = betriebsZeitzone
   return `Etc/GMT${vorzeichen === "+" ? "-" : "+"}${stunden}`;
 }
 
-/** Eine Temperatur mit einer Nachkommastelle, oder null. Punkt oder Komma, "°C" und Leerraum werden verziehen. */
-export function liesTemperatur(roh: string): number | null {
-  const text = roh.trim().replace(/^"|"$/g, "").replace(/\s*°?\s*[cC]$/, "").trim();
-  if (!ZAHL.test(text)) return null;
-  const wert = Number(text.replace(",", "."));
+export type TemperaturEinheit = "C" | "K" | "F";
+
+/** Rechnet in Grad Celsius um; die Pruefung des Bereichs und die Rundung folgen danach. */
+const inCelsius = (wert: number, einheit: TemperaturEinheit): number => (einheit === "K" ? wert - 273.15 : einheit === "F" ? ((wert - 32) * 5) / 9 : wert);
+
+function celsiusImBereich(wert: number): number | null {
   if (!Number.isFinite(wert) || wert < TEMPERATUR_MIN || wert > TEMPERATUR_MAX) return null;
   return Math.round(wert * 10) / 10;
+}
+
+/** Eine Temperatur mit einer Nachkommastelle, oder null. Punkt oder Komma, "°C" und Leerraum werden verziehen. Kelvin und Fahrenheit werden umgerechnet. */
+export function liesTemperatur(roh: string, einheit: TemperaturEinheit = "C"): number | null {
+  const text = roh.trim().replace(/^"|"$/g, "").replace(/\s*°?\s*[cC]$/, "").trim();
+  if (!ZAHL.test(text)) return null;
+  return celsiusImBereich(inCelsius(Number(text.replace(",", ".")), einheit));
+}
+
+/** Die Einheit, die ein Spaltenkopf nennt ("Temperatur [K]", "Temp. (°F)"), sonst Celsius. */
+export function einheitAusKopf(kopf: string): TemperaturEinheit {
+  const treffer = /[[(]\s*°?\s*([CFK])\s*[\])]/i.exec(kopf) ?? /°\s*([CF])\b/i.exec(kopf);
+  const e = treffer?.[1]?.toUpperCase();
+  return e === "K" || e === "F" ? e : "C";
+}
+
+/** Die Einheit aus einem JSON-Feld ("K", "°C", "degF", "Kelvin"), oder null bei einer unbekannten Angabe. Fehlt sie, gilt Celsius. */
+function einheitAusJson(roh: unknown): TemperaturEinheit | null {
+  if (roh === undefined || roh === null || roh === "") return "C";
+  if (typeof roh !== "string") return null;
+  const e = roh.trim().replace(/^°/, "").toUpperCase();
+  if (e === "C" || e === "CELSIUS" || e === "DEGC") return "C";
+  if (e === "K" || e === "KELVIN") return "K";
+  if (e === "F" || e === "FAHRENHEIT" || e === "DEGF") return "F";
+  return null;
 }
 
 /** Das Trennzeichen, bei dem die meisten Zeilen dieselbe Spaltenzahl (mindestens zwei) haben. */
@@ -174,6 +231,10 @@ function spalten(felder: readonly string[]): { zeit: number; temperatur: number 
   return zeit >= 0 && temperatur >= 0 ? { zeit, temperatur } : null;
 }
 
+// elproCLOUD und Verwandte tragen die Kennung des Geraets oder Sensors im Eintrag; ihre Zeit ist UTC.
+const JSON_GERAET = /^(sensorid|deviceid|sensor_id|device_id)$/i;
+const JSON_EINHEIT = /^(unit|einheit|units)$/i;
+
 // --- JSON ------------------------------------------------------------------------------------------------------------------------
 
 const JSON_ZEIT = /^(zeit|zeitpunkt|time|timestamp|ts|date|datetime|datum|t|at|gemessen_am|measured_at|recorded_at|created_at)$/i;
@@ -192,9 +253,9 @@ function jsonZeit(wert: unknown, zeitzone: string): string | null {
   return null;
 }
 
-function jsonTemperatur(wert: unknown): number | null {
-  if (typeof wert === "number") return Number.isFinite(wert) && wert >= TEMPERATUR_MIN && wert <= TEMPERATUR_MAX ? Math.round(wert * 10) / 10 : null;
-  return typeof wert === "string" ? liesTemperatur(wert) : null;
+function jsonTemperatur(wert: unknown, einheit: TemperaturEinheit = "C"): number | null {
+  if (typeof wert === "number") return celsiusImBereich(inCelsius(wert, einheit));
+  return typeof wert === "string" ? liesTemperatur(wert, einheit) : null;
 }
 
 /** Das Array der Messwerte in einem JSON-Wert: er selbst, oder das erste passende Feld eines Objekts (auch eine Ebene tiefer). */
@@ -223,21 +284,30 @@ export function liesLoggerJson(inhalt: string, zeitzone: string = betriebsZeitzo
   }
   const liste = messwerteListe(wert);
   if (!liste) return leer;
+  // Eine Einheit am Objekt um die Liste (zum Beispiel {"unit": "K", "readings": [...]}) gilt fuer alle Eintraege ohne eigene.
+  const einheitAmObjekt =
+    typeof wert === "object" && wert !== null && !Array.isArray(wert) ? Object.entries(wert as Record<string, unknown>).find(([k, v]) => JSON_EINHEIT.test(k) && typeof v === "string")?.[1] : undefined;
 
   const messwerte: LoggerMesswert[] = [];
   let ungueltig = 0;
   for (const eintrag of liste) {
     let zeitRoh: unknown;
     let tempRoh: unknown;
+    let einheitRoh: unknown = einheitAmObjekt;
+    let eintragZone = zeitzone;
     if (Array.isArray(eintrag)) {
       [zeitRoh, tempRoh] = eintrag;
     } else if (typeof eintrag === "object" && eintrag !== null) {
       const felder = Object.entries(eintrag as Record<string, unknown>);
       zeitRoh = felder.find(([k]) => JSON_ZEIT.test(k))?.[1];
       tempRoh = felder.find(([k]) => JSON_TEMP.test(k))?.[1];
+      einheitRoh = felder.find(([k]) => JSON_EINHEIT.test(k))?.[1] ?? einheitAmObjekt;
+      if (felder.some(([k]) => JSON_GERAET.test(k))) eintragZone = "UTC";
     }
-    const zeitpunkt = jsonZeit(zeitRoh, zeitzone);
-    const temperatur = jsonTemperatur(tempRoh);
+    const einheit = einheitAusJson(einheitRoh);
+    const zeitpunkt = jsonZeit(zeitRoh, eintragZone);
+    // Eine unbekannte Einheit wird nicht erraten: der Eintrag zaehlt als unlesbar.
+    const temperatur = einheit === null ? null : jsonTemperatur(tempRoh, einheit);
     if (zeitpunkt !== null && temperatur !== null) messwerte.push({ zeitpunkt, temperaturC: temperatur });
     else ungueltig += 1;
   }
@@ -273,7 +343,9 @@ export function liesLoggerDatei(inhalt: string, zeitzone: string = betriebsZeitz
   let ungueltig = 0;
   let datenBegonnen = false;
   // Nennt der Kopf der Zeitspalte eine Zeitzone, gilt sie fuer die ganze Spalte (Zeiten mit eigenem Versatz behalten ihren).
-  const zone = festeSpalten ? zeitzoneAusKopf(felderVon(zeilen[kopfIndex], trenner)[festeSpalten.zeit] ?? "", zeitzone) : zeitzone;
+  const kopfFelder = festeSpalten ? felderVon(zeilen[kopfIndex], trenner) : [];
+  const zone = festeSpalten ? zeitzoneAusKopf(kopfFelder[festeSpalten.zeit] ?? "", zeitzone) : zeitzone;
+  const einheit = festeSpalten ? einheitAusKopf(kopfFelder[festeSpalten.temperatur] ?? "") : "C";
   for (let i = kopfIndex + 1; i < zeilen.length; i++) {
     const felder = felderVon(zeilen[i], trenner);
     const zeitFeld = festeSpalten ? felder[festeSpalten.zeit] : felder.find((f) => liesZeitpunkt(f, zone) !== null);
@@ -282,11 +354,11 @@ export function liesLoggerDatei(inhalt: string, zeitzone: string = betriebsZeitz
     let temperatur: number | null = null;
     if (zeitpunkt !== null) {
       if (festeSpalten) {
-        temperatur = liesTemperatur(felder[festeSpalten.temperatur] ?? "");
+        temperatur = liesTemperatur(felder[festeSpalten.temperatur] ?? "", einheit);
       } else {
         // Ohne Kopfzeile: die erste Zahl hinter dem Zeitfeld.
         const nach = felder.slice(felder.indexOf(zeitFeld as string) + 1);
-        temperatur = nach.map(liesTemperatur).find((t) => t !== null) ?? null;
+        temperatur = nach.map((f) => liesTemperatur(f)).find((t) => t !== null) ?? null;
       }
     }
     if (zeitpunkt !== null && temperatur !== null) {

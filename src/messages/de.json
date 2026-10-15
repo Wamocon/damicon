@@ -3826,8 +3826,15 @@
       "datei": "CSV- oder JSON-Datei des Temperaturloggers",
       "kennung": "Logger (optional)",
       "kennungBeispiel": "z. B. Seriennummer oder Fahrzeug",
-      "hinweis": "Zeit und Temperatur je Zeile, oder als JSON eine Liste mit Zeit und Temperatur je Eintrag. Zeiten ohne Zeitzone gelten als Almaty-Zeit. Werte, die älter als 24 Stunden sind, übernimmt das System nicht.",
-      "knopf": "Importieren"
+      "hinweis": "Zeit und Temperatur je Zeile, oder als JSON eine Liste mit Zeit und Temperatur je Eintrag. Zeiten ohne Zeitzone gelten in der Zeitzone, die hier gewählt ist. Kelvin und Fahrenheit werden in Grad Celsius umgerechnet. Werte, die älter als 24 Stunden sind, übernimmt das System nicht.",
+      "knopf": "Importieren",
+      "zeitzone": "Uhr des Loggers",
+      "zonen": {
+        "Asia_Almaty": "Almaty (Betriebszeit)",
+        "UTC": "UTC (Weltzeit)",
+        "Europe_Berlin": "Berlin (MEZ/MESZ)",
+        "Europe_Moscow": "Moskau"
+      }
     }
   },
   "b2bPortalAnsicht": {
