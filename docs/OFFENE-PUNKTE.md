@@ -162,6 +162,17 @@ Texte in Zeilen (Bezeichnungen, Notizen, Betreffs, Nachrichten) standen nur in d
 * Weitere Tabellen mit Freitext haben die Spalte noch nicht: Förderdossiers, Datenschutzvorfälle und Verarbeitungszwecke, Einwilligungen, Schulungsvideos (Titel), Kennzahlen-Baseline (Name), Lohnsätze (Notizen), Medienbelege (Hinweis), Integrationen (Name), Pflanzenschutzmittel (Wirkstoff). Die Spalte, der Trigger und die Anzeige lassen sich nach demselben Muster ergänzen.
 * Die globale Suche, die Werkzeuge des KI-Assistenten und die festgehaltenen Stände (soweit älter als diese Änderung) zeigen das Original. Ältere Stände holen die Übersetzung der Posten über die Id.
 
+## Preview-Läufe nach dem Merge von #156 (16.10.2026)
+
+Nach dem Merge von #156 scheiterten zwei Läufe auf `main`. Beide Ursachen liegen nicht in #156, sie traten erst auf, weil auf `main` zum ersten Mal seit Wochen wieder ein Stand ohne offene Pull Requests mit Migrationen entstand.
+
+| Befund | Ursache | Behebung |
+|---|---|---|
+| "Datenbank-Migration" oder "Datenbank-Migration Preview" bricht mit `password authentication failed for user "cli_login_postgres"` ab | Der Push auf `main` startet beide Workflows gleichzeitig. Die Supabase-CLI legt je Aufruf die Anmelderolle `cli_login_postgres` mit neuem Kennwort an, der zweite Lauf setzt das Kennwort des ersten zurück. Der Fehler tritt vor der ersten Anweisung auf. | `scripts/preview-cli.mjs` wiederholt den Aufruf bis zu viermal (Pause 20, 40, 60 Sekunden), aber nur bei genau diesem Fehler. Jeder andere Fehler gilt sofort. Einstellbar mit `SUPABASE_CLI_VERSUCHE` und `SUPABASE_CLI_PAUSE`. Der Production-Workflow `datenbank-migration.yml` ruft die CLI selbst auf und hat diese Wiederholung nicht (Vorschlag unten). |
+| Strukturabgleich von `public` und `public_preview` meldet einen Unterschied | `public_preview.wissen_suche` hat zusätzlich das Ausführungsrecht für `anon`, in `public` fehlt es. Die Migrationen entziehen es beide Male, wie das Recht in Preview blieb, ist nicht belegt (Vermutung: Standardrechte der Einrichtung als Kopie). | Migration `20261211005000_wissen_suche_anon_pgvector.sql` entzieht `anon` das Recht in beiden Schemas. In `public` ändert sich nichts. Funktion ist `security invoker`, `anon` sah über die Zeilensicherheit auch bisher nichts. |
+
+**Vorschlag, nicht umgesetzt:** Die gleiche Wiederholung in `datenbank-migration.yml` (dort ruft `supabase db push` die CLI direkt auf). Das ist der Workflow, der nach dem Merge die gemeinsame Datenbank ändert. Eine Änderung daran wird erst nach Freigabe gemacht. Bis dahin hilft es, einen gescheiterten Lauf mit "Re-run failed jobs" zu wiederholen: `supabase db push` überspringt bereits angewendete Migrationen.
+
 ## Was mit dem Zusammenführen live geht
 
 Die Migrationen `20261207000000` bis `20261208150000` laufen nach dem Merge automatisch auf der gemeinsamen Datenbank (`datenbank-migration.yml`). Im Pull Request laufen sie vorher auf `public_preview`. Alle 28 Dateien haben auf einer echten Postgres-17-Datenbank (lokaler Stack) gelaufen.

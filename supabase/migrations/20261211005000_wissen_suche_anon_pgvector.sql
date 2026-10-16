@@ -1,0 +1,22 @@
+-- =============================================================================
+-- Damicon - wissen_suche: der Rolle anon das Ausführungsrecht entziehen (Angleichung von public_preview, 16.10.2026)
+-- =============================================================================
+-- Nach dem Merge von #156 lief zum ersten Mal seit Wochen der Strukturabgleich von public und public_preview (er wird übersprungen, solange offene Pull
+-- Requests Migrationen in public_preview hinterlassen) und meldete genau einen Unterschied:
+--
+--   public:          wissen_suche: authenticated, service_role
+--   public_preview:  wissen_suche: authenticated, service_role, anon
+--
+-- Die Migrationen 20261102000000 und 20261124000000 entziehen anon das Recht ("revoke all ... from public, anon"), in public gilt das. Wie anon es in
+-- public_preview wieder bekam, ist nicht belegt: 20261102000000 steht dort mit dem Zeitpunkt der Einrichtung als Kopie von public (26.09.2026), die
+-- Funktion kam also mit den Standardrechten des Schemas (alle Rechte für anon, authenticated und service_role) dorthin; 20261124000000 lief am 07.10.2026
+-- in Preview und hätte das Recht entziehen müssen. Ein Recht, das in Production fehlt, gehört in Preview nicht dazu, und der Strukturabgleich lässt jeden
+-- weiteren Lauf auf main scheitern, solange der Unterschied bleibt.
+--
+-- Diese Migration entzieht anon das Recht in beiden Schemas. In public ändert sich nichts (anon hat es dort nicht), in public_preview verschwindet es.
+-- Die Funktion ist "security invoker": anon sah über die Zeilensicherheit der Tabellen auch bisher nichts. Keine Datenänderung. Die Endung _pgvector hat sie,
+-- weil die Funktion die Erweiterung vector braucht (die PGlite-Tests laufen ohne sie und überspringen solche Dateien, wie bei den anderen Migrationen der
+-- Wissensbasis).
+-- =============================================================================
+
+revoke all on function public.wissen_suche(jsonb, integer, integer, text, boolean, integer, integer) from anon;
