@@ -162,6 +162,11 @@ await als("betriebsleitung", async () => {
 {
   const { rows: ziel } = await schreibe(eigene, "Bitte meine Telefonnummer 0700 123 loeschen", "kunde");
   const id = ziel[0].id;
+  // Eine Übersetzung des Textes (Migration 20261211010000, Spalte i18n) trägt denselben Klartext: die Anonymisierung muss sie mit entfernen. Gesetzt wird sie am
+  // Schutztrigger vorbei, wie es die Migration der Testdaten tut.
+  await db.exec("alter table public.vorbestellung_nachrichten disable trigger user;");
+  await db.query(`update public.vorbestellung_nachrichten set i18n = '{"text": {"en": "Please delete my phone number 0700 123"}}'::jsonb where id = $1;`, [id]);
+  await db.exec("alter table public.vorbestellung_nachrichten enable trigger user;");
   for (const rolle of ["kunde", "betriebsleitung", "buchhaltung", "brigade"]) {
     await als(rolle, async () => {
       await mussScheitern(`${rolle} darf eine Nachricht nicht anonymisieren`, `select public.vorbestellung_nachricht_anonymisieren($1, 'Datenschutz');`, [id], "42501");
@@ -177,6 +182,8 @@ await als("betriebsleitung", async () => {
     );
     const z = rows[0];
     check("Anonymisiert: Text und Name sind entfernt, der Autor ist keiner Person mehr zugeordnet", z.text === "[entfernt]" && z.autor_name === "[entfernt]" && z.autor_profil_id === null, JSON.stringify(z));
+    const { rows: uebersetzt } = await db.query<{ i18n: unknown }>(`select i18n from public.vorbestellung_nachrichten where id = $1;`, [id]);
+    check("Anonymisiert: auch die Übersetzungen des Textes sind entfernt", JSON.stringify(uebersetzt[0]?.i18n) === "{}", JSON.stringify(uebersetzt[0]));
     check("Anonymisiert: die Rolle bleibt, wer wann warum anonymisiert hat steht an der Zeile", z.autor_rolle === "kunde" && z.anonymisiert_am !== null && z.anonymisiert_von !== null && z.anonymisiert_grund?.startsWith("Antrag") === true, JSON.stringify(z));
   });
   await als("admin", () => mussScheitern("Eine anonymisierte Nachricht wird nicht noch einmal anonymisiert", `select public.vorbestellung_nachricht_anonymisieren($1, 'zweiter Versuch');`, [id], "DA018"));

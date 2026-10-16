@@ -22,6 +22,7 @@ import {
 } from "@/lib/domain/wirtschaftlichkeit-erfassung";
 import { heuteIso } from "@/lib/data/util";
 import { BETRIEB_ANNAHME_SCHLUESSEL, type BetriebIst, type BetriebsAnnahmen } from "@/lib/domain/betriebsrechnung";
+import { liesI18n, type I18nSpalte } from "@/lib/i18n-daten";
 
 // Erfassung der Investitionsrechnung (WMCNL-2470). Lesen duerfen Administration, Geschaeftsfuehrung, Betriebsleitung und
 // Buchhaltung (Zeilensicherheit der vier Tabellen, Migration 20261207090000). Ohne Datenbank rechnet die Seite mit den
@@ -31,6 +32,8 @@ export interface StandKopf {
   id: string;
   bezeichnung: string;
   standAm: string;
+  /** Übersetzungen von bezeichnung (Spalte i18n). */
+  i18n?: I18nSpalte;
 }
 
 export interface WirtschaftlichkeitDaten {
@@ -113,9 +116,9 @@ export async function ladeWirtschaftlichkeit(): Promise<WirtschaftlichkeitDaten>
   const supabase = await createClient();
   const [annahmen, posten, ist, staende, menge, betriebIst] = await Promise.all([
     supabase.from("wirtschaftlichkeit_annahmen").select("*").eq("id", 1).maybeSingle(),
-    supabase.from("wirtschaftlichkeit_posten").select("id, art, kategorie, bezeichnung, betrag, waehrung, datum, herkunft, notiz").order("datum", { ascending: true }).order("created_at", { ascending: true }),
-    supabase.from("wirtschaftlichkeit_ist").select("id, monat, kategorie, betrag, waehrung, notiz").order("monat", { ascending: true }).order("created_at", { ascending: true }),
-    supabase.from("wirtschaftlichkeit_staende").select("id, bezeichnung, stand_am").order("stand_am", { ascending: false }),
+    supabase.from("wirtschaftlichkeit_posten").select("id, art, kategorie, bezeichnung, betrag, waehrung, datum, herkunft, notiz, i18n").order("datum", { ascending: true }).order("created_at", { ascending: true }),
+    supabase.from("wirtschaftlichkeit_ist").select("id, monat, kategorie, betrag, waehrung, notiz, i18n").order("monat", { ascending: true }).order("created_at", { ascending: true }),
+    supabase.from("wirtschaftlichkeit_staende").select("id, bezeichnung, stand_am, i18n").order("stand_am", { ascending: false }),
     supabase.from("v_vermarktete_menge").select("menge_kg_12_monate, erste_lieferung, tage_abdeckung, belastbar").maybeSingle(),
     supabase.rpc("betrieb_ist_zwoelf_monate"),
   ]);
@@ -155,6 +158,7 @@ export async function ladeWirtschaftlichkeit(): Promise<WirtschaftlichkeitDaten>
         datum: p.datum,
         herkunft: herkunftVon(p.herkunft) ?? "geschaetzt",
         notiz: p.notiz,
+        i18n: liesI18n(p.i18n),
       })),
     ist: (ist.data ?? [])
       .filter((e) => istNutzenKategorie(e.kategorie) && istWaehrung(e.waehrung))
@@ -165,6 +169,7 @@ export async function ladeWirtschaftlichkeit(): Promise<WirtschaftlichkeitDaten>
         betrag: Number(e.betrag),
         waehrung: e.waehrung as IstEintrag["waehrung"],
         notiz: e.notiz,
+        i18n: liesI18n(e.i18n),
       })),
     betrieb: a
       ? {
@@ -180,7 +185,7 @@ export async function ladeWirtschaftlichkeit(): Promise<WirtschaftlichkeitDaten>
         }
       : leereBetriebsAnnahmen(),
     betriebIst: betriebIst.error || !betriebIst.data?.[0] ? null : zeileZuIst(betriebIst.data[0]),
-    staende: (staende.data ?? []).map((s) => ({ id: s.id, bezeichnung: s.bezeichnung, standAm: s.stand_am })),
+    staende: (staende.data ?? []).map((s) => ({ id: s.id, bezeichnung: s.bezeichnung, standAm: s.stand_am, i18n: liesI18n(s.i18n) })),
     menge: menge.data
       ? {
           mengeKg12Monate: Number(menge.data.menge_kg_12_monate ?? 0),
@@ -196,12 +201,36 @@ export async function ladeWirtschaftlichkeit(): Promise<WirtschaftlichkeitDaten>
 export async function ladeStand(id: string): Promise<{ kopf: StandKopf; snapshot: StandSnapshot } | null> {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
-  const { data, error } = await supabase.from("wirtschaftlichkeit_staende").select("id, bezeichnung, stand_am, snapshot").eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("wirtschaftlichkeit_staende").select("id, bezeichnung, stand_am, i18n, snapshot").eq("id", id).maybeSingle();
   if (error) console.error("[damicon] Stand lesen fehlgeschlagen:", error.message);
   if (!data) return null;
   const snapshot = liesSnapshot(data.snapshot);
   if (!snapshot) return null;
-  return { kopf: { id: data.id, bezeichnung: data.bezeichnung, standAm: data.stand_am }, snapshot };
+  return { kopf: { id: data.id, bezeichnung: data.bezeichnung, standAm: data.stand_am, i18n: liesI18n(data.i18n) }, snapshot: await mitUebersetzungen(snapshot) };
+}
+
+/**
+ * Ein Stand haelt Posten und Ist-Werte so fest, wie sie damals waren. Die Uebersetzungen kamen erst spaeter dazu, ein aelterer Stand traegt sie nicht. Fuer Zeilen
+ * ohne eigene Uebersetzung holt diese Funktion sie von der heutigen Zeile mit derselben Id: der Text der Zeile aendert sich nicht (der Trigger nimmt die
+ * Uebersetzung zurueck, wenn das Original sich aendert), also passt sie zum festgehaltenen Original. Ohne Treffer bleibt das Original.
+ */
+async function mitUebersetzungen(snapshot: StandSnapshot): Promise<StandSnapshot> {
+  const fehlenPosten = snapshot.posten.filter((p) => p.i18n === undefined).map((p) => p.id);
+  const fehlenIst = snapshot.ist.filter((e) => e.i18n === undefined).map((e) => e.id);
+  if (fehlenPosten.length === 0 && fehlenIst.length === 0) return snapshot;
+  const supabase = await createClient();
+  const [posten, ist] = await Promise.all([
+    fehlenPosten.length > 0 ? supabase.from("wirtschaftlichkeit_posten").select("id, i18n").in("id", fehlenPosten).limit(500) : Promise.resolve({ data: [] as { id: string; i18n: Json }[] }),
+    fehlenIst.length > 0 ? supabase.from("wirtschaftlichkeit_ist").select("id, i18n").in("id", fehlenIst).limit(500) : Promise.resolve({ data: [] as { id: string; i18n: Json }[] }),
+  ]);
+  const jeId = (zeilen: { id: string; i18n: Json }[] | null) => new Map((zeilen ?? []).map((z) => [z.id, liesI18n(z.i18n)]));
+  const postenI18n = jeId(posten.data);
+  const istI18n = jeId(ist.data);
+  return {
+    ...snapshot,
+    posten: snapshot.posten.map((p) => (p.i18n === undefined && postenI18n.has(p.id) ? { ...p, i18n: postenI18n.get(p.id) } : p)),
+    ist: snapshot.ist.map((e) => (e.i18n === undefined && istI18n.has(e.id) ? { ...e, i18n: istI18n.get(e.id) } : e)),
+  };
 }
 
 export interface SchwundHerleitung {

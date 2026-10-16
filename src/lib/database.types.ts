@@ -50,6 +50,7 @@ export type Database = {
           erstellt_von_profil_id: string | null
           fahrzeug: string | null
           gestartet_am: string | null
+          i18n: Json
           id: string
           kapazitaet_kg: number | null
           kuehlhaus_an: string | null
@@ -69,6 +70,7 @@ export type Database = {
           erstellt_von_profil_id?: string | null
           fahrzeug?: string | null
           gestartet_am?: string | null
+          i18n?: Json
           id?: string
           kapazitaet_kg?: number | null
           kuehlhaus_an?: string | null
@@ -88,6 +90,7 @@ export type Database = {
           erstellt_von_profil_id?: string | null
           fahrzeug?: string | null
           gestartet_am?: string | null
+          i18n?: Json
           id?: string
           kapazitaet_kg?: number | null
           kuehlhaus_an?: string | null
@@ -114,6 +117,7 @@ export type Database = {
           bemerkung: string | null
           created_at: string
           geraet_zeitpunkt: string | null
+          i18n: Json
           id: string
           menge_geplant_kg: number
           menge_ist_kg: number | null
@@ -131,6 +135,7 @@ export type Database = {
           bemerkung?: string | null
           created_at?: string
           geraet_zeitpunkt?: string | null
+          i18n?: Json
           id?: string
           menge_geplant_kg: number
           menge_ist_kg?: number | null
@@ -148,6 +153,7 @@ export type Database = {
           bemerkung?: string | null
           created_at?: string
           geraet_zeitpunkt?: string | null
+          i18n?: Json
           id?: string
           menge_geplant_kg?: number
           menge_ist_kg?: number | null
@@ -701,6 +707,7 @@ export type Database = {
           foerderdossier_id: string | null
           gueltig_bis: string | null
           gueltig_von: string | null
+          i18n: Json
           id: string
           kategorie: Database["public"]["Enums"]["dokument_kategorie"]
           nachbarbetrieb_id: string | null
@@ -724,6 +731,7 @@ export type Database = {
           foerderdossier_id?: string | null
           gueltig_bis?: string | null
           gueltig_von?: string | null
+          i18n?: Json
           id?: string
           kategorie?: Database["public"]["Enums"]["dokument_kategorie"]
           nachbarbetrieb_id?: string | null
@@ -747,6 +755,7 @@ export type Database = {
           foerderdossier_id?: string | null
           gueltig_bis?: string | null
           gueltig_von?: string | null
+          i18n?: Json
           id?: string
           kategorie?: Database["public"]["Enums"]["dokument_kategorie"]
           nachbarbetrieb_id?: string | null
@@ -1110,6 +1119,7 @@ export type Database = {
           created_at: string
           ereignis_am: string
           erfasst_am: string | null
+          i18n: Json
           id: string
           status: string
           updated_at: string
@@ -1123,6 +1133,7 @@ export type Database = {
           created_at?: string
           ereignis_am: string
           erfasst_am?: string | null
+          i18n?: Json
           id?: string
           status?: string
           updated_at?: string
@@ -1136,6 +1147,7 @@ export type Database = {
           created_at?: string
           ereignis_am?: string
           erfasst_am?: string | null
+          i18n?: Json
           id?: string
           status?: string
           updated_at?: string
@@ -1206,6 +1218,7 @@ export type Database = {
           bestaetigung: string | null
           created_at: string
           erfasst_am: string | null
+          i18n: Json
           id: string
           outbox_id: string | null
           pfluecker_id: string
@@ -1219,6 +1232,7 @@ export type Database = {
           bestaetigung?: string | null
           created_at?: string
           erfasst_am?: string | null
+          i18n?: Json
           id?: string
           outbox_id?: string | null
           pfluecker_id: string
@@ -1232,6 +1246,7 @@ export type Database = {
           bestaetigung?: string | null
           created_at?: string
           erfasst_am?: string | null
+          i18n?: Json
           id?: string
           outbox_id?: string | null
           pfluecker_id?: string
@@ -1316,6 +1331,7 @@ export type Database = {
           buchungsdatum: string
           charge_id: string | null
           created_at: string
+          i18n: Json
           id: string
           kategorie: string
           kostentraeger_id: string | null
@@ -1327,6 +1343,7 @@ export type Database = {
           buchungsdatum?: string
           charge_id?: string | null
           created_at?: string
+          i18n?: Json
           id?: string
           kategorie: string
           kostentraeger_id?: string | null
@@ -1338,6 +1355,7 @@ export type Database = {
           buchungsdatum?: string
           charge_id?: string | null
           created_at?: string
+          i18n?: Json
           id?: string
           kategorie?: string
           kostentraeger_id?: string | null
@@ -3009,6 +3027,7 @@ export type Database = {
           created_at: string
           gueltig_ab: string
           gueltig_bis: string | null
+          i18n: Json
           id: string
           kundengruppe: Database["public"]["Enums"]["kundengruppe"] | null
           name: string
@@ -3019,6 +3038,7 @@ export type Database = {
           created_at?: string
           gueltig_ab?: string
           gueltig_bis?: string | null
+          i18n?: Json
           id?: string
           kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           name: string
@@ -3029,6 +3049,7 @@ export type Database = {
           created_at?: string
           gueltig_ab?: string
           gueltig_bis?: string | null
+          i18n?: Json
           id?: string
           kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           name?: string
@@ -3275,6 +3296,7 @@ export type Database = {
         Row: {
           autor_id: string | null
           created_at: string
+          i18n: Json
           id: string
           neuer_status: Database["public"]["Enums"]["reklamation_status"] | null
           reklamation_id: string
@@ -3284,6 +3306,7 @@ export type Database = {
         Insert: {
           autor_id?: string | null
           created_at?: string
+          i18n?: Json
           id?: string
           neuer_status?:
             | Database["public"]["Enums"]["reklamation_status"]
@@ -3295,6 +3318,7 @@ export type Database = {
         Update: {
           autor_id?: string | null
           created_at?: string
+          i18n?: Json
           id?: string
           neuer_status?:
             | Database["public"]["Enums"]["reklamation_status"]
@@ -3342,6 +3366,7 @@ export type Database = {
           gemeldet_von: string | null
           grund: Database["public"]["Enums"]["reklamation_grund"]
           gutschrift_tenge: number | null
+          i18n: Json
           id: string
           loesung: string | null
           status: Database["public"]["Enums"]["reklamation_status"]
@@ -3361,6 +3386,7 @@ export type Database = {
           gemeldet_von?: string | null
           grund: Database["public"]["Enums"]["reklamation_grund"]
           gutschrift_tenge?: number | null
+          i18n?: Json
           id?: string
           loesung?: string | null
           status?: Database["public"]["Enums"]["reklamation_status"]
@@ -3380,6 +3406,7 @@ export type Database = {
           gemeldet_von?: string | null
           grund?: Database["public"]["Enums"]["reklamation_grund"]
           gutschrift_tenge?: number | null
+          i18n?: Json
           id?: string
           loesung?: string | null
           status?: Database["public"]["Enums"]["reklamation_status"]
@@ -4043,6 +4070,7 @@ export type Database = {
           autor_profil_id: string | null
           autor_rolle: Database["public"]["Enums"]["app_role"] | null
           created_at: string
+          i18n: Json
           id: string
           text: string
           vorbestellung_id: string
@@ -4055,6 +4083,7 @@ export type Database = {
           autor_profil_id?: string | null
           autor_rolle?: Database["public"]["Enums"]["app_role"] | null
           created_at?: string
+          i18n?: Json
           id?: string
           text: string
           vorbestellung_id: string
@@ -4067,6 +4096,7 @@ export type Database = {
           autor_profil_id?: string | null
           autor_rolle?: Database["public"]["Enums"]["app_role"] | null
           created_at?: string
+          i18n?: Json
           id?: string
           text?: string
           vorbestellung_id?: string
@@ -4245,6 +4275,7 @@ export type Database = {
           betrag: number
           created_at: string
           erfasst_von_profil_id: string | null
+          i18n: Json
           id: string
           kategorie: string
           monat: string
@@ -4255,6 +4286,7 @@ export type Database = {
           betrag: number
           created_at?: string
           erfasst_von_profil_id?: string | null
+          i18n?: Json
           id?: string
           kategorie: string
           monat: string
@@ -4265,6 +4297,7 @@ export type Database = {
           betrag?: number
           created_at?: string
           erfasst_von_profil_id?: string | null
+          i18n?: Json
           id?: string
           kategorie?: string
           monat?: string
@@ -4290,6 +4323,7 @@ export type Database = {
           datum: string
           erfasst_von_profil_id: string | null
           herkunft: string
+          i18n: Json
           id: string
           kategorie: string
           notiz: string | null
@@ -4304,6 +4338,7 @@ export type Database = {
           datum?: string
           erfasst_von_profil_id?: string | null
           herkunft?: string
+          i18n?: Json
           id?: string
           kategorie: string
           notiz?: string | null
@@ -4318,6 +4353,7 @@ export type Database = {
           datum?: string
           erfasst_von_profil_id?: string | null
           herkunft?: string
+          i18n?: Json
           id?: string
           kategorie?: string
           notiz?: string | null
@@ -4339,6 +4375,7 @@ export type Database = {
           bezeichnung: string
           created_at: string
           erstellt_von_profil_id: string | null
+          i18n: Json
           id: string
           snapshot: Json
           stand_am: string
@@ -4347,6 +4384,7 @@ export type Database = {
           bezeichnung: string
           created_at?: string
           erstellt_von_profil_id?: string | null
+          i18n?: Json
           id?: string
           snapshot: Json
           stand_am?: string
@@ -4355,6 +4393,7 @@ export type Database = {
           bezeichnung?: string
           created_at?: string
           erstellt_von_profil_id?: string | null
+          i18n?: Json
           id?: string
           snapshot?: Json
           stand_am?: string
@@ -4800,6 +4839,7 @@ export type Database = {
           foerderdossier_id: string | null
           gueltig_bis: string | null
           gueltig_von: string | null
+          i18n: Json | null
           id: string | null
           kategorie: Database["public"]["Enums"]["dokument_kategorie"] | null
           nachbarbetrieb_id: string | null
@@ -4883,6 +4923,7 @@ export type Database = {
           created_at: string | null
           ereignis_am: string | null
           erfasst_am: string | null
+          i18n: Json | null
           id: string | null
           meldefrist_am: string | null
           pfluecker_ausweis: string | null

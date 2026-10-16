@@ -1,3 +1,4 @@
+import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { seitenModell } from "@/lib/listen/seiten";
@@ -9,6 +10,7 @@ import {
   type ReklamationStatus,
 } from "@/lib/domain/reklamationen";
 import { einsAus } from "@/lib/data/util";
+import { liesI18n, uebersetzt, uebersetztOderNull } from "@/lib/i18n-daten";
 
 // Reklamationsmanagement (WMCNL-1455). Liste und Detailansicht laufen wie bei
 // pflueckaufgaben getrennt: die Liste bleibt leicht, der Verlauf
@@ -122,6 +124,7 @@ export async function ladeReklamationen(seite = 1): Promise<ReklamationenListe> 
   if (!isSupabaseConfigured()) return demoListe();
 
   const supabase = await createClient();
+  const sprache = await getLocale();
   const zaehlung = await supabase.from("reklamationen").select("id", { count: "exact", head: true });
   if (zaehlung.error || zaehlung.count === null) return demoListe("fehler");
   const modell = seitenModell(zaehlung.count, seite, REKLAMATIONEN_PRO_SEITE);
@@ -129,7 +132,7 @@ export async function ladeReklamationen(seite = 1): Promise<ReklamationenListe> 
   const { data, error } = await supabase
     .from("reklamationen")
     .select(
-      `id, code, grund, betreff, status, betroffene_menge_kg, gemeldet_am, frist_am, gutschrift_tenge,
+      `id, code, grund, betreff, status, betroffene_menge_kg, gemeldet_am, frist_am, gutschrift_tenge, i18n,
        b2b_kunden ( id, name ),
        chargen ( code, reihenbloecke ( code ) )`,
     )
@@ -140,7 +143,7 @@ export async function ladeReklamationen(seite = 1): Promise<ReklamationenListe> 
   if (error || !data) return demoListe("fehler");
 
   const reklamationen: ReklamationListenEintrag[] = data.map((r) =>
-    listenEintragAus(r, einsAus(r.b2b_kunden), einsAus(r.chargen)),
+    listenEintragAus(r, einsAus(r.b2b_kunden), einsAus(r.chargen), sprache),
   );
 
   return { quelle: "db", reklamationen, gesamt: zaehlung.count, seite: modell.seite, seiten: modell.seiten };
@@ -160,6 +163,8 @@ interface ReklamationKopfZeile {
   gemeldet_am: string;
   frist_am: string | null;
   gutschrift_tenge: number | null;
+  /** Uebersetzungen von betreff, beschreibung und loesung (Spalte i18n). */
+  i18n: unknown;
 }
 
 // Liste und Detail lesen Kunde, Charge und Reihenblock auf dieselbe Weise. Bis
@@ -168,6 +173,7 @@ function listenEintragAus(
   r: ReklamationKopfZeile,
   kunde: { id: string; name: string } | null,
   charge: { code: string; reihenbloecke: Eingebettet<{ code: string }> } | null,
+  sprache: string,
 ): ReklamationListenEintrag {
   const block = charge ? einsAus(charge.reihenbloecke) : null;
   return {
@@ -178,7 +184,8 @@ function listenEintragAus(
     chargeCode: charge?.code ?? null,
     reihenblock: block?.code ?? null,
     grund: r.grund,
-    betreff: r.betreff,
+    // Die Reklamationen sind nur zum Lesen: die Uebersetzung der gewaehlten Sprache steht gleich im Feld.
+    betreff: uebersetzt(liesI18n(r.i18n), "betreff", sprache, r.betreff),
     status: r.status,
     betroffeneMengeKg: r.betroffene_menge_kg === null ? null : Number(r.betroffene_menge_kg),
     gemeldetAm: r.gemeldet_am,
@@ -221,12 +228,13 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
   if (!isSupabaseConfigured()) return demoDetail(id);
 
   const supabase = await createClient();
+  const sprache = await getLocale();
   const [{ data: rekl, error }, { data: ereignisRohdaten }] = await Promise.all([
     supabase
       .from("reklamationen")
       .select(
         `id, code, grund, betreff, beschreibung, status, betroffene_menge_kg, gemeldet_am,
-         frist_am, erledigt_am, loesung, gutschrift_tenge, charge_id, gemeldet_von,
+         frist_am, erledigt_am, loesung, gutschrift_tenge, charge_id, gemeldet_von, i18n,
          b2b_kunden ( id, name ),
          chargen (
            code,
@@ -242,7 +250,7 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
       .maybeSingle(),
     supabase
       .from("reklamation_ereignisse")
-      .select("id, neuer_status, text, sichtbar_fuer_kunde, created_at, profiles ( full_name, role )")
+      .select("id, neuer_status, text, sichtbar_fuer_kunde, created_at, i18n, profiles ( full_name, role )")
       .eq("reklamation_id", id)
       .order("created_at"),
   ]);
@@ -251,13 +259,13 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
 
   const charge = einsAus(rekl.chargen);
   return {
-    ...listenEintragAus(rekl, einsAus(rekl.b2b_kunden), charge),
-    beschreibung: rekl.beschreibung,
+    ...listenEintragAus(rekl, einsAus(rekl.b2b_kunden), charge, sprache),
+    beschreibung: uebersetztOderNull(liesI18n(rekl.i18n), "beschreibung", sprache, rekl.beschreibung),
     chargeId: rekl.charge_id,
     gemeldetVon: einsAus(rekl.profiles)?.full_name ?? null,
     erledigtAm: rekl.erledigt_am,
-    loesung: rekl.loesung,
-    ereignisse: ereignisseAus(ereignisRohdaten ?? []),
+    loesung: uebersetztOderNull(liesI18n(rekl.i18n), "loesung", sprache, rekl.loesung),
+    ereignisse: ereignisseAus(ereignisRohdaten ?? [], sprache),
     ...rueckverfolgungAus(charge),
   };
 }
@@ -364,15 +372,17 @@ function ereignisseAus(
     text: string;
     sichtbar_fuer_kunde: boolean;
     created_at: string;
+    i18n: unknown;
     profiles: Eingebettet<{ full_name: string; role: string }>;
   }[],
+  sprache: string,
 ): ReklamationEreignis[] {
   return zeilen.map((e) => {
     const autor = einsAus(e.profiles);
     return {
       id: e.id,
       neuerStatus: e.neuer_status,
-      text: e.text,
+      text: uebersetzt(liesI18n(e.i18n), "text", sprache, e.text),
       sichtbarFuerKunde: e.sichtbar_fuer_kunde,
       autor: autor ? `${autor.full_name} (${autor.role})` : null,
       erstelltAm: e.created_at,

@@ -1,4 +1,5 @@
 import { istGueltigerTag } from "@/lib/listen/zeitraum";
+import type { I18nSpalte } from "@/lib/i18n-daten";
 
 // Meldeprozess fuer das Einheitssystem ЕСУТД, Stufe 1 (WMCNL-1447). Reine Pruef- und Sortierregeln
 // ohne Server-Import. Das System meldet nicht selbst: es fuehrt, was zu melden ist, was gemeldet
@@ -37,6 +38,8 @@ export interface EsutdMeldung {
   belegDokumentId: string | null;
   /** Nur bei einer offenen Meldung, und nur wenn die Einstellung der Art gesetzt ist. */
   meldefristAm: string | null;
+  /** Uebersetzungen von beschreibung und bestaetigung (Spalte i18n). Die Felder oben tragen das Original: die Datei fuer die Behoerde bleibt unuebersetzt. */
+  i18n?: I18nSpalte;
 }
 
 export const esutdTon = { offen: "warning", erfasst: "success" } as const satisfies Record<EsutdMeldungStatus, "warning" | "success">;

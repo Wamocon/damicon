@@ -1,6 +1,7 @@
 import { absatz, esc, leerHinweis, marke, tabelle, type DokumentEingabe, type Ton } from "@/lib/dokument/damicon-dokument";
 import { dateinameFuer, kennungFuer, tagText, versiegeln, type DokumentKontext } from "@/lib/dokument/kontext";
 import { NACHWEIS_STATUS, nachweisZaehlung, type NachweisStatus } from "@/lib/domain/nachweise";
+import { uebersetzt, type I18nSpalte } from "@/lib/i18n-daten";
 
 // Nachweisregister als Dokument (WMCNL-1469): Zertifikate, Genehmigungen, Vertraege und Protokolle mit Gueltigkeit und
 // Ablaufstatus, zum Weitergeben an Pruefer, Handel und Behoerden. Der Status folgt aus dem Zeitraum, er ist nicht von Hand gesetzt.
@@ -18,6 +19,8 @@ export interface NachweisZeile {
   verantwortlich: string | null;
   rechtsgrundlage: string | null;
   partner: string | null;
+  /** Uebersetzungen von name, bezug und rechtsgrundlage (Spalte i18n). */
+  i18n?: I18nSpalte;
 }
 
 const TON: Record<NachweisStatus, Ton> = { gueltig: "gut", laeuft_ab: "warnung", abgelaufen: "schlecht", offen: "neutral" };
@@ -37,13 +40,13 @@ export function baueNachweiseDokument(zeilen: NachweisZeile[], heute: string, x:
 
   const sortiert = [...zeilen].sort((a, b) => RANG[a.nachweisStatus] - RANG[b.nachweisStatus] || (a.gueltigBis ?? "9999").localeCompare(b.gueltigBis ?? "9999") || a.name.localeCompare(b.name));
   const reihen = sortiert.map((s) => {
-    const name = `<strong>${esc(s.name)}</strong>${s.rechtsgrundlage ? `<br><span class="klein">${esc(s.rechtsgrundlage)}</span>` : ""}`;
+    const name = `<strong>${esc(uebersetzt(s.i18n, "name", x.sprache, s.name))}</strong>${s.rechtsgrundlage ? `<br><span class="klein">${esc(uebersetzt(s.i18n, "rechtsgrundlage", x.sprache, s.rechtsgrundlage))}</span>` : ""}`;
     const gueltigBis = s.unbefristet
       ? n("unbefristet")
       : s.gueltigBis
         ? `${tag(s.gueltigBis)}${s.tageBisAblauf === null ? "" : s.tageBisAblauf < 0 ? ` (${n("vorTagen", { tage: -s.tageBisAblauf })})` : s.tageBisAblauf === 0 ? ` (${n("heute")})` : ` (${n("inTagen", { tage: s.tageBisAblauf })})`}`
         : n("keinZeitraum");
-    return [{ html: name }, k(s.kategorie), s.bezug || "-", gueltigBis, marke(n(`status.${s.nachweisStatus}`), TON[s.nachweisStatus]), s.verantwortlich ?? "-"];
+    return [{ html: name }, k(s.kategorie), s.bezug ? uebersetzt(s.i18n, "bezug", x.sprache, s.bezug) : "-", gueltigBis, marke(n(`status.${s.nachweisStatus}`), TON[s.nachweisStatus]), s.verantwortlich ?? "-"];
   });
 
   return versiegeln({

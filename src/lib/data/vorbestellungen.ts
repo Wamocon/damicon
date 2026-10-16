@@ -1,3 +1,4 @@
+import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { einsAus } from "@/lib/data/util";
@@ -134,6 +135,7 @@ export async function ladePreislisten(kundeId?: string): Promise<PreislisteZeile
   if (!isSupabaseConfigured()) return demoPreislistenUebersicht();
 
   const supabase = await createClient();
+  const sprache = await getLocale();
   const heute = new Date().toISOString().slice(0, 10);
 
   let eigeneKundengruppe: string | null = null;
@@ -149,7 +151,7 @@ export async function ladePreislisten(kundeId?: string): Promise<PreislisteZeile
   let query = supabase
     .from("preislisten")
     .select(
-      `id, name, gueltig_ab, gueltig_bis, aktiv, kundengruppe,
+      `id, name, i18n, gueltig_ab, gueltig_bis, aktiv, kundengruppe,
        preislisten_positionen ( id, preis_tenge_kg, min_menge_kg, sorten ( name ) )`,
     )
     .eq("aktiv", true)
@@ -168,7 +170,7 @@ export async function ladePreislisten(kundeId?: string): Promise<PreislisteZeile
 
   return data
     .filter((p) => !p.gueltig_bis || p.gueltig_bis >= heute)
-    .map(preislisteAusZeile);
+    .map((p) => preislisteAusZeile(p, sprache));
 }
 
 // Referenzlisten fuer das Anlegen-Formular - eigene, kleine Kopie statt eines

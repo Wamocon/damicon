@@ -22,6 +22,7 @@ import { ladeLieferplanQuelle } from "@/lib/data/lieferplan";
 import { ladeStand, ladeWirtschaftlichkeit } from "@/lib/data/wirtschaftlichkeit";
 import { ladeAbholrunde } from "@/lib/data/abholrunden";
 import { tagInZone } from "@/lib/domain/tageszeit";
+import { uebersetzt } from "@/lib/i18n-daten";
 
 // Die Dokumente, die das System im Damicon-Layout herausgibt: je Art ein Recht, die Namensraeume der Texte und das Laden der
 // Daten. Die Vorlagen selbst (lib/dokument/*.ts) sind rein; hier wird geladen, mit den Rechten der abrufenden Person
@@ -52,7 +53,7 @@ export const DOKUMENT_ARTEN: Record<string, DokumentArt> = {
     // Wer Meldungen erfassen darf, bekommt auch ihre Liste (wie die CSV-Datei).
     erlaubt: (rolle) => hasPermission(rolle, "personal", "update"),
     baue: async ({ parameter, x }) => {
-      const [meldungen, optionen] = await Promise.all([ladeEsutdMeldungen(), ladeEsutdOptionen()]);
+      const [meldungen, optionen] = await Promise.all([ladeEsutdMeldungen(), ladeEsutdOptionen(x.sprache)]);
       return baueEsutdDokument(
         { meldungen, nurOffene: parameter.get("status") !== "alle", heute: tagInZone(x.jetzt), belegNamen: new Map(optionen.belege.map((b) => [b.id, b.name])) },
         x,
@@ -111,6 +112,7 @@ export const DOKUMENT_ARTEN: Record<string, DokumentArt> = {
           verantwortlich: d.verantwortlich,
           rechtsgrundlage: d.rechtsgrundlage,
           partner: d.partner,
+          i18n: d.i18n,
         })),
         tagInZone(x.jetzt),
         x,
@@ -123,7 +125,7 @@ export const DOKUMENT_ARTEN: Record<string, DokumentArt> = {
     erlaubt: (rolle) => hasPermission(rolle, "logistik", "update"),
     baue: async ({ parameter, x }) => {
       const id = parameterId(parameter, "runde");
-      const runde = id ? await ladeAbholrunde(id) : null;
+      const runde = id ? await ladeAbholrunde(id, x.sprache) : null;
       return runde ? baueAbholauftragDokument(runde, x) : null;
     },
   },
@@ -139,7 +141,7 @@ export const DOKUMENT_ARTEN: Record<string, DokumentArt> = {
         if (!festgehalten) return null;
         const s = festgehalten.snapshot;
         return baueWirtschaftlichkeitDokument(
-          { posten: s.posten, ist: s.ist, annahmen: s.annahmen, menge: s.mengeAbgeleitet, quelle: "stand", stand: { name: festgehalten.kopf.bezeichnung, standAm: festgehalten.kopf.standAm }, heute, standId: festgehalten.kopf.id },
+          { posten: s.posten, ist: s.ist, annahmen: s.annahmen, menge: s.mengeAbgeleitet, quelle: "stand", stand: { name: uebersetzt(festgehalten.kopf.i18n, "bezeichnung", x.sprache, festgehalten.kopf.bezeichnung), standAm: festgehalten.kopf.standAm }, heute, standId: festgehalten.kopf.id },
           x,
         );
       }

@@ -349,7 +349,7 @@ function hinweisFuer(t: Uebersetzer, plan: Betriebsplan): string {
 export async function BetriebsrechnungAnsicht(e: BetriebsrechnungEingabe) {
   const [t, te, format, locale] = await Promise.all([getTranslations("betriebsrechnung"), getTranslations("wirtschaftlichkeitErfassung"), getFormatter(), getLocale()]);
   const h = hilfenFuer(t, format, e.annahmen.kurse.rubTenge);
-  const a = anzeigeFuer(te, format, e.annahmen);
+  const a = anzeigeFuer(te, format, e.annahmen, locale);
   const stand = e.modus === "stand";
   const eingabe = betriebsEingabe({ betrieb: e.betrieb, stand: e.stand, annahmen: e.annahmen, posten: e.posten, jahre: e.jahre });
   // Ein festgehaltener Stand hält nur das System fest. Die Betriebsrechnung zeigt immer die laufenden Werte und fehlt dort.

@@ -1,3 +1,4 @@
+import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { dokumente as demoDokumente } from "@/lib/domain/betrieb-data";
@@ -14,6 +15,7 @@ import {
 import { tagInZone } from "@/lib/domain/tageszeit";
 import { tagePlus } from "@/lib/listen/zeitraum";
 import { einsAus } from "@/lib/data/util";
+import { liesI18n, uebersetzt, type I18nSpalte } from "@/lib/i18n-daten";
 import { signiereDokumentPfade } from "@/lib/data/signierte-urls";
 
 // Nachweisregister (Meilenstein B, WMCNL-1469): Spritzprotokolle, ESUTD-
@@ -61,6 +63,8 @@ export interface DokumentZeile {
   /** Die Version, die dieses Dokument ersetzt (Migration 20261208120000), und die, die es ersetzt hat. */
   ersetztId: string | null;
   ersetztDurchId: string | null;
+  /** Uebersetzungen von name, bezug und rechtsgrundlage (Spalte i18n). Die Felder oben tragen das Original: das Bearbeiten-Formular zeigt es, die Anzeige uebersetzt. */
+  i18n: I18nSpalte;
 }
 
 export interface DokumentListe {
@@ -114,13 +118,14 @@ function demoListe(quelle: DokumentListe["quelle"] = "demo"): DokumentListe {
         hatDatei: false,
         ersetztId: null,
         ersetztDurchId: null,
+        i18n: {},
       };
     }),
   };
 }
 
 const SPALTEN = `id, name, kategorie, bezug, stand, storage_path, gueltig_von, gueltig_bis, unbefristet, warnung_tage,
-  nachweis_status, tage_bis_ablauf, verantwortlich_id, rechtsgrundlage, b2b_kunde_id, nachbarbetrieb_id, ersetzt_id, ersetzt_durch_id,
+  nachweis_status, tage_bis_ablauf, verantwortlich_id, rechtsgrundlage, b2b_kunde_id, nachbarbetrieb_id, ersetzt_id, ersetzt_durch_id, i18n,
   reihenbloecke ( code ), chargen ( code ), profiles ( full_name ), b2b_kunden ( name ), nachbarbetriebe ( name )`;
 
 type DokumentRohzeile = NonNullable<Awaited<ReturnType<typeof ladeRohzeilen>>["data"]>[number];
@@ -170,6 +175,7 @@ function zeileAusDb(doc: DokumentRohzeile, signiert: ReadonlyMap<string, string>
     hatDatei: Boolean(doc.storage_path),
     ersetztId: doc.ersetzt_id,
     ersetztDurchId: doc.ersetzt_durch_id,
+    i18n: liesI18n(doc.i18n),
   };
 }
 
@@ -194,9 +200,10 @@ export async function ladeNachweisFristen(): Promise<{ fristen: NachweisFrist[];
   if (!isSupabaseConfigured()) return { fristen: [], ausgefallen: false };
 
   const supabase = await createClient();
+  const sprache = await getLocale();
   const { data, error } = await supabase
     .from("v_dokumente")
-    .select("id, name, gueltig_bis, nachweis_status")
+    .select("id, name, i18n, gueltig_bis, nachweis_status")
     .in("nachweis_status", ["laeuft_ab", "abgelaufen"])
     // Eine ersetzte Version schlaegt nicht mehr Alarm: der Nachweis gilt durch die neue.
     .is("ersetzt_durch_id", null)
@@ -210,7 +217,7 @@ export async function ladeNachweisFristen(): Promise<{ fristen: NachweisFrist[];
     fristen: nachweisFristen(
       data.map((z) => ({
         id: z.id ?? "",
-        name: z.name ?? "",
+        name: uebersetzt(liesI18n(z.i18n), "name", sprache, z.name ?? ""),
         gueltigBis: z.gueltig_bis,
         status: istNachweisStatus(z.nachweis_status) ? z.nachweis_status : "offen",
       })),

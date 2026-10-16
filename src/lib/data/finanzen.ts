@@ -1,4 +1,6 @@
 import { cache } from "react";
+import { getLocale } from "next-intl/server";
+import { liesI18n, uebersetzt, uebersetztOderNull } from "@/lib/i18n-daten";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import {
@@ -151,6 +153,7 @@ export async function ladeFinanzenUebersicht(
   if (!isSupabaseConfigured()) return demoUebersicht("demo", filter);
 
   const supabase = await createClient();
+  const sprache = await getLocale();
   const grenzen: ZeitraumGrenzen = zeitraumGrenzen(filter.zeitraum);
 
   // Eine Zeile mehr holen als angezeigt wird. Damit steht fest, ob es Nachschub
@@ -170,7 +173,7 @@ export async function ladeFinanzenUebersicht(
   let ledgerAbfrage = supabase
     .from("finance_ledger_entries")
     .select(
-      "id, typ, kategorie, betrag_tenge, buchungsdatum, beschreibung, kostentraeger ( bezeichnung )",
+      "id, typ, kategorie, betrag_tenge, buchungsdatum, beschreibung, i18n, kostentraeger ( bezeichnung )",
     )
     .order("buchungsdatum", { ascending: false })
     .order("created_at", { ascending: false })
@@ -280,10 +283,11 @@ export async function ladeFinanzenUebersicht(
     id: l.id,
     kostentraegerBezeichnung: einsAus(l.kostentraeger)?.bezeichnung ?? "-",
     typ: l.typ,
-    kategorie: l.kategorie,
+    // Das Journal ist nur zum Lesen: die Uebersetzung der gewaehlten Sprache steht gleich in den Feldern.
+    kategorie: uebersetzt(liesI18n(l.i18n), "kategorie", sprache, l.kategorie),
     betragTenge: Number(l.betrag_tenge),
     buchungsdatum: l.buchungsdatum,
-    beschreibung: l.beschreibung,
+    beschreibung: uebersetztOderNull(liesI18n(l.i18n), "beschreibung", sprache, l.beschreibung),
   }));
 
   const sichtbar = filter.zeilen;

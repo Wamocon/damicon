@@ -1,0 +1,2161 @@
+{
+  "hinweis": "Übersetzungen der Freitexte der Testdaten (Kennung 7e57da7a-...), je Tabelle, Spalte und Originaltext. Sprachen: en, ru, kk (bei russischem Original: de, en, kk). Namen, Codes und Nummern stehen nicht hier. Die kasachischen Texte sind noch nicht von einer Muttersprachlerin oder einem Muttersprachler geprüft. Daraus erzeugt scripts/uebersetzungen-erzeugen.mjs die Migration 20261211020000.",
+  "eintraege": [
+    {
+      "tabelle": "abholrunden",
+      "feld": "fahrzeug",
+      "original": "Kühlwagen Gazelle Next, 412 KAL 05",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Refrigerated van Gazelle Next, 412 KAL 05",
+        "ru": "Рефрижератор ГАЗель Next, 412 KAL 05",
+        "kk": "Тоңазытқыш фургон Gazelle Next, 412 KAL 05"
+      }
+    },
+    {
+      "tabelle": "abholrunden",
+      "feld": "notiz",
+      "original": "Letzte Runde vor dem Winterpreis, falls das Wetter hält.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Last round before the winter price, if the weather holds.",
+        "ru": "Последний рейс до зимней цены, если позволит погода.",
+        "kk": "Қысқы бағаға дейінгі соңғы рейс, ауа райы көтерсе."
+      }
+    },
+    {
+      "tabelle": "abholrunden",
+      "feld": "notiz",
+      "original": "Viel Verkehr am Stadtrand von Almaty, zehn Minuten Verzögerung vor Kaskelen.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Heavy traffic on the outskirts of Almaty, ten minutes delay before Kaskelen.",
+        "ru": "Большой поток машин на окраине Алматы, задержка десять минут перед Каскеленом.",
+        "kk": "Алматы шетінде көлік көп, Қаскелеңге дейін он минут кешігу."
+      }
+    },
+    {
+      "tabelle": "abholstopps",
+      "feld": "bemerkung",
+      "original": "Etwas weniger Ware als geplant, kleinere Früchte.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Slightly less goods than planned, smaller fruit.",
+        "ru": "Товара немного меньше плана, ягоды мельче.",
+        "kk": "Өнім жоспардан сәл аз, жидектер ұсақтау."
+      }
+    },
+    {
+      "tabelle": "abholstopps",
+      "feld": "bemerkung",
+      "original": "Ware sauber verlesen, 13 Steigen.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Goods sorted cleanly, 13 crates.",
+        "ru": "Товар хорошо переборан, 13 ящиков.",
+        "kk": "Өнім таза сұрыпталған, 13 жәшік."
+      }
+    },
+    {
+      "tabelle": "abholstopps",
+      "feld": "bemerkung",
+      "original": "Zwei Steigen zu feucht, vom Betrieb getauscht.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Two crates too wet, replaced by the farm.",
+        "ru": "Два ящика слишком влажные, хозяйство их заменило.",
+        "kk": "Екі жәшік тым ылғалды, шаруашылық ауыстырды."
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "bezug",
+      "original": "42 Vertraege",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "42 contracts",
+        "ru": "42 договора",
+        "kk": "42 шарт"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "bezug",
+      "original": "Antrag 2026-114",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Application 2026-114",
+        "ru": "Заявка 2026-114",
+        "kk": "Өтінім 2026-114"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "bezug",
+      "original": "Betrieb",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Farm",
+        "ru": "Хозяйство",
+        "kk": "Шаруашылық"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "bezug",
+      "original": "Kontingent Polana 1800 kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Quota Polana 1800 kg",
+        "ru": "Квота Полана 1800 кг",
+        "kk": "Полана квотасы 1800 кг"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "bezug",
+      "original": "Kontingent Polka 2400 kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Quota Polka 2400 kg",
+        "ru": "Квота Полька 2400 кг",
+        "kk": "Полька квотасы 2400 кг"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "bezug",
+      "original": "Kontingent Polka 3100 kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Quota Polka 3100 kg",
+        "ru": "Квота Полька 3100 кг",
+        "kk": "Полька квотасы 3100 кг"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "bezug",
+      "original": "Personenbezogene Daten",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Personal data",
+        "ru": "Персональные данные",
+        "kk": "Жеке деректер"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "bezug",
+      "original": "Plantage Issyk",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Issyk plantation",
+        "ru": "Плантация Иссык",
+        "kk": "Есік плантациясы"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "bezug",
+      "original": "Zukauf Saison 2026",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Purchases season 2026",
+        "ru": "Закуп сезона 2026",
+        "kk": "2026 маусымдағы сатып алу"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Einwilligungsvorlage Saisonkräfte",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Consent template seasonal workers",
+        "ru": "Форма согласия для сезонных работников",
+        "kk": "Маусымдық жұмысшыларға арналған келісім үлгісі"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "ESUTD-Sammelnachweis Saisonkraefte",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "ESUTD collective proof seasonal workers",
+        "ru": "Сводное подтверждение ЕСУТД по сезонным работникам",
+        "kk": "Маусымдық жұмысшылар бойынша ЕСУТД жиынтық растамасы"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Foerderdossier gosagro.kz - Kuehlhaus",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Funding dossier gosagro.kz, cold store",
+        "ru": "Досье по субсидии gosagro.kz, холодильный склад",
+        "kk": "gosagro.kz қолдау құжаттамасы, тоңазытқыш қойма"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "GlobalG.A.P.-Zertifikat",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "GlobalG.A.P. certificate",
+        "ru": "Сертификат GlobalG.A.P.",
+        "kk": "GlobalG.A.P. сертификаты"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Hygienezulassung Kühlhaus",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Hygiene approval cold store",
+        "ru": "Санитарное разрешение на холодильный склад",
+        "kk": "Тоңазытқыш қойманың гигиеналық рұқсаты"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Liefervertrag Almaty Fresh Market",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Supply contract Almaty Fresh Market",
+        "ru": "Договор поставки Almaty Fresh Market",
+        "kk": "Almaty Fresh Market жеткізу шарты"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Liefervertrag Gastro-Distributor Almaty",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Supply contract Gastro-Distributor Almaty",
+        "ru": "Договор поставки с Gastro-Distributor Almaty",
+        "kk": "Gastro-Distributor Almaty жеткізу шарты"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Pachtvertrag Plantage Issyk",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Lease contract Issyk plantation",
+        "ru": "Договор аренды плантации Иссык",
+        "kk": "Есік плантациясын жалға алу шарты"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Rahmenliefervertrag Handelskette A",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Framework supply contract Handelskette A",
+        "ru": "Рамочный договор поставки Handelskette A",
+        "kk": "Handelskette A жақтау жеткізу шарты"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Rückstandsanalyse Himbeeren 2025 (Labor Almaty)",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Residue analysis raspberries 2025 (Almaty laboratory)",
+        "ru": "Анализ остатков на малине 2025 (лаборатория Алматы)",
+        "kk": "2025 жылғы таңқурайдағы қалдықтар талдауы (Алматы зертханасы)"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Rückstandsanalyse Himbeeren 2026 (Labor Almaty)",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Residue analysis raspberries 2026 (Almaty laboratory)",
+        "ru": "Анализ остатков на малине 2026 (лаборатория Алматы)",
+        "kk": "2026 жылғы таңқурайдағы қалдықтар талдауы (Алматы зертханасы)"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Sachkundenachweis Pflanzenschutz (Betriebsleitung)",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Plant protection competence certificate (operations manager)",
+        "ru": "Свидетельство о квалификации по защите растений (руководитель производства)",
+        "kk": "Өсімдік қорғау бойынша біліктілік куәлігі (өндіріс басшысы)"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Spritzprotokoll KW 30 - Parzelle Sued",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Spray log week 30, south plot",
+        "ru": "Журнал опрыскивания, неделя 30, южный участок",
+        "kk": "Бүрку журналы, 30-апта, оңтүстік телім"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Spritzprotokoll KW 36 - Parzelle Nord",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Spray log week 36, north plot",
+        "ru": "Журнал опрыскивания, неделя 36, северный участок",
+        "kk": "Бүрку журналы, 36-апта, солтүстік телім"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Zukaufvereinbarung Nachbarbetrieb Kaskelen",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Purchase agreement neighbouring farm Kaskelen",
+        "ru": "Соглашение о закупе у соседнего хозяйства (Каскелен)",
+        "kk": "Көрші шаруашылықтан сатып алу келісімі (Қаскелең)"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "name",
+      "original": "Zukaufvereinbarung Nachbarbetrieb Uzynagash",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Purchase agreement neighbouring farm Uzynagash",
+        "ru": "Соглашение о закупе у соседнего хозяйства (Узынагаш)",
+        "kk": "Көрші шаруашылықтан сатып алу келісімі (Үзынағаш)"
+      }
+    },
+    {
+      "tabelle": "dokumente",
+      "feld": "rechtsgrundlage",
+      "original": "Gesetz der Republik Kasachstan Nr. 94-V vom 21.05.2013 über personenbezogene Daten und ihren Schutz",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Law of the Republic of Kazakhstan No. 94-V of 21.05.2013 on personal data and their protection",
+        "ru": "Закон Республики Казахстан № 94-V от 21.05.2013 «О персональных данных и их защите»",
+        "kk": "Қазақстан Республикасының 2013 жылғы 21 мамырдағы № 94-V «Дербес деректер және оларды қорғау туралы» Заңы"
+      }
+    },
+    {
+      "tabelle": "esutd_ereignisse",
+      "feld": "beschreibung",
+      "original": "Einsatzort von Plantage Talgar auf Plantage Issyk gewechselt.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Place of work changed from Talgar plantation to Issyk plantation.",
+        "ru": "Место работы изменено с плантации Талгар на плантацию Иссык.",
+        "kk": "Жұмыс орны Талғар плантациясынан Есік плантациясына ауыстырылды."
+      }
+    },
+    {
+      "tabelle": "esutd_ereignisse",
+      "feld": "beschreibung",
+      "original": "Vergütungssatz je kg ab 08.10.2026 angepasst (900 statt 850 Tenge).",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Pay rate per kg adjusted from 08.10.2026 (900 instead of 850 tenge).",
+        "ru": "Ставка оплаты за кг изменена с 08.10.2026 (900 вместо 850 тенге).",
+        "kk": "Бір келі үшін төлем мөлшері 08.10.2026 бастап өзгертілді (850 орнына 900 теңге)."
+      }
+    },
+    {
+      "tabelle": "esutd_ereignisse",
+      "feld": "beschreibung",
+      "original": "Vertrag auf Wunsch der Arbeitnehmerin zum 09.10.2026 beendet, Saisonende der Brigade.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Contract ended at the employee's request on 09.10.2026, end of season for the crew.",
+        "ru": "Договор расторгнут по желанию работницы 09.10.2026, конец сезона бригады.",
+        "kk": "Шарт қызметкердің өтініші бойынша 09.10.2026 күні тоқтатылды, бригаданың маусымы аяқталды."
+      }
+    },
+    {
+      "tabelle": "esutd_ereignisse",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 08.09.2026, Nr. 4529177",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 08.09.2026, No. 4529177",
+        "ru": "Квитанция enbek.kz от 08.09.2026, № 4529177",
+        "kk": "enbek.kz түбіртегі, 08.09.2026, № 4529177"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 04.08.2026, Nr. 4402192",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 04.08.2026, No. 4402192",
+        "ru": "Квитанция enbek.kz от 04.08.2026, № 4402192",
+        "kk": "enbek.kz түбіртегі, 04.08.2026, № 4402192"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 04.08.2026, Nr. 4447178",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 04.08.2026, No. 4447178",
+        "ru": "Квитанция enbek.kz от 04.08.2026, № 4447178",
+        "kk": "enbek.kz түбіртегі, 04.08.2026, № 4447178"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 04.08.2026, Nr. 4488825",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 04.08.2026, No. 4488825",
+        "ru": "Квитанция enbek.kz от 04.08.2026, № 4488825",
+        "kk": "enbek.kz түбіртегі, 04.08.2026, № 4488825"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 07.07.2026, Nr. 4442567",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 07.07.2026, No. 4442567",
+        "ru": "Квитанция enbek.kz от 07.07.2026, № 4442567",
+        "kk": "enbek.kz түбіртегі, 07.07.2026, № 4442567"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 11.08.2026, Nr. 4445776",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 11.08.2026, No. 4445776",
+        "ru": "Квитанция enbek.kz от 11.08.2026, № 4445776",
+        "kk": "enbek.kz түбіртегі, 11.08.2026, № 4445776"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 14.07.2026, Nr. 4485797",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 14.07.2026, No. 4485797",
+        "ru": "Квитанция enbek.kz от 14.07.2026, № 4485797",
+        "kk": "enbek.kz түбіртегі, 14.07.2026, № 4485797"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 16.06.2026, Nr. 4401481",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 16.06.2026, No. 4401481",
+        "ru": "Квитанция enbek.kz от 16.06.2026, № 4401481",
+        "kk": "enbek.kz түбіртегі, 16.06.2026, № 4401481"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 16.06.2026, Nr. 4467508",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 16.06.2026, No. 4467508",
+        "ru": "Квитанция enbek.kz от 16.06.2026, № 4467508",
+        "kk": "enbek.kz түбіртегі, 16.06.2026, № 4467508"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 18.08.2026, Nr. 4477260",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 18.08.2026, No. 4477260",
+        "ru": "Квитанция enbek.kz от 18.08.2026, № 4477260",
+        "kk": "enbek.kz түбіртегі, 18.08.2026, № 4477260"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 21.07.2026, Nr. 4404747",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 21.07.2026, No. 4404747",
+        "ru": "Квитанция enbek.kz от 21.07.2026, № 4404747",
+        "kk": "enbek.kz түбіртегі, 21.07.2026, № 4404747"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 23.06.2026, Nr. 4434521",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 23.06.2026, No. 4434521",
+        "ru": "Квитанция enbek.kz от 23.06.2026, № 4434521",
+        "kk": "enbek.kz түбіртегі, 23.06.2026, № 4434521"
+      }
+    },
+    {
+      "tabelle": "esutd_vertraege",
+      "feld": "bestaetigung",
+      "original": "Quittung enbek.kz vom 23.06.2026, Nr. 4476177",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Receipt from enbek.kz of 23.06.2026, No. 4476177",
+        "ru": "Квитанция enbek.kz от 23.06.2026, № 4476177",
+        "kk": "enbek.kz түбіртегі, 23.06.2026, № 4476177"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "116 kg zu 2100 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "116 kg at 2100 tenge per kg",
+        "ru": "116 кг по 2100 тенге за кг",
+        "kk": "116 кг, келісі 2100 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "117 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "117 kg at 2050 tenge per kg",
+        "ru": "117 кг по 2050 тенге за кг",
+        "kk": "117 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "22 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "22 kg at 2050 tenge per kg",
+        "ru": "22 кг по 2050 тенге за кг",
+        "kk": "22 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "25 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "25 kg at 2050 tenge per kg",
+        "ru": "25 кг по 2050 тенге за кг",
+        "kk": "25 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "33 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "33 kg at 2050 tenge per kg",
+        "ru": "33 кг по 2050 тенге за кг",
+        "kk": "33 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "35 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "35 kg at 2050 tenge per kg",
+        "ru": "35 кг по 2050 тенге за кг",
+        "kk": "35 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "37 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "37 kg at 2050 tenge per kg",
+        "ru": "37 кг по 2050 тенге за кг",
+        "kk": "37 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "38 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "38 kg at 2050 tenge per kg",
+        "ru": "38 кг по 2050 тенге за кг",
+        "kk": "38 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "53 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "53 kg at 2050 tenge per kg",
+        "ru": "53 кг по 2050 тенге за кг",
+        "kk": "53 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "55 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "55 kg at 2050 tenge per kg",
+        "ru": "55 кг по 2050 тенге за кг",
+        "kk": "55 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "60 kg zu 1900 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "60 kg at 1900 tenge per kg",
+        "ru": "60 кг по 1900 тенге за кг",
+        "kk": "60 кг, келісі 1900 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "68 kg zu 2100 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "68 kg at 2100 tenge per kg",
+        "ru": "68 кг по 2100 тенге за кг",
+        "kk": "68 кг, келісі 2100 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "72 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "72 kg at 2050 tenge per kg",
+        "ru": "72 кг по 2050 тенге за кг",
+        "kk": "72 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "77 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "77 kg at 2050 tenge per kg",
+        "ru": "77 кг по 2050 тенге за кг",
+        "kk": "77 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "82 kg zu 1900 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "82 kg at 1900 tenge per kg",
+        "ru": "82 кг по 1900 тенге за кг",
+        "kk": "82 кг, келісі 1900 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "83 kg zu 2100 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "83 kg at 2100 tenge per kg",
+        "ru": "83 кг по 2100 тенге за кг",
+        "kk": "83 кг, келісі 2100 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "84 kg zu 2100 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "84 kg at 2100 tenge per kg",
+        "ru": "84 кг по 2100 тенге за кг",
+        "kk": "84 кг, келісі 2100 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "93 kg zu 2100 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "93 kg at 2100 tenge per kg",
+        "ru": "93 кг по 2100 тенге за кг",
+        "kk": "93 кг, келісі 2100 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "95 kg zu 2050 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "95 kg at 2050 tenge per kg",
+        "ru": "95 кг по 2050 тенге за кг",
+        "kk": "95 кг, келісі 2050 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "96 kg zu 1900 Tenge je kg",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "96 kg at 1900 tenge per kg",
+        "ru": "96 кг по 1900 тенге за кг",
+        "kk": "96 кг, келісі 1900 теңге"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Anteil an der Tour zu Almaty Fresh Market",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Share of the tour to Almaty Fresh Market",
+        "ru": "Доля в рейсе к клиенту Almaty Fresh Market",
+        "kk": "Almaty Fresh Market клиентіне жеткізу рейсіндегі үлес"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Anteil an der Tour zu Gastro-Distributor Almaty",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Share of the tour to Gastro-Distributor Almaty",
+        "ru": "Доля в рейсе к клиенту Gastro-Distributor Almaty",
+        "kk": "Gastro-Distributor Almaty клиентіне жеткізу рейсіндегі үлес"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Anteil an der Tour zu Handelskette A",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Share of the tour to Handelskette A",
+        "ru": "Доля в рейсе к клиенту Handelskette A",
+        "kk": "Handelskette A клиентіне жеткізу рейсіндегі үлес"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Beispielbuchung direkt an der Charge",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Sample entry directly on the batch",
+        "ru": "Пример проводки прямо на партии",
+        "kk": "Партияға тікелей жазылған үлгі жазба"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Brigade Nord",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "North crew",
+        "ru": "Бригада Север",
+        "kk": "Солтүстік бригада"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Brigade Nord, Vorkuehlung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "North crew, pre-cooling",
+        "ru": "Бригада Север, предварительное охлаждение",
+        "kk": "Солтүстік бригада, алдын ала салқындату"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Brigade Ost",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "East crew",
+        "ru": "Бригада Восток",
+        "kk": "Шығыс бригада"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Lieferung Gastro-Distributor",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Delivery Gastro distributor",
+        "ru": "Поставка гастро-дистрибьютору",
+        "kk": "Гастро-дистрибьюторға жеткізу"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Lieferung Handelskette A",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Delivery Handelskette A",
+        "ru": "Поставка Handelskette A",
+        "kk": "Handelskette A жеткізілімі"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Nachbarbetrieb Kaskelen",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Neighbouring farm Kaskelen",
+        "ru": "Соседнее хозяйство Каскелен",
+        "kk": "Көрші шаруашылық Қаскелең"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-260925-01",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-260925-01",
+        "ru": "Задание на сбор PA-S-260925-01",
+        "kk": "Теру тапсырмасы PA-S-260925-01"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-260926-02",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-260926-02",
+        "ru": "Задание на сбор PA-S-260926-02",
+        "kk": "Теру тапсырмасы PA-S-260926-02"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-260928-03",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-260928-03",
+        "ru": "Задание на сбор PA-S-260928-03",
+        "kk": "Теру тапсырмасы PA-S-260928-03"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-260929-04",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-260929-04",
+        "ru": "Задание на сбор PA-S-260929-04",
+        "kk": "Теру тапсырмасы PA-S-260929-04"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-260930-05",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-260930-05",
+        "ru": "Задание на сбор PA-S-260930-05",
+        "kk": "Теру тапсырмасы PA-S-260930-05"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261001-06",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261001-06",
+        "ru": "Задание на сбор PA-S-261001-06",
+        "kk": "Теру тапсырмасы PA-S-261001-06"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261002-07",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261002-07",
+        "ru": "Задание на сбор PA-S-261002-07",
+        "kk": "Теру тапсырмасы PA-S-261002-07"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261003-08",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261003-08",
+        "ru": "Задание на сбор PA-S-261003-08",
+        "kk": "Теру тапсырмасы PA-S-261003-08"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261005-09",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261005-09",
+        "ru": "Задание на сбор PA-S-261005-09",
+        "kk": "Теру тапсырмасы PA-S-261005-09"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261006-10",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261006-10",
+        "ru": "Задание на сбор PA-S-261006-10",
+        "kk": "Теру тапсырмасы PA-S-261006-10"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261007-11",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261007-11",
+        "ru": "Задание на сбор PA-S-261007-11",
+        "kk": "Теру тапсырмасы PA-S-261007-11"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261008-12",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261008-12",
+        "ru": "Задание на сбор PA-S-261008-12",
+        "kk": "Теру тапсырмасы PA-S-261008-12"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261009-13",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261009-13",
+        "ru": "Задание на сбор PA-S-261009-13",
+        "kk": "Теру тапсырмасы PA-S-261009-13"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261010-14",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261010-14",
+        "ru": "Задание на сбор PA-S-261010-14",
+        "kk": "Теру тапсырмасы PA-S-261010-14"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261012-15",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261012-15",
+        "ru": "Задание на сбор PA-S-261012-15",
+        "kk": "Теру тапсырмасы PA-S-261012-15"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Pflückaufgabe PA-S-261013-16",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking task PA-S-261013-16",
+        "ru": "Задание на сбор PA-S-261013-16",
+        "kk": "Теру тапсырмасы PA-S-261013-16"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Schalen zu 125 g",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Trays of 125 g",
+        "ru": "Лотки по 125 г",
+        "kk": "125 г контейнерлер"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Vorkühlung und Kühlhaus",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Pre-cooling and cold store",
+        "ru": "Предварительное охлаждение и холодильный склад",
+        "kk": "Алдын ала салқындату және тоңазытқыш қойма"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "beschreibung",
+      "original": "Zukauf-Charge",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Purchased batch",
+        "ru": "Закупленная партия",
+        "kk": "Сатып алынған партия"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "kategorie",
+      "original": "B2B-Verkauf",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "B2B sales",
+        "ru": "B2B-продажи",
+        "kk": "B2B сатылымы"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "kategorie",
+      "original": "Erlös aus Lieferung Almaty Fresh Market",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Revenue from delivery Almaty Fresh Market",
+        "ru": "Выручка от поставки Almaty Fresh Market",
+        "kk": "Almaty Fresh Market жеткізілімінен түскен түсім"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "kategorie",
+      "original": "Erlös aus Lieferung Gastro-Distributor Almaty",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Revenue from delivery Gastro-Distributor Almaty",
+        "ru": "Выручка от поставки Gastro-Distributor Almaty",
+        "kk": "Gastro-Distributor Almaty жеткізілімінен түскен түсім"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "kategorie",
+      "original": "Erlös aus Lieferung Handelskette A",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Revenue from delivery Handelskette A",
+        "ru": "Выручка от поставки Handelskette A",
+        "kk": "Handelskette A жеткізілімінен түскен түсім"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "kategorie",
+      "original": "Ernte + Kuehlung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Harvest + cooling",
+        "ru": "Сбор + охлаждение",
+        "kk": "Жинау + салқындату"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "kategorie",
+      "original": "Kühlung und Strom",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Cooling and electricity",
+        "ru": "Охлаждение и электроэнергия",
+        "kk": "Салқындату және электр қуаты"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "kategorie",
+      "original": "Pflücklohn",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Picking wages",
+        "ru": "Оплата сбора",
+        "kk": "Теру жалақысы"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "kategorie",
+      "original": "Transport",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Transport",
+        "ru": "Транспорт",
+        "kk": "Көлік"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "kategorie",
+      "original": "Verpackung (Schalen und Steigen)",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Packaging (trays and crates)",
+        "ru": "Упаковка (лотки и ящики)",
+        "kk": "Қаптама (контейнерлер мен жәшіктер)"
+      }
+    },
+    {
+      "tabelle": "finance_ledger_entries",
+      "feld": "kategorie",
+      "original": "Zukauf + Handling",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Purchase + handling",
+        "ru": "Закуп + обработка",
+        "kk": "Сатып алу + өңдеу"
+      }
+    },
+    {
+      "tabelle": "preislisten",
+      "feld": "name",
+      "original": "Preisliste Herbst 2026",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Price list autumn 2026",
+        "ru": "Прайс-лист осень 2026",
+        "kk": "2026 күзгі баға тізімі"
+      }
+    },
+    {
+      "tabelle": "preislisten",
+      "feld": "name",
+      "original": "Preisliste Herbst 2026 - Handel",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Price list autumn 2026, trade",
+        "ru": "Прайс-лист осень 2026, торговля",
+        "kk": "2026 күзгі баға тізімі, сауда"
+      }
+    },
+    {
+      "tabelle": "preislisten",
+      "feld": "name",
+      "original": "Preisliste Winter 2026",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Price list winter 2026",
+        "ru": "Прайс-лист зима 2026",
+        "kk": "2026 қысқы баға тізімі"
+      }
+    },
+    {
+      "tabelle": "preislisten",
+      "feld": "name",
+      "original": "Preisliste Winter 2026 - Gastronomie",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Price list winter 2026, catering",
+        "ru": "Прайс-лист зима 2026, общепит",
+        "kk": "2026 қысқы баға тізімі, қоғамдық тамақтану"
+      }
+    },
+    {
+      "tabelle": "preislisten",
+      "feld": "name",
+      "original": "Preisliste Winter 2026 - Handel",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Price list winter 2026, trade",
+        "ru": "Прайс-лист зима 2026, торговля",
+        "kk": "2026 қысқы баға тізімі, сауда"
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Fotos der beschädigten Schalen sind angefordert. Die Verpackung der Tour wird mit dem Fahrer geklärt.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Photos of the damaged trays have been requested. The packaging of the tour is being clarified with the driver.",
+        "ru": "Запрошены фото повреждённых лотков. Упаковку рейса уточняют с водителем.",
+        "kk": "Зақымданған контейнерлердің фотосуреттері сұралды. Рейс қаптамасы жүргізушімен нақтыланады."
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Gutschrift fuer zwei Kartons erteilt, Verpackungsvorgabe an die Logistik nachgeschaerft.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Credit note issued for two cartons, packaging specification tightened for logistics.",
+        "ru": "Выдана кредит-нота за два картона, требования к упаковке для логистики ужесточены.",
+        "kk": "Екі қорап үшін өтемақы берілді, логистикаға арналған қаптама талабы күшейтілді."
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Intern: Der Logger der Tour zeigt 4,1 Grad bis zur Übergabe, vor der Annahme standen die Steigen 50 Minuten in der Rampe.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Internal: the logger of the tour shows 4.1 degrees until handover, before acceptance the crates stood 50 minutes on the ramp.",
+        "ru": "Внутренне: логгер рейса показывает 4,1 градуса до передачи, перед приёмкой ящики 50 минут стояли на рампе.",
+        "kk": "Ішкі: рейс логгері тапсыруға дейін 4,1 градус көрсетті, қабылдау алдында жәшіктер 50 минут рампада тұрды."
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Kuehlkurve wird mit dem Messprotokoll der Charge abgeglichen.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "The cooling curve is being compared with the measurement log of the batch.",
+        "ru": "Кривая охлаждения сверяется с протоколом измерений партии.",
+        "kk": "Салқындату қисығы партияның өлшем хаттамасымен салыстырылуда."
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Kühlkette der Tour geprüft: Der Logger zeigte 4,1 Grad bis zur Übergabe, die Wartezeit vor der Annahme betrug 50 Minuten. Gutschrift für 6,5 kg erteilt.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Cold chain of the tour checked: the logger showed 4.1 degrees until handover, the waiting time before acceptance was 50 minutes. Credit note issued for 6.5 kg.",
+        "ru": "Холодовая цепь рейса проверена: логгер показывал 4,1 градуса до передачи, ожидание перед приёмкой составило 50 минут. Выдана кредит-нота на 6,5 кг.",
+        "kk": "Рейстің суық тізбегі тексерілді: логгер тапсыруға дейін 4,1 градус көрсетті, қабылдау алдындағы күту 50 минутты құрады. 6,5 кг үшін өтемақы берілді."
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Meldung eingegangen: Schalen beschädigt, rund ein Fünftel zerdrückt.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Report received: trays damaged, about one fifth crushed.",
+        "ru": "Сообщение получено: лотки повреждены, около пятой части раздавлено.",
+        "kk": "Хабарлама түсті: контейнерлер зақымданған, шамамен бестен бірі басылып қалған."
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Meldung eingegangen: Ware bei Annahme zu warm.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Report received: goods too warm on acceptance.",
+        "ru": "Сообщение получено: товар при приёмке слишком тёплый.",
+        "kk": "Хабарлама түсті: қабылдау кезінде тауар тым жылы."
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Reklamation gemeldet: Gelieferte Menge unter Bestellmenge",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Complaint reported: delivered quantity below ordered quantity",
+        "ru": "Рекламация заявлена: поставленное количество меньше заказанного",
+        "kk": "Шағым жарияланды: жеткізілген көлем тапсырыс көлемінен аз"
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Reklamation gemeldet: Kartons bei Anlieferung durchnaesst",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Complaint reported: cartons soaked on delivery",
+        "ru": "Рекламация заявлена: картоны при доставке промокли",
+        "kk": "Шағым жарияланды: жеткізу кезінде қораптар су болып қалған"
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Reklamation gemeldet: Ware bei Anlieferung zu warm",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Complaint reported: goods too warm on delivery",
+        "ru": "Рекламация заявлена: товар при доставке слишком тёплый",
+        "kk": "Шағым жарияланды: жеткізу кезінде тауар тым жылы"
+      }
+    },
+    {
+      "tabelle": "reklamation_ereignisse",
+      "feld": "text",
+      "original": "Temperaturkurve der Fahrt und Kühlkette der Charge werden geprüft.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "The temperature curve of the trip and the cold chain of the batch are being checked.",
+        "ru": "Проверяются температурная кривая рейса и холодовая цепь партии.",
+        "kk": "Рейстің температура қисығы мен партияның суық тізбегі тексерілуде."
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "beschreibung",
+      "original": "Beim Wareneingang zeigte die Schalenmitte 9 Grad, einzelne Schalen waren weich. Foto der Messung liegt der Meldung bei.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "At goods receipt the centre of the trays showed 9 degrees, some trays were soft. A photo of the measurement is attached to the report.",
+        "ru": "При приёмке товара в центре лотков было 9 градусов, отдельные лотки были мягкими. Фото замера приложено к сообщению.",
+        "kk": "Тауарды қабылдау кезінде контейнер ортасы 9 градус көрсетті, кейбір контейнерлер жұмсақ болды. Өлшемнің фотосы хабарламаға тіркелген."
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "beschreibung",
+      "original": "Drei Steigen mit eingedrückten Deckeln, rund ein Fünftel der Schalen zerdrückt.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Three crates with dented lids, about one fifth of the trays crushed.",
+        "ru": "Три ящика с помятыми крышками, около пятой части лотков раздавлено.",
+        "kk": "Үш жәшіктің қақпағы басылып қалған, контейнерлердің шамамен бестен бірі басылған."
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "beschreibung",
+      "original": "Kuehlkette laut Messprotokoll erst nach 72 Minuten erreicht (siehe audit_events kuehlkette.verstoss). Kunde meldet weiche, ueberreife Beeren bei Anlieferung.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Cold chain reached only after 72 minutes according to the measurement log (see audit_events kuehlkette.verstoss). Customer reports soft, overripe berries on delivery.",
+        "ru": "Холодовая цепь по протоколу измерений достигнута только через 72 минуты (см. audit_events kuehlkette.verstoss). Клиент сообщает о мягких, перезрелых ягодах при доставке.",
+        "kk": "Өлшем хаттамасы бойынша суық тізбекке тек 72 минуттан кейін қол жетті (қараңыз audit_events kuehlkette.verstoss). Клиент жеткізу кезінде жұмсақ, шамадан тыс піскен жидектер туралы хабарлады."
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "beschreibung",
+      "original": "Laut Lieferschein 49,5 kg angekuendigt, im Wareneingang wurden nur 46,0 kg gewogen.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "49.5 kg announced according to the delivery note, only 46.0 kg were weighed at goods receipt.",
+        "ru": "По накладной заявлено 49,5 кг, при приёмке взвешено только 46,0 кг.",
+        "kk": "Жүкқұжат бойынша 49,5 кг жарияланды, тауар қабылдауда тек 46,0 кг өлшенді."
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "beschreibung",
+      "original": "Zwei von acht Kartons waren an der Unterseite durchnaesst, Ware in diesen Kartons nicht mehr verkaufsfaehig.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Two of eight cartons were soaked on the underside, goods in these cartons no longer saleable.",
+        "ru": "Два из восьми картонов промокли снизу, товар в этих картонах больше не годен к продаже.",
+        "kk": "Сегіз қораптың екеуі төменгі жағынан су болып қалды, бұл қораптардағы тауар енді сатуға жарамсыз."
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "betreff",
+      "original": "Gelieferte Menge unter Bestellmenge",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Delivered quantity below ordered quantity",
+        "ru": "Поставленное количество меньше заказанного",
+        "kk": "Жеткізілген көлем тапсырыс көлемінен аз"
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "betreff",
+      "original": "Kartons bei Anlieferung durchnaesst",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Cartons soaked on delivery",
+        "ru": "Картоны при доставке промокли",
+        "kk": "Жеткізу кезінде қораптар су болып қалған"
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "betreff",
+      "original": "Schalen beschädigt",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Trays damaged",
+        "ru": "Лотки повреждены",
+        "kk": "Контейнерлер зақымданған"
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "betreff",
+      "original": "Ware bei Anlieferung zu warm",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Goods too warm on delivery",
+        "ru": "Товар при доставке слишком тёплый",
+        "kk": "Жеткізу кезінде тауар тым жылы"
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "betreff",
+      "original": "Ware bei Annahme zu warm",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Goods too warm on acceptance",
+        "ru": "Товар при приёмке слишком тёплый",
+        "kk": "Қабылдау кезінде тауар тым жылы"
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "loesung",
+      "original": "Gutschrift fuer zwei Kartons erteilt, Verpackungsvorgabe an die Logistik nachgeschaerft.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Credit note issued for two cartons, packaging specification tightened for logistics.",
+        "ru": "Выдана кредит-нота за два картона, требования к упаковке для логистики ужесточены.",
+        "kk": "Екі қорап үшін өтемақы берілді, логистикаға арналған қаптама талабы күшейтілді."
+      }
+    },
+    {
+      "tabelle": "reklamationen",
+      "feld": "loesung",
+      "original": "Kühlkette der Tour geprüft: Der Logger zeigte 4,1 Grad bis zur Übergabe, die Wartezeit vor der Annahme betrug 50 Minuten. Gutschrift für 6,5 kg erteilt.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Cold chain of the tour checked: the logger showed 4.1 degrees until handover, the waiting time before acceptance was 50 minutes. Credit note issued for 6.5 kg.",
+        "ru": "Холодовая цепь рейса проверена: логгер показывал 4,1 градуса до передачи, ожидание перед приёмкой составило 50 минут. Выдана кредит-нота на 6,5 кг.",
+        "kk": "Рейстің суық тізбегі тексерілді: логгер тапсыруға дейін 4,1 градус көрсетті, қабылдау алдындағы күту 50 минутты құрады. 6,5 кг үшін өтемақы берілді."
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Bestätigt. Die Temperaturkurve der Fahrt hängt am Lieferschein.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Confirmed. The temperature curve of the trip is attached to the delivery note.",
+        "ru": "Подтверждено. Температурная кривая рейса приложена к накладной.",
+        "kk": "Расталды. Рейстің температура қисығы жеткізу жүкқұжатына тіркелген."
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Danke. Bitte den Lieferschein mit der ЭСФ-Nummer mitgeben, damit die Buchhaltung ihn gleich verbuchen kann.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Thank you. Please include the delivery note with the ЭСФ number so that accounting can book it right away.",
+        "ru": "Спасибо. Пожалуйста, приложите накладную с номером ЭСФ, чтобы бухгалтерия могла сразу её провести.",
+        "kk": "Рақмет. Бухгалтерия бірден есепке алуы үшін ЭСФ нөмірі бар жеткізу жүкқұжатын қоса беріңіз."
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Guten Tag, das passt. Die Ernte läuft am Vortag, die Lieferung ist bis neun Uhr eingeplant.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Good day, that works. The harvest runs the day before, the delivery is scheduled by nine o'clock.",
+        "ru": "Добрый день, это подходит. Сбор идёт накануне, поставка запланирована до девяти часов.",
+        "kk": "Қайырлы күн, бұл жарайды. Жинау алдыңғы күні жүреді, жеткізу сағат тоғызға дейін жоспарланған."
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Guten Tag, wir brauchen 120 kg Polka zum angegebenen Termin, bitte bis neun Uhr an der Warenannahme. Schalen zu 125 g.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Good day, we need 120 kg of Polka on the stated date, please at goods receipt by nine o'clock. Trays of 125 g.",
+        "ru": "Добрый день, нам нужно 120 кг Польки к указанному сроку, просим доставить на приёмку товара до девяти часов. Лотки по 125 г.",
+        "kk": "Қайырлы күн, көрсетілген мерзімге 120 кг Полька керек, тауар қабылдауға сағат тоғызға дейін жеткізуіңізді сұраймыз. 125 г контейнерлер."
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Machen wir. Die ЭСФ wird am Liefertag ausgestellt.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Will do. The ЭСФ is issued on the day of delivery.",
+        "ru": "Сделаем. ЭСФ выписывается в день поставки.",
+        "kk": "Жасаймыз. ЭСФ жеткізу күні шығарылады."
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Storniert. Das Kontingent ist wieder frei.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Cancelled. The quota is available again.",
+        "ru": "Отменено. Квота снова свободна.",
+        "kk": "Бас тартылды. Квота қайтадан бос."
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Verstanden, die Menge ist im Kontingent frei. Welches Lieferfenster passt Ihnen?",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Understood, the quantity is available in the quota. Which delivery window suits you?",
+        "ru": "Понятно, объём свободен в квоте. Какое окно поставки вам подходит?",
+        "kk": "Түсінікті, көлем квотада бос. Сізге қандай жеткізу терезесі ыңғайлы?"
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Wir brauchen die Polana doch nicht, der Aktionstag wurde verschoben. Bitte stornieren.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "We do not need the Polana after all, the promotion day was postponed. Please cancel.",
+        "ru": "Полана нам всё-таки не нужна, акция перенесена. Пожалуйста, отмените.",
+        "kk": "Полана бізге керек емес болды, акция күні ауыстырылды. Бас тартуыңызды сұраймыз."
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Wir möchten 200 kg Polka abrufen, bitte gegen das Kontingent aus dem Rahmenvertrag buchen.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "We would like to call off 200 kg of Polka, please book it against the quota from the framework contract.",
+        "ru": "Мы хотим вызвать 200 кг Польки, просим провести по квоте из рамочного договора.",
+        "kk": "200 кг Полька шақыртқымыз келеді, жақтау шарттағы квота есебінен өткізуіңізді сұраймыз."
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Zwischen sieben und neun Uhr am Zentrallager, bitte mit Kühlnachweis.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Between seven and nine o'clock at the central warehouse, please with cooling proof.",
+        "ru": "С семи до девяти часов на центральном складе, пожалуйста, с подтверждением охлаждения.",
+        "kk": "Сағат жеттіден тоғызға дейін орталық қоймада, суыту дәлелімен бірге."
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Добрый день! Нужно 60 кг Поланы к четвергу, лучше в мелкой упаковке (125 г). Возможно ли?",
+      "originalSprache": "ru",
+      "uebersetzungen": {
+        "de": "Guten Tag! Wir brauchen 60 kg Polana bis Donnerstag, am liebsten in kleiner Verpackung (125 g). Ist das möglich?",
+        "en": "Good day! We need 60 kg of Polana by Thursday, preferably in small packaging (125 g). Is that possible?",
+        "kk": "Қайырлы күн! Бейсенбіге 60 кг Полана керек, шағын қаптамада (125 г) болса жақсы. Бұл мүмкін бе?"
+      }
+    },
+    {
+      "tabelle": "vorbestellung_nachrichten",
+      "feld": "text",
+      "original": "Здравствуйте! Проверяем объём по прогнозу сбора и ответим до конца завтрашнего дня.",
+      "originalSprache": "ru",
+      "uebersetzungen": {
+        "de": "Guten Tag! Wir prüfen die Menge anhand der Ernteprognose und antworten bis zum Ende des morgigen Tages.",
+        "en": "Hello! We are checking the volume against the harvest forecast and will reply by the end of tomorrow.",
+        "kk": "Сәлеметсіз бе! Көлемді жинау болжамы бойынша тексеріп жатырмыз, ертеңгі күннің соңына дейін жауап береміз."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_ist",
+      "feld": "notiz",
+      "original": "Eine Reklamation weniger als im Vormonat, zwei Abholfahrten gespart.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "One complaint fewer than in the previous month, two collection trips saved.",
+        "ru": "На одну рекламацию меньше, чем в прошлом месяце, сэкономлено два рейса вывоза.",
+        "kk": "Өткен айға қарағанда бір шағым аз, екі жинау рейсі үнемделді."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_ist",
+      "feld": "notiz",
+      "original": "Eingesparte Stunden bei Steigen-Erfassung und Lohnvorbereitung, von der Buchhaltung bestätigt.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Hours saved in crate recording and payroll preparation, confirmed by accounting.",
+        "ru": "Сэкономленные часы на учёте ящиков и подготовке расчёта зарплаты, подтверждено бухгалтерией.",
+        "kk": "Жәшіктерді есепке алу мен жалақы дайындауда үнемделген сағаттар, бухгалтерия растады."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_ist",
+      "feld": "notiz",
+      "original": "Erstmonat nach dem Start: Ausschuss laut Chargen, bewertet mit den Vollkosten.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "First month after the start: rejects according to the batches, valued at full cost.",
+        "ru": "Первый месяц после старта: брак по партиям, оценён по полной себестоимости.",
+        "kk": "Іске қосудан кейінгі алғашқы ай: партиялар бойынша жарамсыз өнім, толық өзіндік құн бойынша бағаланды."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Auditvorbereitung: Rückverfolgbarkeit und Nachweise auf Knopfdruck",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Audit preparation: traceability and evidence at the push of a button",
+        "ru": "Подготовка к аудиту: прослеживаемость и подтверждения одним нажатием",
+        "kk": "Аудитке дайындық: қадағалау мүмкіндігі және дәлелдер бір басумен"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Einrichtung, Datenübernahme und Anbindung der Portale (ЭСФ, ЕСУТД)",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Setup, data migration and connection of the portals (ЭСФ, ЕСУТД)",
+        "ru": "Настройка, перенос данных и подключение порталов (ЭСФ, ЕСУТД)",
+        "kk": "Баптау, деректерді көшіру және порталдарды қосу (ЭСФ, ЕСУТД)"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Ernte- und Haftpflichtversicherung, GlobalG.A.P., Gebühren und Genehmigungen",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Crop and liability insurance, GlobalG.A.P., fees and permits",
+        "ru": "Страхование урожая и ответственности, GlobalG.A.P., сборы и разрешения",
+        "kk": "Егін және жауапкершілікті сақтандыру, GlobalG.A.P., алымдар мен рұқсаттар"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Feldgeräte: 14 Tablets mit Scankopf und Schutzhüllen",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Field devices: 14 tablets with scan head and protective cases",
+        "ru": "Полевые устройства: 14 планшетов со сканером и защитными чехлами",
+        "kk": "Далалық құрылғылар: сканері мен қорғаныс қаптамалары бар 14 планшет"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Festes Personal: Betriebsleitung, Agronomie, Lager, Fahrer, Buchhaltung (14 Stellen)",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Permanent staff: operations management, agronomy, warehouse, drivers, accounting (14 positions)",
+        "ru": "Постоянный персонал: руководство производства, агрономия, склад, водители, бухгалтерия (14 штатных единиц)",
+        "kk": "Тұрақты қызметкерлер: өндіріс басшылығы, агрономия, қойма, жүргізушілер, бухгалтерия (14 орын)"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Geringerer Schwund vom Pflücken bis zum Kunden",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Lower shrinkage from picking to the customer",
+        "ru": "Меньшие потери от сбора до клиента",
+        "kk": "Теруден клиентке дейінгі ысырап азаяды"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Hosting und Datenbank (Vercel, Supabase)",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Hosting and database (Vercel, Supabase)",
+        "ru": "Хостинг и база данных (Vercel, Supabase)",
+        "kk": "Хостинг және дерекқор (Vercel, Supabase)"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Instandhaltung, Grundlast Strom und Abschreibung von Kühlhaus, Sortierhalle und Lager",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Maintenance, base-load electricity and depreciation of cold store, sorting hall and warehouse",
+        "ru": "Содержание, базовая нагрузка электроэнергии и амортизация холодильного склада, сортировочного цеха и склада",
+        "kk": "Тоңазытқыш қойманы, сұрыптау цехын және қойманы күтіп-ұстау, электр қуатының базалық жүктемесі және амортизация"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "KI-Assistent, Spracherkennung, Karten und Routing",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "AI assistant, speech recognition, maps and routing",
+        "ru": "ИИ-ассистент, распознавание речи, карты и маршрутизация",
+        "kk": "ЖИ-көмекші, сөйлеуді тану, карталар және маршруттау"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Leasing, Versicherung und feste Wartung der vier Kühlfahrzeuge und der Feldfahrzeuge",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Leasing, insurance and fixed maintenance of the four refrigerated vehicles and the field vehicles",
+        "ru": "Лизинг, страхование и постоянное обслуживание четырёх рефрижераторов и полевых машин",
+        "kk": "Төрт тоңазытқыш көлікті және далалық көліктерді лизингке алу, сақтандыру және тұрақты қызмет көрсету"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Pacht der Anbauflächen (50 ha) und Wassernutzung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Lease of the growing areas (50 ha) and water use",
+        "ru": "Аренда посевных площадей (50 га) и водопользование",
+        "kk": "Егістік алқаптарын (50 га) жалға алу және су пайдалану"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Plattform Damicon bis zur Abnahme (Festpreis)",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Damicon platform up to acceptance (fixed price)",
+        "ru": "Платформа Damicon до приёмки (фиксированная цена)",
+        "kk": "Damicon платформасы қабылдауға дейін (тіркелген баға)"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Schulung von Brigaden, Betriebsleitung und Büro in vier Sprachen",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Training of crews, operations management and office in four languages",
+        "ru": "Обучение бригад, руководства производства и офиса на четырёх языках",
+        "kk": "Бригадаларды, өндіріс басшылығын және кеңсені төрт тілде оқыту"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Steuer- und Rechtsberatung, Bank, Büro, Kommunikation",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Tax and legal advice, bank, office, communication",
+        "ru": "Налоговые и юридические консультации, банк, офис, связь",
+        "kk": "Салықтық және құқықтық кеңес, банк, кеңсе, байланыс"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Temperaturlogger und Gateways für Kühlhaus und Fahrzeuge",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Temperature loggers and gateways for cold store and vehicles",
+        "ru": "Температурные логгеры и шлюзы для холодильного склада и транспорта",
+        "kk": "Тоңазытқыш қойма мен көліктерге арналған температура логгерлері мен шлюздер"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Tropfbewässerung, Folientunnel und Pflanzen: Instandhaltung und Abschreibung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Drip irrigation, polytunnels and plants: maintenance and depreciation",
+        "ru": "Капельный полив, плёночные туннели и растения: содержание и амортизация",
+        "kk": "Тамшылатып суару, пленкалы туннельдер және өсімдіктер: күтіп-ұстау және амортизация"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Wartung und Support mit vier Stunden Reaktionszeit",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Maintenance and support with four hours response time",
+        "ru": "Обслуживание и поддержка со временем реакции четыре часа",
+        "kk": "Реакция уақыты төрт сағат болатын қызмет көрсету және қолдау"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Wegfall der Papier- und Excel-Erfassung (Steigen, Lohn, Berichte)",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "No more paper and Excel recording (crates, wages, reports)",
+        "ru": "Отказ от бумажного и Excel-учёта (ящики, зарплата, отчёты)",
+        "kk": "Қағаз бен Excel есебінен бас тарту (жәшіктер, жалақы, есептер)"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Weiterentwicklung, kontingentiert auf 60 Stunden im Jahr",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Further development, capped at 60 hours per year",
+        "ru": "Развитие, ограничено 60 часами в год",
+        "kk": "Әрі қарай дамыту, жылына 60 сағатпен шектелген"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "bezeichnung",
+      "original": "Weniger Reklamationen und Gutschriften, kürzere Abholfahrten, schnellere Fakturierung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Fewer complaints and credit notes, shorter collection trips, faster invoicing",
+        "ru": "Меньше рекламаций и кредит-нот, короче рейсы вывоза, быстрее выставление счетов",
+        "kk": "Шағымдар мен өтемақылар азаяды, жинау рейстері қысқарады, шот жылдамырақ шығарылады"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Anlagen",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Facilities",
+        "ru": "Сооружения и установки",
+        "kk": "Қондырғылар"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Dienste",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Services",
+        "ru": "Сервисы",
+        "kk": "Қызметтер"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Einrichtung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Setup",
+        "ru": "Настройка",
+        "kk": "Баптау"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Entwicklung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Development",
+        "ru": "Разработка",
+        "kk": "Әзірлеу"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Fahrzeuge",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Vehicles",
+        "ru": "Транспорт",
+        "kk": "Көліктер"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Gebäude und Kühlhaus",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Buildings and cold store",
+        "ru": "Здания и холодильный склад",
+        "kk": "Ғимараттар және тоңазытқыш қойма"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Hardware",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Hardware",
+        "ru": "Оборудование",
+        "kk": "Жабдық"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Hosting",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Hosting",
+        "ru": "Хостинг",
+        "kk": "Хостинг"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Pacht und Land",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Lease and land",
+        "ru": "Аренда и земля",
+        "kk": "Жалға алу және жер"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Personal",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Personnel",
+        "ru": "Персонал",
+        "kk": "Персонал"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Schulung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Training",
+        "ru": "Обучение",
+        "kk": "Оқыту"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Versicherung und Zertifikate",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Insurance and certificates",
+        "ru": "Страхование и сертификаты",
+        "kk": "Сақтандыру және сертификаттар"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Verwaltung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Administration",
+        "ru": "Управление",
+        "kk": "Әкімшілік"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Wartung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Maintenance",
+        "ru": "Обслуживание",
+        "kk": "Қызмет көрсету"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "kategorie",
+      "original": "Weiterentwicklung",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Further development",
+        "ru": "Развитие",
+        "kk": "Дамыту"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "notiz",
+      "original": "Festpreisangebot vom 24.06.2026, Abnahme zum Saisonstart.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Fixed-price offer of 24.06.2026, acceptance at the start of the season.",
+        "ru": "Предложение с фиксированной ценой от 24.06.2026, приёмка к началу сезона.",
+        "kk": "2026 жылғы 24 маусымдағы тіркелген бағалы ұсыныс, қабылдау маусым басына."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "notiz",
+      "original": "Fixer Anteil aus den Stromabrechnungen des Vorjahres, die Abschreibung nach Bilanz geschätzt.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Fixed share from last year's electricity bills, depreciation estimated from the balance sheet.",
+        "ru": "Постоянная доля по счетам за электроэнергию прошлого года, амортизация оценена по балансу.",
+        "kk": "Өткен жылғы электр қуаты шоттарындағы тұрақты үлес, амортизация баланс бойынша бағаланған."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "notiz",
+      "original": "Geschätzt aus dem Aufwand für Nachweisordner und Rückfragen von Handelsketten vor der Saison.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Estimated from the effort for evidence folders and enquiries from retail chains before the season.",
+        "ru": "Оценка по затратам на папки с подтверждающими документами и запросы торговых сетей перед сезоном.",
+        "kk": "Маусым алдындағы растама қапшықтары мен сауда желілерінің сұраулары бойынша шығындардан бағаланған."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "notiz",
+      "original": "Geschätzt aus den Stunden für Erfassung, Lohnvorbereitung und Berichte der Betriebsleitung, der Buchhaltung und der Vorarbeiter im Vorjahr.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Estimated from the hours spent on recording, payroll preparation and reports by operations management, accounting and foremen in the previous year.",
+        "ru": "Оценка по часам, затраченным в прошлом году на учёт, подготовку зарплаты и отчёты руководством производства, бухгалтерией и бригадирами.",
+        "kk": "Өткен жылы өндіріс басшылығы, бухгалтерия және бригадирлер есепке алуға, жалақы дайындауға және есептерге жұмсаған сағаттардан бағаланған."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "notiz",
+      "original": "Hochrechnung auf 350 t Jahresmenge: Verlustquote von 8,4 % (Baseline) auf 5,3 % (Chargen der Saison), bewertet mit 1.500 Tenge je kg. Das ergibt rund 31.700 EUR.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Projection to an annual quantity of 350 t: loss rate from 8.4 % (baseline) to 5.3 % (batches of the season), valued at 1,500 tenge per kg. This gives about 31,700 EUR.",
+        "ru": "Расчёт на годовой объём 350 т: доля потерь снижается с 8,4 % (базовый уровень) до 5,3 % (партии сезона), оценка по 1 500 тенге за кг. Это даёт около 31 700 EUR.",
+        "kk": "Жылдық 350 т көлемге есептеу: ысырап үлесі 8,4 %-дан (базалық деңгей) 5,3 %-ға дейін (маусым партиялары) төмендейді, келісі 1 500 теңгемен бағаланады. Бұл шамамен 31 700 EUR береді."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "notiz",
+      "original": "Lohnliste September 2026, hochgerechnet auf zwölf Monate. Saisonkräfte (Pflücker) stehen nicht hier, sie sind variable Kosten.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Payroll of September 2026, extrapolated to twelve months. Seasonal workers (pickers) are not included here, they are variable costs.",
+        "ru": "Ведомость зарплаты за сентябрь 2026, пересчитана на двенадцать месяцев. Сезонные работники (сборщики) здесь не учтены, это переменные затраты.",
+        "kk": "2026 жылғы қыркүйектегі жалақы тізімі, он екі айға есептелген. Маусымдық жұмысшылар (терушілер) мұнда жоқ, олар айнымалы шығындар."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "notiz",
+      "original": "Ohne die Kosten des Systems: sie stehen bei den laufenden Kosten des Systems.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Excluding the costs of the system: they are listed under the recurring costs of the system.",
+        "ru": "Без затрат на систему: они указаны в текущих затратах системы.",
+        "kk": "Жүйенің шығындарынсыз: олар жүйенің ағымдағы шығындарында көрсетілген."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "notiz",
+      "original": "Pachtverträge mit Laufzeit bis 2031.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Lease contracts running until 2031.",
+        "ru": "Договоры аренды со сроком до 2031 года.",
+        "kk": "2031 жылға дейін жарамды жалға алу шарттары."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_posten",
+      "feld": "notiz",
+      "original": "Sammelposten, weil die Vorgabe den Nutzen nicht aufteilt.",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Lump-sum item because the specification does not break the benefit down.",
+        "ru": "Сводная статья, потому что в исходных данных выгода не разбита.",
+        "kk": "Жиынтық бап, себебі бастапқы деректерде пайда бөлінбеген."
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_staende",
+      "feld": "bezeichnung",
+      "original": "Kennzahlenliste der Geschäftsführung vom 23.09.2026",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "Management's list of key figures of 23.09.2026",
+        "ru": "Перечень показателей руководства от 23.09.2026",
+        "kk": "Басшылықтың 2026 жылғы 23 қыркүйектегі көрсеткіштер тізімі"
+      }
+    },
+    {
+      "tabelle": "wirtschaftlichkeit_staende",
+      "feld": "bezeichnung",
+      "original": "Nach dem Septemberabschluss, mit Plan-Ist",
+      "originalSprache": "de",
+      "uebersetzungen": {
+        "en": "After the September close, with plan vs actual",
+        "ru": "После закрытия сентября, с планом и фактом",
+        "kk": "Қыркүйекті жапқаннан кейін, жоспар мен нақтылықпен"
+      }
+    }
+  ]
+}

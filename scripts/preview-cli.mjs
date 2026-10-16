@@ -15,7 +15,19 @@ export function zielAus(args) {
   return null;
 }
 
-export function cli(parameter) {
+/**
+ * Die Anmeldung der CLI an der Datenbank scheiterte, bevor irgendeine Anweisung lief. Die CLI legt für jeden Aufruf eine Anmelderolle (cli_login_postgres) mit
+ * neuem Kennwort an. Laufen zwei Workflows gleichzeitig gegen dasselbe Projekt (der Push auf main startet "Datenbank-Migration" und "Datenbank-Migration
+ * Preview" zugleich), setzt der eine das Kennwort des anderen zurück: "password authentication failed for user cli_login_postgres" (Lauf vom 16.10.2026
+ * nach dem Merge von #156). Nur dieser Fehler wird wiederholt: er tritt vor der Anweisung auf, ein zweiter Versuch kann nichts doppelt ausführen.
+ */
+export const ANMELDUNG_ABGELEHNT = /DbConfigConnectTempRoleError|password authentication failed for user "cli_login_postgres"/;
+
+function warte(sekunden) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, sekunden * 1000);
+}
+
+function einmal(parameter) {
   const pfad = process.env.SUPABASE_CLI || "supabase";
   const [prog, vorne] = pfad.endsWith(".js") ? [process.execPath, [pfad]] : [pfad, []];
   try {
@@ -27,6 +39,24 @@ export function cli(parameter) {
   } catch (e) {
     const meldung = `${e.stdout ?? ""}${e.stderr ?? ""}`.replace(/(Initialising login role|Connecting to [a-z ]+database)\.\.\.\s*/g, "").trim();
     throw new Error(meldung || e.message);
+  }
+}
+
+/**
+ * Ruft die Supabase-CLI auf. Eine abgelehnte Anmeldung (siehe ANMELDUNG_ABGELEHNT) wird bis zu viermal versucht, mit wachsender Pause (20, 40, 60 Sekunden);
+ * jeder andere Fehler gilt sofort. SUPABASE_CLI_VERSUCHE und SUPABASE_CLI_PAUSE (Sekunden) stellen das um, die Tests setzen sie klein.
+ */
+export function cli(parameter) {
+  const versuche = Number(process.env.SUPABASE_CLI_VERSUCHE ?? 4);
+  const pause = Number(process.env.SUPABASE_CLI_PAUSE ?? 20);
+  for (let versuch = 1; ; versuch++) {
+    try {
+      return einmal(parameter);
+    } catch (e) {
+      if (versuch >= versuche || !ANMELDUNG_ABGELEHNT.test(e.message)) throw e;
+      console.error(`Anmeldung an der Datenbank abgelehnt (Versuch ${versuch} von ${versuche}), vermutlich ein gleichzeitiger Lauf. Neuer Versuch in ${pause * versuch} Sekunden.`);
+      warte(pause * versuch);
+    }
   }
 }
 

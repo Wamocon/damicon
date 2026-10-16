@@ -2,7 +2,9 @@
 // die Planung aus scripts/preview-migrationen.mjs und das Lesen der CLI-Antwort (scripts/preview-cli.mjs).
 // Fast alles ist reine Logik ohne Datenbank; nur der Neuaufbau von public_preview laeuft gegen PGlite,
 // weil dort SQL ausgefuehrt wird, das Production-Objekte nicht anfassen darf.
-import { readdirSync, readFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { abschnitte, anweisungen, bucketsAus, neueMigrationPruefen, schemaUmbenennen, triggerFunktionenAus, umschreiben } from "../../scripts/preview-umschreiben.mjs";
 import * as abgleich from "../../scripts/preview-abgleich.mjs";
@@ -400,6 +402,62 @@ if ([neuAufbauPlan, abbauSql, datenKopierenSql].every((f) => typeof f === "funct
       (await k("select nextval(pg_get_serial_sequence('public_preview.kind', 'id'))::int as n"))[0]?.n === 2);
   check("Fund 68: Trigger laufen nach der Kopie wieder", (await k("show session_replication_role"))[0]?.session_replication_role === "origin");
   await kopie.close();
+}
+
+// Anmeldung der CLI abgelehnt (16.10.2026): der Push auf main startet zwei Workflows zugleich, beide legen die Anmelderolle cli_login_postgres neu an, und einer
+// scheitert mit "password authentication failed". Nur dieser Fehler wird wiederholt, jeder andere gilt sofort.
+{
+  const echteMeldung =
+    '{"_tag":"Error","error":{"code":"DbConfigConnectTempRoleError","message":"failed to connect as temp role: failed to connect to postgres: server error (FATAL: password authentication failed for user \\"cli_login_postgres\\" (SQLSTATE 28P01))"}}';
+  check("Anmeldung: die Meldung aus dem Lauf vom 16.10.2026 wird erkannt", previewCli.ANMELDUNG_ABGELEHNT.test(echteMeldung));
+  check(
+    "Anmeldung: andere Fehler werden nicht erkannt",
+    !previewCli.ANMELDUNG_ABGELEHNT.test('ERROR: syntax error at or near "selct"') && !previewCli.ANMELDUNG_ABGELEHNT.test('password authentication failed for user "postgres"'),
+  );
+
+  const ordner = mkdtempSync(join(tmpdir(), "falsche-cli-"));
+  const programm = join(ordner, "supabase.js");
+  writeFileSync(
+    programm,
+    [
+      'const fs = require("node:fs");',
+      "const datei = process.env.FALSCH_ZAEHLER;",
+      'const n = (fs.existsSync(datei) ? Number(fs.readFileSync(datei, "utf8")) : 0) + 1;',
+      "fs.writeFileSync(datei, String(n));",
+      "if (n <= Number(process.env.FALSCH_FEHLER_BIS)) { console.error(process.env.FALSCH_TEXT); process.exit(1); }",
+      'console.log("ok " + n);',
+    ].join("\n"),
+  );
+  const versuche = (fehlerBis, text, einstellung = {}) => {
+    const zaehler = join(ordner, `zaehler-${Math.random().toString(36).slice(2)}.txt`);
+    const vorher = { ...process.env };
+    Object.assign(process.env, { SUPABASE_CLI: programm, SUPABASE_CLI_PAUSE: "0", FALSCH_ZAEHLER: zaehler, FALSCH_FEHLER_BIS: String(fehlerBis), FALSCH_TEXT: text, ...einstellung });
+    const echteFehlerausgabe = console.error;
+    console.error = () => {};
+    let ergebnis;
+    try {
+      ergebnis = { aus: previewCli.cli(["db", "query"]), fehler: null };
+    } catch (e) {
+      ergebnis = { aus: null, fehler: e.message };
+    } finally {
+      console.error = echteFehlerausgabe;
+      for (const k of ["SUPABASE_CLI", "SUPABASE_CLI_PAUSE", "SUPABASE_CLI_VERSUCHE", "FALSCH_ZAEHLER", "FALSCH_FEHLER_BIS", "FALSCH_TEXT"]) {
+        if (vorher[k] === undefined) delete process.env[k];
+        else process.env[k] = vorher[k];
+      }
+    }
+    return { ...ergebnis, anzahl: Number(readFileSync(zaehler, "utf8")) };
+  };
+
+  const zweimalAbgelehnt = versuche(2, echteMeldung);
+  check("Anmeldung: zweimal abgelehnt, im dritten Versuch gelingt der Aufruf", zweimalAbgelehnt.fehler === null && zweimalAbgelehnt.aus?.trim() === "ok 3" && zweimalAbgelehnt.anzahl === 3, JSON.stringify(zweimalAbgelehnt));
+  const andererFehler = versuche(5, 'ERROR: relation "x" does not exist');
+  check("Anmeldung: ein anderer Fehler wird nicht wiederholt", andererFehler.anzahl === 1 && andererFehler.fehler?.includes("does not exist") === true, JSON.stringify(andererFehler));
+  const immerAbgelehnt = versuche(99, echteMeldung, { SUPABASE_CLI_VERSUCHE: "3" });
+  check("Anmeldung: nach der festgelegten Zahl von Versuchen gilt der Fehler", immerAbgelehnt.anzahl === 3 && immerAbgelehnt.fehler?.includes("password authentication failed") === true, JSON.stringify(immerAbgelehnt));
+  const gleichBeimErsten = versuche(0, "");
+  check("Anmeldung: gelingt der erste Versuch, gibt es keinen zweiten", gleichBeimErsten.anzahl === 1 && gleichBeimErsten.aus?.trim() === "ok 1");
+  rmSync(ordner, { recursive: true, force: true });
 }
 
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehlgeschlagen}   fehlgeschlagen: ${fehlgeschlagen}`);

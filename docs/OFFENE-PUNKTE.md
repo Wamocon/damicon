@@ -141,6 +141,38 @@ Jede Zeile war ein offener Punkt dieser Liste. Die Begründung steht in `docs/EN
 
 **Bewusst nicht gefüllt.** Lohn (die Cloud trägt September-Abrechnungen aus QA-Läufen, eine Neuberechnung würde sie verändern), Integrationen und ihre Warteschlange (alle abgeschaltet, ein Ereignis entsteht nur bei einem aktiven Webhook), Videos, Fotos und Dokumentdateien (brauchen Dateien).
 
+## Übersetzungen der Freitexte (16.10.2026)
+
+Texte in Zeilen (Bezeichnungen, Notizen, Betreffs, Nachrichten) standen nur in der Sprache, in der sie erfasst wurden, die Testdaten also nur auf Deutsch. Jetzt gibt es sie in Deutsch, Englisch, Russisch und Kasachisch.
+
+| Was | Wie |
+|---|---|
+| Wo die Übersetzungen stehen | In der Zeile selbst: Spalte `i18n` (jsonb) an 13 Tabellen, je Spalte und Sprache (`{"bezeichnung": {"en": "...", "ru": "...", "kk": "..."}}`). Das Original bleibt in der Spalte. Die Zeilensicherheit der Tabelle gilt damit auch für die Übersetzung. Migration `20261211010000`. |
+| Welche Tabellen und Spalten | Posten, Ist-Werte und Stände der Wirtschaftlichkeit, Journal (Kategorie, Beschreibung), Reklamationen und Verlauf, Nachrichten zu Vorbestellungen, Preislisten, Dokumente (Name, Bezug, Rechtsgrundlage), Abholrunden und Stopps, ЕСУТД-Meldungen. |
+| Anzeige | Die Oberfläche und die Dokumente (PDF) zeigen die Übersetzung der gewählten Sprache und fallen auf das Original zurück. Bearbeitungsformulare und die CSV-Datei für die Behörde zeigen immer das Original. |
+| Änderung des Originals | Ein Trigger nimmt die Übersetzung einer Spalte zurück, sobald sich ihr Original ändert. So steht nie ein alter Text in einer anderen Sprache. |
+| Datenschutz | Die Anonymisierung einer Nachricht entfernt auch ihre Übersetzungen. |
+| Test- und Beispieldaten | 196 Texte in 22 Spalten (Migration `20261211020000`, erzeugt aus `supabase/uebersetzungen/testdaten.json` mit `npm run db:uebersetzungen-erzeugen`). Die Quelle ist die JSON-Datei, die Migration wird nicht von Hand geändert. Namen, Codes und Nummern bleiben, wie sie sind. `npm run db:uebersetzungen-pruefen` prüft lokal, dass keine Zeile eine Übersetzung vermisst. |
+| Prüfung | `test:i18n-daten` (Hilfsfunktionen), `test:i18n-db` (Spalte, Größe, Trigger, Sichten, Rechte), `test:uebersetzungen` (Vollständigkeit, Schrift, Zahlen, Migration aktuell), dazu die Tests der betroffenen Lader. |
+
+**Offen:**
+
+* Die kasachischen Texte sind erstellt, aber noch nicht von einer Muttersprachlerin oder einem Muttersprachler geprüft. Die Datei `supabase/uebersetzungen/testdaten.json` ist dafür gedacht.
+* Neue Eingaben tragen keine Übersetzung, sie erscheinen in allen Sprachen im Original. Einen Eingabeweg dafür gibt es noch nicht (Vorschlag: ein Knopf "Übersetzen" an der Zeile, der den Text maschinell in die anderen Sprachen überträgt und als maschinell markiert; oder ein Bereich zum Pflegen von Hand). Das braucht eine Entscheidung zum Dienst (Kosten, Datenschutz, Weitergabe von Geschäftstexten).
+* Weitere Tabellen mit Freitext haben die Spalte noch nicht: Förderdossiers, Datenschutzvorfälle und Verarbeitungszwecke, Einwilligungen, Schulungsvideos (Titel), Kennzahlen-Baseline (Name), Lohnsätze (Notizen), Medienbelege (Hinweis), Integrationen (Name), Pflanzenschutzmittel (Wirkstoff). Die Spalte, der Trigger und die Anzeige lassen sich nach demselben Muster ergänzen.
+* Die globale Suche, die Werkzeuge des KI-Assistenten und die festgehaltenen Stände (soweit älter als diese Änderung) zeigen das Original. Ältere Stände holen die Übersetzung der Posten über die Id.
+
+## Preview-Läufe nach dem Merge von #156 (16.10.2026)
+
+Nach dem Merge von #156 scheiterten zwei Läufe auf `main`. Beide Ursachen liegen nicht in #156, sie traten erst auf, weil auf `main` zum ersten Mal seit Wochen wieder ein Stand ohne offene Pull Requests mit Migrationen entstand.
+
+| Befund | Ursache | Behebung |
+|---|---|---|
+| "Datenbank-Migration" oder "Datenbank-Migration Preview" bricht mit `password authentication failed for user "cli_login_postgres"` ab | Der Push auf `main` startet beide Workflows gleichzeitig. Die Supabase-CLI legt je Aufruf die Anmelderolle `cli_login_postgres` mit neuem Kennwort an, der zweite Lauf setzt das Kennwort des ersten zurück. Der Fehler tritt vor der ersten Anweisung auf. | `scripts/preview-cli.mjs` wiederholt den Aufruf bis zu viermal (Pause 20, 40, 60 Sekunden), aber nur bei genau diesem Fehler. Jeder andere Fehler gilt sofort. Einstellbar mit `SUPABASE_CLI_VERSUCHE` und `SUPABASE_CLI_PAUSE`. Der Production-Workflow `datenbank-migration.yml` ruft die CLI selbst auf und hat diese Wiederholung nicht (Vorschlag unten). |
+| Strukturabgleich von `public` und `public_preview` meldet einen Unterschied | `public_preview.wissen_suche` hat zusätzlich das Ausführungsrecht für `anon`, in `public` fehlt es. Die Migrationen entziehen es beide Male, wie das Recht in Preview blieb, ist nicht belegt (Vermutung: Standardrechte der Einrichtung als Kopie). | Migration `20261211005000_wissen_suche_anon_pgvector.sql` entzieht `anon` das Recht in beiden Schemas. In `public` ändert sich nichts. Funktion ist `security invoker`, `anon` sah über die Zeilensicherheit auch bisher nichts. |
+
+**Vorschlag, nicht umgesetzt:** Die gleiche Wiederholung in `datenbank-migration.yml` (dort ruft `supabase db push` die CLI direkt auf). Das ist der Workflow, der nach dem Merge die gemeinsame Datenbank ändert. Eine Änderung daran wird erst nach Freigabe gemacht. Bis dahin hilft es, einen gescheiterten Lauf mit "Re-run failed jobs" zu wiederholen: `supabase db push` überspringt bereits angewendete Migrationen.
+
 ## Was mit dem Zusammenführen live geht
 
 Die Migrationen `20261207000000` bis `20261208150000` laufen nach dem Merge automatisch auf der gemeinsamen Datenbank (`datenbank-migration.yml`). Im Pull Request laufen sie vorher auf `public_preview`. Alle 28 Dateien haben auf einer echten Postgres-17-Datenbank (lokaler Stack) gelaufen.

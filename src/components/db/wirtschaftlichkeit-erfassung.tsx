@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { kalendermonat, kalendertag } from "@/lib/format/datum";
 import { Link } from "@/i18n/navigation";
 import { Aufklapper, Card, DataTable, Section, StatusPill, textVerweisKlassen } from "@/components/ui/kit";
@@ -14,6 +14,7 @@ import {
 } from "@/components/db/wirtschaftlichkeit-formulare";
 import type { StandKopf } from "@/lib/data/wirtschaftlichkeit";
 import { einstellungWert } from "@/lib/data/einstellungen";
+import { uebersetzt, uebersetztOderNull, type I18nSpalte } from "@/lib/i18n-daten";
 import {
   SYSTEM_POSTEN_ARTEN,
   euroInTengeMit,
@@ -79,9 +80,12 @@ export interface Anzeige {
   zeitpunkt: (iso: string) => string;
   betrag: (p: { betrag: number; waehrung: string }) => string;
   kategorieText: (p: Posten | IstEintrag) => string;
+  /** Der Text einer Freitextspalte in der Sprache der Oberflaeche; ohne Uebersetzung das Original. */
+  text: (i18n: I18nSpalte | undefined, spalte: string, original: string) => string;
+  textOderNull: (i18n: I18nSpalte | undefined, spalte: string, original: string | null) => string | null;
 }
 
-export function anzeigeFuer(t: Uebersetzer, format: Format, annahmen: Annahmen): Anzeige {
+export function anzeigeFuer(t: Uebersetzer, format: Format, annahmen: Annahmen, sprache: string): Anzeige {
   const kategorieTexte: Record<string, string> = {
     schwund: t("kategorie.schwund"),
     handarbeit: t("kategorie.handarbeit"),
@@ -98,7 +102,10 @@ export function anzeigeFuer(t: Uebersetzer, format: Format, annahmen: Annahmen):
     monat: (iso) => kalendermonat(format, iso),
     zeitpunkt: (iso) => format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
     betrag: (p) => `${zahl(p.betrag)} ${p.waehrung}`,
-    kategorieText: (p) => (("art" in p ? p.art === "nutzen" : true) ? (kategorieTexte[p.kategorie] ?? p.kategorie) : p.kategorie),
+    // Die Kategorie des Nutzens ist ein Schluessel mit festen Texten, die der anderen Arten ist frei erfasst und hat Uebersetzungen.
+    kategorieText: (p) => (("art" in p ? p.art === "nutzen" : true) ? (kategorieTexte[p.kategorie] ?? p.kategorie) : uebersetzt(p.i18n, "kategorie", sprache, p.kategorie)),
+    text: (i18n, spalte, original) => uebersetzt(i18n, spalte, sprache, original),
+    textOderNull: (i18n, spalte, original) => uebersetztOderNull(i18n, spalte, sprache, original),
   };
 }
 
@@ -106,7 +113,7 @@ export function anzeigeFuer(t: Uebersetzer, format: Format, annahmen: Annahmen):
 
 /** Die Zeilen einer Art: eine Tabelle zum Lesen, sonst je Posten ein Aufklapper mit Formular. Auch für die Fixkosten des Betriebs. */
 export function PostenListe({ a, zeilen, lesend, heute, leerText }: { a: Anzeige; zeilen: Posten[]; lesend: boolean; heute: string; leerText: string }) {
-  const { t, tag, betrag, kategorieText } = a;
+  const { t, tag, betrag, kategorieText, text, textOderNull } = a;
   if (zeilen.length === 0) return <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">{leerText}</p>;
   if (lesend) {
     return (
@@ -115,8 +122,8 @@ export function PostenListe({ a, zeilen, lesend, heute, leerText }: { a: Anzeige
           <tr key={p.id}>
             <td className="px-3 py-2.5 text-muted-foreground">{kategorieText(p)}</td>
             <td className="px-3 py-2.5 font-semibold text-foreground">
-              {p.bezeichnung}
-              {p.notiz ? <span className="mt-0.5 block text-xs font-normal text-muted-foreground">{p.notiz}</span> : null}
+              {text(p.i18n, "bezeichnung", p.bezeichnung)}
+              {p.notiz ? <span className="mt-0.5 block text-xs font-normal text-muted-foreground">{textOderNull(p.i18n, "notiz", p.notiz)}</span> : null}
             </td>
             <td className="px-3 py-2.5 text-muted-foreground">{tag(p.datum)}</td>
             <td className="px-3 py-2.5 text-foreground">{betrag(p)}</td>
@@ -132,7 +139,7 @@ export function PostenListe({ a, zeilen, lesend, heute, leerText }: { a: Anzeige
     <div className="space-y-2">
       {zeilen.map((p) => (
         // Der Schluessel enthaelt den Stand der Zeile: nach dem Speichern baut sich das Formular mit den neuen Werten auf.
-        <Aufklapper key={`${p.id}-${p.betrag}-${p.bezeichnung}-${p.herkunft}-${p.datum}-${p.waehrung}-${p.kategorie}-${p.notiz}`} titel={`${p.bezeichnung} · ${betrag(p)}`} beschreibung={`${kategorieText(p)} · ${tag(p.datum)} · ${p.herkunft === "belegt" ? t("herkunft.belegt") : t("herkunft.geschaetzt")}`}>
+        <Aufklapper key={`${p.id}-${p.betrag}-${p.bezeichnung}-${p.herkunft}-${p.datum}-${p.waehrung}-${p.kategorie}-${p.notiz}`} titel={`${text(p.i18n, "bezeichnung", p.bezeichnung)} · ${betrag(p)}`} beschreibung={`${kategorieText(p)} · ${tag(p.datum)} · ${p.herkunft === "belegt" ? t("herkunft.belegt") : t("herkunft.geschaetzt")}`}>
           <div className="-m-4">
             <PostenFormular posten={p} heute={heute} />
           </div>
@@ -249,7 +256,7 @@ function PlanIstAnsicht({ a, planIst }: { a: Anzeige; planIst: PlanIst }) {
 }
 
 function IstEintraege({ a, ist, darfSchreiben }: { a: Anzeige; ist: IstEintrag[]; darfSchreiben: boolean }) {
-  const { t, monat, betrag, kategorieText } = a;
+  const { t, monat, betrag, kategorieText, textOderNull } = a;
   if (ist.length === 0) return null;
   return (
     <div className="mt-4">
@@ -260,7 +267,7 @@ function IstEintraege({ a, ist, darfSchreiben }: { a: Anzeige; ist: IstEintrag[]
             <td className="px-3 py-2.5 font-semibold text-foreground">{monat(e.monat)}</td>
             <td className="px-3 py-2.5 text-muted-foreground">{kategorieText(e)}</td>
             <td className="px-3 py-2.5 text-foreground">{betrag(e)}</td>
-            <td className="px-3 py-2.5 text-muted-foreground">{e.notiz ?? ""}</td>
+            <td className="px-3 py-2.5 text-muted-foreground">{textOderNull(e.i18n, "notiz", e.notiz) ?? ""}</td>
             {darfSchreiben ? (
               <td className="px-3 py-2.5">
                 <IstEntfernenKnopf id={e.id} />
@@ -276,7 +283,7 @@ function IstEintraege({ a, ist, darfSchreiben }: { a: Anzeige; ist: IstEintrag[]
 // --- Staende --------------------------------------------------------------------------------------------------------------
 
 function StaendeAnsicht({ a, pfad, staende, aktiverStand, darfSchreiben }: { a: Anzeige; pfad: string; staende: StandKopf[]; aktiverStand?: string; darfSchreiben: boolean }) {
-  const { t, zeitpunkt } = a;
+  const { t, zeitpunkt, text } = a;
   return (
     <div className="space-y-3">
       {aktiverStand ? (
@@ -291,7 +298,7 @@ function StaendeAnsicht({ a, pfad, staende, aktiverStand, darfSchreiben }: { a: 
           {staende.map((s) => (
             <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-xs">
               <span>
-                <span className="font-semibold text-foreground">{s.bezeichnung}</span>
+                <span className="font-semibold text-foreground">{text(s.i18n, "bezeichnung", s.bezeichnung)}</span>
                 <span className="ml-2 text-muted-foreground">{zeitpunkt(s.standAm)}</span>
               </span>
               {s.id === aktiverStand ? (
@@ -317,8 +324,8 @@ function StaendeAnsicht({ a, pfad, staende, aktiverStand, darfSchreiben }: { a: 
 }
 
 export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen, menge, staende, stand, planIst, aktiverStand, darfSchreiben, heute }: ErfassungsEingabe) {
-  const [t, format] = await Promise.all([getTranslations("wirtschaftlichkeitErfassung"), getFormatter()]);
-  const a = anzeigeFuer(t, format, annahmen);
+  const [t, format, locale] = await Promise.all([getTranslations("wirtschaftlichkeitErfassung"), getFormatter(), getLocale()]);
+  const a = anzeigeFuer(t, format, annahmen, locale);
   const zins = await zinsCheckFuer(a, stand);
 
   return (
