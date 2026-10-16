@@ -1,8 +1,9 @@
 -- Testdaten Behörden und Nachweise (Datenänderung, idempotent).
 --
 --   ЭСФ        Belege zu allen zugestellten Lieferungen ohne Beleg, nach Alter der Lieferung gestaffelt (Stichtag 16.10.2026):
---              ältere Lieferungen sind bestätigt, wenige ausgestellt, abgelehnt oder auf Papier geführt, drei bleiben als Entwurf
---              liegen und sind überfällig (Frist 15 Kalendertage). Jüngere Lieferungen haben einen Entwurf oder noch keinen Beleg.
+--              Lieferungen über 45 Tage sind bestätigt (selten auf Papier). Zwischen 16 und 45 Tagen sind sie meist bestätigt, wenige
+--              ausgestellt, abgelehnt oder auf Papier geführt, ein bis zwei bleiben als Entwurf liegen und sind überfällig (Frist 15
+--              Kalendertage). Jüngere Lieferungen haben einen Entwurf oder noch keinen Beleg.
 --   ЕСУТД      Ein Arbeitsvertrag je Pflücker (15). Zwölf sind gemeldet, drei offen (einer überfällig, zwei in Frist). Dazu eine gemeldete
 --              und eine offene Änderung (in Frist) sowie eine offene Beendigung, die überfällig ist.
 --   Förderung  Checkpunkte zu den Dossiers (Antragsformular bis Zahlungsbelege) mit Fristen.
@@ -51,6 +52,9 @@ with basis as (
 ), ziel as (
   select p.*,
          case
+           -- Was älter als 45 Tage ist, liegt nicht mehr offen herum: bestätigt, selten auf Papier.
+           when p.alter_tage > 45 then
+             case when p.u < 0.05 then 'papier' else 'bestaetigt' end
            when p.alter_tage > 15 then
              case when p.u < 0.03 then 'entwurf' when p.u < 0.07 then 'papier' when p.u < 0.11 then 'abgelehnt'
                   when p.u < 0.20 then 'ausgestellt' else 'bestaetigt' end
