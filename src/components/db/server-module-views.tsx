@@ -91,7 +91,7 @@ export function serverModulAnsicht(
         />
       );
     case "wirtschaftlichkeit":
-      return <WirtschaftlichkeitAnsicht pfad={kontext.pfad} standId={wert("stand")} />;
+      return <WirtschaftlichkeitAnsicht pfad={kontext.pfad} standId={wert("stand")} jahre={wert("jahre")} />;
     case "rotationsplan":
       return <RotationsplanAnsicht />;
     // Anforderung 2.13: Temperatursummen-Heuristik statt reinem

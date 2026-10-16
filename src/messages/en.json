@@ -757,11 +757,11 @@
       "todo": "Application templates and evidence checklists per grant programme. The first open question is which fields and documents gosagro.kz and qoldau.kz ask for per programme."
     },
     "wirtschaftlichkeit": {
-      "title": "Business case for the rollout",
-      "navTitle": "Business case",
-      "description": "Investment appraisal for the rollout from recorded items: payback period, return in year one and over three years, one-off and recurring cost, net present value. With assumptions, plan versus actual and saved snapshots.",
-      "summary": "Payback, return, one-off and recurring cost and net present value of the rollout, calculated from recorded items, with plan versus actual and snapshots.",
-      "todo": "The benefit counts as evidenced only once operations deliver actual figures. Until then it is shown as estimated."
+      "title": "Profitability of the operation",
+      "navTitle": "Profitability",
+      "description": "Revenue, cost and result of the operation over three to five years, with fixed costs, break-even and the assumptions behind them. Below it the investment appraisal of the system: payback, return and net present value.",
+      "summary": "Operating result over three to five years, break-even and fixed costs. Below it payback, return and net present value of the system.",
+      "todo": "The benefit of the system counts as evidenced only once operations deliver actual figures. Until then it is shown as estimated."
     },
     "sortenkatalog": {
       "title": "Variety and quota catalogue",
@@ -1026,7 +1026,8 @@
       "passwortGeaendert": "Password changed.",
       "dokumentVersion": "New version “{wert}” created.",
       "videoEntfernt": "Video file removed.",
-      "wiSchwundUebernommen": "The loss benefit was adopted as an item."
+      "wiSchwundUebernommen": "The loss benefit was adopted as an item.",
+      "biAnnahmenGespeichert": "Operating assumptions saved."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1203,7 +1204,13 @@
       "risikoGewichte": "At least one weight must be above zero.",
       "versionSchonErsetzt": "This proof already has a newer version. Please reload the page and renew the current version.",
       "versionRegel": "A new version has the same category as the one it replaces, and its predecessor can no longer be changed.",
-      "wiSchwundOffen": "No benefit can currently be derived from the operating data."
+      "wiSchwundOffen": "No benefit can currently be derived from the operating data.",
+      "biEingabe": "Please enter numbers only.",
+      "biPreis": "The selling price must be greater than 0 or left empty.",
+      "biKosten": "Variable cost must not be negative.",
+      "biMenge": "The annual volume must be greater than 0 or left empty.",
+      "biEntwicklung": "A yearly change lies between minus 50 and plus 100 percent.",
+      "biAbschreibung": "Depreciation runs over whole years, from 1 to 20."
     },
     "einladungen": {
       "erfolg": {
@@ -1575,9 +1582,8 @@
     "ohneErntetag": "no harvest day"
   },
   "wirtschaftlichkeitAnsicht": {
-    "eyebrow": "Investment appraisal",
-    "titel": "Is the rollout worth it?",
-    "lead": "What the step costs, when the money is back and what owning it costs, over three years.",
+    "titel": "Second: is the system worth it?",
+    "lead": "What the step costs, when the money is back and what owning it costs, over {jahre} years.",
     "modellPille": "Model calculation",
     "modellHinweis": "Model calculation dated {stichtag}. The figures come from the management's metric list, not from live operations. Anything estimated is marked on the tile.",
     "kursHinweis": "Converted at the National Bank of Kazakhstan rate of {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸.",
@@ -1618,10 +1624,10 @@
         "frage": "Is it worth anything at all?",
         "rechenweg": "Annual benefit less one-off and recurring cost, divided by both combined."
       },
-      "roiDreiJahre": {
-        "label": "Return over 3 years",
+      "roiHorizont": {
+        "label": "Return over {jahre} years",
         "frage": "Is it properly worth it?",
-        "rechenweg": "Three times the annual benefit less one-off and three times recurring cost, divided by the outlay."
+        "rechenweg": "Annual benefit times {jahre} less one-off cost and recurring cost times {jahre}, divided by the outlay."
       },
       "capex": {
         "label": "Cost to acceptance",
@@ -1636,9 +1642,9 @@
         "rechenwegErfasst": "Sum of the recorded operating items per year."
       },
       "tco": {
-        "label": "Total cost over 3 years",
+        "label": "Total cost over {jahre} years",
         "frage": "What does the comparison really cost?",
-        "rechenweg": "One-off cost plus three years of recurring cost, against any alternative."
+        "rechenweg": "One-off cost plus {jahre} years of recurring cost, against any alternative."
       },
       "vermiedeneKosten": {
         "label": "Avoided cost per year",
@@ -1649,7 +1655,7 @@
       "kapitalwert": {
         "label": "Net present value",
         "frage": "Does it hold up with the CFO?",
-        "rechenweg": "Present value of the benefit less the investment over three years, discounted monthly at {zins}."
+        "rechenweg": "Present value of the benefit less the investment over {jahre} years, discounted monthly at {zins}."
       },
       "kostenJeKilogramm": {
         "label": "Cost per kilogram",
@@ -5248,7 +5254,7 @@
       "lead": "One-off investment, recurring operating cost and expected benefit, per year. The figures above are calculated from these lines. If a whole type is missing, everything that depends on it stays open.",
       "art": {
         "investition": "Investment (one-off)",
-        "betrieb": "Operation (per year)",
+        "betrieb": "Recurring system cost (per year)",
         "nutzen": "Benefit (per year)"
       },
       "col": {
@@ -5811,5 +5817,151 @@
       "speicher": "Storage did not accept the file. Please try again.",
       "unbekannt": "The upload failed."
     }
+  },
+  "betriebsrechnung": {
+    "zeitraum": {
+      "label": "Period of the calculation",
+      "jahre": "{jahre} years"
+    },
+    "abschnitt": {
+      "titel": "The operation over the next {jahre} years",
+      "lead": "Year 1 is the twelve months from the start of live operation. Volume, price and cost of the first year are assumptions or come from operations, after that they change by a fixed rate per year."
+    },
+    "pille": {
+      "belegt": "Evidenced",
+      "geschaetzt": "Partly estimated",
+      "offen": "Inputs missing"
+    },
+    "hinweis": {
+      "belegt": "Every input of this calculation is evidenced.",
+      "geschaetzt": "The calculation rests on assumptions marked as estimated. The more of them operations can evidence, the more reliable the result.",
+      "offen": "Inputs for the calculation are still missing.",
+      "mitSystem": "The system is part of the calculation: its benefit, its recurring cost and its depreciation.",
+      "ohneSystem": "The system is not included yet because its items below are incomplete (investment, recurring cost and benefit)."
+    },
+    "fehlt": {
+      "titel": "Still missing for the calculation",
+      "menge": "Annual volume in the first year, under Operating assumptions",
+      "preis": "Selling price per kilogram, under Operating assumptions",
+      "variableKosten": "Variable cost per kilogram, under Operating assumptions",
+      "fixkosten": "Fixed costs of the operation, record them further down"
+    },
+    "kennzahl": {
+      "ergebnisErstesJahr": {
+        "label": "Result in year 1",
+        "frage": "What is left in the first year?",
+        "rechenweg": "Revenue minus variable cost minus fixed costs.",
+        "rechenwegMitSystem": "Revenue minus variable cost minus fixed costs, plus the benefit of the system minus its recurring cost and depreciation."
+      },
+      "ergebnisLetztesJahr": {
+        "label": "Result in year {jahr}",
+        "frage": "Where is the result heading?",
+        "rechenweg": "The same calculation with the values of year {jahr}, following the yearly rates of change."
+      },
+      "ergebnisSumme": {
+        "label": "Result over {jahre} years",
+        "frage": "What is left in total?",
+        "rechenweg": "The results of all {jahre} years together."
+      },
+      "umsatzrendite": {
+        "label": "Return on sales in year {jahr}",
+        "frage": "How much of every tenge of sales remains as result?",
+        "rechenweg": "Result divided by the revenue of the year."
+      },
+      "deckungsbeitrag": {
+        "label": "Contribution margin per kg",
+        "frage": "What does a kilogram bring after variable cost?",
+        "rechenweg": "Price minus variable cost per kilogram, in the first year."
+      },
+      "gewinnschwelle": {
+        "label": "Break-even in year 1",
+        "frage": "From which volume does the operation earn money?",
+        "rechenweg": "Fixed costs divided by the contribution margin per kilogram.",
+        "rechenwegMitSystem": "Fixed costs less the effect of the system, divided by the contribution margin per kilogram."
+      }
+    },
+    "gewinnschwelle": {
+      "gedeckt": "already covered",
+      "nie": "not reachable",
+      "puffer": "The planned volume may fall by {anteil} before a loss arises.",
+      "unterSchwelle": "The planned volume is {anteil} below break-even, a loss arises in the first year.",
+      "keinDeckungsbeitrag": "The contribution margin per kilogram is not positive."
+    },
+    "einheit": {
+      "tonnen": "t",
+      "kilogramm": "kg",
+      "millionen": "m"
+    },
+    "tabelle": {
+      "titel": "The calculation year by year",
+      "lead": "Amounts in millions of tenge, volume in tonnes, price in tenge per kilogram. Whatever is deducted is shown with a minus.",
+      "position": "Item",
+      "jahr": "Year {jahr}",
+      "zeile": {
+        "menge": "Volume (t)",
+        "preis": "Price (₸ per kg)",
+        "erloes": "Revenue",
+        "variableKosten": "Variable cost",
+        "deckungsbeitrag": "Contribution margin",
+        "fixkosten": "Fixed costs",
+        "betriebsergebnis": "Operating result",
+        "nutzen": "Benefit of the system",
+        "systemKosten": "Recurring cost of the system",
+        "abschreibung": "Depreciation of the system",
+        "ergebnis": "Result",
+        "kumuliert": "Result, cumulative"
+      }
+    },
+    "diagramm": {
+      "titel": "Revenue, cost and result per year",
+      "lead": "Cost here is all cost less the benefit of the system, so revenue minus cost gives the result.",
+      "leadOhneSystem": "Cost here is variable cost plus fixed costs, so revenue minus cost gives the result.",
+      "erloes": "Revenue",
+      "kosten": "Cost",
+      "ergebnis": "Result",
+      "jahr": "Year {jahr}"
+    },
+    "annahmen": {
+      "titel": "Operating assumptions",
+      "lead": "The values of the first year and the yearly development. Every value carries its origin: evidenced when it comes from operations, otherwise estimated.",
+      "menge": "Annual volume in year 1",
+      "preis": "Selling price per kg in year 1",
+      "kosten": "Variable cost per kg in year 1",
+      "mengeEntwicklung": "Volume change per year",
+      "preisEntwicklung": "Price change per year",
+      "kostenEntwicklung": "Change of variable cost per year",
+      "fixkostenEntwicklung": "Change of fixed costs per year",
+      "abschreibung": "Depreciation of the system",
+      "abschreibungWert": "{jahre} years, straight line",
+      "nichtGesetzt": "not set",
+      "ohneVeraenderung": "calculated without change",
+      "journal": "From the ledger of the last twelve months: price {preis} ₸ per kg, variable cost {kosten} ₸ per kg, contribution margin {deckungsbeitrag} ₸ per kg, with {menge} kg harvested and {buchungen} entries. Only booked cost counts: whatever is not in the ledger is missing here too.",
+      "journalLeer": "The ledger of the last twelve months gives no comparison value, because revenue or harvest volume is missing.",
+      "aendern": "Change operating assumptions",
+      "form": {
+        "menge": "Annual volume in the first year (kg)",
+        "mengeHinweis": "The same number as the annual volume in the assumptions of the system.",
+        "preis": "Selling price per kg in the first year (₸)",
+        "kosten": "Variable cost per kg in the first year (₸)",
+        "mengeProzent": "Volume change per year (%)",
+        "preisProzent": "Price change per year (%)",
+        "kostenProzent": "Change of variable cost per year (%)",
+        "fixkostenProzent": "Change of fixed costs per year (%)",
+        "entwicklungHinweis": "5 means five percent more than the year before, minus is a decline. Empty counts as no change.",
+        "abschreibung": "Depreciation of the system (years)",
+        "abschreibungHinweis": "The investment is written off evenly over these years. Empty means five years.",
+        "herkunft": "Origin"
+      }
+    },
+    "fixkosten": {
+      "titel": "Fixed costs of the operation",
+      "lead": "Cost that does not depend on the harvest volume: permanent staff, land lease, vehicles, insurance and administration. Amounts per year, in euro, tenge or rouble.",
+      "summe": "Total per year: {betrag}",
+      "leer": "No fixed costs recorded yet. Without them the result cannot be calculated.",
+      "neu": "Record fixed costs",
+      "kategorieBeispiel": "for example staff"
+    },
+    "nurLesen": "View only: administration, CEO and accounting can record entries.",
+    "standHinweis": "A saved snapshot holds only the calculation of the system. The operating calculation always uses the current figures, so it is not shown here. Open the current view to see it."
   }
 }

@@ -4182,6 +4182,13 @@ export type Database = {
           kurs_stichtag: string
           nutzenbeginn_wochen_bis: number | null
           nutzenbeginn_wochen_von: number | null
+          plan_abschreibung_jahre: number | null
+          plan_fixkosten_entwicklung: number | null
+          plan_kosten_entwicklung: number | null
+          plan_menge_entwicklung: number | null
+          plan_preis_entwicklung: number | null
+          plan_preis_tenge_kg: number | null
+          plan_variable_kosten_tenge_kg: number | null
           updated_at: string
           vermarktete_menge_kg: number | null
           vollkosten_vorher_tenge: number | null
@@ -4197,6 +4204,13 @@ export type Database = {
           kurs_stichtag: string
           nutzenbeginn_wochen_bis?: number | null
           nutzenbeginn_wochen_von?: number | null
+          plan_abschreibung_jahre?: number | null
+          plan_fixkosten_entwicklung?: number | null
+          plan_kosten_entwicklung?: number | null
+          plan_menge_entwicklung?: number | null
+          plan_preis_entwicklung?: number | null
+          plan_preis_tenge_kg?: number | null
+          plan_variable_kosten_tenge_kg?: number | null
           updated_at?: string
           vermarktete_menge_kg?: number | null
           vollkosten_vorher_tenge?: number | null
@@ -4212,6 +4226,13 @@ export type Database = {
           kurs_stichtag?: string
           nutzenbeginn_wochen_bis?: number | null
           nutzenbeginn_wochen_von?: number | null
+          plan_abschreibung_jahre?: number | null
+          plan_fixkosten_entwicklung?: number | null
+          plan_kosten_entwicklung?: number | null
+          plan_menge_entwicklung?: number | null
+          plan_preis_entwicklung?: number | null
+          plan_preis_tenge_kg?: number | null
+          plan_variable_kosten_tenge_kg?: number | null
           updated_at?: string
           vermarktete_menge_kg?: number | null
           vollkosten_vorher_tenge?: number | null
@@ -5057,6 +5078,17 @@ export type Database = {
       benachrichtigungen_erzeugen: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      betrieb_ist_zwoelf_monate: {
+        Args: never
+        Returns: {
+          bis: string
+          buchungen: number
+          erloes_tenge: number
+          kosten_tenge: number
+          menge_kg: number
+          von: string
+        }[]
       }
       schwund_herleitung: {
         Args: { p_stichtag?: string }

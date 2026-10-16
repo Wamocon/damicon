@@ -32,8 +32,10 @@ import { istGueltigerTag } from "@/lib/listen/zeitraum";
 // Fehlt eine ganze Art von Posten, ist alles, was davon abhaengt, "offen": eine Null waere eine Aussage, die niemand
 // gemacht hat. Gerechnet wird in Euro, wie die Vorgabe, angezeigt in Tenge und Rubel zum Kurs des Standes.
 
-export const POSTEN_ARTEN = ["investition", "betrieb", "nutzen"] as const;
+export const POSTEN_ARTEN = ["investition", "betrieb", "nutzen", "fixkosten"] as const;
 export type PostenArt = (typeof POSTEN_ARTEN)[number];
+/** Die Arten der Rechnung des Systems. Die Fixkosten gehoeren zur Betriebsrechnung (lib/domain/betriebsrechnung.ts) und gehen in keine Kennzahl des Systems ein. */
+export const SYSTEM_POSTEN_ARTEN = ["investition", "betrieb", "nutzen"] as const satisfies readonly PostenArt[];
 
 export const NUTZEN_KATEGORIEN = ["schwund", "handarbeit", "audit", "sonstiges"] as const;
 export type NutzenKategorie = (typeof NUTZEN_KATEGORIEN)[number];
@@ -69,6 +71,12 @@ export function inEuro(betrag: number, waehrung: Waehrung, k: Kurse): number {
   if (waehrung === "EUR") return betrag;
   if (waehrung === "KZT") return betrag / k.eurTenge;
   return (betrag * k.rubTenge) / k.eurTenge;
+}
+
+/** Betrag in Tenge, ungerundet: 1 EUR und 1 RUB zum Kurs des Standes, Tenge bleibt wie es ist. */
+export function inTenge(betrag: number, waehrung: Waehrung, k: Kurse): number {
+  if (waehrung === "KZT") return betrag;
+  return waehrung === "EUR" ? betrag * k.eurTenge : betrag * k.rubTenge;
 }
 
 export const euroInTengeMit = (euro: number, k: Kurse): number => Math.round(euro * k.eurTenge);
@@ -208,9 +216,20 @@ export function summiere(posten: readonly Posten[], art: PostenArt, k: Kurse): {
   };
 }
 
+/** Summe einer Art in Tenge (ungerundet) und ihre Herkunft. Ohne Zeile: null und offen. */
+export function summiereTenge(posten: readonly Posten[], art: PostenArt, k: Kurse): { summe: number | null; herkunft: Herkunft } {
+  const zeilen = posten.filter((p) => p.art === art);
+  if (zeilen.length === 0) return { summe: null, herkunft: "offen" };
+  return {
+    summe: zeilen.reduce((s, p) => s + inTenge(p.betrag, p.waehrung, k), 0),
+    herkunft: zeilen.some((p) => p.herkunft === "geschaetzt") ? "geschaetzt" : "belegt",
+  };
+}
+
 const ann = (a: Annahmen, s: AnnahmeSchluessel): Herkunft => a.herkunft[s] ?? "geschaetzt";
 
-export function rechneStand(posten: readonly Posten[], a: Annahmen, menge: MengeAbgeleitet | null): Rechenstand {
+/** horizontJahre: die Jahre der Renditen, des TCO und des Kapitalwerts (drei bis fuenf; die Vorgabe der Geschaeftsfuehrung rechnet mit drei). */
+export function rechneStand(posten: readonly Posten[], a: Annahmen, menge: MengeAbgeleitet | null, horizontJahre: number = HORIZONT_JAHRE): Rechenstand {
   const capex = summiere(posten, "investition", a.kurse);
   const opex = summiere(posten, "betrieb", a.kurse);
   const nutzen = summiere(posten, "nutzen", a.kurse);
@@ -230,9 +249,9 @@ export function rechneStand(posten: readonly Posten[], a: Annahmen, menge: Menge
   const kennzahlen: Rechenstand["kennzahlen"] = {
     amortisationMonate: alle3 ? amortisationMonate(c, o, n) : null,
     roiJahr1: alle3 ? roi(1, c, o, n) : null,
-    roiHorizont: alle3 ? roi(HORIZONT_JAHRE, c, o, n) : null,
-    tcoHorizont: beide ? tco(HORIZONT_JAHRE, c, o) : null,
-    kapitalwert: alle3 ? kapitalwert(HORIZONT_JAHRE * 12, c, o, n, a.kalkulationszins) : null,
+    roiHorizont: alle3 ? roi(horizontJahre, c, o, n) : null,
+    tcoHorizont: beide ? tco(horizontJahre, c, o) : null,
+    kapitalwert: alle3 ? kapitalwert(horizontJahre * 12, c, o, n, a.kalkulationszins) : null,
     ersparnisJeKgTenge: ersparnis,
     kostenJeKgNachherTenge: ersparnis !== null && a.vollkostenVorherTenge !== null ? a.vollkostenVorherTenge - ersparnis : null,
   };
@@ -242,7 +261,7 @@ export function rechneStand(posten: readonly Posten[], a: Annahmen, menge: Menge
   const herkunft: Record<Kennzahlschluessel, Herkunft> = {
     amortisation: aus(kennzahlen.amortisationMonate, dreiArten),
     roiJahr1: aus(kennzahlen.roiJahr1, dreiArten),
-    roiDreiJahre: aus(kennzahlen.roiHorizont, dreiArten),
+    roiHorizont: aus(kennzahlen.roiHorizont, dreiArten),
     capex: capex.herkunft,
     opex: opex.herkunft,
     tco: aus(kennzahlen.tcoHorizont, schwaechste(capex.herkunft, opex.herkunft)),
@@ -260,10 +279,10 @@ export function rechneStand(posten: readonly Posten[], a: Annahmen, menge: Menge
  * stark das Ergebnis am Kalkulationszins haengt, den niemand vorgegeben hat. Ohne Posten in allen drei Arten (offen) gibt es keine Werte.
  * zinsen: Jahreszinsen als Anteil (0,2 fuer 20 Prozent).
  */
-export function kapitalwertBeiZinsen(stand: Pick<Rechenstand, "capexEur" | "opexEur" | "nutzenEur">, zinsen: readonly number[]): (number | null)[] {
+export function kapitalwertBeiZinsen(stand: Pick<Rechenstand, "capexEur" | "opexEur" | "nutzenEur">, zinsen: readonly number[], horizontJahre: number = HORIZONT_JAHRE): (number | null)[] {
   const { capexEur: c, opexEur: o, nutzenEur: n } = stand;
   if (c === null || o === null || n === null) return zinsen.map(() => null);
-  return zinsen.map((z) => kapitalwert(HORIZONT_JAHRE * 12, c, o, n, z));
+  return zinsen.map((z) => kapitalwert(horizontJahre * 12, c, o, n, z));
 }
 
 // --- Plan-Ist ----------------------------------------------------------------------------------------------------------------------
@@ -359,8 +378,8 @@ export function barwertIstPunkte(zeilen: readonly PlanIstZeile[], capexEur: numb
 }
 
 /** Die Plankurve des Kapitalwerts, falls ein vollstaendiger Rechenstand vorliegt. */
-export function planBarwert(s: Rechenstand, a: Annahmen): Monatspunkt[] | null {
-  return s.capexEur !== null && s.opexEur !== null && s.nutzenEur !== null ? barwertReihe(HORIZONT_JAHRE * 12, s.capexEur, s.opexEur, s.nutzenEur, a.kalkulationszins) : null;
+export function planBarwert(s: Rechenstand, a: Annahmen, horizontJahre: number = HORIZONT_JAHRE): Monatspunkt[] | null {
+  return s.capexEur !== null && s.opexEur !== null && s.nutzenEur !== null ? barwertReihe(horizontJahre * 12, s.capexEur, s.opexEur, s.nutzenEur, a.kalkulationszins) : null;
 }
 
 // --- Stand (Momentaufnahme) ----------------------------------------------------------------------------------------------------------

@@ -182,7 +182,7 @@ pruefe(
 );
 pruefe(
   "die vorgegebenen Kennzahlen sind als belegt markiert",
-  ["amortisation", "roiJahr1", "roiDreiJahre", "capex", "opex", "tco", "nutzenbeginn"].map(
+  ["amortisation", "roiJahr1", "roiHorizont", "capex", "opex", "tco", "nutzenbeginn"].map(
     (k) => kennzahlHerkunft[k as keyof typeof kennzahlHerkunft],
   ),
   ["belegt", "belegt", "belegt", "belegt", "belegt", "belegt", "belegt"],

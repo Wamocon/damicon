@@ -322,12 +322,16 @@ export const en: HandbuchTexte = {
       },
       {
         id: "wirtschaftlichkeit",
-        titel: "Maintain the business case of the rollout",
+        titel: "Maintain the profitability of the operation",
         einleitung:
-          "The page calculates from items that are recorded. What is not recorded stays open instead of appearing as zero.",
+          "The page first calculates what the operation earns: revenue, cost and result over three to five years. Below it follows the calculation of whether the system is worth it. What is not recorded stays open instead of appearing as zero.",
         schritte: [
-          "Open Office → Business case. On an empty page choose \"Take over model values\" to start with the values of the metric list of 23 September 2026: investment and recurring cost as evidenced, the annual benefit as estimated.",
-          "Under \"Items of the calculation\" open \"Record an item\": type (investment one-off, operation per year, benefit per year), category, description, amount, currency (euro, tenge, ruble), date and whether the amount is evidenced or estimated. Every line can be changed and removed.",
+          "Open Office → Profitability. At the top you choose the period of the calculation: 3, 4 or 5 years. It applies to the operation and to the calculation of the system below.",
+          "Under \"Operating assumptions\" open \"Change operating assumptions\" and enter, for the first year, the annual quantity, the selling price per kg and the variable cost per kg, then the yearly change of quantity, price, variable cost and fixed cost in percent and the years over which the system is depreciated. Every value carries its origin: evidenced or estimated. The note below shows price and cost per kg from the financial journal of the last twelve months for comparison.",
+          "Under \"Fixed costs of the operation\" open \"Record fixed costs\": costs that do not depend on the harvest quantity (permanent staff, lease, vehicles, insurance, administration), per year in euro, tenge or ruble, with origin. Every line can be changed and removed.",
+          "If something is missing for the calculation, the page lists it. With all inputs in place it shows six metrics (result in the first and in the last year, result over the whole period, return on sales, contribution margin per kg, break-even), a chart and the calculation year by year. The system is included with its benefit, recurring cost and depreciation as soon as all three are recorded.",
+          "Under \"Second: is the system worth it?\" the calculation of the system follows. On an empty page choose \"Take over model values\" to start with the values of the metric list of 23 September 2026: investment and recurring system cost as evidenced, the annual benefit as estimated.",
+          "Under \"Items of the calculation\" open \"Record an item\": type (investment one-off, recurring system cost per year, benefit per year), category, description, amount, currency (euro, tenge, ruble), date and whether the amount is evidenced or estimated. Every line can be changed and removed.",
           "Under \"Assumptions\" set the discount rate, the exchange rate with date and source, the full cost per kg, the annual quantity and the first month of live operation. The annual quantity comes from the deliveries as soon as they cover a full year.",
           "Under \"Plan and actual\" record the cost that was actually avoided per month. It is set against the plan and shown as points on the curves.",
           "\"Save the current state\" freezes the calculation with items, assumptions and exchange rate. A snapshot never changes again, a later rate does not affect it. \"As document (PDF)\" outputs the calculation in the Damicon layout.",

@@ -22,8 +22,6 @@ import {
   type Diagrammtexte,
 } from "@/components/db/wirtschaftlichkeit-diagramme";
 import {
-  HORIZONT_JAHRE,
-  HORIZONT_MONATE,
   barwertReihe,
   roiReihe,
   tcoBausteine,
@@ -39,31 +37,21 @@ import {
   type Rechenstand,
 } from "@/lib/domain/wirtschaftlichkeit-erfassung";
 import type { Tone } from "@/components/ui/kit";
+import type { Kachelfelder } from "@/components/db/kennzahl-karte";
 
 export type Diagrammart =
   | "roiJahr1"
-  | "roiDreiJahre"
+  | "roiHorizont"
   | "tcoCapex"
   | "tcoOpex"
   | "barwert"
   | "kostenJeKilogramm"
   | "keines";
 
-export interface Kachel {
+export interface Kachel extends Kachelfelder {
   /** Zugleich der Schluessel der Herkunft in Rechenstand - ein Tippfehler faellt beim Typecheck auf. */
   schluessel: Kennzahlschluessel;
-  /** Kurzer Name der Kennzahl. */
-  label: string;
-  /** Die Frage, die sie beantwortet - aus der Vorgabe der Geschaeftsfuehrung. */
-  frage: string;
-  /** Fertig formatierter Hauptwert: Tenge, Prozent, Monate oder Wochen; "offen", wenn die Angaben fehlen. */
-  wert: string;
-  /** Derselbe Betrag in Rubel, ohne Klammern. Nur bei Geldbetraegen gesetzt. */
-  klammer?: string;
-  /** Genauer Wert fuer das title-Attribut, wenn der Hauptwert gekuerzt ist. */
-  genau?: string;
   rechenweg: string;
-  herkunft: Herkunft;
   diagramm: Diagrammart;
 }
 
@@ -74,6 +62,8 @@ export type Rechenquelle = "modell" | "erfasst" | "stand";
 export interface Rechnung {
   stand: Rechenstand;
   annahmen: Annahmen;
+  /** Jahre des Horizonts der Rechnung (drei bis fuenf): wie lang Rendite, Gesamtkosten und Kapitalwert laufen. */
+  jahre: number;
   /** ROI und Kapitalwert der erfassten Ist-Werte auf der Achse der Plankurven; null ohne Ist-Werte. */
   istPunkte: { roi: Monatspunkt[]; barwert: Monatspunkt[] } | null;
 }
@@ -129,6 +119,8 @@ interface Formate {
   annahmen: Annahmen;
   kurse: Annahmen["kurse"];
   modellrechnung: boolean;
+  /** Jahre des Horizonts; steht in den Namen und Rechenwegen der Horizont-Kennzahlen. */
+  jahre: number;
   anteil: (wert: number) => string;
   genau: (n: number) => string;
   geld: (euro: number | null) => Pick<Kachelentwurf, "wert" | "klammer" | "genau">;
@@ -138,7 +130,7 @@ interface Formate {
 
 /** Die sechs eingerahmten Kennzahlen, je mit Diagramm. */
 function fokusKacheln(f: Formate): Kachel[] {
-  const { t, stand, annahmen, kurse, modellrechnung, anteil, genau, geld, prozent, mitHerkunft } = f;
+  const { t, stand, annahmen, kurse, modellrechnung, jahre, anteil, genau, geld, prozent, mitHerkunft } = f;
   const k = stand.kennzahlen;
   return mitHerkunft([
     {
@@ -150,12 +142,12 @@ function fokusKacheln(f: Formate): Kachel[] {
       diagramm: k.roiJahr1 === null ? "keines" : "roiJahr1",
     },
     {
-      schluessel: "roiDreiJahre",
-      label: t("kennzahl.roiDreiJahre.label"),
-      frage: t("kennzahl.roiDreiJahre.frage"),
+      schluessel: "roiHorizont",
+      label: t("kennzahl.roiHorizont.label", { jahre }),
+      frage: t("kennzahl.roiHorizont.frage"),
       wert: prozent(k.roiHorizont),
-      rechenweg: t("kennzahl.roiDreiJahre.rechenweg"),
-      diagramm: k.roiHorizont === null ? "keines" : "roiDreiJahre",
+      rechenweg: t("kennzahl.roiHorizont.rechenweg", { jahre }),
+      diagramm: k.roiHorizont === null ? "keines" : "roiHorizont",
     },
     {
       schluessel: "capex",
@@ -178,7 +170,7 @@ function fokusKacheln(f: Formate): Kachel[] {
       label: t("kennzahl.kapitalwert.label"),
       frage: t("kennzahl.kapitalwert.frage"),
       ...geld(k.kapitalwert),
-      rechenweg: t("kennzahl.kapitalwert.rechenweg", { zins: anteil(annahmen.kalkulationszins) }),
+      rechenweg: t("kennzahl.kapitalwert.rechenweg", { zins: anteil(annahmen.kalkulationszins), jahre }),
       diagramm: k.kapitalwert === null ? "keines" : "barwert",
     },
     {
@@ -205,7 +197,7 @@ function fokusKacheln(f: Formate): Kachel[] {
 
 /** Die vier kleineren Kennzahlen im Aufklapper, ohne Diagramm. */
 function weitereKacheln(f: Formate): Kachel[] {
-  const { t, stand, annahmen, modellrechnung, geld, mitHerkunft } = f;
+  const { t, stand, annahmen, modellrechnung, jahre, geld, mitHerkunft } = f;
   const k = stand.kennzahlen;
   return mitHerkunft([
     {
@@ -218,10 +210,10 @@ function weitereKacheln(f: Formate): Kachel[] {
     },
     {
       schluessel: "tco",
-      label: t("kennzahl.tco.label"),
+      label: t("kennzahl.tco.label", { jahre }),
       frage: t("kennzahl.tco.frage"),
       ...geld(k.tcoHorizont),
-      rechenweg: t("kennzahl.tco.rechenweg"),
+      rechenweg: t("kennzahl.tco.rechenweg", { jahre }),
       diagramm: "keines",
     },
     {
@@ -273,7 +265,7 @@ export async function baueModell(
   const prozent = (wert: number | null): string => (wert === null ? t("offen") : anteil(wert));
   const mitHerkunft = (entwuerfe: Kachelentwurf[]): Kachel[] => entwuerfe.map((e) => ({ ...e, herkunft: stand.herkunft[e.schluessel] }));
 
-  const formate: Formate = { t, stand, annahmen, kurse, modellrechnung, anteil, genau, geld, prozent, mitHerkunft };
+  const formate: Formate = { t, stand, annahmen, kurse, modellrechnung, jahre: rechnung.jahre, anteil, genau, geld, prozent, mitHerkunft };
   const fokus = fokusKacheln(formate);
   const weitere = weitereKacheln(formate);
 
@@ -305,7 +297,8 @@ export async function baueModell(
 export async function Diagramm({ art, rechnung }: { art: Diagrammart; rechnung: Rechnung }): Promise<ReactNode> {
   if (art === "keines") return null;
 
-  const { stand, annahmen, istPunkte } = rechnung;
+  const { stand, annahmen, istPunkte, jahre } = rechnung;
+  const horizontMonate = jahre * 12;
   const { capexEur: capex, opexEur: opex, nutzenEur: nutzen } = stand;
   const t = await getTranslations("wirtschaftlichkeitAnsicht");
   const locale = await getLocale();
@@ -323,12 +316,12 @@ export async function Diagramm({ art, rechnung }: { art: Diagrammart; rechnung: 
       // Unterschied. Zwei Bilder, die gleich aussehen, erklaeren nichts.
       if (capex === null || opex === null || nutzen === null) return null;
       return <RoiKurve punkte={roiReihe(12, capex, opex, nutzen)} ist={bisMonat(istPunkte?.roi, 12)} markeMonat={12} locale={locale} texte={texte} />;
-    case "roiDreiJahre":
+    case "roiHorizont":
       if (capex === null || opex === null || nutzen === null) return null;
-      return <RoiKurve punkte={roiReihe(HORIZONT_MONATE, capex, opex, nutzen)} ist={istPunkte?.roi} markeMonat={HORIZONT_MONATE} locale={locale} texte={texte} />;
+      return <RoiKurve punkte={roiReihe(horizontMonate, capex, opex, nutzen)} ist={istPunkte?.roi} markeMonat={horizontMonate} locale={locale} texte={texte} />;
     case "barwert": {
       if (capex === null || opex === null || nutzen === null) return null;
-      const reihe = barwertReihe(HORIZONT_MONATE, capex, opex, nutzen, annahmen.kalkulationszins);
+      const reihe = barwertReihe(horizontMonate, capex, opex, nutzen, annahmen.kalkulationszins);
       const durchgang = reihe.findIndex((p) => p.wert >= 0);
       return (
         <Barwert
@@ -345,7 +338,7 @@ export async function Diagramm({ art, rechnung }: { art: Diagrammart; rechnung: 
       if (capex === null || opex === null) return null;
       return (
         <TcoStapel
-          teile={tcoBausteine(HORIZONT_JAHRE, capex, opex).map((b) => ({
+          teile={tcoBausteine(jahre, capex, opex).map((b) => ({
             name: b.name === "capex" ? t("stapel.capex") : t("stapel.opexJahr", { jahr: b.jahr }),
             wert: euroInTengeMit(b.wert, annahmen.kurse),
             betont: art === "tcoCapex" ? b.name === "capex" : b.name === "opex",

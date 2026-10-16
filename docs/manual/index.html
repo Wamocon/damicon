@@ -565,7 +565,7 @@ mark.treffer-aktiv {
     <a class="toc-link toc-2" href="#anleitung-nachweis">4.11 Einen Nachweis mit Gültigkeit führen</a>
     <a class="toc-link toc-2" href="#anleitung-foerdercheckliste">4.12 Fördermittel: die Checkliste eines Dossiers führen</a>
     <a class="toc-link toc-2" href="#anleitung-logger">4.13 Die Datei eines Temperaturloggers importieren</a>
-    <a class="toc-link toc-2" href="#anleitung-wirtschaftlichkeit">4.14 Die Wirtschaftlichkeit der Einführung führen</a>
+    <a class="toc-link toc-2" href="#anleitung-wirtschaftlichkeit">4.14 Die Wirtschaftlichkeit des Betriebs führen</a>
     <a class="toc-link toc-2" href="#anleitung-abholrunde">4.15 Eine Abholrunde bei Nachbarbetrieben fahren</a>
     <a class="toc-link toc-2" href="#anleitung-auslieferung">4.16 Eine Integration an ein Partnersystem anbinden</a>
     <a class="toc-link toc-2" href="#anleitung-rollen">4.17 Rollen vergeben</a>
@@ -911,14 +911,14 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Kostenarten je Erntetag, B2B-Zahlungsabgleich, Deckungsbeitragsprojektion je Sorte.</span></div>
       </div>
 
-      <h4 id="modul-wirtschaftlichkeit">3.3.3 Wirtschaftlichkeit der Einführung <span class="pille pille-gut">einsatzbereit</span></h4>
-      <p>Investitionsrechnung zur Einführung aus erfassten Posten: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Mit Annahmen, Plan-Ist-Vergleich und festgehaltenen Ständen.</p>
+      <h4 id="modul-wirtschaftlichkeit">3.3.3 Wirtschaftlichkeit des Betriebs <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Erlöse, Kosten und Ergebnis des Betriebs über drei bis fünf Jahre, mit Fixkosten, Gewinnschwelle und den Annahmen dahinter. Darunter die Investitionsrechnung des Systems: Amortisation, Rendite und Kapitalwert.</p>
       <div class="merkmale">
-        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung, gerechnet aus erfassten Posten, mit Plan-Ist-Vergleich und Ständen.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Betriebsergebnis über drei bis fünf Jahre, Gewinnschwelle und Fixkosten. Darunter Amortisation, Rendite und Kapitalwert des Systems.</span></div>
         <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/wirtschaftlichkeit</code></span></div>
         <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
         <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Buchhaltung</span></div>
-        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Der Nutzen gilt erst als belegt, wenn der Betrieb Ist-Werte liefert. Bis dahin steht er als geschätzt.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Der Nutzen des Systems gilt erst als belegt, wenn der Betrieb Ist-Werte liefert. Bis dahin steht er als geschätzt.</span></div>
       </div>
 
       <h4 id="modul-personal">3.3.4 Pflückerstamm und Brigaden <span class="pille pille-gut">einsatzbereit</span></h4>
@@ -1230,11 +1230,15 @@ mark.treffer-aktiv {
           <li>Weitere Schreibweisen liest das Portal ebenfalls: Dateien in Windows-1251 und Windows-1252, Zeiten wie 14.10.26 08:15 oder 8:15 PM, Excel-Zeitwerte in der Zeitspalte, Temperaturen in Kelvin oder Fahrenheit (laut Spaltenkopf, sie werden in Grad Celsius umgerechnet), eine Zeitzone im Spaltenkopf („Time (UTC+6)“) und das JSON-Format von elproCLOUD (Felder value, timeStamp in UTC und unit).</li>
       </ol>
 
-      <h3 id="anleitung-wirtschaftlichkeit">4.14 Die Wirtschaftlichkeit der Einführung führen</h3>
-      <p>Die Seite rechnet aus Posten, die erfasst werden. Was nicht erfasst ist, bleibt offen, statt als Null zu erscheinen.</p>
+      <h3 id="anleitung-wirtschaftlichkeit">4.14 Die Wirtschaftlichkeit des Betriebs führen</h3>
+      <p>Die Seite rechnet zuerst, was der Betrieb verdient: Erlöse, Kosten und Ergebnis über drei bis fünf Jahre. Darunter folgt die Rechnung, ob sich das System lohnt. Was nicht erfasst ist, bleibt offen, statt als Null zu erscheinen.</p>
       <ol>
-          <li>Büro → Wirtschaftlichkeit öffnen. Auf einer leeren Seite „Modellwerte übernehmen“ wählen, um mit den Werten der Kennzahlenliste vom 23.09.2026 zu beginnen: Investition und laufende Kosten als belegt, der Jahresnutzen als geschätzt.</li>
-          <li>Unter „Posten der Rechnung“ „Posten erfassen“ aufklappen: Art (Investition einmalig, Betrieb je Jahr, Nutzen je Jahr), Kategorie, Bezeichnung, Betrag, Währung (Euro, Tenge, Rubel), Datum und ob der Betrag belegt oder geschätzt ist. Jede Zeile lässt sich ändern und entfernen.</li>
+          <li>Büro → Wirtschaftlichkeit öffnen. Oben steht der Zeitraum der Rechnung: 3, 4 oder 5 Jahre. Er gilt für den Betrieb und für die Rechnung des Systems darunter.</li>
+          <li>Unter „Annahmen des Betriebs“ „Annahmen des Betriebs ändern“ aufklappen und für das erste Jahr die Jahresmenge, den Verkaufspreis je kg und die variablen Kosten je kg eintragen, dazu die jährliche Entwicklung von Menge, Preis, variablen Kosten und Fixkosten in Prozent und die Jahre der Abschreibung des Systems. Jeder Wert trägt seine Herkunft: belegt oder geschätzt. Der Hinweis darunter zeigt zum Vergleich Preis und Kosten je kg aus dem Finanzjournal der letzten zwölf Monate.</li>
+          <li>Unter „Fixkosten des Betriebs“ „Fixkosten erfassen“ aufklappen: Kosten, die nicht an der Erntemenge hängen (festes Personal, Pacht, Fahrzeuge, Versicherung, Verwaltung), je Jahr in Euro, Tenge oder Rubel, mit Herkunft. Jede Zeile lässt sich ändern und entfernen.</li>
+          <li>Fehlt für die Rechnung etwas, nennt die Seite es in einer Liste. Sind alle Angaben da, zeigt sie sechs Kennzahlen (Ergebnis im ersten und im letzten Jahr, Ergebnis über den ganzen Zeitraum, Umsatzrendite, Deckungsbeitrag je kg, Gewinnschwelle), ein Diagramm und die Rechnung Jahr für Jahr. Das System fließt mit Nutzen, laufenden Kosten und Abschreibung ein, sobald alle drei erfasst sind.</li>
+          <li>Unter „Zweitens: Lohnt sich das System?“ steht die Rechnung des Systems. Auf einer leeren Seite „Modellwerte übernehmen“ wählen, um mit den Werten der Kennzahlenliste vom 23.09.2026 zu beginnen: Investition und laufende Systemkosten als belegt, der Jahresnutzen als geschätzt.</li>
+          <li>Unter „Posten der Rechnung“ „Posten erfassen“ aufklappen: Art (Investition einmalig, laufende Systemkosten je Jahr, Nutzen je Jahr), Kategorie, Bezeichnung, Betrag, Währung (Euro, Tenge, Rubel), Datum und ob der Betrag belegt oder geschätzt ist. Jede Zeile lässt sich ändern und entfernen.</li>
           <li>Unter „Annahmen“ den Kalkulationszins, den Wechselkurs mit Stichtag und Quelle, die Vollkosten je kg, die Jahresmenge und den ersten Monat des Echtbetriebs setzen. Die Jahresmenge kommt aus den Lieferungen, sobald diese ein volles Jahr abdecken.</li>
           <li>Unter „Plan und Ist“ die tatsächlich vermiedenen Kosten je Monat erfassen. Sie stehen gegen den Plan und als Punkte auf den Kurven.</li>
           <li>Mit „Aktuellen Stand festhalten“ wird die Rechnung samt Posten, Annahmen und Kurs eingefroren. Ein Stand ändert sich nie mehr, ein späterer Kurs verändert ihn nicht. „Als Dokument (PDF)“ gibt die Rechnung im Damicon-Layout aus.</li>

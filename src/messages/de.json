@@ -757,11 +757,11 @@
       "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm. Offen ist zuerst, welche Felder und Nachweise gosagro.kz und qoldau.kz je Programm verlangen."
     },
     "wirtschaftlichkeit": {
-      "title": "Wirtschaftlichkeit der Einführung",
+      "title": "Wirtschaftlichkeit des Betriebs",
       "navTitle": "Wirtschaftlichkeit",
-      "description": "Investitionsrechnung zur Einführung aus erfassten Posten: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Mit Annahmen, Plan-Ist-Vergleich und festgehaltenen Ständen.",
-      "summary": "Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung, gerechnet aus erfassten Posten, mit Plan-Ist-Vergleich und Ständen.",
-      "todo": "Der Nutzen gilt erst als belegt, wenn der Betrieb Ist-Werte liefert. Bis dahin steht er als geschätzt."
+      "description": "Erlöse, Kosten und Ergebnis des Betriebs über drei bis fünf Jahre, mit Fixkosten, Gewinnschwelle und den Annahmen dahinter. Darunter die Investitionsrechnung des Systems: Amortisation, Rendite und Kapitalwert.",
+      "summary": "Betriebsergebnis über drei bis fünf Jahre, Gewinnschwelle und Fixkosten. Darunter Amortisation, Rendite und Kapitalwert des Systems.",
+      "todo": "Der Nutzen des Systems gilt erst als belegt, wenn der Betrieb Ist-Werte liefert. Bis dahin steht er als geschätzt."
     },
     "sortenkatalog": {
       "title": "Sorten- und Kontingentkatalog",
@@ -1026,7 +1026,8 @@
       "passwortGeaendert": "Passwort geändert.",
       "dokumentVersion": "Neue Version „{wert}“ angelegt.",
       "videoEntfernt": "Videodatei entfernt.",
-      "wiSchwundUebernommen": "Der Schwund-Nutzen ist als Posten übernommen."
+      "wiSchwundUebernommen": "Der Schwund-Nutzen ist als Posten übernommen.",
+      "biAnnahmenGespeichert": "Annahmen des Betriebs gespeichert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1203,7 +1204,13 @@
       "risikoGewichte": "Mindestens ein Gewicht muss über null liegen.",
       "versionSchonErsetzt": "Dieser Nachweis hat schon eine neuere Version. Bitte die Seite neu laden und die aktuelle Version erneuern.",
       "versionRegel": "Eine neue Version hat dieselbe Kategorie wie die ersetzte, und ihre Vorversion ändert sich nicht mehr.",
-      "wiSchwundOffen": "Aus den Betriebsdaten lässt sich zurzeit kein Nutzen herleiten."
+      "wiSchwundOffen": "Aus den Betriebsdaten lässt sich zurzeit kein Nutzen herleiten.",
+      "biEingabe": "Bitte nur Zahlen eintragen.",
+      "biPreis": "Der Verkaufspreis muss größer als 0 sein oder leer bleiben.",
+      "biKosten": "Die variablen Kosten dürfen nicht negativ sein.",
+      "biMenge": "Die Jahresmenge muss größer als 0 sein oder leer bleiben.",
+      "biEntwicklung": "Eine jährliche Entwicklung liegt zwischen minus 50 und plus 100 Prozent.",
+      "biAbschreibung": "Die Abschreibung läuft über ganze Jahre, von 1 bis 20."
     },
     "einladungen": {
       "erfolg": {
@@ -1575,9 +1582,8 @@
     "ohneErntetag": "ohne Erntetag"
   },
   "wirtschaftlichkeitAnsicht": {
-    "eyebrow": "Investitionsrechnung",
-    "titel": "Lohnt sich die Einführung?",
-    "lead": "Was der Sprung kostet, wann das Geld zurück ist und was das Besitzen kostet, gerechnet über drei Jahre.",
+    "titel": "Zweitens: Lohnt sich das System?",
+    "lead": "Was der Sprung kostet, wann das Geld zurück ist und was das Besitzen kostet, gerechnet über {jahre} Jahre.",
     "modellPille": "Modellrechnung",
     "modellHinweis": "Modellrechnung vom {stichtag}. Die Werte stammen aus der Kennzahlenliste der Geschäftsführung, nicht aus dem laufenden Betrieb. Was geschätzt ist, steht an der Kachel.",
     "kursHinweis": "Umgerechnet zum Kurs der Nationalbank der Republik Kasachstan vom {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸.",
@@ -1618,10 +1624,10 @@
         "frage": "Lohnt es sich überhaupt?",
         "rechenweg": "Jahresnutzen minus einmalige und laufende Kosten, geteilt durch beide zusammen."
       },
-      "roiDreiJahre": {
-        "label": "Rendite über 3 Jahre",
+      "roiHorizont": {
+        "label": "Rendite über {jahre} Jahre",
         "frage": "Lohnt es sich richtig?",
-        "rechenweg": "Dreifacher Jahresnutzen minus einmalige und dreifache laufende Kosten, geteilt durch den Einsatz."
+        "rechenweg": "Jahresnutzen mal {jahre} minus einmalige Kosten und laufende Kosten mal {jahre}, geteilt durch den Einsatz."
       },
       "capex": {
         "label": "Kosten bis Abnahme",
@@ -1636,9 +1642,9 @@
         "rechenwegErfasst": "Summe der erfassten Betriebsposten je Jahr."
       },
       "tco": {
-        "label": "Gesamtkosten über 3 Jahre",
+        "label": "Gesamtkosten über {jahre} Jahre",
         "frage": "Was kostet der Vergleich wirklich?",
-        "rechenweg": "Einmalige Kosten plus drei Jahre laufende Kosten, gegen jede Alternative."
+        "rechenweg": "Einmalige Kosten plus {jahre} Jahre laufende Kosten, gegen jede Alternative."
       },
       "vermiedeneKosten": {
         "label": "Vermiedene Kosten je Jahr",
@@ -1649,7 +1655,7 @@
       "kapitalwert": {
         "label": "Kapitalwert",
         "frage": "Hält es dem Finanzchef stand?",
-        "rechenweg": "Barwert des Nutzens minus Investition über drei Jahre, monatlich mit {zins} abgezinst."
+        "rechenweg": "Barwert des Nutzens minus Investition über {jahre} Jahre, monatlich mit {zins} abgezinst."
       },
       "kostenJeKilogramm": {
         "label": "Kosten je Kilogramm",
@@ -5248,7 +5254,7 @@
       "lead": "Einmalige Investition, laufende Betriebskosten und erwarteter Nutzen, je Jahr. Die Kennzahlen oben rechnen aus diesen Zeilen. Fehlt eine Art ganz, bleibt alles offen, was von ihr abhängt.",
       "art": {
         "investition": "Investition (einmalig)",
-        "betrieb": "Betrieb (je Jahr)",
+        "betrieb": "Laufende Systemkosten (je Jahr)",
         "nutzen": "Nutzen (je Jahr)"
       },
       "col": {
@@ -5811,5 +5817,151 @@
       "speicher": "Der Speicher hat die Datei nicht angenommen. Bitte noch einmal versuchen.",
       "unbekannt": "Das Hochladen ist fehlgeschlagen."
     }
+  },
+  "betriebsrechnung": {
+    "zeitraum": {
+      "label": "Zeitraum der Rechnung",
+      "jahre": "{jahre} Jahre"
+    },
+    "abschnitt": {
+      "titel": "Der Betrieb in den nächsten {jahre} Jahren",
+      "lead": "Jahr 1 sind die zwölf Monate ab Beginn des Echtbetriebs. Menge, Preis und Kosten des ersten Jahres sind Annahmen oder stammen aus dem Betrieb, danach ändern sie sich um einen festen Satz je Jahr."
+    },
+    "pille": {
+      "belegt": "Belegt",
+      "geschaetzt": "Teilweise geschätzt",
+      "offen": "Angaben fehlen"
+    },
+    "hinweis": {
+      "belegt": "Alle Eingaben dieser Rechnung sind belegt.",
+      "geschaetzt": "Die Rechnung steht auf Annahmen, die als geschätzt gekennzeichnet sind. Je mehr davon aus dem Betrieb belegt ist, desto belastbarer ist das Ergebnis.",
+      "offen": "Für die Rechnung fehlen noch Angaben.",
+      "mitSystem": "Das System ist in der Rechnung enthalten: sein Nutzen, seine laufenden Kosten und seine Abschreibung.",
+      "ohneSystem": "Das System ist noch nicht enthalten, weil seine Posten unten unvollständig sind (Investition, laufende Kosten und Nutzen)."
+    },
+    "fehlt": {
+      "titel": "Das fehlt noch für die Rechnung",
+      "menge": "Jahresmenge im ersten Jahr, unter „Annahmen des Betriebs“",
+      "preis": "Verkaufspreis je Kilogramm, unter „Annahmen des Betriebs“",
+      "variableKosten": "Variable Kosten je Kilogramm, unter „Annahmen des Betriebs“",
+      "fixkosten": "Fixkosten des Betriebs, weiter unten erfassen"
+    },
+    "kennzahl": {
+      "ergebnisErstesJahr": {
+        "label": "Ergebnis im 1. Jahr",
+        "frage": "Was bleibt im ersten Jahr übrig?",
+        "rechenweg": "Erlöse minus variable Kosten minus Fixkosten.",
+        "rechenwegMitSystem": "Erlöse minus variable Kosten minus Fixkosten, dazu der Nutzen des Systems minus seine laufenden Kosten und seine Abschreibung."
+      },
+      "ergebnisLetztesJahr": {
+        "label": "Ergebnis im Jahr {jahr}",
+        "frage": "Wohin entwickelt sich das Ergebnis?",
+        "rechenweg": "Dieselbe Rechnung mit den Werten des Jahres {jahr}, nach den jährlichen Entwicklungssätzen."
+      },
+      "ergebnisSumme": {
+        "label": "Ergebnis über {jahre} Jahre",
+        "frage": "Was bleibt insgesamt übrig?",
+        "rechenweg": "Die Ergebnisse aller {jahre} Jahre zusammen."
+      },
+      "umsatzrendite": {
+        "label": "Umsatzrendite im Jahr {jahr}",
+        "frage": "Wie viel von jedem Tenge Umsatz bleibt als Ergebnis?",
+        "rechenweg": "Ergebnis geteilt durch die Erlöse des Jahres."
+      },
+      "deckungsbeitrag": {
+        "label": "Deckungsbeitrag je kg",
+        "frage": "Was bringt ein Kilogramm nach den variablen Kosten?",
+        "rechenweg": "Preis minus variable Kosten je Kilogramm, im ersten Jahr."
+      },
+      "gewinnschwelle": {
+        "label": "Gewinnschwelle im 1. Jahr",
+        "frage": "Ab welcher Menge verdient der Betrieb?",
+        "rechenweg": "Fixkosten geteilt durch den Deckungsbeitrag je Kilogramm.",
+        "rechenwegMitSystem": "Fixkosten abzüglich der Wirkung des Systems, geteilt durch den Deckungsbeitrag je Kilogramm."
+      }
+    },
+    "gewinnschwelle": {
+      "gedeckt": "bereits gedeckt",
+      "nie": "nicht erreichbar",
+      "puffer": "Die Planmenge darf um {anteil} sinken, bevor ein Verlust entsteht.",
+      "unterSchwelle": "Die Planmenge liegt {anteil} unter der Gewinnschwelle, im ersten Jahr entsteht ein Verlust.",
+      "keinDeckungsbeitrag": "Der Deckungsbeitrag je Kilogramm ist nicht positiv."
+    },
+    "einheit": {
+      "tonnen": "t",
+      "kilogramm": "kg",
+      "millionen": "Mio."
+    },
+    "tabelle": {
+      "titel": "Die Rechnung Jahr für Jahr",
+      "lead": "Beträge in Millionen Tenge, Menge in Tonnen, Preis in Tenge je Kilogramm. Was abgezogen wird, steht mit Minus.",
+      "position": "Position",
+      "jahr": "Jahr {jahr}",
+      "zeile": {
+        "menge": "Menge (t)",
+        "preis": "Preis (₸ je kg)",
+        "erloes": "Erlöse",
+        "variableKosten": "Variable Kosten",
+        "deckungsbeitrag": "Deckungsbeitrag",
+        "fixkosten": "Fixkosten",
+        "betriebsergebnis": "Betriebsergebnis",
+        "nutzen": "Nutzen des Systems",
+        "systemKosten": "Laufende Kosten des Systems",
+        "abschreibung": "Abschreibung des Systems",
+        "ergebnis": "Ergebnis",
+        "kumuliert": "Ergebnis kumuliert"
+      }
+    },
+    "diagramm": {
+      "titel": "Erlöse, Kosten und Ergebnis je Jahr",
+      "lead": "Die Kosten sind hier alle Kosten abzüglich des Nutzens des Systems, so dass Erlöse minus Kosten das Ergebnis ergibt.",
+      "leadOhneSystem": "Die Kosten sind hier variable Kosten plus Fixkosten, so dass Erlöse minus Kosten das Ergebnis ergibt.",
+      "erloes": "Erlöse",
+      "kosten": "Kosten",
+      "ergebnis": "Ergebnis",
+      "jahr": "Jahr {jahr}"
+    },
+    "annahmen": {
+      "titel": "Annahmen des Betriebs",
+      "lead": "Die Werte des ersten Jahres und die jährliche Entwicklung. Jeder Wert trägt seine Herkunft: belegt, wenn er aus dem Betrieb stammt, sonst geschätzt.",
+      "menge": "Jahresmenge im 1. Jahr",
+      "preis": "Verkaufspreis je kg im 1. Jahr",
+      "kosten": "Variable Kosten je kg im 1. Jahr",
+      "mengeEntwicklung": "Mengenentwicklung je Jahr",
+      "preisEntwicklung": "Preisentwicklung je Jahr",
+      "kostenEntwicklung": "Entwicklung der variablen Kosten je Jahr",
+      "fixkostenEntwicklung": "Entwicklung der Fixkosten je Jahr",
+      "abschreibung": "Abschreibung des Systems",
+      "abschreibungWert": "{jahre} Jahre, gleichmäßig",
+      "nichtGesetzt": "nicht gesetzt",
+      "ohneVeraenderung": "ohne Veränderung gerechnet",
+      "journal": "Aus dem Journal der letzten zwölf Monate: Preis {preis} ₸ je kg, variable Kosten {kosten} ₸ je kg, Deckungsbeitrag {deckungsbeitrag} ₸ je kg, bei {menge} kg Ernte und {buchungen} Buchungen. Es zählen nur gebuchte Kosten: Was nicht im Journal steht, fehlt auch hier.",
+      "journalLeer": "Das Journal der letzten zwölf Monate liefert keinen Vergleichswert, denn es fehlen Erlöse oder Erntemenge.",
+      "aendern": "Annahmen des Betriebs ändern",
+      "form": {
+        "menge": "Jahresmenge im ersten Jahr (kg)",
+        "mengeHinweis": "Dieselbe Zahl wie die Jahresmenge bei den Annahmen des Systems.",
+        "preis": "Verkaufspreis je kg im ersten Jahr (₸)",
+        "kosten": "Variable Kosten je kg im ersten Jahr (₸)",
+        "mengeProzent": "Mengenentwicklung je Jahr (%)",
+        "preisProzent": "Preisentwicklung je Jahr (%)",
+        "kostenProzent": "Entwicklung der variablen Kosten je Jahr (%)",
+        "fixkostenProzent": "Entwicklung der Fixkosten je Jahr (%)",
+        "entwicklungHinweis": "5 heißt fünf Prozent mehr als im Vorjahr, minus ist ein Rückgang. Leer gilt als keine Veränderung.",
+        "abschreibung": "Abschreibung des Systems (Jahre)",
+        "abschreibungHinweis": "Die Investition wird gleichmäßig über diese Jahre abgeschrieben. Leer gelten fünf Jahre.",
+        "herkunft": "Herkunft"
+      }
+    },
+    "fixkosten": {
+      "titel": "Fixkosten des Betriebs",
+      "lead": "Kosten, die nicht an der Erntemenge hängen: festes Personal, Pacht, Fahrzeuge, Versicherung und Verwaltung. Beträge je Jahr, in Euro, Tenge oder Rubel.",
+      "summe": "Summe je Jahr: {betrag}",
+      "leer": "Noch keine Fixkosten erfasst. Ohne sie lässt sich das Ergebnis nicht rechnen.",
+      "neu": "Fixkosten erfassen",
+      "kategorieBeispiel": "zum Beispiel Personal"
+    },
+    "nurLesen": "Nur Ansicht: erfassen dürfen Administration, Geschäftsführung und Buchhaltung.",
+    "standHinweis": "Ein festgehaltener Stand hält nur die Rechnung des Systems fest. Die Wirtschaftlichkeit des Betriebs rechnet immer mit den laufenden Werten und steht deshalb hier nicht. Sie ist in der laufenden Ansicht zu sehen."
   }
 }

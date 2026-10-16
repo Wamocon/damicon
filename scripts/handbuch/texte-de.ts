@@ -326,12 +326,16 @@ export const de: HandbuchTexte = {
       },
       {
         id: "wirtschaftlichkeit",
-        titel: "Die Wirtschaftlichkeit der Einführung führen",
+        titel: "Die Wirtschaftlichkeit des Betriebs führen",
         einleitung:
-          "Die Seite rechnet aus Posten, die erfasst werden. Was nicht erfasst ist, bleibt offen, statt als Null zu erscheinen.",
+          "Die Seite rechnet zuerst, was der Betrieb verdient: Erlöse, Kosten und Ergebnis über drei bis fünf Jahre. Darunter folgt die Rechnung, ob sich das System lohnt. Was nicht erfasst ist, bleibt offen, statt als Null zu erscheinen.",
         schritte: [
-          "Büro → Wirtschaftlichkeit öffnen. Auf einer leeren Seite „Modellwerte übernehmen“ wählen, um mit den Werten der Kennzahlenliste vom 23.09.2026 zu beginnen: Investition und laufende Kosten als belegt, der Jahresnutzen als geschätzt.",
-          "Unter „Posten der Rechnung“ „Posten erfassen“ aufklappen: Art (Investition einmalig, Betrieb je Jahr, Nutzen je Jahr), Kategorie, Bezeichnung, Betrag, Währung (Euro, Tenge, Rubel), Datum und ob der Betrag belegt oder geschätzt ist. Jede Zeile lässt sich ändern und entfernen.",
+          "Büro → Wirtschaftlichkeit öffnen. Oben steht der Zeitraum der Rechnung: 3, 4 oder 5 Jahre. Er gilt für den Betrieb und für die Rechnung des Systems darunter.",
+          "Unter „Annahmen des Betriebs“ „Annahmen des Betriebs ändern“ aufklappen und für das erste Jahr die Jahresmenge, den Verkaufspreis je kg und die variablen Kosten je kg eintragen, dazu die jährliche Entwicklung von Menge, Preis, variablen Kosten und Fixkosten in Prozent und die Jahre der Abschreibung des Systems. Jeder Wert trägt seine Herkunft: belegt oder geschätzt. Der Hinweis darunter zeigt zum Vergleich Preis und Kosten je kg aus dem Finanzjournal der letzten zwölf Monate.",
+          "Unter „Fixkosten des Betriebs“ „Fixkosten erfassen“ aufklappen: Kosten, die nicht an der Erntemenge hängen (festes Personal, Pacht, Fahrzeuge, Versicherung, Verwaltung), je Jahr in Euro, Tenge oder Rubel, mit Herkunft. Jede Zeile lässt sich ändern und entfernen.",
+          "Fehlt für die Rechnung etwas, nennt die Seite es in einer Liste. Sind alle Angaben da, zeigt sie sechs Kennzahlen (Ergebnis im ersten und im letzten Jahr, Ergebnis über den ganzen Zeitraum, Umsatzrendite, Deckungsbeitrag je kg, Gewinnschwelle), ein Diagramm und die Rechnung Jahr für Jahr. Das System fließt mit Nutzen, laufenden Kosten und Abschreibung ein, sobald alle drei erfasst sind.",
+          "Unter „Zweitens: Lohnt sich das System?“ steht die Rechnung des Systems. Auf einer leeren Seite „Modellwerte übernehmen“ wählen, um mit den Werten der Kennzahlenliste vom 23.09.2026 zu beginnen: Investition und laufende Systemkosten als belegt, der Jahresnutzen als geschätzt.",
+          "Unter „Posten der Rechnung“ „Posten erfassen“ aufklappen: Art (Investition einmalig, laufende Systemkosten je Jahr, Nutzen je Jahr), Kategorie, Bezeichnung, Betrag, Währung (Euro, Tenge, Rubel), Datum und ob der Betrag belegt oder geschätzt ist. Jede Zeile lässt sich ändern und entfernen.",
           "Unter „Annahmen“ den Kalkulationszins, den Wechselkurs mit Stichtag und Quelle, die Vollkosten je kg, die Jahresmenge und den ersten Monat des Echtbetriebs setzen. Die Jahresmenge kommt aus den Lieferungen, sobald diese ein volles Jahr abdecken.",
           "Unter „Plan und Ist“ die tatsächlich vermiedenen Kosten je Monat erfassen. Sie stehen gegen den Plan und als Punkte auf den Kurven.",
           "Mit „Aktuellen Stand festhalten“ wird die Rechnung samt Posten, Annahmen und Kurs eingefroren. Ein Stand ändert sich nie mehr, ein späterer Kurs verändert ihn nicht. „Als Dokument (PDF)“ gibt die Rechnung im Damicon-Layout aus.",

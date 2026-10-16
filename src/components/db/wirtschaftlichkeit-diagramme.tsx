@@ -30,6 +30,8 @@ import {
 } from "recharts";
 import {
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -273,6 +275,50 @@ function BetonteBalken({
             ))}
           </Bar>
         </BarChart>
+      </ChartContainer>
+    </div>
+  );
+}
+
+export interface BetriebPunkt {
+  /** Beschriftung der Achse, zum Beispiel "Jahr 3". */
+  name: string;
+  /** Alle drei in Tenge. */
+  erloes: number;
+  kosten: number;
+  ergebnis: number;
+}
+
+export interface BetriebDiagrammtexte {
+  erloes: string;
+  kosten: string;
+  ergebnis: string;
+}
+
+/**
+ * Erlöse und Kosten je Jahr als Balken, das Ergebnis als Linie darüber. Die Kosten sind so gewählt, dass Erlöse minus Kosten das Ergebnis ergibt (der Nutzen
+ * des Systems steht schon darin), damit das Bild ohne Nachrechnen stimmt. Die Linie schneidet die Nulllinie dort, wo der Betrieb in den Gewinn kommt.
+ */
+export function BetriebsDiagramm({ punkte, locale, texte }: { punkte: BetriebPunkt[]; locale: string; texte: BetriebDiagrammtexte }) {
+  const config = {
+    erloes: { label: texte.erloes, color: "var(--chart-2)" },
+    kosten: { label: texte.kosten, color: "var(--chart-5)" },
+    ergebnis: { label: texte.ergebnis, color: "var(--chart-1)" },
+  } satisfies ChartConfig;
+  return (
+    <div aria-hidden="true">
+      <ChartContainer config={config} className="h-60 w-full">
+        <ComposedChart data={punkte} margin={{ left: 4, right: 8, top: 8, bottom: 0 }}>
+          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+          <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={6} />
+          <YAxis tickLine={false} axisLine={false} width={ACHSE_GELD} tickFormatter={(w: number) => kompakt(locale, w)} />
+          <ReferenceLine y={0} stroke="var(--border)" strokeWidth={1.5} />
+          <ChartTooltip content={<ChartTooltipContent indicator="dashed" />} />
+          <ChartLegend content={<ChartLegendContent />} />
+          <Bar dataKey="erloes" fill="var(--color-erloes)" radius={4} />
+          <Bar dataKey="kosten" fill="var(--color-kosten)" radius={4} />
+          <Line dataKey="ergebnis" type="monotone" stroke="var(--color-ergebnis)" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+        </ComposedChart>
       </ChartContainer>
     </div>
   );

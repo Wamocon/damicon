@@ -21,6 +21,7 @@ import {
   type StandSnapshot,
 } from "@/lib/domain/wirtschaftlichkeit-erfassung";
 import { heuteIso } from "@/lib/data/util";
+import { BETRIEB_ANNAHME_SCHLUESSEL, type BetriebIst, type BetriebsAnnahmen } from "@/lib/domain/betriebsrechnung";
 
 // Erfassung der Investitionsrechnung (WMCNL-2470). Lesen duerfen Administration, Geschaeftsfuehrung, Betriebsleitung und
 // Buchhaltung (Zeilensicherheit der vier Tabellen, Migration 20261207090000). Ohne Datenbank rechnet die Seite mit den
@@ -40,6 +41,10 @@ export interface WirtschaftlichkeitDaten {
   ist: IstEintrag[];
   staende: StandKopf[];
   menge: MengeAbgeleitet | null;
+  /** Planung des Betriebs (Betriebsrechnung); ohne Datenbank und ohne gesetzte Werte alles offen. */
+  betrieb: BetriebsAnnahmen;
+  /** Die letzten zwoelf Monate aus dem Finanzjournal als Vergleichswert; null, wenn die Abfrage fehlschlug. */
+  betriebIst: BetriebIst | null;
   /** Mindestens eine Abfrage ist fehlgeschlagen: die Zahlen sind unvollstaendig (fehlende Annahmen ersetzt das Modell). Dann haelt niemand einen Stand fest. */
   lesefehler: boolean;
 }
@@ -59,6 +64,29 @@ function liesHerkunft(wert: Json | null): Annahmen["herkunft"] {
 
 const zahlOderNull = (wert: number | string | null): number | null => (wert === null ? null : Number(wert));
 
+/** Die Herkunft der Planung des Betriebs aus derselben jsonb-Spalte; unbekannte Schluessel fallen weg. */
+function liesBetriebHerkunft(wert: Json | null): BetriebsAnnahmen["herkunft"] {
+  const aus: BetriebsAnnahmen["herkunft"] = {};
+  if (typeof wert !== "object" || wert === null || Array.isArray(wert)) return aus;
+  for (const schluessel of [...BETRIEB_ANNAHME_SCHLUESSEL, "menge"] as const) {
+    const h = herkunftVon(wert[schluessel]);
+    if (h) aus[schluessel] = h;
+  }
+  return aus;
+}
+
+const leereBetriebsAnnahmen = (): BetriebsAnnahmen => ({
+  mengeKg: null,
+  preisTengeKg: null,
+  variableKostenTengeKg: null,
+  mengeEntwicklung: null,
+  preisEntwicklung: null,
+  kostenEntwicklung: null,
+  fixkostenEntwicklung: null,
+  abschreibungJahre: null,
+  herkunft: {},
+});
+
 /** Modellwerte ohne Datenbank. Die Bezeichnungen sind hier nie zu sehen (ohne Erfassung keine Tabelle). */
 function modell(): WirtschaftlichkeitDaten {
   const bezeichnung = { bezeichnung: "-", kategorie: "-" };
@@ -69,21 +97,29 @@ function modell(): WirtschaftlichkeitDaten {
     ist: [],
     staende: [],
     menge: null,
+    betrieb: leereBetriebsAnnahmen(),
+    betriebIst: null,
     lesefehler: false,
   };
+}
+
+function zeileZuIst(z: { erloes_tenge: number; kosten_tenge: number; menge_kg: number; buchungen: number; von: string; bis: string }): BetriebIst {
+  return { erloesTenge: Number(z.erloes_tenge), kostenTenge: Number(z.kosten_tenge), mengeKg: Number(z.menge_kg), buchungen: Number(z.buchungen), von: z.von, bis: z.bis };
 }
 
 export async function ladeWirtschaftlichkeit(): Promise<WirtschaftlichkeitDaten> {
   if (!isSupabaseConfigured()) return modell();
 
   const supabase = await createClient();
-  const [annahmen, posten, ist, staende, menge] = await Promise.all([
+  const [annahmen, posten, ist, staende, menge, betriebIst] = await Promise.all([
     supabase.from("wirtschaftlichkeit_annahmen").select("*").eq("id", 1).maybeSingle(),
     supabase.from("wirtschaftlichkeit_posten").select("id, art, kategorie, bezeichnung, betrag, waehrung, datum, herkunft, notiz").order("datum", { ascending: true }).order("created_at", { ascending: true }),
     supabase.from("wirtschaftlichkeit_ist").select("id, monat, kategorie, betrag, waehrung, notiz").order("monat", { ascending: true }).order("created_at", { ascending: true }),
     supabase.from("wirtschaftlichkeit_staende").select("id, bezeichnung, stand_am").order("stand_am", { ascending: false }),
     supabase.from("v_vermarktete_menge").select("menge_kg_12_monate, erste_lieferung, tage_abdeckung, belastbar").maybeSingle(),
+    supabase.rpc("betrieb_ist_zwoelf_monate"),
   ]);
+  // Der Vergleichswert gehoert nicht zur Rechnung: schlaegt er fehl, fehlt nur der Hinweis neben den Annahmen, nicht die Seite.
   const lesefehler = annahmen.error ?? posten.error ?? ist.error ?? staende.error ?? menge.error;
   if (lesefehler) console.error("[damicon] Wirtschaftlichkeit lesen fehlgeschlagen:", lesefehler.message);
 
@@ -130,6 +166,20 @@ export async function ladeWirtschaftlichkeit(): Promise<WirtschaftlichkeitDaten>
         waehrung: e.waehrung as IstEintrag["waehrung"],
         notiz: e.notiz,
       })),
+    betrieb: a
+      ? {
+          mengeKg: zahlOderNull(a.vermarktete_menge_kg),
+          preisTengeKg: zahlOderNull(a.plan_preis_tenge_kg),
+          variableKostenTengeKg: zahlOderNull(a.plan_variable_kosten_tenge_kg),
+          mengeEntwicklung: zahlOderNull(a.plan_menge_entwicklung),
+          preisEntwicklung: zahlOderNull(a.plan_preis_entwicklung),
+          kostenEntwicklung: zahlOderNull(a.plan_kosten_entwicklung),
+          fixkostenEntwicklung: zahlOderNull(a.plan_fixkosten_entwicklung),
+          abschreibungJahre: a.plan_abschreibung_jahre,
+          herkunft: liesBetriebHerkunft(a.herkunft),
+        }
+      : leereBetriebsAnnahmen(),
+    betriebIst: betriebIst.error || !betriebIst.data?.[0] ? null : zeileZuIst(betriebIst.data[0]),
     staende: (staende.data ?? []).map((s) => ({ id: s.id, bezeichnung: s.bezeichnung, standAm: s.stand_am })),
     menge: menge.data
       ? {

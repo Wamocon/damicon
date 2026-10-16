@@ -23,7 +23,7 @@ import { rundeKaufmaennisch } from "@/lib/domain/runden";
 /** Zahl fuer ein Eingabefeld: ohne Gleitkommareste (0,12 mal 100 ergibt sonst 12,000000000000002). */
 // Die Stellen sind eine Obergrenze fuer den Gleitkommafehler, nicht fuer die Genauigkeit der Eingabe: Ein Zins von 6,125 % erscheint als 6,125, nicht als 6,13. Sonst
 // wuerde das Speichern ohne Aenderung den Wert veraendern (Pruefung PR #156, 15.10.2026).
-const eingabeZahl = (wert: number | null, stellen = 4): string => (wert === null ? "" : String(rundeKaufmaennisch(wert, stellen)));
+export const eingabeZahl = (wert: number | null, stellen = 4): string => (wert === null ? "" : String(rundeKaufmaennisch(wert, stellen)));
 
 function WaehrungAuswahl({ defaultValue }: { defaultValue: string }) {
   const t = useTranslations("wirtschaftlichkeitErfassung");
@@ -41,7 +41,7 @@ function WaehrungAuswahl({ defaultValue }: { defaultValue: string }) {
   );
 }
 
-function HerkunftAuswahl({ name, label, defaultValue }: { name: string; label: string; defaultValue: string }) {
+export function HerkunftAuswahl({ name, label, defaultValue }: { name: string; label: string; defaultValue: string }) {
   const t = useTranslations("wirtschaftlichkeitErfassung");
   return (
     <Auswahl
@@ -73,8 +73,11 @@ function KategorieAuswahl({ defaultValue }: { defaultValue: string }) {
   );
 }
 
-export function PostenFormular({ posten, heute }: { posten?: Posten; heute: string }) {
+/** festeArt: Fixkosten des Betriebs werden in demselben Formular erfasst, aber die Art ist nicht wählbar (sie gehört nicht zu den Posten des Systems). */
+export function PostenFormular({ posten, heute, festeArt }: { posten?: Posten; heute: string; festeArt?: "fixkosten" }) {
   const t = useTranslations("wirtschaftlichkeitErfassung");
+  const tb = useTranslations("betriebsrechnung.fixkosten");
+  const fest = festeArt ?? (posten?.art === "fixkosten" ? "fixkosten" : undefined);
   // Beim Aendern zeigt das Formular den gespeicherten Stand auch nach dem Speichern, beim Anlegen leert es sich.
   const { status, formProps } = useBehalteEingaben(postenSpeichern, posten ? "immer" : "fehler");
   const [art, setArt] = useState<string>(posten?.art ?? "investition");
@@ -83,21 +86,31 @@ export function PostenFormular({ posten, heute }: { posten?: Posten; heute: stri
     <form {...formProps} className="grid gap-2 p-4 sm:grid-cols-2">
       <PfadFeld />
       {posten ? <input type="hidden" name="id" value={posten.id} /> : null}
-      <Auswahl
-        label={t("form.art")}
-        name="art"
-        defaultValue={art}
-        beiAenderung={setArt}
-        options={[
-          { wert: "investition", text: t("posten.art.investition") },
-          { wert: "betrieb", text: t("posten.art.betrieb") },
-          { wert: "nutzen", text: t("posten.art.nutzen") },
-        ]}
-      />
-      {art === "nutzen" ? (
+      {fest ? (
+        <input type="hidden" name="art" value={fest} />
+      ) : (
+        <Auswahl
+          label={t("form.art")}
+          name="art"
+          defaultValue={art}
+          beiAenderung={setArt}
+          options={[
+            { wert: "investition", text: t("posten.art.investition") },
+            { wert: "betrieb", text: t("posten.art.betrieb") },
+            { wert: "nutzen", text: t("posten.art.nutzen") },
+          ]}
+        />
+      )}
+      {art === "nutzen" && !fest ? (
         <KategorieAuswahl defaultValue={posten?.art === "nutzen" ? posten.kategorie : "schwund"} />
       ) : (
-        <Feld label={t("form.kategorie")} name="kategorie" required defaultValue={posten && posten.art !== "nutzen" ? posten.kategorie : ""} placeholder={t("form.kategorieBeispiel")} />
+        <Feld
+          label={t("form.kategorie")}
+          name="kategorie"
+          required
+          defaultValue={posten && posten.art !== "nutzen" ? posten.kategorie : ""}
+          placeholder={fest ? tb("kategorieBeispiel") : t("form.kategorieBeispiel")}
+        />
       )}
       <div className="sm:col-span-2">
         <Feld label={t("form.bezeichnung")} name="bezeichnung" required defaultValue={posten?.bezeichnung ?? ""} />

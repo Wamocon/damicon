@@ -2,9 +2,9 @@ import { absatz, definitionen, esc, kasten, leerHinweis, marke, tabelle, type Ke
 import type { DokumentEingabe, Zelle } from "@/lib/dokument/damicon-dokument";
 import { dateinameFuer, kennungFuer, monatText, tagText, tengeText, versiegeln, zahlText, zeitText, type DokumentKontext } from "@/lib/dokument/kontext";
 import { tagInZone } from "@/lib/domain/tageszeit";
-import type { Herkunft, Kennzahlschluessel } from "@/lib/domain/wirtschaftlichkeit";
+import { HORIZONT_JAHRE, type Herkunft, type Kennzahlschluessel } from "@/lib/domain/wirtschaftlichkeit";
 import {
-  POSTEN_ARTEN,
+  SYSTEM_POSTEN_ARTEN,
   euroInRubelMit,
   euroInTengeMit,
   planIst,
@@ -78,13 +78,13 @@ function hilfenFuer(d: WirtschaftlichkeitDokumentDaten, x: DokumentKontext): Hil
 function kennzahlLabels(a: Uebersetzer): Record<Kennzahlschluessel, string> {
   return {
     roiJahr1: a("kennzahl.roiJahr1.label"),
-    roiDreiJahre: a("kennzahl.roiDreiJahre.label"),
+    roiHorizont: a("kennzahl.roiHorizont.label", { jahre: HORIZONT_JAHRE }),
     capex: a("kennzahl.capex.label"),
     opex: a("kennzahl.opex.label"),
     kapitalwert: a("kennzahl.kapitalwert.label"),
     kostenJeKilogramm: a("kennzahl.kostenJeKilogramm.label"),
     amortisation: a("kennzahl.amortisation.label"),
-    tco: a("kennzahl.tco.label"),
+    tco: a("kennzahl.tco.label", { jahre: HORIZONT_JAHRE }),
     vermiedeneKosten: a("kennzahl.vermiedeneKosten.label"),
     nutzenbeginn: a("kennzahl.nutzenbeginn.label"),
   };
@@ -99,7 +99,7 @@ function kennzahlZeilenVon(d: WirtschaftlichkeitDokumentDaten, stand: Rechenstan
   const amortisation = k.amortisationMonate === null ? offen : a("einheit.monate", { anzahl: Math.round(k.amortisationMonate) });
   return [
     { schluessel: "roiJahr1", wert: prozent(k.roiJahr1) },
-    { schluessel: "roiDreiJahre", wert: prozent(k.roiHorizont) },
+    { schluessel: "roiHorizont", wert: prozent(k.roiHorizont) },
     { schluessel: "capex", wert: euroAlsTenge(stand.capexEur) },
     { schluessel: "opex", wert: euroAlsTenge(stand.opexEur) },
     { schluessel: "kapitalwert", wert: euroAlsTenge(k.kapitalwert) },
@@ -130,7 +130,7 @@ function postenAbschnitt(d: WirtschaftlichkeitDokumentDaten, h: Hilfen): string 
     sonstiges: e("kategorie.sonstiges"),
   };
   const kategorieText = (kategorie: string, nutzen: boolean) => (nutzen ? (kategorieTexte[kategorie] ?? kategorie) : kategorie);
-  const zeilen: Zelle[][] = POSTEN_ARTEN.flatMap((art) =>
+  const zeilen: Zelle[][] = SYSTEM_POSTEN_ARTEN.flatMap((art) =>
     d.posten
       .filter((p) => p.art === art)
       .map((p) => [
@@ -142,7 +142,7 @@ function postenAbschnitt(d: WirtschaftlichkeitDokumentDaten, h: Hilfen): string 
         h.herkunftMarke(p.herkunft),
       ]),
   );
-  const summen = POSTEN_ARTEN.map((art) => {
+  const summen = SYSTEM_POSTEN_ARTEN.map((art) => {
     const s = summiere(d.posten, art, kurse).summe;
     return { label: artTexte[art], wert: s === null ? e("posten.nichtErfasst") : h.euroAlsTenge(s) };
   });
@@ -218,7 +218,7 @@ function kennzahlKarten(stand: Rechenstand, h: Hilfen, labels: Record<Kennzahlsc
   const k = stand.kennzahlen;
   return [
     { label: labels.amortisation, wert: k.amortisationMonate === null ? h.offen : h.a("einheit.monate", { anzahl: Math.round(k.amortisationMonate) }), ton: TON[stand.herkunft.amortisation] },
-    { label: labels.roiDreiJahre, wert: h.prozent(k.roiHorizont), ton: TON[stand.herkunft.roiDreiJahre] },
+    { label: labels.roiHorizont, wert: h.prozent(k.roiHorizont), ton: TON[stand.herkunft.roiHorizont] },
     { label: labels.kapitalwert, wert: h.euroAlsTenge(k.kapitalwert).split(" (")[0], ton: TON[stand.herkunft.kapitalwert] },
   ];
 }
@@ -227,6 +227,8 @@ export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDate
   const h = hilfenFuer(d, x);
   const { t, sprache, kurse } = h;
   const stand = rechneStand(d.posten, d.annahmen, d.menge);
+  // Das Dokument zeigt die Rechnung des Systems; die Fixkosten des Betriebs gehören zur Betriebsrechnung und zählen hier nicht mit.
+  const systemPosten = d.posten.filter((p) => p.art !== "fixkosten");
   const labels = kennzahlLabels(h.a);
   const zeilen = kennzahlZeilenVon(d, stand, h);
   const g = geschaetztUndOffen(zeilen, stand, labels);
@@ -236,9 +238,9 @@ export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDate
   const zusammenfassung =
     d.quelle === "modell"
       ? t("zusammenfassungModell")
-      : d.posten.length === 0
+      : systemPosten.length === 0
         ? t("zusammenfassungLeer")
-        : t("zusammenfassung", { anzahl: d.posten.length, offen: g.offen.length, geschaetzt: g.geschaetzt.length });
+        : t("zusammenfassung", { anzahl: systemPosten.length, offen: g.offen.length, geschaetzt: g.geschaetzt.length });
 
   return versiegeln({
     kennung: kennungFuer(
@@ -256,7 +258,7 @@ export function baueWirtschaftlichkeitDokument(d: WirtschaftlichkeitDokumentDate
       { label: t("meta.stand"), wert: d.stand ? zeitText(d.stand.standAm, sprache) : tagText(d.heute, sprache) },
       { label: t("meta.kurs"), wert: `1 EUR = ${zahlText(kurse.eurTenge, sprache)} ₸ (${tagText(d.annahmen.kursStichtag, sprache)})` },
       { label: t("meta.zins"), wert: `${zahlText(d.annahmen.kalkulationszins * 100, sprache, 2)} %` },
-      { label: t("meta.posten"), wert: String(d.posten.length) },
+      { label: t("meta.posten"), wert: String(systemPosten.length) },
     ],
     kennzahlen: kennzahlKarten(stand, h, labels),
     zusammenfassung,

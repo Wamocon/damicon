@@ -115,7 +115,7 @@ export const HORIZONT_MONATE = HORIZONT_JAHRE * 12;
 export const kennzahlHerkunft = {
   amortisation: "belegt",
   roiJahr1: "belegt",
-  roiDreiJahre: "belegt",
+  roiHorizont: "belegt",
   capex: "belegt",
   opex: "belegt",
   tco: "belegt",

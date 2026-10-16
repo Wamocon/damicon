@@ -48,7 +48,7 @@ await mussScheitern("Annahmen: Menge groesser als null", `update public.wirtscha
   const { rows: s } = await db.query<{ waehrung: string; herkunft: string; datum: string }>(`select waehrung, herkunft, datum::text from public.wirtschaftlichkeit_posten where id = $1;`, [rows[0].id]);
   check("Posten: Waehrung EUR, Herkunft belegt, Datum gesetzt", s[0].waehrung === "EUR" && s[0].herkunft === "belegt" && !!s[0].datum);
 }
-await mussScheitern("Posten: Art nur investition, betrieb oder nutzen", `insert into public.wirtschaftlichkeit_posten (art, kategorie, bezeichnung, betrag) values ('sonst', 'x', 'y', 1);`, [], "23514");
+await mussScheitern("Posten: Art nur investition, betrieb, nutzen oder fixkosten", `insert into public.wirtschaftlichkeit_posten (art, kategorie, bezeichnung, betrag) values ('sonst', 'x', 'y', 1);`, [], "23514");
 await mussScheitern("Posten: Betrag nicht negativ", `insert into public.wirtschaftlichkeit_posten (art, kategorie, bezeichnung, betrag) values ('betrieb', 'Hosting', 'y', -1);`, [], "23514");
 await mussScheitern("Posten: Waehrung nur EUR, KZT oder RUB", `insert into public.wirtschaftlichkeit_posten (art, kategorie, bezeichnung, betrag, waehrung) values ('betrieb', 'Hosting', 'y', 1, 'USD');`, [], "23514");
 await mussScheitern("Posten: Herkunft nur belegt oder geschaetzt", `insert into public.wirtschaftlichkeit_posten (art, kategorie, bezeichnung, betrag, herkunft) values ('betrieb', 'Hosting', 'y', 1, 'vermutet');`, [], "23514");
@@ -210,6 +210,87 @@ await mussScheitern("Stand: Bezeichnung nicht leer", `insert into public.wirtsch
   const { rows: baseline } = await db.query<{ baseline_wert: string | null }>(`select baseline_wert from public.kpi_baseline where key = 'verlustquote';`);
   check("Schwund-Herleitung: die Baseline nennt die Verlustquote als Prozentangabe (8,4 %)", baseline[0]?.baseline_wert === "8,4 %", JSON.stringify(baseline));
   await db.query(`delete from public.chargen where code like 'SCHW-%';`);
+}
+
+// --- Wirtschaftlichkeit des Betriebs (Migration 20261210010000) ------------------------------------------------------------------------------
+{
+  const { rows } = await posten("fixkosten", "Personal", 58_800_000);
+  check("Betrieb: eine Fixkosten-Zeile ist als Art erlaubt", rows.length === 1);
+
+  const { rows: voll } = await db.query<{ n: number }>(
+    `update public.wirtschaftlichkeit_annahmen
+        set plan_preis_tenge_kg = 1850, plan_variable_kosten_tenge_kg = 1100, plan_menge_entwicklung = 0.06, plan_preis_entwicklung = 0.06,
+            plan_kosten_entwicklung = 0.08, plan_fixkosten_entwicklung = 0.07, plan_abschreibung_jahre = 5
+      returning 1 as n;`,
+  );
+  check("Betrieb: eine vollständige Planung geht durch", voll.length === 1);
+  const { rows: leer } = await db.query<{ n: number }>(
+    `update public.wirtschaftlichkeit_annahmen
+        set plan_preis_tenge_kg = null, plan_variable_kosten_tenge_kg = null, plan_menge_entwicklung = null, plan_preis_entwicklung = null,
+            plan_kosten_entwicklung = null, plan_fixkosten_entwicklung = null, plan_abschreibung_jahre = null
+      returning 1 as n;`,
+  );
+  check("Betrieb: leere Planwerte sind erlaubt (nicht gesetzt)", leer.length === 1);
+}
+await mussScheitern("Betrieb: der Verkaufspreis ist größer als null", `update public.wirtschaftlichkeit_annahmen set plan_preis_tenge_kg = 0;`, [], "23514");
+await mussScheitern("Betrieb: variable Kosten nicht negativ", `update public.wirtschaftlichkeit_annahmen set plan_variable_kosten_tenge_kg = -1;`, [], "23514");
+await mussScheitern("Betrieb: eine Entwicklung liegt zwischen minus 50 und plus 100 Prozent (oben)", `update public.wirtschaftlichkeit_annahmen set plan_preis_entwicklung = 1.01;`, [], "23514");
+await mussScheitern("Betrieb: eine Entwicklung liegt zwischen minus 50 und plus 100 Prozent (unten)", `update public.wirtschaftlichkeit_annahmen set plan_fixkosten_entwicklung = -0.51;`, [], "23514");
+await mussScheitern("Betrieb: die Abschreibung läuft mindestens ein Jahr", `update public.wirtschaftlichkeit_annahmen set plan_abschreibung_jahre = 0;`, [], "23514");
+await mussScheitern("Betrieb: die Abschreibung läuft höchstens zwanzig Jahre", `update public.wirtschaftlichkeit_annahmen set plan_abschreibung_jahre = 21;`, [], "23514");
+
+// Modellwerte übernehmen: nur die Posten des Systems zählen, die Fixkosten des Betriebs sperren den Knopf nicht.
+{
+  await db.query(`delete from public.wirtschaftlichkeit_posten;`);
+  await posten("fixkosten", "Pacht", 6_000_000);
+  const neu = JSON.stringify([{ art: "investition", kategorie: "Entwicklung", bezeichnung: "Plattform", betrag: 1000, waehrung: "EUR", datum: "2026-09-23", herkunft: "belegt", notiz: "" }]);
+  const { rows: erst } = await db.query<{ n: number }>(`select public.wirtschaftlichkeit_posten_uebernehmen($1::jsonb, null) as n;`, [neu]);
+  check("Betrieb: Modellwerte übernehmen geht trotz erfasster Fixkosten", erst[0].n === 1, JSON.stringify(erst));
+  const { rows: zweit } = await db.query<{ n: number }>(`select public.wirtschaftlichkeit_posten_uebernehmen($1::jsonb, null) as n;`, [neu]);
+  check("Betrieb: ein zweiter Klick fügt nichts doppelt ein (0)", zweit[0].n === 0, JSON.stringify(zweit));
+  await db.query(`delete from public.wirtschaftlichkeit_posten;`);
+}
+
+// Vergleichswert aus dem Betrieb: Erlöse und Kosten der letzten 365 Tage aus dem Journal, Menge aus den Chargen.
+{
+  const { rows: bloecke } = await db.query<{ id: string }>(`select id from public.reihenbloecke limit 1;`);
+  const heute = "public.heute_almaty()";
+  // Die Seed-Daten bringen eigene Buchungen und Chargen mit: verglichen wird der Zuwachs.
+  const lies = async () => {
+    const { rows } = await db.query<{ erloes_tenge: string; kosten_tenge: string; menge_kg: string; buchungen: number }>(`select erloes_tenge::text, kosten_tenge::text, menge_kg::text, buchungen from public.betrieb_ist_zwoelf_monate();`);
+    return { erloes: Number(rows[0].erloes_tenge), kosten: Number(rows[0].kosten_tenge), menge: Number(rows[0].menge_kg), buchungen: rows[0].buchungen };
+  };
+  const vorher = await lies();
+  await db.query(
+    `insert into public.chargen (code, reihenblock_id, menge_kg, ausschuss_kg, ernte_datum) values
+       ('BETR-1', $1, 1000, 0, ${heute} - 10),
+       ('BETR-2', $1, 500, 0, ${heute} - 100),
+       ('BETR-ALT', $1, 9000, 0, ${heute} - 400);`,
+    [bloecke[0].id],
+  );
+  await db.query(
+    `insert into public.finance_ledger_entries (typ, kategorie, betrag_tenge, buchungsdatum) values
+       ('erloes', 'Verkauf', 3000000, ${heute} - 20),
+       ('erloes', 'Verkauf', 1000000, ${heute} - 200),
+       ('kosten', 'Lohn', 1500000, ${heute} - 30),
+       ('erloes', 'Verkauf', 99000000, ${heute} - 400),
+       ('kosten', 'Lohn', 77000000, ${heute} - 400);`,
+  );
+  await als("buchhaltung", async () => {
+    const z = await lies();
+    check("Betrieb Ist: Erlöse und Kosten der letzten 365 Tage, ohne die zu alten Buchungen", z.erloes - vorher.erloes === 4_000_000 && z.kosten - vorher.kosten === 1_500_000 && z.buchungen - vorher.buchungen === 3, JSON.stringify([vorher, z]));
+    check("Betrieb Ist: die Menge ist die Ernte der letzten 365 Tage, ohne die alte Charge", z.menge - vorher.menge === 1500, JSON.stringify([vorher, z]));
+  });
+  for (const rolle of ["picker", "kunde"]) {
+    await als(rolle, async () => {
+      const { rows } = await db.query<{ erloes_tenge: string; kosten_tenge: string }>(`select erloes_tenge::text, kosten_tenge::text from public.betrieb_ist_zwoelf_monate();`);
+      check(`Betrieb Ist: ${rolle} sieht das Journal nicht, also keine Erlöse und Kosten`, rows.length === 1 && Number(rows[0].erloes_tenge) === 0 && Number(rows[0].kosten_tenge) === 0, JSON.stringify(rows));
+    });
+  }
+  await t.alsRolle("anon");
+  await mussScheitern("Betrieb Ist: anon ruft die Funktion nicht auf (42501)", `select * from public.betrieb_ist_zwoelf_monate();`, [], "42501");
+  await t.alsAdmin();
+  await db.query(`delete from public.chargen where code like 'BETR-%';`);
 }
 
 t.ende("Alle Datenbank-Tests der Wirtschaftlichkeit gruen.");

@@ -21,6 +21,7 @@ import {
   postenFehler,
 } from "@/lib/domain/wirtschaftlichkeit-erfassung";
 import { VERMARKTETE_MENGE_KG } from "@/lib/domain/wirtschaftlichkeit";
+import { betriebAnnahmenFehler } from "@/lib/domain/betriebsrechnung";
 import type { Json } from "@/lib/database.types";
 import { istUuid } from "@/lib/utils";
 
@@ -222,6 +223,78 @@ export async function annahmenSetzen(_status: AktionsStatus, formData: FormData)
   await protokoll(z.profil, "wirtschaftlichkeit.annahmen_geaendert", null, { zinsProzent: e.kalkulationszinsProzent, kursEurTenge: e.kurseurTenge, kursStichtag: e.kursStichtag });
   aktualisiere(formData);
   return ok("ok.wiAnnahmenGespeichert");
+}
+
+/** Ein Prozentwert aus dem Formular als Anteil (5 wird 0,05); leer ist null, kein Zahlentext undefined. */
+function optionalerAnteil(formData: FormData, feld: string): { prozent: number | null } | undefined {
+  const wert = optionaleZahl(formData, feld);
+  return wert === undefined ? undefined : { prozent: wert };
+}
+
+/**
+ * Die Planung des Betriebs (Betriebsrechnung): Menge, Preis und variable Kosten des ersten Jahres, die jaehrliche Entwicklung und die
+ * Abschreibung des Systems. Die Herkunft (belegt oder geschaetzt) kommt je Gruppe mit und wird in die vorhandene Spalte "herkunft" gemischt,
+ * ohne die Schluessel des Systems zu beruehren. Die Jahresmenge ist dieselbe Spalte wie bei den Annahmen des Systems.
+ */
+export async function betriebAnnahmenSetzen(_status: AktionsStatus, formData: FormData): Promise<AktionsStatus> {
+  const z = await zugriff("update");
+  if ("status" in z) return z.status;
+
+  const menge = optionaleZahl(formData, "menge");
+  const preis = optionaleZahl(formData, "preis");
+  const kosten = optionaleZahl(formData, "kosten");
+  const abschreibung = optionaleZahl(formData, "abschreibung");
+  const mengeEntw = optionalerAnteil(formData, "menge_prozent");
+  const preisEntw = optionalerAnteil(formData, "preis_prozent");
+  const kostenEntw = optionalerAnteil(formData, "kosten_prozent");
+  const fixEntw = optionalerAnteil(formData, "fixkosten_prozent");
+  if (menge === undefined || preis === undefined || kosten === undefined || abschreibung === undefined || !mengeEntw || !preisEntw || !kostenEntw || !fixEntw) {
+    return fehler("fehler.biEingabe");
+  }
+
+  const abgelehnt = betriebAnnahmenFehler({
+    mengeKg: menge,
+    preisTengeKg: preis,
+    variableKostenTengeKg: kosten,
+    mengeProzent: mengeEntw.prozent,
+    preisProzent: preisEntw.prozent,
+    kostenProzent: kostenEntw.prozent,
+    fixkostenProzent: fixEntw.prozent,
+    abschreibungJahre: abschreibung,
+  });
+  if (abgelehnt) return fehler(`fehler.${abgelehnt}`);
+
+  const supabase = await createClient();
+  const { data: aktuell, error: leseFehler } = await supabase.from("wirtschaftlichkeit_annahmen").select("herkunft").eq("id", 1).maybeSingle();
+  if (leseFehler) return dbFehler(leseFehler);
+  if (!aktuell) return fehler("fehler.wiNichtGefunden");
+
+  const vorhanden = typeof aktuell.herkunft === "object" && aktuell.herkunft !== null && !Array.isArray(aktuell.herkunft) ? aktuell.herkunft : {};
+  const stufe = (feld: string) => (text(formData, feld) === "belegt" ? "belegt" : "geschaetzt");
+  const herkunft = { ...vorhanden, menge: stufe("herkunft_menge"), preis: stufe("herkunft_preis"), kosten: stufe("herkunft_kosten"), entwicklung: stufe("herkunft_entwicklung") };
+  const anteil = (p: number | null) => (p === null ? null : p / 100);
+
+  const { data, error } = await supabase
+    .from("wirtschaftlichkeit_annahmen")
+    .update({
+      vermarktete_menge_kg: menge,
+      plan_preis_tenge_kg: preis,
+      plan_variable_kosten_tenge_kg: kosten,
+      plan_menge_entwicklung: anteil(mengeEntw.prozent),
+      plan_preis_entwicklung: anteil(preisEntw.prozent),
+      plan_kosten_entwicklung: anteil(kostenEntw.prozent),
+      plan_fixkosten_entwicklung: anteil(fixEntw.prozent),
+      plan_abschreibung_jahre: abschreibung,
+      herkunft,
+    })
+    .eq("id", 1)
+    .select("id")
+    .maybeSingle();
+  if (error) return dbFehler(error);
+  if (!data) return fehler("fehler.wiNichtGefunden");
+  await protokoll(z.profil, "wirtschaftlichkeit.betrieb_annahmen_geaendert", null, { preis, kosten, menge });
+  aktualisiere(formData);
+  return ok("ok.biAnnahmenGespeichert");
 }
 
 // --- Staende -------------------------------------------------------------------------------------------------------------------

@@ -56,8 +56,11 @@ test.describe("Geschäftsführung: Einstellungen, Rollen, Wirtschaftlichkeit, Gl
     await expect(main.getByRole("button", { name: "Speichern" })).toHaveCount(0);
   });
 
-  test("Wirtschaftlichkeit: Kennzahlen, Zins-Check und die Herleitung des Schwund-Nutzens stehen auf der Seite", async ({ page }) => {
+  test("Wirtschaftlichkeit: Betrieb, Kennzahlen des Systems, Zins-Check und die Herleitung des Schwund-Nutzens stehen auf der Seite", async ({ page }) => {
     const main = await seite(page, "/de/dashboard/buero/wirtschaftlichkeit");
+    // Zuerst der Betrieb (Annahmen, Fixkosten), danach die Rechnung des Systems.
+    await expect(main.getByRole("heading", { name: "Fixkosten des Betriebs" })).toBeVisible();
+    await expect(main.getByRole("heading", { name: "Zweitens: Lohnt sich das System?" })).toBeVisible();
     await expect(main.getByText("Zins-Check")).toBeVisible();
     await expect(main.getByText("Schwund-Nutzen aus den Betriebsdaten")).toBeVisible();
     await expect(main.getByText("Verlustquote vor der Einführung (Baseline)")).toBeVisible();

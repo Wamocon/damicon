@@ -1,4 +1,4 @@
--- Nimmt die Testdaten aus den Migrationen 20261209* wieder zurück (Hilfsskript, KEINE Migration).
+-- Nimmt die Testdaten aus den Migrationen 20261209* und 20261210020000 wieder zurück (Hilfsskript, KEINE Migration).
 --
 -- Die Testdaten tragen die feste Kennung 7e57da7a-0000-4000-8000-... Dieses Skript löscht genau diese Zeilen und kehrt die Folgen zurück,
 -- die ihr Einfügen im übrigen Bestand hatte (verbrauchte Rotationsplan-Einträge, reservierte Kontingente, Gültigkeit der Preislisten).
@@ -86,6 +86,11 @@ delete from public.wetter_messungen where id::text like '7e57da7a-0000-4000-8000
 delete from public.wirtschaftlichkeit_staende where id::text like '7e57da7a-0000-4000-8000-%';
 delete from public.wirtschaftlichkeit_ist where id::text like '7e57da7a-0000-4000-8000-%';
 delete from public.wirtschaftlichkeit_posten where id::text like '7e57da7a-0000-4000-8000-%';
+update public.wirtschaftlichkeit_annahmen
+   set plan_preis_tenge_kg = null, plan_variable_kosten_tenge_kg = null, plan_menge_entwicklung = null, plan_preis_entwicklung = null,
+       plan_kosten_entwicklung = null, plan_fixkosten_entwicklung = null, plan_abschreibung_jahre = null,
+       herkunft = herkunft - 'preis' - 'kosten' - 'entwicklung'
+ where id = 1 and plan_preis_tenge_kg = 1850 and plan_variable_kosten_tenge_kg = 1100 and plan_fixkosten_entwicklung = 0.07;
 update public.wirtschaftlichkeit_annahmen
    set vermarktete_menge_kg = null, echtbetrieb_beginn = null
  where id = 1 and vermarktete_menge_kg = 350000 and echtbetrieb_beginn = date '2026-09-01';

@@ -28,6 +28,7 @@ Drei Spalten bestimmen, wie es weitergeht:
 | 1473, 1460 | Browsertests gegen die lokale Instanz, Rechte je Rolle, Bildvergleich, Geschäftsführung und Erzeuger im fachlichen Ablauf | fertig, Referenzbilder noch aus der CI zu holen |
 | 1475 | Diese Liste, Handbuch um sieben Anleitungen erweitert, die älteren berichtigt, in vier Sprachen | fertig |
 | 2470 | Wirtschaftlichkeit: Posten, Annahmen, Plan-Ist, Stände, Dokument, Zins-Check, Herleitung des Schwund-Nutzens aus Verlustquote, Jahresmenge und Vollkosten | fertig, die Werte sind Sache der Geschäftsführung |
+| 2470 (16.10.2026) | Wirtschaftlichkeit des Betriebs als erster Teil der Seite: Erlöse, variable Kosten, Fixkosten und Ergebnis über 3, 4 oder 5 Jahre (Entwicklung je Jahr, Gewinnschwelle, Vergleich mit dem Finanzjournal), das System als Effekt darin; die Rechnung des Systems folgt als zweiter Teil und rechnet mit demselben Zeitraum | fertig, Preis, Kosten, Fixkosten und Entwicklung sind Sache der Geschäftsführung |
 | 1577 | Abholrunden: Planen, Ablauf, 60-Minuten-Regel, Fahrzeugkapazität, Abholfenster, geschätzte Ankunft | fertig |
 | 1627, 2290 | Auslieferung der Integrations-Warteschlange: signierter Webhook, Basic-Authentifizierung, Vorlage für das Zielformat, Rückmeldung des Partners, regelmäßiger Aufruf | Rahmen fertig, der Partner steht aus |
 | 1465 | Hypercare-Plan, festgelegt am 15.10.2026 (`docs/Hypercare-Plan-Damicon.docx`) | festgelegt |
@@ -110,7 +111,7 @@ Jede Zeile war ein offener Punkt dieser Liste. Die Begründung steht in `docs/EN
 
 ## Testdaten (16.10.2026)
 
-Zwölf Migrationen `20261209*` füllen die neuen Funktionen mit realitätsnahen, in sich stimmigen Daten. Sie laufen wie jede Datenänderung: beim Push in den Pull Request auf `public_preview`, nach dem Merge auf `public`. Damit stehen beide Umgebungen gleich da.
+13 Migrationen (`20261209*` und `20261210020000`) füllen die neuen Funktionen mit realitätsnahen, in sich stimmigen Daten. Sie laufen wie jede Datenänderung: beim Push in den Pull Request auf `public_preview`, nach dem Merge auf `public`. Damit stehen beide Umgebungen gleich da.
 
 | Datei | Inhalt |
 |---|---|
@@ -126,6 +127,7 @@ Zwölf Migrationen `20261209*` füllen die neuen Funktionen mit realitätsnahen,
 | `…090000_testdaten_esf_korrektur` | führt ЭСФ-Belege der Testdaten, die bei Lieferungen über 45 Tage offen oder unbestätigt geblieben waren, zu Ende (die zufällige Verteilung in `…050000` hatte Altfälle von über einem Jahr als Entwurf liegen lassen) |
 | `…100000_testdaten_benachrichtigungen_neu` | nimmt die ЭСФ-Hinweise, die vor der Korrektur entstanden sind, zurück (wenn nichts mehr über der Frist offen ist) und lässt die Erzeugung neu laufen |
 | `…110000_testdaten_abholstopp_text` | nimmt den Wetterbezug (Frost) aus einer Abholbemerkung, weil das Wetter nach einer Aktualisierung ein anderes ist |
+| `20261210020000_testdaten_betriebsrechnung` | Planung des Betriebs (1.850 Tenge je kg Preis, 1.100 Tenge je kg variable Kosten, Menge +6 %, Preis +6 %, variable Kosten +8 %, Fixkosten +7 % je Jahr, Abschreibung 5 Jahre) und sieben Fixkosten-Posten (140 Mio. Tenge je Jahr), so dass die Vollkosten vor dem System bei 1.500 Tenge je kg liegen |
 
 **Schutz.** Jede Migration greift nur, wo Betriebsdaten da sind. Eine leere Datenbank (CI, lokaler Stack vor dem Seed) bleibt unverändert. Jede Tabelle wird nur gefüllt, wenn sie leer ist oder die Zeile fehlt; was jemand von Hand erfasst hat, wird nie ergänzt oder verdoppelt. Ein zweiter Lauf ändert nichts.
 

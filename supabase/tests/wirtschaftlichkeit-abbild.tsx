@@ -4,6 +4,7 @@ import { createFormatter, createTranslator } from "next-intl";
 import { ersetzeModule } from "./hilfen/modul-ersatz";
 import { rendere, texteVon, SPRACHEN } from "./hilfen/ansicht-probe";
 import type { DokumentKontext, Uebersetzer } from "../../src/lib/dokument/kontext";
+import type { BetriebIst, BetriebsAnnahmen } from "../../src/lib/domain/betriebsrechnung";
 import {
   barwertIstPunkte,
   modellAnnahmen,
@@ -21,7 +22,8 @@ import {
 // Charakterisierung der drei langen Funktionen der Wirtschaftlichkeit (15.10.2026), bevor sie zerlegt werden:
 //   * baueWirtschaftlichkeitDokument (lib/dokument/wirtschaftlichkeit.ts), in vier Sprachen,
 //   * baueModell (components/db/wirtschaftlichkeit-modell.tsx), in Deutsch und Russisch,
-//   * WirtschaftlichkeitErfassung (components/db/wirtschaftlichkeit-erfassung.tsx), das Markup in Deutsch.
+//   * WirtschaftlichkeitErfassung (components/db/wirtschaftlichkeit-erfassung.tsx), das Markup in Deutsch,
+//   * BetriebsrechnungAnsicht (components/db/betriebsrechnung-ansicht.tsx, seit 16.10.2026), das Markup in vier Sprachen.
 // Festgehalten wird je Fall ein Fingerabdruck der Ausgabe (SHA-256) in supabase/tests/fixtures/wirtschaftlichkeit-abbild.json. Ein Umbau, der die Ausgabe
 // ändert, macht den Test rot; ein gewollter Unterschied wird mit "--schreiben" neu festgehalten und im Pull Request begründet.
 //
@@ -129,7 +131,7 @@ async function main() {
       erfasst.length > 0 && stand.capexEur !== null && stand.opexEur !== null
         ? { roi: roiIstPunkte(erfasst, stand.capexEur, stand.opexEur), barwert: barwertIstPunkte(erfasst, stand.capexEur, stand.opexEur, annahmen.kalkulationszins) }
         : null;
-    return { stand, annahmen, istPunkte };
+    return { stand, annahmen, istPunkte, jahre: 3 };
   }
   const MODELL_FAELLE = [
     { name: "erfasst", r: rechnung(POSTEN, IST, ANNAHMEN, MENGE_GUT, "2026-12"), k: { quelle: "erfasst" as const, postenAnzahl: POSTEN.length } },
@@ -171,6 +173,52 @@ async function main() {
       console.log(`FAIL  erfassung/${f.name}: Textfehler ${textFehler.slice(0, 2).join(" | ")}`);
     }
     pruefe(`erfassung/${f.name}/de`, html);
+  }
+
+  // --- 4. Wirtschaftlichkeit des Betriebs ---------------------------------------------------------------------------------------------
+  const { BetriebsrechnungAnsicht } = await import("../../src/components/db/betriebsrechnung-ansicht");
+  const BETRIEB: BetriebsAnnahmen = {
+    mengeKg: 350_000,
+    preisTengeKg: 1850,
+    variableKostenTengeKg: 1100,
+    mengeEntwicklung: 0.06,
+    preisEntwicklung: 0.06,
+    kostenEntwicklung: 0.08,
+    fixkostenEntwicklung: 0.07,
+    abschreibungJahre: 5,
+    herkunft: { menge: "geschaetzt", preis: "belegt", kosten: "geschaetzt", entwicklung: "geschaetzt" },
+  };
+  const BETRIEB_LEER: BetriebsAnnahmen = { ...BETRIEB, mengeKg: null, preisTengeKg: null, variableKostenTengeKg: null, mengeEntwicklung: null, preisEntwicklung: null, kostenEntwicklung: null, fixkostenEntwicklung: null, abschreibungJahre: null, herkunft: {} };
+  const BETRIEB_IST: BetriebIst = { erloesTenge: 3_068_545, kostenTenge: 1_841_876, mengeKg: 1738.6, buchungen: 98, von: "2025-10-17", bis: "2026-10-16" };
+  const FIXKOSTEN: Posten[] = [
+    { id: "f1", art: "fixkosten", kategorie: "Personal <fest>", bezeichnung: "Festes Personal (14 Stellen)", betrag: 58_800_000, waehrung: "KZT", datum: "2026-09-01", herkunft: "belegt", notiz: null },
+    { id: "f2", art: "fixkosten", kategorie: "Verwaltung", bezeichnung: "Beratung & Bank", betrag: 40_000, waehrung: "EUR", datum: "2026-09-01", herkunft: "geschaetzt", notiz: "Notiz <wichtig>" },
+  ];
+  const STANDARD = { pfad: "/de/dashboard/buero/wirtschaftlichkeit", jahre: 5 as const, betriebIst: BETRIEB_IST, heute: HEUTE, kursHinweis: "Umgerechnet zum Kurs vom Stichtag", herkunftTexte: { geschaetztLabel: "geschätzt", offenLabel: "offen" } };
+  function betriebEingabe(modus: "modell" | "erfasst" | "stand", posten: Posten[], betrieb: BetriebsAnnahmen, extra: { darfSchreiben?: boolean; jahre?: 3 | 4 | 5; standId?: string; betriebIst?: BetriebIst | null } = {}) {
+    const jahre = extra.jahre ?? STANDARD.jahre;
+    return { ...STANDARD, modus, betrieb, posten, annahmen: ANNAHMEN, stand: rechneStand(posten, ANNAHMEN, null, jahre), darfSchreiben: extra.darfSchreiben ?? true, ...extra, jahre };
+  }
+  const SYSTEM_POSTEN = modellPosten(MODELL_TEXTE, "2026-09-23");
+  const BETRIEB_FAELLE = [
+    { name: "voll-schreiben", e: betriebEingabe("erfasst", [...SYSTEM_POSTEN, ...FIXKOSTEN], BETRIEB), sprachen: SPRACHEN },
+    { name: "voll-lesen-drei-jahre", e: betriebEingabe("erfasst", [...SYSTEM_POSTEN, ...FIXKOSTEN], BETRIEB, { darfSchreiben: false, jahre: 3 }), sprachen: ["de", "ru"] as const },
+    { name: "ohne-system", e: betriebEingabe("erfasst", FIXKOSTEN, BETRIEB, { jahre: 4 }), sprachen: ["de", "ru"] as const },
+    { name: "ohne-fixkosten", e: betriebEingabe("erfasst", SYSTEM_POSTEN, BETRIEB), sprachen: ["de"] as const },
+    { name: "leer", e: betriebEingabe("erfasst", [], BETRIEB_LEER, { betriebIst: null }), sprachen: ["de", "ru"] as const },
+    { name: "stand", e: betriebEingabe("stand", [...SYSTEM_POSTEN, ...FIXKOSTEN], BETRIEB, { darfSchreiben: false, standId: "s1" }), sprachen: ["de", "ru"] as const },
+    { name: "modell", e: betriebEingabe("modell", SYSTEM_POSTEN, BETRIEB_LEER, { darfSchreiben: false, betriebIst: null }), sprachen: ["de"] as const },
+  ];
+  for (const f of BETRIEB_FAELLE) {
+    for (const loc of f.sprachen) {
+      sprache = loc;
+      const { html, fehler: textFehler } = rendere(await BetriebsrechnungAnsicht(f.e), loc);
+      if (textFehler.some((z) => !z.includes("value"))) {
+        fehler++;
+        console.log(`FAIL  betrieb/${f.name}/${loc}: Textfehler ${textFehler.slice(0, 2).join(" | ")}`);
+      }
+      pruefe(`betrieb/${f.name}/${loc}`, html);
+    }
   }
 
   if (schreiben) {

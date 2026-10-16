@@ -15,7 +15,7 @@ import {
 import type { StandKopf } from "@/lib/data/wirtschaftlichkeit";
 import { einstellungWert } from "@/lib/data/einstellungen";
 import {
-  POSTEN_ARTEN,
+  SYSTEM_POSTEN_ARTEN,
   euroInTengeMit,
   kapitalwertBeiZinsen,
   summiere,
@@ -24,7 +24,6 @@ import {
   type MengeAbgeleitet,
   type PlanIst,
   type Posten,
-  type PostenArt,
   type Rechenstand,
 } from "@/lib/domain/wirtschaftlichkeit-erfassung";
 
@@ -34,7 +33,7 @@ import {
 
 type Uebersetzer = Awaited<ReturnType<typeof getTranslations>>;
 
-function Zeile({ label, children, hinweis }: { label: string; children: ReactNode; hinweis?: string }) {
+export function Zeile({ label, children, hinweis }: { label: string; children: ReactNode; hinweis?: string }) {
   return (
     <div className="border-b border-border/60 py-1.5 last:border-0">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5">
@@ -63,14 +62,14 @@ export interface ErfassungsEingabe {
   heute: string;
 }
 
-function HerkunftPille({ herkunft, t }: { herkunft: "belegt" | "geschaetzt"; t: Uebersetzer }) {
+export function HerkunftPille({ herkunft, t }: { herkunft: "belegt" | "geschaetzt"; t: Uebersetzer }) {
   return <StatusPill tone={herkunft === "belegt" ? "success" : "warning"}>{herkunft === "belegt" ? t("herkunft.belegt") : t("herkunft.geschaetzt")}</StatusPill>;
 }
 
 type Format = Awaited<ReturnType<typeof getFormatter>>;
 
 /** Texte und Formate, die alle Abschnitte teilen: einmal in WirtschaftlichkeitErfassung aufgebaut. */
-interface Anzeige {
+export interface Anzeige {
   t: Uebersetzer;
   format: Format;
   zahl: (n: number, stellen?: number) => string;
@@ -82,7 +81,7 @@ interface Anzeige {
   kategorieText: (p: Posten | IstEintrag) => string;
 }
 
-function anzeigeFuer(t: Uebersetzer, format: Format, annahmen: Annahmen): Anzeige {
+export function anzeigeFuer(t: Uebersetzer, format: Format, annahmen: Annahmen): Anzeige {
   const kategorieTexte: Record<string, string> = {
     schwund: t("kategorie.schwund"),
     handarbeit: t("kategorie.handarbeit"),
@@ -105,14 +104,55 @@ function anzeigeFuer(t: Uebersetzer, format: Format, annahmen: Annahmen): Anzeig
 
 // --- Posten ---------------------------------------------------------------------------------------------------------------
 
+/** Die Zeilen einer Art: eine Tabelle zum Lesen, sonst je Posten ein Aufklapper mit Formular. Auch für die Fixkosten des Betriebs. */
+export function PostenListe({ a, zeilen, lesend, heute, leerText }: { a: Anzeige; zeilen: Posten[]; lesend: boolean; heute: string; leerText: string }) {
+  const { t, tag, betrag, kategorieText } = a;
+  if (zeilen.length === 0) return <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">{leerText}</p>;
+  if (lesend) {
+    return (
+      <DataTable head={[t("posten.col.kategorie"), t("posten.col.bezeichnung"), t("posten.col.datum"), t("posten.col.betrag"), t("posten.col.herkunft")]}>
+        {zeilen.map((p) => (
+          <tr key={p.id}>
+            <td className="px-3 py-2.5 text-muted-foreground">{kategorieText(p)}</td>
+            <td className="px-3 py-2.5 font-semibold text-foreground">
+              {p.bezeichnung}
+              {p.notiz ? <span className="mt-0.5 block text-xs font-normal text-muted-foreground">{p.notiz}</span> : null}
+            </td>
+            <td className="px-3 py-2.5 text-muted-foreground">{tag(p.datum)}</td>
+            <td className="px-3 py-2.5 text-foreground">{betrag(p)}</td>
+            <td className="px-3 py-2.5">
+              <HerkunftPille herkunft={p.herkunft} t={t} />
+            </td>
+          </tr>
+        ))}
+      </DataTable>
+    );
+  }
+  return (
+    <div className="space-y-2">
+      {zeilen.map((p) => (
+        // Der Schluessel enthaelt den Stand der Zeile: nach dem Speichern baut sich das Formular mit den neuen Werten auf.
+        <Aufklapper key={`${p.id}-${p.betrag}-${p.bezeichnung}-${p.herkunft}-${p.datum}-${p.waehrung}-${p.kategorie}-${p.notiz}`} titel={`${p.bezeichnung} · ${betrag(p)}`} beschreibung={`${kategorieText(p)} · ${tag(p.datum)} · ${p.herkunft === "belegt" ? t("herkunft.belegt") : t("herkunft.geschaetzt")}`}>
+          <div className="-m-4">
+            <PostenFormular posten={p} heute={heute} />
+          </div>
+          <div className="mt-2">
+            <PostenEntfernenKnopf id={p.id} />
+          </div>
+        </Aufklapper>
+      ))}
+    </div>
+  );
+}
+
 function PostenAnsicht({ a, posten, annahmen, lesend, heute }: { a: Anzeige; posten: Posten[]; annahmen: Annahmen; lesend: boolean; heute: string }) {
-  const { t, tenge, tag, betrag, kategorieText } = a;
-  const artTexte: Record<PostenArt, string> = {
+  const { t, tenge } = a;
+  const artTexte: Record<(typeof SYSTEM_POSTEN_ARTEN)[number], string> = {
     investition: t("posten.art.investition"),
     betrieb: t("posten.art.betrieb"),
     nutzen: t("posten.art.nutzen"),
   };
-  const gruppen = POSTEN_ARTEN.map((art) => ({ art, zeilen: posten.filter((p) => p.art === art), summe: summiere(posten, art, annahmen.kurse).summe }));
+  const gruppen = SYSTEM_POSTEN_ARTEN.map((art) => ({ art, zeilen: posten.filter((p) => p.art === art), summe: summiere(posten, art, annahmen.kurse).summe }));
   return (
     <div className="space-y-4">
       {gruppen.map((g) => (
@@ -121,40 +161,7 @@ function PostenAnsicht({ a, posten, annahmen, lesend, heute }: { a: Anzeige; pos
             <span>{artTexte[g.art]}</span>
             <span className="text-muted-foreground">{g.summe === null ? t("posten.nichtErfasst") : t("posten.summe", { betrag: tenge(g.summe) })}</span>
           </p>
-          {g.zeilen.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">{t("posten.keineZeile")}</p>
-          ) : lesend ? (
-            <DataTable head={[t("posten.col.kategorie"), t("posten.col.bezeichnung"), t("posten.col.datum"), t("posten.col.betrag"), t("posten.col.herkunft")]}>
-              {g.zeilen.map((p) => (
-                <tr key={p.id}>
-                  <td className="px-3 py-2.5 text-muted-foreground">{kategorieText(p)}</td>
-                  <td className="px-3 py-2.5 font-semibold text-foreground">
-                    {p.bezeichnung}
-                    {p.notiz ? <span className="mt-0.5 block text-xs font-normal text-muted-foreground">{p.notiz}</span> : null}
-                  </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{tag(p.datum)}</td>
-                  <td className="px-3 py-2.5 text-foreground">{betrag(p)}</td>
-                  <td className="px-3 py-2.5">
-                    <HerkunftPille herkunft={p.herkunft} t={t} />
-                  </td>
-                </tr>
-              ))}
-            </DataTable>
-          ) : (
-            <div className="space-y-2">
-              {g.zeilen.map((p) => (
-                // Der Schluessel enthaelt den Stand der Zeile: nach dem Speichern baut sich das Formular mit den neuen Werten auf.
-                <Aufklapper key={`${p.id}-${p.betrag}-${p.bezeichnung}-${p.herkunft}-${p.datum}-${p.waehrung}-${p.kategorie}-${p.notiz}`} titel={`${p.bezeichnung} · ${betrag(p)}`} beschreibung={`${kategorieText(p)} · ${tag(p.datum)} · ${p.herkunft === "belegt" ? t("herkunft.belegt") : t("herkunft.geschaetzt")}`}>
-                  <div className="-m-4">
-                    <PostenFormular posten={p} heute={heute} />
-                  </div>
-                  <div className="mt-2">
-                    <PostenEntfernenKnopf id={p.id} />
-                  </div>
-                </Aufklapper>
-              ))}
-            </div>
-          )}
+          <PostenListe a={a} zeilen={g.zeilen} lesend={lesend} heute={heute} leerText={t("posten.keineZeile")} />
         </div>
       ))}
     </div>
@@ -317,7 +324,7 @@ export async function WirtschaftlichkeitErfassung({ pfad, posten, ist, annahmen,
   return (
     <>
       <Section title={t("posten.titel")} description={t("posten.lead")}>
-        {posten.length === 0 && darfSchreiben ? (
+        {posten.every((p) => p.art === "fixkosten") && darfSchreiben ? (
           <Card ton="innen" className="mb-4 space-y-2 p-4">
             <p className="schrift-dense font-semibold text-card-foreground">{t("modell.titel")}</p>
             <p className="schrift-dense text-muted-foreground">{t("modell.lead")}</p>
