@@ -122,8 +122,9 @@ jobs:
             node scripts/preview-migrationen.mjs pruefen
           fi
 
+      # Aufrufe der CLI ueber scripts/supabase-wiederholen.mjs: wiederholt nur die abgelehnte Anmeldung (cli_login_postgres), siehe datenbank-migration.yml
       - name: Mit dem Projekt verbinden
-        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+        run: node scripts/supabase-wiederholen.mjs link --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Trockenlauf public_preview
         shell: bash
@@ -140,7 +141,7 @@ jobs:
 
       - name: PostgREST-Schema neu laden
         if: env.ANWENDEN == 'true'
-        run: supabase db query --linked "notify pgrst, 'reload schema'"
+        run: node scripts/supabase-wiederholen.mjs db query --linked "notify pgrst, 'reload schema'"
 
       - name: Zusammenfassung
         if: always()
