@@ -553,7 +553,7 @@
     "vorgezogenHinweis": "The date is still in the future, but the picking task for it has already been created.",
     "ueberspringenKnopf": "Skip",
     "reaktivierenKnopf": "Reactivate",
-    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included here - the growing-degree-day total is in the weather module. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
+    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included here - the heat sum is in the weather module. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
     "formular": {
       "generieren": {
         "titel": "Generate / extend plan",
@@ -666,10 +666,10 @@
       "todo": "Automatic interval calculation per row block, brigade assignment, a check for conflicts with pre-harvest locks, calendar export (.ics)."
     },
     "wetter": {
-      "title": "Weather and growing degree days",
+      "title": "Weather and heat sum",
       "navTitle": "Weather",
-      "description": "Weather data per location with a growing-degree-day calculation as the basis for the volume forecast.",
-      "summary": "A simple weather interface with growing degree days per plot. Explainable, verifiable and validatable within a season.",
+      "description": "Weather data and the heat sum since the start of the year, explained and set against the first harvest.",
+      "summary": "Weather data from Open-Meteo with the heat sum since 1 January. Explainable, verifiable and comparable within a season.",
       "todo": "A weather station on the farm instead of the values from the network, and a note on shifted ripening windows."
     },
     "kuehlkette": {
@@ -2000,27 +2000,55 @@
     "keineMessungen": "No cooling measurement recorded yet."
   },
   "wetterAnsicht": {
-    "summeTitel": "Temperature sum",
-    "summeLead": "Cumulative heat units above a 5 °C base temperature since the start of the season - a heuristic for the yield forecast, not a forecast model.",
-    "seit": "since",
-    "hinweis": "A pure observation figure. A link to actual harvest volume can only be evaluated reliably after a full season with real comparison data.",
+    "summeTitel": "Heat sum since the start of the year",
+    "summeLead": "How much warmth the plants have received since 1 January. The unit is degree days and it is not a temperature.",
     "keineDaten": "No weather data recorded yet.",
-    "tageTitel": "Last 14 days",
-    "tageLead": "Daily minimum, daily maximum, precipitation and the cumulative temperature sum up to that day.",
+    "tageTitel": "The last 14 days",
+    "tageLead": "Each day with its contribution and the sum up to that day.",
     "veraltet": "The series ends on {datum}. “Update now” below adds the missing days.",
     "col": {
       "datum": "Date",
-      "min": "Min.",
-      "max": "Max.",
+      "min": "Lowest",
+      "max": "Highest",
       "niederschlag": "Precipitation",
-      "summe": "Sum"
+      "summe": "Sum since 1 January",
+      "mittel": "Mean",
+      "beitrag": "Counts"
     },
     "formular": {
       "titel": "Update weather data",
-      "lead": "Fetches the season since January 1 plus the last few days from Open-Meteo and recomputes the temperature sum.",
+      "lead": "Fetches the season since 1 January plus the last few days from Open-Meteo and recalculates the heat sum.",
       "knopf": "Update now"
     },
-    "note": "Coordinates and base temperature are placeholders (Almaty city area, 5 °C) and should be replaced with the plantation's actual values or confirmed by an agronomist."
+    "einheit": "degree days",
+    "standSeit": "As of {datum}, counted since {start}",
+    "stat": {
+      "letzterTag": "Last day",
+      "siebenTage": "Last 7 days",
+      "schnitt": "Average per day"
+    },
+    "erklaerung": {
+      "titel": "How the number comes about",
+      "schritt1": "For each day, the mean of the lowest and the highest reading is taken.",
+      "schritt2": "If the mean is above {basis} °C, the difference counts. A cooler day counts 0.",
+      "schritt3": "All days since 1 January are added up. The sum only grows and never falls.",
+      "beispiel": "Example {datum}: lowest {min} °C, highest {max} °C, mean {mittel} °C. {mittel} minus {basis} gives {beitrag} degree days for this day.",
+      "beispielKalt": "Example {datum}: the mean of {mittel} °C is not above {basis} °C. The day counts 0 degree days.",
+      "hoch": "The number is large because it grows over {tage} days. On average {schnitt} degree days are added per day."
+    },
+    "verlauf": {
+      "titel": "Course since the start of the year",
+      "lead": "In summer the curve climbs steeply, in winter it stays flat because cold days add nothing.",
+      "wert": "Heat sum",
+      "ersteErnte": "First harvest"
+    },
+    "einordnung": {
+      "ersteErnte": "The first harvest of this year was on {datum}. The heat sum on that day was {summe} degree days.",
+      "ersteErnteOhneSumme": "The first harvest of this year was on {datum}. There are no weather values for that day.",
+      "keineErnte": "No harvest has been recorded this year yet, so there is no comparison value.",
+      "hinweis": "One season alone does not give a rule. Only several years show at which heat sum the harvest begins. The heat sum is not a forecast of the harvest quantity."
+    },
+    "grundlagen": "Basis: weather data from Open-Meteo for the point {breite} degrees north, {laenge} degrees east (Almaty city area). Counting starts on 1 January with a base temperature of {basis} °C, the usual threshold for berries. The exact location of the plantation is still outstanding."
   },
   "kanaeleAnsicht": {
     "titel": "Contact channels",
@@ -4063,7 +4091,7 @@
       "erfasst": "recorded",
       "offen": "open"
     },
-    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are not part of this view - the growing-degree-day total is in the weather module.",
+    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are not part of this view - the heat sum is in the weather module.",
     "esutdAltbestand": "Status from the old records: there is no contract for this person in the reporting process. Please add the contract in the Compliance module."
   },
   "erlebnis": {

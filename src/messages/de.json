@@ -553,7 +553,7 @@
     "vorgezogenHinweis": "Der Termin liegt noch in der Zukunft, die Pflückaufgabe dazu ist aber schon angelegt.",
     "ueberspringenKnopf": "Überspringen",
     "reaktivierenKnopf": "Reaktivieren",
-    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Temperatursumme steht im Wetter-Modul. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
+    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Wärmesumme steht im Wetter-Modul. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
     "formular": {
       "generieren": {
         "titel": "Plan erzeugen / erweitern",
@@ -666,10 +666,10 @@
       "todo": "Automatische Intervallrechnung je Reihenblock, Brigadenzuteilung, Prüfung auf Konflikte mit Wartezeitsperren, Kalender-Export (.ics)."
     },
     "wetter": {
-      "title": "Wetter und Temperatursumme",
+      "title": "Wetter und Wärmesumme",
       "navTitle": "Wetter",
-      "description": "Wetterdaten je Standort mit Temperatursummenrechnung als Grundlage für die Mengenprognose.",
-      "summary": "Einfache Wetterschnittstelle mit Temperatursumme je Parzelle. Erklärbar, prüfbar und innerhalb einer Saison validierbar.",
+      "description": "Wetterdaten und die Wärmesumme seit Jahresbeginn, erklärt und mit der ersten Ernte eingeordnet.",
+      "summary": "Wetterdaten von Open-Meteo mit der Wärmesumme seit dem 1. Januar. Erklärbar, prüfbar und innerhalb einer Saison vergleichbar.",
       "todo": "Eine eigene Wetterstation am Betrieb statt der Werte aus dem Netz, Hinweis auf verschobene Reifefenster."
     },
     "kuehlkette": {
@@ -2000,27 +2000,55 @@
     "keineMessungen": "Noch keine Kühlmessung erfasst."
   },
   "wetterAnsicht": {
-    "summeTitel": "Temperatursumme",
-    "summeLead": "Kumulierte Wärmeeinheiten über 5 °C Basistemperatur seit Saisonbeginn - eine Heuristik für die Mengenprognose, kein Prognosemodell.",
-    "seit": "seit",
-    "hinweis": "Reine Beobachtungsgröße. Ein Zusammenhang mit der tatsächlichen Erntemenge ist erst nach einer vollen Saison mit echten Vergleichsdaten belastbar auswertbar.",
+    "summeTitel": "Wärmesumme seit Jahresbeginn",
+    "summeLead": "Wie viel Wärme die Pflanzen seit dem 1. Januar bekommen haben. Die Einheit heißt Gradtage und ist keine Temperatur.",
     "keineDaten": "Noch keine Wetterdaten erfasst.",
-    "tageTitel": "Letzte 14 Tage",
-    "tageLead": "Tagesminimum, Tagesmaximum, Niederschlag und die kumulierte Temperatursumme bis zu diesem Tag.",
+    "tageTitel": "Die letzten 14 Tage",
+    "tageLead": "Jeder Tag mit seinem Beitrag und der Summe bis zu diesem Tag.",
     "veraltet": "Die Messreihe endet am {datum}. Mit „Jetzt aktualisieren“ unten kommen die fehlenden Tage dazu.",
     "col": {
       "datum": "Datum",
-      "min": "Min.",
-      "max": "Max.",
+      "min": "Tiefster Wert",
+      "max": "Höchster Wert",
       "niederschlag": "Niederschlag",
-      "summe": "Summe"
+      "summe": "Summe seit 1. Januar",
+      "mittel": "Mittelwert",
+      "beitrag": "Zählt"
     },
     "formular": {
       "titel": "Wetterdaten aktualisieren",
-      "lead": "Holt die Saison seit dem 1. Januar sowie die letzten Tage von Open-Meteo und schreibt die Temperatursumme neu.",
+      "lead": "Holt die Saison seit dem 1. Januar sowie die letzten Tage von Open-Meteo und rechnet die Wärmesumme neu.",
       "knopf": "Jetzt aktualisieren"
     },
-    "note": "Koordinaten und Basistemperatur sind Platzhalter (Almaty-Stadtgebiet, 5 °C) und sollten durch die tatsächlichen Werte der Plantage ersetzt bzw. von einer Agronomin oder einem Agronomen bestätigt werden."
+    "einheit": "Gradtage",
+    "standSeit": "Stand {datum}, gezählt seit dem {start}",
+    "stat": {
+      "letzterTag": "Letzter Tag",
+      "siebenTage": "Letzte 7 Tage",
+      "schnitt": "Durchschnitt je Tag"
+    },
+    "erklaerung": {
+      "titel": "So entsteht die Zahl",
+      "schritt1": "Für jeden Tag wird der Mittelwert aus dem tiefsten und dem höchsten Wert gebildet.",
+      "schritt2": "Liegt der Mittelwert über {basis} °C, zählt der Unterschied. Ein kühlerer Tag zählt 0.",
+      "schritt3": "Alle Tage seit dem 1. Januar werden zusammengezählt. Die Summe wächst nur und sinkt nie.",
+      "beispiel": "Beispiel {datum}: tiefster Wert {min} °C, höchster Wert {max} °C, Mittelwert {mittel} °C. {mittel} minus {basis} ergibt {beitrag} Gradtage für diesen Tag.",
+      "beispielKalt": "Beispiel {datum}: Der Mittelwert von {mittel} °C liegt nicht über {basis} °C. Der Tag zählt 0 Gradtage.",
+      "hoch": "Die Zahl ist groß, weil sie über {tage} Tage wächst. Im Durchschnitt kommen {schnitt} Gradtage je Tag zusammen."
+    },
+    "verlauf": {
+      "titel": "Verlauf seit Jahresbeginn",
+      "lead": "Im Sommer steigt die Kurve steil, im Winter bleibt sie flach, weil kalte Tage nichts beitragen.",
+      "wert": "Wärmesumme",
+      "ersteErnte": "Erste Ernte"
+    },
+    "einordnung": {
+      "ersteErnte": "Die erste Ernte dieses Jahres war am {datum}. Die Wärmesumme lag an diesem Tag bei {summe} Gradtagen.",
+      "ersteErnteOhneSumme": "Die erste Ernte dieses Jahres war am {datum}. Für diesen Tag liegen keine Wetterwerte vor.",
+      "keineErnte": "In diesem Jahr ist noch keine Ernte erfasst. Deshalb gibt es noch keinen Vergleichswert.",
+      "hinweis": "Aus einer einzigen Saison lässt sich keine Regel ableiten. Erst mehrere Jahre zeigen, bei welcher Wärmesumme die Ernte beginnt. Eine Vorhersage der Erntemenge ist die Wärmesumme nicht."
+    },
+    "grundlagen": "Grundlagen: Wetterdaten von Open-Meteo für den Punkt {breite} Grad Nord, {laenge} Grad Ost (Stadtgebiet Almaty). Gezählt wird ab dem 1. Januar mit einer Basistemperatur von {basis} °C, der üblichen Schwelle für Beerenobst. Der genaue Standort der Plantage steht noch aus."
   },
   "kanaeleAnsicht": {
     "titel": "Kontaktkanäle",
@@ -4063,7 +4091,7 @@
       "erfasst": "erfasst",
       "offen": "offen"
     },
-    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind nicht Teil dieser Ansicht - die Temperatursumme steht im Wetter-Modul.",
+    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind nicht Teil dieser Ansicht - die Wärmesumme steht im Wetter-Modul.",
     "esutdAltbestand": "Status aus der alten Erfassung: Im Meldeprozess steht kein Vertrag zu dieser Person. Bitte den Vertrag im Modul Compliance nachtragen."
   },
   "erlebnis": {
