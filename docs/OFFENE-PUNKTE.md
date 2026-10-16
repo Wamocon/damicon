@@ -110,7 +110,7 @@ Jede Zeile war ein offener Punkt dieser Liste. Die Begründung steht in `docs/EN
 
 ## Testdaten (16.10.2026)
 
-Neun Migrationen `20261209*` füllen die neuen Funktionen mit realitätsnahen, in sich stimmigen Daten. Sie laufen wie jede Datenänderung: beim Push in den Pull Request auf `public_preview`, nach dem Merge auf `public`. Damit stehen beide Umgebungen gleich da.
+Zehn Migrationen `20261209*` füllen die neuen Funktionen mit realitätsnahen, in sich stimmigen Daten. Sie laufen wie jede Datenänderung: beim Push in den Pull Request auf `public_preview`, nach dem Merge auf `public`. Damit stehen beide Umgebungen gleich da.
 
 | Datei | Inhalt |
 |---|---|
@@ -123,6 +123,7 @@ Neun Migrationen `20261209*` füllen die neuen Funktionen mit realitätsnahen, i
 | `…060000_testdaten_planung` | Rotationsplan mit Brigaden, drei Abholrunden mit Straßengeometrie und eine geplante, zwei offene Pflückaufgaben, vier Vorbestellungen mit Nachrichten, Winterpreislisten mit Staffeln |
 | `…070000_testdaten_benachrichtigungen` | einmaliger Lauf der Erzeugung, danach übernimmt der stündliche Workflow |
 | `…080000_testdaten_kennzahlen_nachrechnen` | Kennzahlenverlauf vom 25.09.2026 bis heute aus dem jetzigen Stand |
+| `…090000_testdaten_esf_korrektur` | führt ЭСФ-Belege der Testdaten, die bei Lieferungen über 45 Tage offen oder unbestätigt geblieben waren, zu Ende (die zufällige Verteilung in `…050000` hatte Altfälle von über einem Jahr als Entwurf liegen lassen) |
 
 **Schutz.** Jede Migration greift nur, wo Betriebsdaten da sind. Eine leere Datenbank (CI, lokaler Stack vor dem Seed) bleibt unverändert. Jede Tabelle wird nur gefüllt, wenn sie leer ist oder die Zeile fehlt; was jemand von Hand erfasst hat, wird nie ergänzt oder verdoppelt. Ein zweiter Lauf ändert nichts.
 
