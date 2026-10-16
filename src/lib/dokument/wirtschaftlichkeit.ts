@@ -2,6 +2,7 @@ import { absatz, definitionen, esc, kasten, leerHinweis, marke, tabelle, type Ke
 import type { DokumentEingabe, Zelle } from "@/lib/dokument/damicon-dokument";
 import { dateinameFuer, kennungFuer, monatText, tagText, tengeText, versiegeln, zahlText, zeitText, type DokumentKontext } from "@/lib/dokument/kontext";
 import { tagInZone } from "@/lib/domain/tageszeit";
+import { uebersetzt } from "@/lib/i18n-daten";
 import { HORIZONT_JAHRE, type Herkunft, type Kennzahlschluessel } from "@/lib/domain/wirtschaftlichkeit";
 import {
   SYSTEM_POSTEN_ARTEN,
@@ -129,14 +130,15 @@ function postenAbschnitt(d: WirtschaftlichkeitDokumentDaten, h: Hilfen): string 
     audit: e("kategorie.audit"),
     sonstiges: e("kategorie.sonstiges"),
   };
-  const kategorieText = (kategorie: string, nutzen: boolean) => (nutzen ? (kategorieTexte[kategorie] ?? kategorie) : kategorie);
+  // Die Kategorie des Nutzens ist ein Schluessel mit festen Texten, die der anderen Arten ist frei erfasst und hat Uebersetzungen.
+  const kategorieText = (p: Posten, nutzen: boolean) => (nutzen ? (kategorieTexte[p.kategorie] ?? p.kategorie) : uebersetzt(p.i18n, "kategorie", sprache, p.kategorie));
   const zeilen: Zelle[][] = SYSTEM_POSTEN_ARTEN.flatMap((art) =>
     d.posten
       .filter((p) => p.art === art)
       .map((p) => [
         artTexte[art],
-        kategorieText(p.kategorie, art === "nutzen"),
-        p.bezeichnung,
+        kategorieText(p, art === "nutzen"),
+        uebersetzt(p.i18n, "bezeichnung", sprache, p.bezeichnung),
         tagText(p.datum, sprache),
         { html: `${zahlText(p.betrag, sprache)} ${p.waehrung}`, zahl: true },
         h.herkunftMarke(p.herkunft),

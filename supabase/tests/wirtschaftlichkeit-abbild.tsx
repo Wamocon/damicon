@@ -121,6 +121,29 @@ async function main() {
     }
   }
 
+  // Übersetzungen der Freitexte (Spalte i18n, seit 16.10.2026): das Dokument zeigt Bezeichnung und Kategorie in seiner Sprache, fehlt eine, das Original.
+  const uebersetzt = {
+    ...DOK,
+    posten: POSTEN.map((p) =>
+      p.id === "p-kzt" ? { ...p, i18n: { bezeichnung: { en: "Maintenance in tenge", ru: "Обслуживание в тенге", kk: "Теңгедегі қызмет" }, kategorie: { en: "Service", ru: "Сервис" } } } : p,
+    ),
+  };
+  const erwartet: Record<(typeof SPRACHEN)[number], { bezeichnung: string; kategorie: string }> = {
+    de: { bezeichnung: "Wartung in Tenge", kategorie: "Wartung" },
+    en: { bezeichnung: "Maintenance in tenge", kategorie: "Service" },
+    ru: { bezeichnung: "Обслуживание в тенге", kategorie: "Сервис" },
+    kk: { bezeichnung: "Теңгедегі қызмет", kategorie: "Wartung" },
+  };
+  for (const loc of SPRACHEN) {
+    const text = JSON.stringify(baueWirtschaftlichkeitDokument(uebersetzt, kontext(loc)));
+    pruefe(`dokument/uebersetzt/${loc}`, text);
+    const soll = erwartet[loc];
+    if (!text.includes(soll.bezeichnung) || !text.includes(soll.kategorie) || (loc !== "de" && text.includes("Wartung in Tenge"))) {
+      fehler++;
+      console.log(`FAIL  dokument/uebersetzt/${loc}: erwartet ${soll.bezeichnung} und ${soll.kategorie}`);
+    }
+  }
+
   // --- 2. Kachelmodell -----------------------------------------------------------------------------------------------------------------
   const { baueModell } = await import("../../src/components/db/wirtschaftlichkeit-modell");
   function rechnung(posten: Posten[], ist: IstEintrag[], annahmen: Annahmen, menge: MengeAbgeleitet | null, bisMonat: string) {

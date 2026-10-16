@@ -1,4 +1,4 @@
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { kalendertag } from "@/lib/format/datum";
 import { Download } from "lucide-react";
 import { Aufklapper, Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
@@ -10,6 +10,7 @@ import { ladeDossierOptionen } from "@/lib/data/foerdermittel";
 import { NACHWEIS_STATUS, nachweisTon, nachweisZaehlung, ordneVersionen } from "@/lib/domain/nachweise";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { uebersetzt } from "@/lib/i18n-daten";
 
 // Nachweisregister (Meilenstein B, WMCNL-1469): Zertifikate, Vertraege,
 // Genehmigungen und Protokolle mit Gueltigkeitszeitraum. Der Status
@@ -60,7 +61,7 @@ function Zusatz({ text }: { text: string | null }) {
 }
 
 /** Die frueheren Versionen eines Nachweises, aufklappbar unter dem Namen: Status, Ende der Gueltigkeit und Datei bleiben nachlesbar. */
-function Vorversionen({ versionen, format, t, v }: { versionen: DokumentZeile[]; format: Format; t: Uebersetzer; v: Uebersetzer }) {
+function Vorversionen({ versionen, format, t, v, sprache }: { versionen: DokumentZeile[]; format: Format; t: Uebersetzer; v: Uebersetzer; sprache: string }) {
   if (versionen.length === 0) return null;
   return (
     <Aufklapper titel={t("vorversionen", { anzahl: versionen.length })}>
@@ -68,7 +69,7 @@ function Vorversionen({ versionen, format, t, v }: { versionen: DokumentZeile[];
         {versionen.map((ver) => (
           <li key={ver.id} className="flex flex-wrap items-center gap-2">
             <StatusPill tone={nachweisTon[ver.nachweisStatus]}>{t(`status.${ver.nachweisStatus}`)}</StatusPill>
-            <span className="text-foreground">{ver.name}</span>
+            <span className="text-foreground">{uebersetzt(ver.i18n, "name", sprache, ver.name)}</span>
             <span className="text-muted-foreground">
               {ver.unbefristet
                 ? t("unbefristet")
@@ -92,12 +93,13 @@ export async function DokumenteAnsicht() {
     // Anforderung 4.12: Auswahl, an welches Foerderdossier der Nachweis haengt.
     ladeDossierOptionen(),
   ]);
-  const [k, v, n, format, dk] = await Promise.all([
+  const [k, v, n, format, dk, sprache] = await Promise.all([
     getTranslations("dokumentKategorie"),
     getTranslations("dokumenteVerwaltung"),
     getTranslations("nachweisregister"),
     getFormatter(),
     getTranslations("dokument.knopf"),
+    getLocale(),
   ]);
 
   const live = liste.quelle === "db";
@@ -139,13 +141,13 @@ export async function DokumenteAnsicht() {
           {gruppen.map(({ aktuell: doc, vorversionen }) => (
             <tr key={doc.id}>
               <td className="px-3 py-2.5">
-                <p className="font-semibold text-foreground">{doc.name}</p>
-                <Zusatz text={doc.rechtsgrundlage} />
-                <Vorversionen versionen={vorversionen} format={format} t={n} v={v} />
+                <p className="font-semibold text-foreground">{uebersetzt(doc.i18n, "name", sprache, doc.name)}</p>
+                <Zusatz text={doc.rechtsgrundlage === null ? null : uebersetzt(doc.i18n, "rechtsgrundlage", sprache, doc.rechtsgrundlage)} />
+                <Vorversionen versionen={vorversionen} format={format} t={n} v={v} sprache={sprache} />
               </td>
               <td className="px-3 py-2.5 text-muted-foreground">{k(doc.kategorie)}</td>
               <td className="px-3 py-2.5 text-muted-foreground">
-                {doc.bezug}
+                {uebersetzt(doc.i18n, "bezug", sprache, doc.bezug)}
                 <Zusatz text={doc.partner} />
               </td>
               <td className="px-3 py-2.5">

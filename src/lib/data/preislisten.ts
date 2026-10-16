@@ -1,6 +1,8 @@
+import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { einsAus } from "@/lib/data/util";
+import { liesI18n, uebersetzt } from "@/lib/i18n-daten";
 import {
   demoB2bKunden,
   demoPreislisten,
@@ -25,6 +27,8 @@ export interface PreislistenUebersicht {
 interface PreislisteRoh {
   id: string;
   name: string;
+  /** Uebersetzungen von name (Spalte i18n). */
+  i18n?: unknown;
   gueltig_ab: string;
   gueltig_bis: string | null;
   aktiv: boolean;
@@ -34,10 +38,11 @@ interface PreislisteRoh {
 }
 
 /** Datenbankzeile zur Anzeigezeile, eine Stelle für die Verwaltung (alle Listen) und das B2B-Portal (nur gültige). */
-export function preislisteAusZeile(p: PreislisteRoh): PreislisteZeile {
+export function preislisteAusZeile(p: PreislisteRoh, sprache: string): PreislisteZeile {
   return {
     id: p.id,
-    name: p.name,
+    // Die Preislisten werden nur angezeigt: die Uebersetzung der gewaehlten Sprache steht gleich im Feld.
+    name: uebersetzt(liesI18n(p.i18n), "name", sprache, p.name),
     gueltigAb: p.gueltig_ab,
     gueltigBis: p.gueltig_bis,
     aktiv: p.aktiv,
@@ -63,10 +68,11 @@ export async function ladePreislistenVerwaltung(): Promise<PreislistenUebersicht
   if (!isSupabaseConfigured()) return demoPreislistenUebersicht();
 
   const supabase = await createClient();
+  const sprache = await getLocale();
   const { data, error } = await supabase
     .from("preislisten")
     .select(
-      `id, name, gueltig_ab, gueltig_bis, aktiv, kundengruppe, preise_inkl_mwst,
+      `id, name, i18n, gueltig_ab, gueltig_bis, aktiv, kundengruppe, preise_inkl_mwst,
        preislisten_positionen ( id, preis_tenge_kg, min_menge_kg, sorten ( name ) )`,
     )
     .order("gueltig_ab", { ascending: false });
@@ -75,7 +81,7 @@ export async function ladePreislistenVerwaltung(): Promise<PreislistenUebersicht
 
   return {
     quelle: "db",
-    preislisten: data.map(preislisteAusZeile),
+    preislisten: data.map((p) => preislisteAusZeile(p, sprache)),
   };
 }
 

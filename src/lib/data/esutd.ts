@@ -1,6 +1,8 @@
+import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { leseAlleZeilen } from "@/lib/data/util";
+import { liesI18n, uebersetzt } from "@/lib/i18n-daten";
 import { istEsutdArt, sortiereMeldungen, type EsutdArt, type EsutdMeldung } from "@/lib/domain/esutd";
 
 // Offene ESUTD-Meldefristen ueber alle Pfluecker (Migration 20261025000000) -
@@ -84,6 +86,7 @@ export async function ladeEsutdMeldungenStreng(): Promise<EsutdMeldung[]> {
       bestaetigung: z.bestaetigung,
       belegDokumentId: z.beleg_dokument_id,
       meldefristAm: z.meldefrist_am,
+      i18n: liesI18n(z.i18n),
     });
   }
   return sortiereMeldungen(meldungen);
@@ -153,14 +156,16 @@ export interface EsutdOptionen {
   belege: { id: string; name: string }[];
 }
 
-export async function ladeEsutdOptionen(): Promise<EsutdOptionen> {
+/** sprache: die Sprache der Namen der Belege; ohne Angabe die der Oberflaeche. */
+export async function ladeEsutdOptionen(sprachwahl?: string): Promise<EsutdOptionen> {
   if (!isSupabaseConfigured()) return { pfluecker: [], vertraege: [], belege: [] };
 
   const supabase = await createClient();
+  const sprache = sprachwahl ?? (await getLocale());
   const [{ data: pfluecker }, { data: vertraege }, { data: belege }] = await Promise.all([
     supabase.from("pfluecker").select("id, name, ausweis").order("name"),
     supabase.from("v_esutd_meldungen").select("id, pfluecker_name, vertragsnummer, ereignis_am").eq("quelle", "vertrag").order("pfluecker_name"),
-    supabase.from("dokumente").select("id, name").eq("kategorie", "esutd_nachweis").order("created_at", { ascending: false }).limit(100),
+    supabase.from("dokumente").select("id, name, i18n").eq("kategorie", "esutd_nachweis").order("created_at", { ascending: false }).limit(100),
   ]);
 
   return {
@@ -168,6 +173,7 @@ export async function ladeEsutdOptionen(): Promise<EsutdOptionen> {
     vertraege: (vertraege ?? [])
       .filter((v): v is typeof v & { id: string } => v.id !== null)
       .map((v) => ({ id: v.id, pfluecker: v.pfluecker_name, vertragsnummer: v.vertragsnummer, beginn: v.ereignis_am })),
-    belege: belege ?? [],
+    // Die Auswahl ist nur zum Lesen: der Name in der Sprache der Oberflaeche.
+    belege: (belege ?? []).map((b) => ({ id: b.id, name: uebersetzt(liesI18n(b.i18n), "name", sprache, b.name) })),
   };
 }

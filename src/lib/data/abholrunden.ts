@@ -1,6 +1,8 @@
+import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { einsAus } from "@/lib/data/util";
+import { liesI18n, uebersetztOderNull } from "@/lib/i18n-daten";
 import {
   kurzeUhrzeit,
   istAbholrundeStatus,
@@ -25,24 +27,25 @@ export const RUNDEN_MAX = 30;
 
 const zahlOderNull = (w: number | string | null | undefined): number | null => (w === null || w === undefined ? null : Number(w));
 
-export async function ladeAbholrunden(): Promise<AbholrundenUebersicht> {
+/** sprache: die Sprache der Texte (Fahrzeug, Notiz, Bemerkung); ohne Angabe die der Oberflaeche. */
+export async function ladeAbholrunden(sprache?: string): Promise<AbholrundenUebersicht> {
   if (!isSupabaseConfigured()) return { quelle: "keine", runden: [] };
-  return { quelle: "datenbank", runden: await leseRunden(null) };
+  return { quelle: "datenbank", runden: await leseRunden(null, sprache ?? (await getLocale())) };
 }
 
 /** Eine einzelne Runde (fuer das Dokument), auch eine aeltere als die, die die Seite zeigt. null, wenn es sie nicht gibt oder sie nicht sichtbar ist. */
-export async function ladeAbholrunde(id: string): Promise<AbholRundeZeile | null> {
+export async function ladeAbholrunde(id: string, sprache?: string): Promise<AbholRundeZeile | null> {
   if (!isSupabaseConfigured()) return null;
-  return (await leseRunden(id))[0] ?? null;
+  return (await leseRunden(id, sprache ?? (await getLocale())))[0] ?? null;
 }
 
-async function leseRunden(id: string | null): Promise<AbholRundeZeile[]> {
+async function leseRunden(id: string | null, sprache: string): Promise<AbholRundeZeile[]> {
   const supabase = await createClient();
   const anfrage = supabase
       .from("abholrunden")
       .select(
-        `id, datum, status, fahrzeug, notiz, distanz_km, dauer_minuten, ab_erstem_stopp_minuten, routen_geometrie, gestartet_am, kuehlhaus_an, kapazitaet_kg, start_zeit,
-         abholstopps ( id, nachbarbetrieb_id, reihenfolge, menge_geplant_kg, status, menge_ist_kg, pflueckbeginn, abgeholt_am, bemerkung, ankunft_geplant, sorten ( name ) )`,
+        `id, datum, status, fahrzeug, notiz, i18n, distanz_km, dauer_minuten, ab_erstem_stopp_minuten, routen_geometrie, gestartet_am, kuehlhaus_an, kapazitaet_kg, start_zeit,
+         abholstopps ( id, nachbarbetrieb_id, reihenfolge, menge_geplant_kg, status, menge_ist_kg, pflueckbeginn, abgeholt_am, bemerkung, i18n, ankunft_geplant, sorten ( name ) )`,
       )
       .order("datum", { ascending: false })
       .order("created_at", { ascending: false });
@@ -88,7 +91,8 @@ async function leseRunden(id: string | null): Promise<AbholRundeZeile[]> {
               mengeIstKg: zahlOderNull(s.menge_ist_kg),
               pflueckbeginn: s.pflueckbeginn,
               abgeholtAm: s.abgeholt_am,
-              bemerkung: s.bemerkung,
+              // Fahrzeug, Notiz und Bemerkung stehen gleich in der Sprache der Anfrage (Oberflaeche oder Dokument).
+              bemerkung: uebersetztOderNull(liesI18n(s.i18n), "bemerkung", sprache, s.bemerkung),
               minutenBisKuehlung: b?.minuten_bis_kuehlung ?? null,
               // Das Ergebnis kommt aus der Sicht; ohne sie (Lesefehler) bleibt es leer statt geraten.
               ergebnis: (b?.ergebnis ?? null) as KuehlErgebnis | null,
@@ -102,8 +106,8 @@ async function leseRunden(id: string | null): Promise<AbholRundeZeile[]> {
           id: r.id,
           datum: r.datum,
           status: r.status as AbholRundeZeile["status"],
-          fahrzeug: r.fahrzeug,
-          notiz: r.notiz,
+          fahrzeug: uebersetztOderNull(liesI18n(r.i18n), "fahrzeug", sprache, r.fahrzeug),
+          notiz: uebersetztOderNull(liesI18n(r.i18n), "notiz", sprache, r.notiz),
           distanzKm: zahlOderNull(r.distanz_km),
           dauerMinuten: r.dauer_minuten,
           abErstemStoppMinuten: r.ab_erstem_stopp_minuten,

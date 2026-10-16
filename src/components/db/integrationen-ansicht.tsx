@@ -17,6 +17,7 @@ import { esutdTon, meldungUeberfaellig, zaehleMeldungen, type EsutdMeldung } fro
 import { tagInZone } from "@/lib/domain/tageszeit";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { uebersetztOderNull } from "@/lib/i18n-daten";
 
 // Staatliche Pflichtintegrationen (WMCNL-1447, Stufe 1): der Meldeprozess fuer das Einheitssystem
 // ЕСУТД. Damicon meldet nicht selbst, es fuehrt den Stand: was ist zu melden, was ist gemeldet,
@@ -25,11 +26,12 @@ import { hasPermission } from "@/lib/rbac";
 
 type Uebersetzer = Awaited<ReturnType<typeof getTranslations>>;
 
-function Detail({ m, t, belegName }: { m: EsutdMeldung; t: Uebersetzer; belegName: string | null }) {
+function Detail({ m, t, belegName, sprache }: { m: EsutdMeldung; t: Uebersetzer; belegName: string | null; sprache: string }) {
+  const bestaetigung = uebersetztOderNull(m.i18n, "bestaetigung", sprache, m.bestaetigung);
   const zeilen = [
     m.ausweis ? t("liste.ausweis", { ausweis: m.ausweis }) : null,
     m.vertragsnummer ? t("liste.vertrag", { nummer: m.vertragsnummer }) : null,
-    m.beschreibung,
+    uebersetztOderNull(m.i18n, "beschreibung", sprache, m.beschreibung),
   ].filter((z): z is string => Boolean(z));
   return (
     <div className="space-y-0.5">
@@ -41,7 +43,7 @@ function Detail({ m, t, belegName }: { m: EsutdMeldung; t: Uebersetzer; belegNam
       ))}
       {m.status === "erfasst" ? (
         <p className="text-[11px] text-muted-foreground">
-          {[m.bestaetigung ? t("liste.bestaetigung", { nummer: m.bestaetigung }) : null, belegName ? t("liste.beleg", { name: belegName }) : t("liste.keinBeleg")].filter(Boolean).join(" · ")}
+          {[bestaetigung ? t("liste.bestaetigung", { nummer: bestaetigung }) : null, belegName ? t("liste.beleg", { name: belegName }) : t("liste.keinBeleg")].filter(Boolean).join(" · ")}
         </p>
       ) : null}
     </div>
@@ -119,7 +121,7 @@ export async function IntegrationenAnsicht() {
               return (
                 <tr key={`${m.quelle}-${m.id}`}>
                   <td className="px-3 py-2.5">
-                    <Detail m={m} t={t} belegName={m.belegDokumentId ? (belegName.get(m.belegDokumentId) ?? null) : null} />
+                    <Detail m={m} t={t} belegName={m.belegDokumentId ? (belegName.get(m.belegDokumentId) ?? null) : null} sprache={sprache} />
                   </td>
                   <td className="px-3 py-2.5 text-muted-foreground">{t(`art.${m.art}`)}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{m.ereignisAm ? tag(m.ereignisAm) : "-"}</td>

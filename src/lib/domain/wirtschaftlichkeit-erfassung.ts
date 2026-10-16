@@ -21,6 +21,7 @@ import {
   type Monatspunkt,
 } from "@/lib/domain/wirtschaftlichkeit";
 import { istGueltigerTag } from "@/lib/listen/zeitraum";
+import type { I18nSpalte } from "@/lib/i18n-daten";
 
 // Erfassung und Auswertung der Investitionsrechnung (WMCNL-2470): aus Posten und Annahmen wird ein Rechenstand, aus dem
 // Rechenstand ein festgehaltener Stand, aus Ist-Werten ein Plan-Ist-Vergleich. Rein, ohne Datenbank und Server.
@@ -95,6 +96,8 @@ export interface Posten {
   datum: string;
   herkunft: PostenHerkunft;
   notiz: string | null;
+  /** Übersetzungen von kategorie, bezeichnung und notiz (Spalte i18n); fehlt bei Posten aus den Modellwerten und aus alten Ständen. */
+  i18n?: I18nSpalte;
 }
 
 export interface Annahmen {
@@ -128,6 +131,8 @@ export interface IstEintrag {
   betrag: number;
   waehrung: Waehrung;
   notiz: string | null;
+  /** Übersetzungen von notiz (Spalte i18n). */
+  i18n?: I18nSpalte;
 }
 
 // --- Modellwerte -------------------------------------------------------------------------------------------------------------------

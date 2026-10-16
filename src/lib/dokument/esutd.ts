@@ -1,6 +1,7 @@
 import { absatz, esc, leerHinweis, marke, tabelle, type DokumentEingabe } from "@/lib/dokument/damicon-dokument";
 import { dateinameFuer, kennungFuer, tagText, versiegeln, type DokumentKontext } from "@/lib/dokument/kontext";
 import { esutdTon, meldungUeberfaellig, zaehleMeldungen, type EsutdMeldung } from "@/lib/domain/esutd";
+import { uebersetztOderNull } from "@/lib/i18n-daten";
 
 // Meldeliste fuer das Einheitssystem ЕСУТД als Dokument (WMCNL-1447): wer ist zu melden, was ist gemeldet, womit belegt.
 // Die CSV-Datei bleibt fuer die Eingabe im staatlichen System, das Dokument ist die Fassung zum Weitergeben und Ablegen.
@@ -15,6 +16,7 @@ export interface EsutdDokumentDaten {
 }
 
 export function baueEsutdDokument(d: EsutdDokumentDaten, x: DokumentKontext): DokumentEingabe {
+  const text = (m: EsutdMeldung, spalte: "beschreibung" | "bestaetigung") => uebersetztOderNull(m.i18n, spalte, x.sprache, m[spalte]);
   const t = x.t("dokument.esutd");
   const a = x.t("esutdAnsicht");
   const r = x.t("roles");
@@ -25,7 +27,7 @@ export function baueEsutdDokument(d: EsutdDokumentDaten, x: DokumentKontext): Do
   const zeilen = liste.map((m) => {
     const person = [
       `<strong>${esc(m.pfluecker ?? a("liste.ohneName"))}</strong>`,
-      ...[m.ausweis ? a("liste.ausweis", { ausweis: m.ausweis }) : null, m.vertragsnummer ? a("liste.vertrag", { nummer: m.vertragsnummer }) : null, m.beschreibung]
+      ...[m.ausweis ? a("liste.ausweis", { ausweis: m.ausweis }) : null, m.vertragsnummer ? a("liste.vertrag", { nummer: m.vertragsnummer }) : null, text(m, "beschreibung")]
         .filter((s): s is string => Boolean(s))
         .map((s) => `<span class="klein">${esc(s)}</span>`),
     ].join("<br>");
@@ -35,9 +37,10 @@ export function baueEsutdDokument(d: EsutdDokumentDaten, x: DokumentKontext): Do
         ? { html: `<span class="klein">${esc(a("liste.keineFrist"))}</span>` }
         : "-";
     const belegName = m.belegDokumentId ? d.belegNamen.get(m.belegDokumentId) : undefined;
+    const bestaetigung = text(m, "bestaetigung");
     const statusZeilen =
       m.status === "erfasst"
-        ? [a("liste.erfasstAm", { datum: tag(m.erfasstAm) }), m.bestaetigung ? a("liste.bestaetigung", { nummer: m.bestaetigung }) : null, belegName ? a("liste.beleg", { name: belegName }) : a("liste.keinBeleg")]
+        ? [a("liste.erfasstAm", { datum: tag(m.erfasstAm) }), bestaetigung ? a("liste.bestaetigung", { nummer: bestaetigung }) : null, belegName ? a("liste.beleg", { name: belegName }) : a("liste.keinBeleg")]
             .filter((s): s is string => Boolean(s))
             .map((s) => `<br><span class="klein">${esc(s)}</span>`)
             .join("")

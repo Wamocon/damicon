@@ -44,7 +44,13 @@ function mitProtokoll(client: { from(tabelle: string): object }) {
   };
 }
 
+/** Sprache der Oberfläche für die Übersetzungen der Freitexte (Migration 20261211010000). */
+let sprache = "de";
+
 ersetzeModule({
+  "next-intl/server": {
+    getLocale: async () => sprache,
+  },
   "@/lib/supabase/server": {
     createClient: async () => {
       clients++;
@@ -71,13 +77,13 @@ const gleich = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(
 
 // ---- Testdaten ---------------------------------------------------------------------------------------------------------------------
 const SELECT_DETAIL =
-  "id,code,grund,betreff,beschreibung,status,betroffene_menge_kg,gemeldet_am,frist_am,erledigt_am,loesung,gutschrift_tenge,charge_id,gemeldet_von," +
+  "id,code,grund,betreff,beschreibung,status,betroffene_menge_kg,gemeldet_am,frist_am,erledigt_am,loesung,gutschrift_tenge,charge_id,gemeldet_von,i18n," +
   "b2b_kunden(id,name)," +
   "chargen(code,reihenbloecke(code),steigen(pfluecker_id,pfluecker(name,ausweis)),kuehlketten_messungen(id,minuten_seit_pfluecken,ergebnis,gemessen_am)," +
   "zukauf_positionen(nachbarbetriebe(name,ort)),lieferungen(transport_temperatur_messungen(id,temperatur_c,ergebnis,gemessen_am)))," +
   "profiles(full_name)";
-const SELECT_VERLAUF = "id,neuer_status,text,sichtbar_fuer_kunde,created_at,profiles(full_name,role)";
-const SELECT_LISTE = "id,code,grund,betreff,status,betroffene_menge_kg,gemeldet_am,frist_am,gutschrift_tenge,b2b_kunden(id,name),chargen(code,reihenbloecke(code))";
+const SELECT_VERLAUF = "id,neuer_status,text,sichtbar_fuer_kunde,created_at,i18n,profiles(full_name,role)";
+const SELECT_LISTE = "id,code,grund,betreff,status,betroffene_menge_kg,gemeldet_am,frist_am,gutschrift_tenge,i18n,b2b_kunden(id,name),chargen(code,reihenbloecke(code))";
 const abfrageDetail = (id: string) => ["reklamationen", `select(${JSON.stringify(SELECT_DETAIL)})`, `eq("id", ${JSON.stringify(id)})`, "maybeSingle()"];
 const abfrageVerlauf = (id: string) => ["reklamation_ereignisse", `select(${JSON.stringify(SELECT_VERLAUF)})`, `eq("reklamation_id", ${JSON.stringify(id)})`, 'order("created_at")'];
 
@@ -342,6 +348,47 @@ async function main() {
       gleich(abfragen, [["lieferungen", 'select("charge_id,chargen(id,code)")', 'eq("b2b_kunde_id", "k1")', 'not("charge_id", "is", null)']]),
     abfragen[0]?.join(" . "),
   );
+
+  // ---- Übersetzungen der Freitexte ----------------------------------------------------------------------------------------------
+  // Betreff, Beschreibung, Lösung und der Text der Verlaufseinträge kommen in der Sprache der Oberfläche; was keine Übersetzung hat oder
+  // dessen Spalte kaputt ist, bleibt im Original, nie leer.
+  const uebersetzt = {
+    ...reklVoll,
+    i18n: {
+      betreff: { en: "Too warm", ru: "Слишком тёплый товар", kk: "" },
+      beschreibung: { en: "Cold chain after 72 minutes" },
+      loesung: { ru: "Кредит-нота выписана" },
+    },
+  };
+  const ereignisseUebersetzt = [
+    { ...ereignisse[0], i18n: { text: { en: "Accepted" } } },
+    { ...ereignisse[1], i18n: "kein Objekt" },
+  ];
+  lage({ reklamationen: [uebersetzt], reklamation_ereignisse: ereignisseUebersetzt });
+  sprache = "en";
+  const en = await lader.ladeReklamation("r1");
+  pruefe(
+    "Übersetzung en: Betreff, Beschreibung und Verlaufstext übersetzt, die Lösung ohne Übersetzung im Original, ein kaputter Eintrag im Original",
+    en?.betreff === "Too warm" && en.beschreibung === "Cold chain after 72 minutes" && en.loesung === "Gutschrift erteilt" && en.ereignisse.map((e) => e.text).join("|") === "Gemeldet|Accepted",
+    JSON.stringify([en?.betreff, en?.beschreibung, en?.loesung, en?.ereignisse.map((e) => e.text)]),
+  );
+  sprache = "ru";
+  lage({ reklamationen: [uebersetzt], reklamation_ereignisse: ereignisseUebersetzt });
+  const ru = await lader.ladeReklamation("r1");
+  pruefe("Übersetzung ru: der Betreff und die Lösung übersetzt, die Beschreibung im Original", ru?.betreff === "Слишком тёплый товар" && ru.loesung === "Кредит-нота выписана" && ru.beschreibung === "Kühlkette nach 72 Minuten");
+  sprache = "kk";
+  lage({ reklamationen: [uebersetzt], reklamation_ereignisse: ereignisseUebersetzt });
+  const kk = await lader.ladeReklamation("r1");
+  pruefe("Übersetzung kk: ein leerer Text zählt nicht als Übersetzung, das Original bleibt", kk?.betreff === "Zu warm");
+  sprache = "de";
+  lage({ reklamationen: [uebersetzt], reklamation_ereignisse: ereignisseUebersetzt });
+  const de = await lader.ladeReklamation("r1");
+  pruefe("Übersetzung de: das Original, auch wenn Übersetzungen da sind", de?.betreff === "Zu warm" && de.beschreibung === "Kühlkette nach 72 Minuten");
+  sprache = "en";
+  lage({ reklamationen: [uebersetzt, reklLeer] });
+  const uebersetzteListe = await lader.ladeReklamationen(1);
+  pruefe("Übersetzung in der Liste: der Betreff folgt der Sprache, eine Zeile ohne Übersetzung bleibt im Original", uebersetzteListe.reklamationen[0]?.betreff === "Too warm" && uebersetzteListe.reklamationen[1]?.betreff === "Zu warm");
+  sprache = "de";
 
   DB_AUS();
   ende();

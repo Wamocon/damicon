@@ -15,7 +15,7 @@
 // Kurs von damals. Ohne Datenbank rechnet die Seite mit den Modellwerten der
 // Kennzahlenliste vom 23.09.2026 und erlaubt keine Erfassung.
 
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { Aufklapper, Card, Section, StatusPill } from "@/components/ui/kit";
 import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { cn, istUuid } from "@/lib/utils";
@@ -36,6 +36,7 @@ import { hasPermission } from "@/lib/rbac";
 import { ladeSchwundHerleitung, ladeStand, ladeWirtschaftlichkeit } from "@/lib/data/wirtschaftlichkeit";
 import { tagInZone } from "@/lib/domain/tageszeit";
 import { planJahreAus } from "@/lib/domain/betriebsrechnung";
+import { uebersetzt } from "@/lib/i18n-daten";
 import {
   barwertIstPunkte,
   planIst,
@@ -95,11 +96,12 @@ function Kennzahlkachel({ kachel, modell, rechnung }: { kachel: Kachel; modell: 
 }
 
 export async function WirtschaftlichkeitAnsicht({ pfad, standId, jahre }: { pfad: string; standId?: string; jahre?: string }) {
-  const [t, daten, profil, format] = await Promise.all([
+  const [t, daten, profil, format, locale] = await Promise.all([
     getTranslations("wirtschaftlichkeitAnsicht"),
     ladeWirtschaftlichkeit(),
     getSessionProfile(),
     getFormatter(),
+    getLocale(),
   ]);
   const heute = tagInZone(new Date());
 
@@ -121,7 +123,7 @@ export async function WirtschaftlichkeitAnsicht({ pfad, standId, jahre }: { pfad
   const modell = await baueModell(rechnung, {
     quelle,
     postenAnzahl: posten.filter((p) => p.art !== "fixkosten").length,
-    standName: festgehalten?.kopf.bezeichnung,
+    standName: festgehalten ? uebersetzt(festgehalten.kopf.i18n, "bezeichnung", locale, festgehalten.kopf.bezeichnung) : undefined,
     standDatum: festgehalten ? format.dateTime(new Date(festgehalten.kopf.standAm), { dateStyle: "medium", timeZone: "Asia/Almaty" }) : undefined,
   });
 
