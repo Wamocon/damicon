@@ -106,31 +106,40 @@ jobs:
           done
           [ -n "$dateien" ] || echo "keine Datei mit hnsw-Einstellung"
 
+      # Alle Aufrufe der CLI, die sich mit der Datenbank verbinden, laufen ueber scripts/supabase-wiederholen.mjs: der Push auf main startet diesen Workflow
+      # und "Datenbank-Migration Preview" im selben Augenblick, beide legen die Anmelderolle cli_login_postgres neu an und setzen sich gegenseitig das
+      # Kennwort zurueck ("password authentication failed"). Das Skript wiederholt NUR diesen Fehler (er tritt vor der ersten Anweisung auf, nichts wird
+      # doppelt angewendet), jeder andere Fehler gilt sofort. Am 16.10.2026 scheiterte so die Nachpruefung nach #157, obwohl alle Migrationen schon
+      # angewendet waren, und das Neuladen des Schemas wurde uebersprungen.
       - name: Mit dem Projekt verbinden
-        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+        run: node scripts/supabase-wiederholen.mjs link --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Stand vergleichen (lokal und gehostet)
-        run: supabase migration list --linked
+        run: node scripts/supabase-wiederholen.mjs migration list --linked
 
+      # pipefail: scheitert die CLI (auch nach den Wiederholungen), scheitert der Schritt. Ohne pipefail stand der Exitcode von "tee" fuer den ganzen
+      # Aufruf, ein Fehler der CLI blieb unbemerkt und der Lauf versuchte trotzdem zu pushen.
       - name: Trockenlauf
         id: trocken
         run: |
-          supabase db push --linked --dry-run | tee trocken.txt
+          set -o pipefail
+          node scripts/supabase-wiederholen.mjs db push --linked --dry-run | tee trocken.txt
           if grep -q "up to date" trocken.txt; then echo "offen=nein" >> "$GITHUB_OUTPUT"; else echo "offen=ja" >> "$GITHUB_OUTPUT"; fi
 
       - name: Migrationen anwenden
         if: env.ANWENDEN == 'true' && steps.trocken.outputs.offen == 'ja'
-        run: supabase db push --linked
+        run: node scripts/supabase-wiederholen.mjs db push --linked
 
       - name: Nachpruefung, nichts mehr offen
         if: env.ANWENDEN == 'true' && steps.trocken.outputs.offen == 'ja'
         run: |
-          supabase db push --linked --dry-run | tee danach.txt
+          set -o pipefail
+          node scripts/supabase-wiederholen.mjs db push --linked --dry-run | tee danach.txt
           grep -q "up to date" danach.txt || { echo "::error::Nach dem Anwenden ist noch etwas offen."; exit 1; }
 
       - name: PostgREST-Schema neu laden
         if: env.ANWENDEN == 'true' && steps.trocken.outputs.offen == 'ja'
-        run: supabase db query --linked "notify pgrst, 'reload schema'"
+        run: node scripts/supabase-wiederholen.mjs db query --linked "notify pgrst, 'reload schema'"
 
       - name: Zusammenfassung
         if: always()

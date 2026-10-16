@@ -2,6 +2,7 @@
 // die Planung aus scripts/preview-migrationen.mjs und das Lesen der CLI-Antwort (scripts/preview-cli.mjs).
 // Fast alles ist reine Logik ohne Datenbank; nur der Neuaufbau von public_preview laeuft gegen PGlite,
 // weil dort SQL ausgefuehrt wird, das Production-Objekte nicht anfassen darf.
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -457,6 +458,40 @@ if ([neuAufbauPlan, abbauSql, datenKopierenSql].every((f) => typeof f === "funct
   check("Anmeldung: nach der festgelegten Zahl von Versuchen gilt der Fehler", immerAbgelehnt.anzahl === 3 && immerAbgelehnt.fehler?.includes("password authentication failed") === true, JSON.stringify(immerAbgelehnt));
   const gleichBeimErsten = versuche(0, "");
   check("Anmeldung: gelingt der erste Versuch, gibt es keinen zweiten", gleichBeimErsten.anzahl === 1 && gleichBeimErsten.aus?.trim() === "ok 1");
+
+  // scripts/supabase-wiederholen.mjs: derselbe Schutz für die Aufrufe, die die Workflows direkt in der Shell machen (Production-Migration, 16.10.2026 nach #157)
+  const skript = join(import.meta.dirname, "..", "..", "scripts", "supabase-wiederholen.mjs");
+  const aufruf = (argumente, fehlerBis, text, einstellung = {}) => {
+    const zaehler = join(ordner, `zaehler-${Math.random().toString(36).slice(2)}.txt`);
+    const r = spawnSync(process.execPath, [skript, ...argumente], {
+      encoding: "utf8",
+      env: { ...process.env, SUPABASE_CLI: programm, SUPABASE_CLI_PAUSE: "0", FALSCH_ZAEHLER: zaehler, FALSCH_FEHLER_BIS: String(fehlerBis), FALSCH_TEXT: text, ...einstellung },
+    });
+    let anzahl = 0;
+    try {
+      anzahl = Number(readFileSync(zaehler, "utf8"));
+    } catch {}
+    return { status: r.status, aus: r.stdout, fehler: r.stderr, anzahl };
+  };
+  const wiederholt = aufruf(["db", "push", "--linked"], 2, echteMeldung);
+  check("Wiederholen: zweimal abgelehnt, im dritten Versuch Exitcode 0 und die Ausgabe der CLI", wiederholt.status === 0 && wiederholt.aus === "ok 3\n" && wiederholt.anzahl === 3, JSON.stringify(wiederholt));
+  check(
+    "Wiederholen: die Hinweise zum neuen Versuch stehen in der Fehlerausgabe, nicht in der Standardausgabe",
+    wiederholt.fehler.includes("Anmeldung an der Datenbank abgelehnt (Versuch 1 von 4)") && wiederholt.fehler.includes("(Versuch 2 von 4)") && !wiederholt.aus.includes("abgelehnt"),
+    JSON.stringify(wiederholt),
+  );
+  const wiederholtAndere = aufruf(["db", "push"], 5, 'ERROR: relation "x" does not exist');
+  check(
+    "Wiederholen: ein anderer Fehler gilt sofort, mit Exitcode 1 und seiner Meldung",
+    wiederholtAndere.status === 1 && wiederholtAndere.anzahl === 1 && wiederholtAndere.fehler.includes("does not exist") && wiederholtAndere.aus === "",
+    JSON.stringify(wiederholtAndere),
+  );
+  const wiederholtImmer = aufruf(["db", "push"], 99, echteMeldung, { SUPABASE_CLI_VERSUCHE: "3" });
+  check("Wiederholen: nach der festgelegten Zahl von Versuchen bleibt der Fehler (Exitcode 1)", wiederholtImmer.status === 1 && wiederholtImmer.anzahl === 3 && wiederholtImmer.fehler.includes("password authentication failed"), JSON.stringify(wiederholtImmer));
+  const wiederholtGleich = aufruf(["db", "push"], 0, "");
+  check("Wiederholen: gelingt der erste Versuch, gibt es keinen zweiten", wiederholtGleich.status === 0 && wiederholtGleich.anzahl === 1 && wiederholtGleich.aus === "ok 1\n", JSON.stringify(wiederholtGleich));
+  const ohneArgumente = aufruf([], 0, "");
+  check("Wiederholen: ohne Argumente ruft es die CLI nicht auf und meldet Exitcode 2", ohneArgumente.status === 2 && ohneArgumente.anzahl === 0, JSON.stringify(ohneArgumente));
   rmSync(ordner, { recursive: true, force: true });
 }
 

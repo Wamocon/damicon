@@ -23,13 +23,18 @@ export function zielAus(args) {
  */
 export const ANMELDUNG_ABGELEHNT = /DbConfigConnectTempRoleError|password authentication failed for user "cli_login_postgres"/;
 
-function warte(sekunden) {
+export function warte(sekunden) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, sekunden * 1000);
 }
 
-function einmal(parameter) {
+/** Programm und vorangestellte Argumente der CLI: SUPABASE_CLI (Pfad zu supabase oder zu dist/supabase.js), sonst "supabase" aus dem PATH. */
+export function cliProgramm() {
   const pfad = process.env.SUPABASE_CLI || "supabase";
-  const [prog, vorne] = pfad.endsWith(".js") ? [process.execPath, [pfad]] : [pfad, []];
+  return pfad.endsWith(".js") ? [process.execPath, [pfad]] : [pfad, []];
+}
+
+function einmal(parameter) {
+  const [prog, vorne] = cliProgramm();
   try {
     return execFileSync(prog, [...vorne, ...parameter], {
       encoding: "utf8",
