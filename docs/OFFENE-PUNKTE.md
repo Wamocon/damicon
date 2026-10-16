@@ -1,6 +1,6 @@
 # Offene Punkte
 
-Stand: 15.10.2026, Branch `feat/restfunktionen-spur-a`. Diese Liste ersetzt keine Jira-Pakete. Sie sagt, was nach diesem Stand noch nicht fertig ist und woran es hängt, damit niemand raten muss, ob ein Punkt vergessen wurde oder bewusst offen ist.
+Stand: 16.10.2026, Branch `feat/restfunktionen-spur-a`. Diese Liste ersetzt keine Jira-Pakete. Sie sagt, was nach diesem Stand noch nicht fertig ist und woran es hängt, damit niemand raten muss, ob ein Punkt vergessen wurde oder bewusst offen ist.
 
 Seit dem 15.10.2026 steht in der Liste nichts mehr, was nur auf eine Festlegung wartet. Alle fachlichen Entscheidungen sind getroffen, begründet (`docs/ENTSCHEIDUNGSGRUNDLAGEN.md`) und umgesetzt. Werte, die sich ändern können (Fristen, Kapazitäten, Richtwerte, Gewichte), stehen unter Büro → Einstellungen und lassen sich dort ohne Programmänderung anpassen. Offen bleibt, was von Dritten abhängt oder dafür ein Gerät, einen Zugang oder eine Sichtprüfung braucht.
 
@@ -98,13 +98,41 @@ Jede Zeile war ein offener Punkt dieser Liste. Die Begründung steht in `docs/EN
 
 | Punkt | Hinweis |
 |---|---|
-| Identifikationsnummern der Kunden | Der ЭСФ-Entwurf meldet „Identifikationsnummer fehlt“, solange IIN oder BIN beim Kunden fehlt (Stammdaten). |
-| Preislisten | Je Sorte und Kundengruppe vollständig, sonst fehlt dem Entwurf der Preis. |
-| Gültigkeitsdaten der Nachweise | Bestehende Dokumente stehen nach der Migration als „offen“, bis Zeitraum, Verantwortlicher und Rechtsgrundlage gepflegt sind. Das Portal erfindet keine Daten. |
+| Identifikationsnummern der Kunden | Der ЭСФ-Entwurf meldet „Identifikationsnummer fehlt“, solange IIN oder BIN beim Kunden fehlt (Stammdaten). Die Testdaten tragen erfundene Nummern mit gültiger Prüfziffer, vor dem Produktivbetrieb sind sie durch die echten zu ersetzen. |
+| Preislisten | Je Sorte und Kundengruppe vollständig, sonst fehlt dem Entwurf der Preis. Die Winterpreise ab 01.11.2026 und ihre Staffeln sind Testdaten und von der Geschäftsführung festzulegen. |
+| Gültigkeitsdaten der Nachweise | Bestehende Dokumente stehen nach der Migration als „offen“, bis Zeitraum, Verantwortlicher und Rechtsgrundlage gepflegt sind. Das Portal erfindet keine Daten. Die Testdaten tragen angenommene Zeiträume, die Dateien selbst fehlen weiterhin. |
+| Dateien und Fotos | Nachweise, Fotobelege der Pflückaufgaben und Videos brauchen echte Dateien im Speicher. Eine Migration kann sie nicht anlegen, die Testdaten stehen deshalb ohne Datei („keine Datei“, „noch kein Beleg“). |
+| Vier Kennzahlen ohne Berechnung | „Vermarktungsfähig“, „Bis zum Kunden“, „Belegte Verkäufe“ und „Website-Anfragen“ zeigen auf dem Dashboard „Platzhalter“: `kpi_aktuell()` rechnet sie nicht, sie tragen nur den Ausgangswert. Mit Testdaten ändert sich das nicht. Für „Bis zum Kunden“ (Lieferungen) und „Belegte Verkäufe“ (ЭСФ-Belege) liegen die Daten jetzt vor, die Berechnung wäre eine kleine Funktionsänderung. |
 | Videos (1454, 2419) | Das Drehbuch liegt vor (acht Videos, Russisch und Kasachisch). Es fehlen Sprecher, ein Drehtermin in der Erntezeit, Einwilligungen der Personen im Bild und die muttersprachliche Prüfung des kasachischen Textes. Hochladen lassen sich die Dateien im Portal, sobald sie existieren. |
 | ЕСУТД, Altbestand | Personen, die als „erfasst“ geführt werden, aber keinen Vertrag im Meldeprozess haben, zeigt die Personalansicht mit einem Hinweis. Die Verträge sind nachzutragen. |
 | Baseline der Verlustquote | Die Herleitung des Schwund-Nutzens liest die Verlustquote aus der Baseline (8,4 Prozent). Ändert die Geschäftsführung sie, steht sie unter den Kennzahlen der Baseline. |
 | Fragenliste an den Betreiber | 28 Fragen, deutsch und russisch, Antworten stehen aus. |
+
+## Testdaten (16.10.2026)
+
+Neun Migrationen `20261209*` füllen die neuen Funktionen mit realitätsnahen, in sich stimmigen Daten. Sie laufen wie jede Datenänderung: beim Push in den Pull Request auf `public_preview`, nach dem Merge auf `public`. Damit stehen beide Umgebungen gleich da.
+
+| Datei | Inhalt |
+|---|---|
+| `…010000_testdaten_wirtschaftlichkeit` | Investitionsrechnung der Geschäftsführung vom 23.09.2026 als 13 Posten (154.000 EUR, 25.000 EUR je Jahr, 200.000 EUR Nutzen), drei Ist-Werte für September, zwei festgehaltene Stände (mit dem Code der Anwendung gerechnet), Echtbetrieb ab 01.09.2026, Jahresmenge 350 t |
+| `…015000_testdaten_pfluecker` | Zehn Saisonkräfte in den Brigaden Nord, Süd und Ost samt Einarbeitung |
+| `…020000_testdaten_saison_fortsetzung` | Ernte vom 25.09. bis 15.10.2026: 16 Pflückaufgaben mit Charge, Steigen, Arbeitszeiten und Vorkühlung (zwei Verstöße), 20 Lieferungen mit Tour, Vorbestellung und Transporttemperatur, Zukauf, zwei Reklamationen mit Verlauf, Wetter bis zum ersten Frost am 14.10. |
+| `…030000_testdaten_finanzen` | Kostenträger und 88 Buchungen zu diesen Chargen (Deckungsbeitrag je Charge, 590 bis 890 Tenge je kg), Stand der MwSt-Schwellenprüfung |
+| `…040000_testdaten_stammdaten` | Rechtsform und BIN oder IIN (mit gültiger Prüfziffer), Anschriften und Abholfenster der Nachbarbetriebe, Werte der Kontaktkanäle |
+| `…050000_testdaten_behoerden_nachweise` | ЭСФ-Belege zu allen Lieferungen nach Alter gestaffelt, 15 ЕСУТД-Verträge mit Änderung und Beendigung, Fördercheckpunkte, Gültigkeit der Nachweise, zehn neue Nachweise (einer davon ist die neue Version einer Rückstandsanalyse) |
+| `…060000_testdaten_planung` | Rotationsplan mit Brigaden, drei Abholrunden mit Straßengeometrie und eine geplante, zwei offene Pflückaufgaben, vier Vorbestellungen mit Nachrichten, Winterpreislisten mit Staffeln |
+| `…070000_testdaten_benachrichtigungen` | einmaliger Lauf der Erzeugung, danach übernimmt der stündliche Workflow |
+| `…080000_testdaten_kennzahlen_nachrechnen` | Kennzahlenverlauf vom 25.09.2026 bis heute aus dem jetzigen Stand |
+
+**Schutz.** Jede Migration greift nur, wo Betriebsdaten da sind. Eine leere Datenbank (CI, lokaler Stack vor dem Seed) bleibt unverändert. Jede Tabelle wird nur gefüllt, wenn sie leer ist oder die Zeile fehlt; was jemand von Hand erfasst hat, wird nie ergänzt oder verdoppelt. Ein zweiter Lauf ändert nichts.
+
+**Erkennen.** Alle neuen Zeilen tragen die Kennung `7e57da7a-0000-4000-8000-…` (Testdaten). Die Chargen entstehen per Trigger und hängen über `pflueckaufgabe_id` an dieser Kennung.
+
+**Lokal.** Nach `supabase db reset --local` und `npm run db:seed-auth` holt `npm run db:testdaten-lokal` die Testdaten nach.
+
+**Zurücknehmen.** `supabase/testdaten-entfernen.sql` löscht genau diese Zeilen und gibt Reservierungen, Rotationstermine und Preislisten-Gültigkeit zurück. Auf die Cloud gehört es nur als Migration. Mehrere Journale sind unveränderlich (Buchungen, Kühl- und Transportmessungen, Meldeverlauf, Nachrichten, Stände), das Skript schaltet ihre Sperrtrigger nur für die Dauer des Löschens ab. Nicht zurückgedreht werden Ergänzungen an bestehenden Stammdaten, Brigaden-Zuweisungen im Rotationsplan, Benachrichtigungen und Kennzahlpunkte.
+
+**Bewusst nicht gefüllt.** Lohn (die Cloud trägt September-Abrechnungen aus QA-Läufen, eine Neuberechnung würde sie verändern), Integrationen und ihre Warteschlange (alle abgeschaltet, ein Ereignis entsteht nur bei einem aktiven Webhook), Videos, Fotos und Dokumentdateien (brauchen Dateien).
 
 ## Was mit dem Zusammenführen live geht
 

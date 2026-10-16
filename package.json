@@ -20,6 +20,7 @@
     "db:seed-auth": "node --env-file=.env.local supabase/seed-auth.mjs",
     "db:bestand": "node --env-file=.env.local supabase/testdaten.mjs --bestand",
     "db:testdaten": "node --env-file=.env.local supabase/testdaten.mjs",
+    "db:testdaten-lokal": "node scripts/testdaten-lokal.mjs",
     "db:types": "supabase gen types typescript --linked > src/lib/database.types.ts",
     "db:test": "node --env-file=.env.local supabase/tests/integration.mjs",
     "db:test:fast": "node supabase/tests/pglite-fast.mjs",
