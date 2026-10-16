@@ -32,8 +32,11 @@
 }
 
 /* Verschiebung, wenn das Chat-Panel aufgeht: Himbi rutscht mit der Kante nach links
-   (gleiche Kurve wie das Panel). Auf schmalen Bildschirmen legt sich das Panel als
-   Schublade ueber die Seite - dort tritt Himbi zurueck. */
+   (gleiche Kurve wie das Panel), ABER NUR, wenn das Panel sie sonst verdecken wuerde: Wie weit, rechnet
+   haustier-huelle-koerper.ts (usePaneAusweichen) in --hb-pane-schub; steht sie weiter links, ist es 0px und sie
+   bleibt. Fehlt der Wert (vor dem ersten Lauf), gilt die ganze Panelbreite wie frueher.
+   Auf schmalen Bildschirmen legt sich das Panel als Schublade ueber die Seite - dort tritt Himbi zurueck,
+   wieder nur, wenn die Schublade sie verdeckt (data-pane-verdeckt="false" haelt sie sichtbar). */
 .haustier__verschiebung {
   position: absolute;
   inset: 0;
@@ -46,11 +49,11 @@
 }
 @media (min-width: 1100px) {
   .haustier[data-pane-offen="true"] .haustier__verschiebung {
-    transform: translate3d(calc(var(--ki-pane-breite, 27rem) * -1), 0, 0);
+    transform: translate3d(calc(var(--hb-pane-schub, var(--ki-pane-breite, 27rem)) * -1), 0, 0);
   }
 }
 @media (max-width: 1099.98px) {
-  .haustier[data-pane-offen="true"] .haustier__verschiebung {
+  .haustier[data-pane-offen="true"]:not([data-pane-verdeckt="false"]) .haustier__verschiebung {
     opacity: 0;
     pointer-events: none;
   }

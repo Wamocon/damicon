@@ -21,8 +21,10 @@ const FRAGEN = ["sechzig", "durchgang", "beleg", "rollen", "stand", "daten"] as 
 // Die Rechnung deckte den Fall nicht ab, dass ein Wert gar nicht mehr
 // vorkommt: seit kein Modul mehr den Reifegrad "demo" trug, stand in der
 // Antwort "0 als bedienbare Demo". Der Wert ist jetzt weg, der Satz auch.
-// Kommt der naechste Zaehlwert auf null - etwa sobald die beiden offenen
-// Module angebunden sind -, gehoert der Satz aus Teilsaetzen gebaut.
+// Der naechste Zaehlwert ist auf null gekommen: seit WMCNL-2470 ist kein Modul
+// mehr "in-entwicklung". Der Satz ist deshalb aus Teilsaetzen gebaut (ICU-
+// plural in landing.faqItems.stand.a): bei null steht "alle", und der Teilsatz
+// ueber die Menuepunkte in Entwicklung entfaellt.
 function standZahlen() {
   return {
     gesamt: modules.length,

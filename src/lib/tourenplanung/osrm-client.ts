@@ -21,11 +21,16 @@ export interface OsrmTrip {
   dauerMinuten: number;
   /** GeoJSON-LineString der gesamten Route, direkt fuer Leaflet nutzbar. */
   geometrie: GeoJSON.LineString | null;
+  /**
+   * Fahrzeit der Teilstrecken in Sekunden, in der Reihenfolge der Route: zuerst vom Start zum ersten Stopp, zuletzt vom
+   * letzten Stopp zurueck zum Start. Leer, wenn der Dienst sie nicht liefert.
+   */
+  teilstreckenSekunden: number[];
 }
 
 interface OsrmTripAntwort {
   code: string;
-  trips?: { distance: number; duration: number; geometry: GeoJSON.LineString }[];
+  trips?: { distance: number; duration: number; geometry: GeoJSON.LineString; legs?: { duration: number }[] }[];
   waypoints?: { waypoint_index: number }[];
 }
 
@@ -57,9 +62,31 @@ export async function berechneOptimierteTour(wegpunkte: Wegpunkt[]): Promise<Osr
       distanzKm: Math.round((trip.distance / 1000) * 10) / 10,
       dauerMinuten: Math.round(trip.duration / 60),
       geometrie: trip.geometry ?? null,
+      teilstreckenSekunden: (trip.legs ?? []).map((l) => l.duration),
     };
   } catch (error) {
     console.error("[damicon] Routenoptimierung fehlgeschlagen:", error);
     return null;
   }
+}
+
+/**
+ * Geschaetzte Fahrzeit in Minuten vom ersten Stopp bis zurueck zum Start (bei der Abholrunde: ins Kuehlhaus), ohne die Anfahrt
+ * zum ersten Stopp. Ohne Teilstrecken (der Dienst lieferte keine) null.
+ */
+export function minutenAbErstemStopp(trip: Pick<OsrmTrip, "teilstreckenSekunden">): number | null {
+  const strecken = trip.teilstreckenSekunden;
+  if (strecken.length < 2) return null;
+  return Math.round(strecken.slice(1).reduce((a, b) => a + b, 0) / 60);
+}
+
+/**
+ * Die Position jedes Stopps in der optimierten Route (0-basiert), in der Reihenfolge der Eingabe ohne den Startpunkt.
+ *
+ * OSRM liefert je Eingabepunkt den Index seiner Position in der Route (waypoint_index), nicht die Eingabe je Position: wer
+ * "reihenfolge" in der Reihenfolge der Route lesen will, muss sie erst umkehren. Bei source=first steht der Start auf Position 0,
+ * die Stopps beginnen bei 1.
+ */
+export function stoppPositionen(reihenfolge: number[]): number[] {
+  return reihenfolge.slice(1).map((position) => position - 1);
 }

@@ -25,6 +25,10 @@ export interface TransportMessungZeile {
   temperaturC: number;
   ergebnis: string;
   gemessenAm: string;
+  /** Handmessung oder aus der Datei eines Temperaturloggers (WMCNL-1517). */
+  quelle: "manuell" | "logger";
+  /** Seriennummer oder Fahrzeug des Loggers, nur bei Herkunft "logger". */
+  loggerKennung: string | null;
 }
 
 export interface LieferungZeile {
@@ -92,8 +96,8 @@ export const demoLieferungen: LieferungZeile[] = [
     belegStoragePath: null,
     letzteKuehlmessung: { temperaturC: 3.2, minutenSeitPfluecken: 25, ergebnis: "ok" },
     transportMessungen: [
-      { id: "demo-transport-1", temperaturC: 3.5, ergebnis: "ok", gemessenAm: "2026-08-30T13:10:00.000Z" },
-      { id: "demo-transport-2", temperaturC: 3.8, ergebnis: "ok", gemessenAm: "2026-08-30T15:20:00.000Z" },
+      { id: "demo-transport-1", temperaturC: 3.5, ergebnis: "ok", gemessenAm: "2026-08-30T13:10:00.000Z", quelle: "manuell", loggerKennung: null },
+      { id: "demo-transport-2", temperaturC: 3.8, ergebnis: "ok", gemessenAm: "2026-08-30T15:20:00.000Z", quelle: "logger", loggerKennung: "TL-4711" },
     ],
   },
   {

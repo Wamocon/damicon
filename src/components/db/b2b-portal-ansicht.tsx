@@ -1,5 +1,7 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kilogramm } from "@/lib/format/menge";
 import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
+import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   VorbestellungAnlegenFormular,
@@ -15,9 +17,10 @@ import {
   ladeVorbestellungen,
 } from "@/lib/data/vorbestellungen";
 import { ladeRechnungshistorie } from "@/lib/data/rechnungshistorie";
+import { LieferplanDownload, VorbestellungNachrichten } from "@/components/db/vorbestellung-nachrichten";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
-import { LeererZustand } from "@/components/ui/liste";
+import { Blaettern, LeererZustand } from "@/components/ui/liste";
 import { formularZiel } from "@/lib/formular-ziele";
 import { kuehlErgebnisTon, lieferStatusTon } from "@/components/db/toene";
 
@@ -39,7 +42,7 @@ const vorbestellungTon: Record<string, Tone> = {
 // Liefermenge und der zum Liefertermin gueltigen Preisliste, keine
 // rechtsverbindliche Rechnung - siehe domain/rechnungshistorie.ts fuer die
 // fachliche Festlegung.
-export async function B2bPortalAnsicht() {
+export async function B2bPortalAnsicht({ pfad, vseite }: { pfad: string; vseite?: string }) {
   const [profil, t] = await Promise.all([
     getSessionProfile(),
     getTranslations("b2bPortalAnsicht"),
@@ -47,7 +50,7 @@ export async function B2bPortalAnsicht() {
   const istKundeVorab = profil?.role === "kunde";
   const [uebersicht, vorbestellungen, kontingente, rechnungen, preislisten] = await Promise.all([
     ladeLieferungen(),
-    ladeVorbestellungen(),
+    ladeVorbestellungen(Number(vseite) || 1),
     ladeKontingente(),
     ladeRechnungshistorie(),
     // Anforderung 5.1/5.2: eine Kunden-Anmeldung sieht nur die eigene
@@ -57,7 +60,9 @@ export async function B2bPortalAnsicht() {
   ]);
   const lt = await getTranslations("lieferungenAnsicht");
   const kkT = await getTranslations("nachweiskette");
+  const dk = await getTranslations("dokument.knopf");
   const kg = await getTranslations("kundengruppen");
+  const plt = await getTranslations("preislistenAnsicht");
   const format = await getFormatter();
 
   const live = uebersicht.quelle === "db";
@@ -99,7 +104,7 @@ export async function B2bPortalAnsicht() {
               <Card key={l.id}>
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <p className="text-sm font-black text-card-foreground">
-                    {format.number(l.mengeKg)} kg
+                    {kilogramm(format, l.mengeKg)}
                   </p>
                   <StatusPill tone={lieferStatusTon[l.status] ?? "neutral"}>
                     {lt(`status.${l.status}`)}
@@ -131,6 +136,11 @@ export async function B2bPortalAnsicht() {
                     ))}
                   </div>
                 ) : null}
+                {l.status === "zugestellt" ? (
+                  <div className="mt-2 border-t border-border pt-2">
+                    <DokumentKnopf art="lieferung" parameter={{ lieferung: l.id }} label={dk("lieferung")} klein />
+                  </div>
+                ) : null}
               </Card>
             ))}
           </div>
@@ -154,7 +164,7 @@ export async function B2bPortalAnsicht() {
                   <td className="px-3 py-2.5 font-semibold text-foreground">{r.kunde}</td>
                 ) : null}
                 <td className="px-3 py-2.5 text-muted-foreground">{datum(r.geliefertAm)}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{format.number(r.mengeKg)} kg</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{kilogramm(format, r.mengeKg)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">
                   {r.preisTengeKg === null ? "-" : `${format.number(r.preisTengeKg)} ₸/kg`}
                 </td>
@@ -190,7 +200,7 @@ export async function B2bPortalAnsicht() {
                     <div className="flex justify-between text-[11px] text-muted-foreground">
                       <span>{t("col.reserviert")}</span>
                       <span>
-                        {format.number(k.reserviertKg)} / {format.number(k.mengeKg)} kg
+                        {format.number(k.reserviertKg)} / {kilogramm(format, k.mengeKg)}
                       </span>
                     </div>
                     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -201,7 +211,7 @@ export async function B2bPortalAnsicht() {
                     </div>
                   </div>
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    {t("col.verfuegbar")}: {format.number(Math.max(0, k.mengeKg - k.reserviertKg))} kg
+                    {t("col.verfuegbar")}: {kilogramm(format, Math.max(0, k.mengeKg - k.reserviertKg))}
                   </p>
                 </Card>
               );
@@ -218,9 +228,10 @@ export async function B2bPortalAnsicht() {
             <Card key={p.id} className="mb-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-black text-card-foreground">{p.name}</p>
-                {p.kundengruppe ? (
-                  <StatusPill tone="info">{kg(p.kundengruppe)}</StatusPill>
-                ) : null}
+                <div className="flex items-center gap-2">
+                  {p.kundengruppe ? <StatusPill tone="info">{kg(p.kundengruppe)}</StatusPill> : null}
+                  <StatusPill tone="neutral">{p.inklMwst ? plt("brutto") : plt("netto")}</StatusPill>
+                </div>
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {t("gueltigAb")} {tag(p.gueltigAb)}
@@ -236,7 +247,7 @@ export async function B2bPortalAnsicht() {
                       {format.number(pos.preisTengeKg)} ₸/kg
                     </td>
                     <td className="px-3 py-2.5 text-muted-foreground">
-                      {format.number(pos.minMengeKg)} kg
+                      {kilogramm(format, pos.minMengeKg)}
                     </td>
                   </tr>
                 ))}
@@ -246,7 +257,12 @@ export async function B2bPortalAnsicht() {
         )}
       </Section>
 
-      <Section title={t("vorbestellungenTitel")} description={t("vorbestellungenLead")}>
+      <Section
+        id="vorbestellungen"
+        title={t("vorbestellungenTitel")}
+        description={t("vorbestellungenLead")}
+        action={live ? <LieferplanDownload /> : undefined}
+      >
         {vorbestellungen.vorbestellungen.length === 0 ? (
           <LeererZustand
             titel={t("keineVorbestellungen")}
@@ -271,7 +287,7 @@ export async function B2bPortalAnsicht() {
                   <td className="px-3 py-2.5 font-semibold text-foreground">{v.kunde}</td>
                 ) : null}
                 <td className="px-3 py-2.5 text-foreground">{v.sorte}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{format.number(v.mengeKg)} kg</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{kilogramm(format, v.mengeKg)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{tag(v.liefertermin)}</td>
                 <td className="px-3 py-2.5">
                   <StatusPill tone={vorbestellungTon[v.status] ?? "neutral"}>
@@ -290,10 +306,25 @@ export async function B2bPortalAnsicht() {
             ))}
           </DataTable>
         )}
+        {/* Seite 1 ohne Parameter: eine Adresse, ein Zustand (listenQuery in lib/listen/parameter.ts folgt derselben Regel). */}
+        <Blaettern
+          seite={vorbestellungen.seite}
+          seiten={vorbestellungen.seiten}
+          ziel={(s) => ({ pathname: pfad, query: s > 1 ? { vseite: String(s) } : {}, hash: "vorbestellungen" })}
+        />
       </Section>
 
       {darfAnlegen ? (
         <VorbestellungAnlegenFormular kunden={kunden} sorten={sorten} fuerBuero={fuerBuero} />
+      ) : null}
+
+      {live ? (
+        <VorbestellungNachrichten
+          vorbestellungen={vorbestellungen.vorbestellungen}
+          darfSchreiben={darfAnlegen}
+          zeigeKunde={fuerBuero}
+          darfAnonymisieren={hasPermission(profil?.role, "compliance", "manage")}
+        />
       ) : null}
 
       <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{t("note")}</Card>

@@ -385,6 +385,7 @@ KI-Chat und Detailansicht dürfen gleichzeitig offen sein, die Anordnung wechsel
 
 **Himbi.** Er steht immer links von dem, was rechts andockt.
 - Neben der angedockten Detailansicht rückt er um ihre Breite nach links, mit angedocktem KI-Chat um beide.
+- Das KI-Panel schiebt ihn nur, wenn es ihn verdecken würde (Rückmeldung vom 15.10.2026): Steht er weiter links, zum Beispiel an den linken Rand gezogen, bleibt er beim Öffnen stehen. Ragt das Panel nur ein Stück in seine Fläche, rückt er nur so weit, dass er mit 20 px Luft davor steht. Die Rechnung steht in `paneAusweichen()` (`lib/haustier.ts`), der Hook `usePaneAusweichen` setzt `--hb-pane-schub` (Desktop) und `data-pane-verdeckt` (Schublade unter 1100 px, dort blendet er nur aus, wenn sie ihn verdeckt). Neu gerechnet wird beim Öffnen, bei neuer Panelbreite und neuer Fenstergröße, nie beim Ziehen von Himbi selbst. Browsertest: `e2e/himbi-panel.spec.ts`.
 - Liegt sie als Schublade über der Liste oder ersetzt sie die Liste, blendet er sich aus. Neben der Schublade bleiben nur 10rem Liste, dort verdeckte er Karten.
 - Anordnung und Breite meldet `ui/detailpanel-steuerung.tsx` als `data-detailpanel` und `--detailpanel-ist` an `<html>`. Die Breite wird gemessen, weil sie mit dem Platz wächst. Die Regeln stehen in `haustier.css`.
 

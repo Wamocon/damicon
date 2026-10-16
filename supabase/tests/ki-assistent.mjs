@@ -69,6 +69,8 @@ import {
 } from "../../src/lib/domain/diktat.ts";
 import { erkenneMitRueckfall, GESAMTDECKEL_MS, GRUND_LEER, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
 import {
+  BEGRIFFE,
+  begriffeAnweisung,
   EMPFEHLUNG,
   ERINNERUNG,
   formatAnweisung,
@@ -2370,6 +2372,55 @@ for (const [name, kaputteAntwort] of [
     const folge = mitSprachErinnerung(freigabe, "ru");
     pruefe("Erinnerung: in einer Folgeanfrage haengt sie an der letzten Nutzerfrage, die Antwort bleibt unberuehrt", folge[0].parts.length === 2 && folge[0].parts[1].text.includes(ERINNERUNG.ru) && JSON.stringify(folge[1]) === JSON.stringify(freigabe[1]) && freigabe[0].parts.length === 1);
     pruefe("Erinnerung: ohne jede Nutzerfrage bleibt alles, wie es ist", JSON.stringify(mitSprachErinnerung([{ role: "assistant", parts: [] }], "ru")) === JSON.stringify([{ role: "assistant", parts: [] }]));
+  }
+
+  // (d2) Keine deutschen Woerter in einer Antwort in anderer Sprache (15.10.2026: eine russische Zusammenfassung enthielt "Betrieb", "Feld" und "Hof"
+  // mitten im Satz, weil Werkzeugdaten und Prompt deutsch sind). Die Anweisung nennt die Uebersetzungen der Oberflaeche.
+  {
+    pruefe("Begriffe: auf Deutsch gibt es keine Anweisung", begriffeAnweisung("de") === "" && begriffeAnweisung("xx") === "");
+    for (const sprache of ["en", "ru", "kk"]) {
+      const text = begriffeAnweisung(sprache);
+      pruefe(`Begriffe ${sprache}: verbietet deutsche Woerter ausdruecklich, auch in Zusammenfassungen und Listen`, text.includes("NO GERMAN WORDS") && text.includes("never copy a German word") && text.includes("summaries and lists"));
+      pruefe(`Begriffe ${sprache}: jede Zeile der Liste steht in der Anweisung`, BEGRIFFE[sprache].every(([de, uebersetzt]) => text.includes(`${de} = ${uebersetzt}`)));
+      pruefe(`Begriffe ${sprache}: die Liste kennt Betrieb, Feld, Hof, Büro, Markt und die Kennzeichen der Tageslage`, ["Betrieb", "Feld", "Hof", "Büro", "Markt", "meine Brigade", "meine Rolle"].every((w) => text.includes(w)));
+    }
+    // Dieselben Woerter wie auf dem Bildschirm: die Uebersetzungen kommen aus den Sprachdateien der Oberflaeche
+    const katalog = (sprache) => {
+      const m = meldung(sprache);
+      return {
+        Betrieb: m.rollenDemo.scopeWert.betrieb,
+        Feld: m.zones.feld.name,
+        Hof: m.zones.hof.name,
+        "Büro": m.zones.buero.name,
+        Markt: m.zones.markt.name,
+        Nachbarbetrieb: m.standortDemo.typ.nachbarbetrieb,
+        Brigade: m.pruefung.rolle.brigade,
+        "Pflücker": m.roles.picker,
+        Erzeuger: m.pruefung.rolle.erzeuger,
+        "Kühlkette": m.resourceLabels.kuehlkette,
+        Charge: m.suche.datenTyp.charge,
+        Lieferung: m.dokument.lieferung.abschnittLieferung,
+        Pflückaufgabe: m.suche.datenTyp.aufgabe,
+        "Prüfbericht": m.pruefung.bericht.titel,
+        Lohn: m.resourceLabels.lohn,
+        Schulung: m.pflichtschulungenAnsicht.col.schulung,
+        Frist: m.pruefungPdf.frist,
+        Kennzahl: m.dokument.wirtschaftlichkeit.col.kennzahl,
+        "überfällig": m.rotationsplanAnsicht.stat.ueberfaellig,
+        heute: m.liste.zeitraum.heute,
+      };
+    };
+    for (const sprache of ["en", "ru", "kk"]) {
+      const soll = katalog(sprache);
+      const abweichend = BEGRIFFE[sprache].filter(([de, uebersetzt]) => de in soll && soll[de].toLowerCase() !== uebersetzt.toLowerCase()).map(([de, u]) => `${de}: ${u} statt ${soll[de]}`);
+      pruefe(`Begriffe ${sprache}: die Woerter sind die der Oberflaeche (src/messages)`, abweichend.length === 0, abweichend.join(" | "));
+    }
+    pruefe("Begriffe: die Listen sind gleich lang und kennen dieselben deutschen Woerter", new Set(["en", "ru", "kk"].map((s) => BEGRIFFE[s].map(([de]) => de).join("|"))).size === 1);
+    const lies = (pfad) => readFileSync(new URL(`../../src/${pfad}`, import.meta.url), "utf8");
+    const routeText = lies("app/api/ki-assistent/route.ts");
+    pruefe("Route: die Sprachanweisung haengt die Begriffe an (nur ausserhalb von Deutsch, sonst leer)", routeText.includes("begriffeAnweisung(") && routeText.includes("${begriffe ?") && routeText.includes("sprache in SPRACHNAMEN"));
+    pruefe("Server-Action: auch der Systemprompt des Direktwegs bekommt die Begriffe", lies("lib/actions/ki-assistent.ts").includes("begriffeAnweisung(antwortIn as AntwortSprache)"));
+    pruefe("Erinnerung an der Frage: ohne deutsche Woerter (en, ru, kk), auf Deutsch unveraendert", ERINNERUNG.en.includes("no German words") && ERINNERUNG.ru.includes("без немецких слов") && ERINNERUNG.kk.includes("неміс сөздерінсіз") && ERINNERUNG.de === "Antworte auf Deutsch.");
   }
 
   // (e) Der erzeugte Text muss zur Sprache passen (Berichts-Zusammenfassung).

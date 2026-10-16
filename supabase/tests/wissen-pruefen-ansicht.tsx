@@ -23,6 +23,7 @@ const basis: WissenDokumentZeile = {
   schluesselSpalte: "quelle_id",
   titel: "Kommentar zum Steuerkodex",
   bereich: "steuer",
+  weitereBereiche: [],
   rollen: ["admin", "buchhaltung"],
   datum: "2026-10-01",
   hochgeladenVon: "Anna Admin",

@@ -14,6 +14,7 @@ import {
   wissensQuellenFuerFaehigkeiten,
   type KiChatNachrichtZeile,
 } from "@/lib/domain/ki-assistent";
+import { begriffeAnweisung, type AntwortSprache } from "@/lib/domain/antwort-anweisungen";
 import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
@@ -175,7 +176,8 @@ export async function kiNachrichtSenden(
           hasPermission(profil.role, "kuehlkette", "view"),
       });
       const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
-      const systemPrompt = baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten), antwortIn);
+      // Hinter der Sprachanweisung: in anderer Sprache als Deutsch kein deutsches Wort in der Antwort (Glossar der Oberfläche)
+      const systemPrompt = [baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten), antwortIn), begriffeAnweisung(antwortIn as AntwortSprache)].filter(Boolean).join("\n\n");
       const verlaufFuerModell = baueVerlaufFuerModell(systemPrompt, bisherigerVerlauf.nachrichten, nachricht);
 
       const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);

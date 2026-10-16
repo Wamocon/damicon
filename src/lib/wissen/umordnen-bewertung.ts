@@ -1,6 +1,6 @@
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 import { clusterPasst, istCluster, istQuellenart, nutzungFuer, QUELLENART_INFO, standardStufe, type Quellenart } from "@/lib/wissen/quellenart";
-import { bereichSchluessel, UPLOAD_BEREICHE } from "@/lib/wissen/upload-konstanten";
+import { bereichSchluessel, bereicheVon, UPLOAD_BEREICHE } from "@/lib/wissen/upload-konstanten";
 
 // Bewertung der Wahl im Fenster "Einordnung ändern" (wissen-umordnen.tsx). Reine Funktionen ohne React, damit die Komponentendatei nur
 // Komponenten exportiert (Fast Refresh) und die Regeln ohne Browser prüfbar sind.
@@ -9,13 +9,23 @@ import { bereichSchluessel, UPLOAD_BEREICHE } from "@/lib/wissen/upload-konstant
 export interface UmordnenWert {
   cluster: string;
   bereich: string;
+  /** Die weiteren Bereiche (Schluessel wie recht, risiko), in denen das Dokument zusaetzlich gilt. */
+  weitere: string[];
   quellenart: string;
   textgrundlage: string;
 }
 
-/** Aendert die Wahl eine wirksame Angabe (Bereich, Quellenart, Textgrundlage)? Der Cluster allein zaehlt nicht. */
+/** Die weiteren Bereiche eines Dokuments als Schluessel (ohne den Hauptbereich), fuer die Startwahl im Fenster. */
+export const weitereVon = (dokument: Pick<WissenDokumentZeile, "bereich" | "weitereBereiche">): string[] => bereicheVon(dokument.bereich, dokument.weitereBereiche).slice(1);
+
+const gleicheMenge = (a: readonly string[], b: readonly string[]): boolean => a.length === b.length && a.every((x) => b.includes(x));
+
+/** Aendert die Wahl eine wirksame Angabe (Bereich, weitere Bereiche, Quellenart, Textgrundlage)? Der Cluster allein zaehlt nicht. */
 const aendertWirksames = (dokument: WissenDokumentZeile, wert: UmordnenWert): boolean =>
-  wert.bereich !== bereichSchluessel(dokument.bereich) || wert.quellenart !== (dokument.quellenart ?? "") || wert.textgrundlage !== (dokument.textgrundlage ?? "original");
+  wert.bereich !== bereichSchluessel(dokument.bereich) ||
+  !gleicheMenge(wert.weitere.filter((w) => w !== wert.bereich), weitereVon(dokument)) ||
+  wert.quellenart !== (dokument.quellenart ?? "") ||
+  wert.textgrundlage !== (dokument.textgrundlage ?? "original");
 
 /** Monate bis zur neuen Wiedervorlage, wenn ein freigegebener Upload eine andere Art bekommt; null, wenn sie sich nicht aendert oder die Art keine hat. */
 const neueWiedervorlage = (dokument: WissenDokumentZeile, art: Quellenart, freigegebenerUpload: boolean): number | null =>

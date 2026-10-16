@@ -23,19 +23,23 @@ const STAEMME = [
   "verpflichtend", "gesetzlich", "vorschrift", "verstoss", "verstoß", "sanktion", "bussgeld", "bußgeld", "strafe",
   "abschlusspruef", "abschlussprüf", "audit", "compliance", "datenschutz", "aufbewahrungsfrist", "meldepflicht",
   "meldefrist", "registrierungspflicht", "umsatzschwelle", "umsatzgrenze", "schwellenwert", "anmeldefrist", "anzumelden", "kodex", "fundstelle", "haftung", "zoll", "elektronische rechnung", "esutd", " esf",
+  // Risikomanagement (seit 15.10.2026): Himbi antwortete auf Fragen nach Risikoquellen aus dem Bauch, ohne zu suchen.
+  "risik", "risikomanagement", "iso 31000", "coso", "kontrollsystem", "interne kontroll", "internen kontroll", "interne revision", "krisenmanagement",
   // English
   "tax", "vat", "legal", "statute", "regulation", "penalt", "obligation", "mandatory", "e-invoice", "customs duty",
   "threshold", "labor law", "labour law", "data protection", "law ",
+  " risk", "internal control", "enterprise risk",
   // Russisch
   "порог", "налог", "ндс", "закон", "кодекс", "штраф", "аудит", "комплаенс", "санкци", "обязательн", "эсф", "эсутд", "таможен",
-  "трудово", "персональн", "ответственност", "статья", "ст. ",
+  "трудово", "персональн", "ответственност", "статья", "ст. ", "риск", "внутренний контроль", "внутренний аудит",
   // Kasachisch
-  "салық", "қдс", "заң", "кодекс", "айыппұл", "аудит", "тексеру", "міндетті",
+  "салық", "қдс", "заң", "кодекс", "айыппұл", "аудит", "тексеру", "міндетті", "тәуекел",
 ];
 
 /** Steht die Nutzerfrage im Bereich Recht, Steuer, Compliance oder Audit? */
 export function istRechtsfrage(text: string): boolean {
-  const t = ` ${text.toLowerCase().replace(/\s+/g, " ")} `;
+  // Die eigenen Auswertungen der Anwendung (Risiko-Radar, Block-Risiko) sind Datenfragen, keine Frage an die Wissensbasis.
+  const t = ` ${text.toLowerCase().replace(/\s+/g, " ").replace(/risiko[- ]?radar|block[- ]?risiko|risk[- ]?radar/g, " ")} `;
   // "Steuer" als Hauptwort (Mehrwertsteuer, Lohnsteuer, "die Steuer"), nicht "Steuerung"/"steuere".
   if (/(?:^|[^\p{L}])(?:\p{L}*steuer|steuern)(?=$|[^\p{L}])/u.test(t) && !/steuer(?:ung|e|t|st)(?=$|[^\p{L}])/u.test(t)) return true;
   return STAEMME.some((s) => t.includes(s));

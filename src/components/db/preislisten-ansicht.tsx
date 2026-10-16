@@ -1,4 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kilogramm } from "@/lib/format/menge";
 import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
@@ -70,6 +71,7 @@ export async function PreislistenAnsicht() {
                     ) : (
                       <StatusPill tone="neutral">{kg("standard")}</StatusPill>
                     )}
+                    <StatusPill tone="neutral">{p.inklMwst ? t("brutto") : t("netto")}</StatusPill>
                     <StatusPill tone={aktivTon[p.aktiv ? "aktiv" : "inaktiv"]}>
                       {t(p.aktiv ? "aktiv" : "inaktiv")}
                     </StatusPill>
@@ -93,7 +95,7 @@ export async function PreislistenAnsicht() {
                           {format.number(pos.preisTengeKg)} ₸/kg
                         </td>
                         <td className="px-3 py-2.5 text-muted-foreground">
-                          {format.number(pos.minMengeKg)} kg
+                          {kilogramm(format, pos.minMengeKg)}
                         </td>
                         <td className="px-3 py-2.5">
                           {darfLoeschen ? (

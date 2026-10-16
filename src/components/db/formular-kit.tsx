@@ -364,8 +364,10 @@ export function AktionsMeldung({ status }: { status: AktionsStatus }) {
   const Symbol = gut ? CheckCircle2 : AlertCircle;
 
   return (
+    // Eine Fehlermeldung sagt role="alert" (wird sofort vorgelesen), ein Erfolg role="status" (hoeflich). Eine neu eingefuegte Statusregion mit Text sagt nicht
+    // jede Vorlesehilfe an (Pruefung PR #156, 15.10.2026).
     <p
-      role="status"
+      role={gut ? "status" : "alert"}
       className={`flex items-start gap-1.5 rounded-lg border p-2 schrift-label font-semibold ${
         gut
           ? "border-success/25 bg-success/[0.08] text-success"
@@ -373,7 +375,7 @@ export function AktionsMeldung({ status }: { status: AktionsStatus }) {
       }`}
     >
       <Symbol className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-      {t(status.meldung, { wert: status.wert ?? "" })}
+      {t(status.meldung, { wert: status.wert ?? "", ...status.werte })}
     </p>
   );
 }
@@ -406,5 +408,39 @@ export function FormularKarte({
       ) : null}
       <div className="mt-3 space-y-2.5">{children}</div>
     </div>
+  );
+}
+
+// Eine kleine Aktion mit eigener Rueckmeldung, etwa "Erledigt" oder "Entfernen" in einer Liste: ein
+// Formular aus einem Knopf und versteckten Feldern. Erfolg zeigt schon die neu gezeichnete Seite,
+// deshalb meldet sich die Aktion nur, wenn sie misslingt.
+export function MiniAktion({
+  aktion,
+  felder,
+  label,
+  warnend = false,
+}: {
+  aktion: (status: AktionsStatus, formData: FormData) => Promise<AktionsStatus>;
+  felder: Record<string, string>;
+  label: string;
+  warnend?: boolean;
+}) {
+  const [status, action] = useActionState(aktion, leer);
+  return (
+    <form action={action} className="inline-flex flex-col items-start gap-1">
+      <PfadFeld />
+      {Object.entries(felder).map(([name, wert]) => (
+        <input key={name} type="hidden" name={name} value={wert} />
+      ))}
+      <button
+        type="submit"
+        className={`rounded-full border border-border px-2.5 py-0.5 text-[11px] font-semibold text-foreground transition ${
+          warnend ? "hover:border-destructive hover:text-destructive" : "hover:border-primary hover:text-primary"
+        }`}
+      >
+        {label}
+      </button>
+      {status.stand === "fehler" ? <AktionsMeldung status={status} /> : null}
+    </form>
   );
 }

@@ -16,14 +16,18 @@ import { EinarbeitungAnsicht } from "@/components/db/einarbeitung-ansicht";
 import { PflichtschulungenAnsicht } from "@/components/db/pflichtschulungen-ansicht";
 import { FoerdermittelAnsicht } from "@/components/db/foerdermittel-ansicht";
 import { LogistikAnsicht } from "@/components/db/logistik-ansicht";
+import { EsfAnsicht } from "@/components/db/esf-ansicht";
+import { IntegrationenAnsicht } from "@/components/db/integrationen-ansicht";
 import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
 import { PersonalAnsicht } from "@/components/db/personal-ansicht";
 import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
+import { RollenZuweisungAnsicht } from "@/components/db/rollen-zuweisung-ansicht";
 import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
 import { WetterAnsicht } from "@/components/db/wetter-ansicht";
 import { KanaeleAnsicht } from "@/components/db/kanaele-ansicht";
 import { StammdatenAnsicht } from "@/components/db/stammdaten-ansicht";
 import { PreislistenAnsicht } from "@/components/db/preislisten-ansicht";
+import { EinstellungenAnsicht } from "@/components/db/einstellungen-ansicht";
 import { SortenkatalogAnsicht } from "@/components/db/sortenkatalog-ansicht";
 import { RollenDemo } from "@/components/demo/buero";
 import type { ModuleDef } from "@/lib/modules";
@@ -71,7 +75,7 @@ export function serverModulAnsicht(
     case "compliance":
       return <ComplianceAnsicht />;
     case "reklamationen":
-      return <ReklamationenAnsicht pfad={kontext.pfad} auswahl={wert("reklamation")} />;
+      return <ReklamationenAnsicht pfad={kontext.pfad} auswahl={wert("reklamation")} rseite={wert("rseite")} />;
     case "lohn":
       return <LohnAnsicht />;
     case "finanzen":
@@ -87,7 +91,7 @@ export function serverModulAnsicht(
         />
       );
     case "wirtschaftlichkeit":
-      return <WirtschaftlichkeitAnsicht />;
+      return <WirtschaftlichkeitAnsicht pfad={kontext.pfad} standId={wert("stand")} jahre={wert("jahre")} />;
     case "rotationsplan":
       return <RotationsplanAnsicht />;
     // Anforderung 2.13: Temperatursummen-Heuristik statt reinem
@@ -107,6 +111,17 @@ export function serverModulAnsicht(
     // interne Arbeitsansicht (Buero/Brigade erfassen), b2b_portal die
     // kundenseitige Sicht auf dieselben Daten, ergaenzt um Preisliste/
     // Vorbestellung (Anforderung 5.1, Teil 2 von 2).
+    // WMCNL-1440 (Stufe 1): Belegregister der elektronischen Rechnung. Die Anbindung an das
+    // staatliche System (Stufe 2) braucht den Zugang der Behoerde.
+    case "esf":
+      return <EsfAnsicht />;
+    // WMCNL-1447 (Stufe 1): Meldeprozess fuer das Einheitssystem ЕСУТД. Die automatische Meldung
+    // (Stufe 2) braucht den Zugang der Behoerde.
+    case "integrationen":
+      return <IntegrationenAnsicht />;
+    // Fristen, Kapazitaeten und Richtwerte in der Oberflaeche pflegen (Migration 20261208030000), statt im Code.
+    case "einstellungen":
+      return <EinstellungenAnsicht />;
     case "logistik":
       return <LogistikAnsicht />;
     // Anforderung 3.1: die Live-Alarmlogik (KuehlkettenAlarm) lief bisher nur
@@ -122,7 +137,7 @@ export function serverModulAnsicht(
     case "sortenkatalog":
       return <SortenkatalogAnsicht />;
     case "b2b_portal":
-      return <B2bPortalAnsicht />;
+      return <B2bPortalAnsicht pfad={kontext.pfad} vseite={wert("vseite")} />;
     // Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe - eigenes Modul
     // statt Teil von b2b_portal, siehe Kommentar bei der Ressource in rbac.ts.
     case "preislisten":
@@ -160,6 +175,7 @@ export function serverModulAnsicht(
       return (
         <div className="space-y-6">
           <RollenDemo />
+          <RollenZuweisungAnsicht />
           <EinladungenAnsicht />
         </div>
       );

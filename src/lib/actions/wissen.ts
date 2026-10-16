@@ -541,7 +541,14 @@ export async function wissenDokumentUmordnen(_status: AktionsStatus, formData: F
     const erg = await ordneUm(
       dienstClient(),
       { schluessel, schluesselSpalte: spalte as SchluesselSpalte },
-      { bereich: text(formData, "bereich"), quellenart: text(formData, "quellenart"), cluster: text(formData, "cluster"), textgrundlage: text(formData, "textgrundlage") },
+      {
+        bereich: text(formData, "bereich"),
+        // Nur mit Marke: ohne sie (andere Aufrufer) bleiben die weiteren Bereiche, wie sie sind. Mit Marke und ohne Haken heisst es: keine.
+        ...(formData.get("weitereBereicheGesetzt") === "1" ? { weitereBereiche: formData.getAll("weitereBereiche").map(String) } : {}),
+        quellenart: text(formData, "quellenart"),
+        cluster: text(formData, "cluster"),
+        textgrundlage: text(formData, "textgrundlage"),
+      },
       { id: profil.id },
     );
     await protokolliere(profil, "wissen.umgeordnet", "wissen_chunks", null, {

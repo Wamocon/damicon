@@ -14,8 +14,10 @@ import { Search } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
+import { useDatenSuche } from "@/components/suche/daten-suche";
 import { optionId, SuchListe } from "@/components/suche/such-liste";
 import { Sheet } from "@/components/ui/sheet";
+import { datenTrefferHref } from "@/lib/suche/daten";
 import { baueSuchErgebnis, type SuchOption } from "@/lib/suche/gruppen";
 import {
   baueSeitenZiele,
@@ -58,6 +60,7 @@ export function SuchDialog({
   const pathname = usePathname();
   const router = useRouter();
   const ki = useKiPane();
+  const datenSuche = useDatenSuche();
   const listeId = useId();
   const hinweisId = useId();
   const [eingabe, setEingabe] = useState("");
@@ -82,24 +85,35 @@ export function SuchDialog({
     zuletzt,
     offeneSeite,
     kiVerfuegbar: ki.verfuegbar,
+    // Ohne Datenbank (Demo-Modus) gibt es nichts zu durchsuchen.
+    datenSuchbar: !demoModus,
+    daten: datenSuche.stand,
   });
   const optionen = ergebnis.gruppen.flatMap((gruppe) => gruppe.optionen);
   const aktivIndex = optionen.length > 0 ? Math.min(aktiv, optionen.length - 1) : -1;
 
-  const hinweis =
-    ergebnis.hinweis === "keineTreffer"
-      ? t("keineTreffer", { begriff })
-      : ergebnis.hinweis === "leer"
-        ? t("leer")
-        : null;
+  const hinweis = hinweisText(ergebnis.hinweis, begriff);
   // Angesagt wird erst, wenn die Eingabe ruht, und dann das Ergebnis, das
   // ohnehin gerade dasteht. Solange getippt wird, bleibt die Region leer.
   const ansage =
     ruhendeEingabe !== eingabe || ergebnis.anzahl === null
       ? ""
       : ergebnis.anzahl === 0
-        ? t("keineTreffer", { begriff })
+        ? hinweisText(ergebnis.hinweis, begriff)
         : t("anzahl", { anzahl: ergebnis.anzahl });
+  // Zustand der Datensuche: die Abfrage laeuft oder ist misslungen. Steht
+  // getrennt vom Hinweis, weil beide gleichzeitig gelten koennen.
+  const datenHinweis = datenSuche.laedt
+    ? t("datenLaedt")
+    : datenSuche.fehler
+      ? t(`datenFehler.${datenSuche.fehler}`)
+      : null;
+
+  function hinweisText(art: typeof ergebnis.hinweis, suchbegriff: string): string | null {
+    if (art === "keineTreffer") return t("keineTreffer", { begriff: suchbegriff });
+    if (art === "keineDaten") return t("keineDaten", { begriff: suchbegriff });
+    return art === "leer" ? t("leer") : null;
+  }
 
   function beiEingabe(wert: string) {
     setEingabe(wert);
@@ -109,6 +123,16 @@ export function SuchDialog({
   }
 
   function waehle(option: SuchOption) {
+    if (option.art === "datensuche") {
+      datenSuche.suchen(option.begriff);
+      setAktiv(0);
+      return;
+    }
+    if (option.art === "datensatz") {
+      onSchliessen(false);
+      router.push(datenTrefferHref(option.treffer));
+      return;
+    }
     if (option.art === "ki") {
       // Erst die Suche zu, dann das Panel auf: beide liegen ueber der Seite,
       // uebereinander waere eines zu viel.
@@ -195,6 +219,11 @@ export function SuchDialog({
     >
       <div className="p-2">
         {hinweis ? <p className="px-3 py-4 text-sm text-muted-foreground">{hinweis}</p> : null}
+        {datenHinweis ? (
+          <p role="status" className="px-3 py-2 text-sm text-muted-foreground">
+            {datenHinweis}
+          </p>
+        ) : null}
         <SuchListe
           listeId={listeId}
           gruppen={ergebnis.gruppen}

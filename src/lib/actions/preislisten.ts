@@ -41,6 +41,8 @@ export async function preisListeErstellen(
       gueltig_ab: gueltigAb,
       gueltig_bis: gueltigBis || null,
       kundengruppe: (kundengruppe || null) as (typeof kundengruppen)[number] | null,
+      // Netto ist die Vorgabe (Entscheidung vom 15.10.2026). Die Angabe gilt fuer die ganze Liste und aendert sich nicht mehr: sonst bekaeme jeder Preis eine andere Bedeutung.
+      preise_inkl_mwst: formData.get("inkl_mwst") === "on",
     })
     .select("id")
     .single();

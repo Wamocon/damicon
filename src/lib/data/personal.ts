@@ -116,6 +116,8 @@ export async function ladePersonalUebersicht(): Promise<PersonalUebersicht> {
     }
   }
 
+  const mitVertrag = new Set((esutdRows ?? []).map((r) => r.pfluecker_id).filter((id): id is string => !!id));
+
   const pfluecker: PfleuckerZeile[] = (pflueckerRows ?? []).map((p) => {
     const brigade = einsAus(p.brigaden);
     const abrechnung = letzteAbrechnung.get(p.id);
@@ -127,6 +129,7 @@ export async function ladePersonalUebersicht(): Promise<PersonalUebersicht> {
       brigadeName: brigade?.name ?? null,
       esutd: p.esutd,
       esutdFaelligkeit: esutdFrist.get(p.id) ?? null,
+      hatEsutdVertrag: mitVertrag.has(p.id),
       letzteMengeKg: abrechnung?.mengeKg ?? null,
       letzterQualitaetsfaktor: abrechnung?.qualitaetsfaktor ?? null,
     };

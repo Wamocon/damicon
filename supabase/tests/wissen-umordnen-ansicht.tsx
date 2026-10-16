@@ -1,5 +1,5 @@
 import { WissenUmordnenKnopf } from "../../src/components/db/wissen-umordnen";
-import { bewerteUmordnung } from "../../src/lib/wissen/umordnen-bewertung";
+import { bewerteUmordnung, weitereVon } from "../../src/lib/wissen/umordnen-bewertung";
 import type { WissenDokumentZeile } from "../../src/lib/wissen/dokumente-liste";
 import { imMarkup, pruefer, rendere, SPRACHEN, texteVon } from "./hilfen/ansicht-probe";
 
@@ -20,6 +20,7 @@ const basis: WissenDokumentZeile = {
   schluesselSpalte: "quelle_id",
   titel: "Kommentar zum Zivilgesetzbuch",
   bereich: "legal",
+  weitereBereiche: [],
   rollen: ["admin"],
   datum: "2026-09-01",
   hochgeladenVon: "Anna Admin",
@@ -60,6 +61,9 @@ const auswahl = (html: string, name: string) => html.match(new RegExp(`<select[^
 const gewaehlt = (html: string, name: string) => auswahl(html, name).match(/<option value="([^"]*)" selected="">/)?.[1] ?? null;
 const gesperrteArten = (html: string) => [...auswahl(html, "quellenart").matchAll(/<option value="([^"]+)" disabled="">/g)].map((m) => m[1]).join(",");
 const speichern = (html: string) => html.match(/<button type="submit"[^>]*>/)?.[0] ?? "";
+/** Die Kontrollkästchen "Gilt auch in": Wert und ob angekreuzt. */
+const weitereKaesten = (html: string) =>
+  [...html.matchAll(/<input[^>]*name="weitereBereiche"[^>]*>/g)].map((m) => ({ wert: m[0].match(/value="([^"]+)"/)?.[1] ?? "", an: m[0].includes('checked=""') }));
 const wirkung = (html: string) => html.match(/<p class="text-\[11px\] ([^"]*)">Die Stufe folgt der Quellenart: Stufe (\d+)\.([^<]*)<\/p>/);
 
 // ---- 1. Freigegebener Upload der eigenen Person, unverändert ------------------------------------------------------------------------
@@ -71,11 +75,21 @@ const wirkung = (html: string) => html.match(/<p class="text-\[11px\] ([^"]*)">D
   pruefe("Upload: Titel des Dokuments steht im Fenster", html.includes(`<span class="font-semibold">Dokument: </span>Kommentar zum Zivilgesetzbuch</p>`));
   pruefe("Upload: Felder mit den Angaben des Dokuments vorbelegt (legal als recht)", gewaehlt(html, "cluster") === "buecher" && gewaehlt(html, "bereich") === "recht" && gewaehlt(html, "quellenart") === "fachliteratur" && gewaehlt(html, "textgrundlage") === "amtlich_uebersetzt");
   pruefe("Upload: Bereich zeigt die fünf Bereiche, keinen zusätzlichen", (auswahl(html, "bereich").match(/<option /g) ?? []).length === 5);
+  const kaesten = weitereKaesten(html);
+  pruefe("Weitere Bereiche: die vier anderen Bereiche als Kontrollkästchen (nicht der Hauptbereich), keiner angekreuzt", kaesten.map((k) => k.wert).join(",") === "steuer,compliance,audit,risiko" && kaesten.every((k) => !k.an), JSON.stringify(kaesten));
+  pruefe("Weitere Bereiche: die Marke geht verdeckt mit (ohne Haken heißt das: keine weiteren Bereiche)", html.includes(`<input type="hidden" name="weitereBereicheGesetzt" value="1"/>`));
+  pruefe("Weitere Bereiche: Beschriftung und Hinweis stehen im Fenster", html.includes(imMarkup(formular.weitereBereiche!)) && html.includes(imMarkup(formular.weitereBereicheHinweis!)));
   pruefe("Upload: im Cluster Bücher sind die Arten aus dem Netz gesperrt", gesperrteArten(html) === "internetquelle,forum,internetrecherche", gesperrteArten(html));
   const wi = wirkung(html);
   pruefe("Upload: Wirkung Stufe 4, normale Nutzung, keine Wiedervorlage", !!wi && wi[1] === "text-muted-foreground" && wi[2] === "4" && wi[3] === " ", wi?.[0] ?? "keine Wirkung");
   pruefe("Upload: kein fehlender Link, keine Vier-Augen-Sperre", !html.includes(imMarkup(u.urlFehlt)) && !html.includes(imMarkup(u.vierAugen)));
   pruefe("Upload: Speichern ist frei, Abbrechen davor", speichern(html) !== "" && !speichern(html).includes('disabled=""') && html.indexOf(`>${imMarkup(u.abbrechen)}</button>`) < html.indexOf(`>${imMarkup(u.speichern)}</button>`));
+}
+
+// ---- 1b. Dokument, das auch im Bereich Risiko gilt --------------------------------------------------------------------------------
+{
+  const { html, fehler } = fenster({ ...basis, bereich: "audit", weitereBereiche: ["risiko", "legal"] });
+  pruefe("Weitere Bereiche: vorangekreuzt, was gespeichert ist (legal heißt recht); der Hauptbereich steht nicht dabei", fehler.length === 0 && weitereKaesten(html).map((k) => `${k.wert}${k.an ? "+" : "-"}`).join(",") === "recht+,steuer-,compliance-,risiko+", JSON.stringify(weitereKaesten(html)));
 }
 
 // ---- 2. Bestand mit Korpusbereich, ohne Einordnung ---------------------------------------------------------------------------------
@@ -128,12 +142,16 @@ const wirkung = (html: string) => html.match(/<p class="text-\[11px\] ([^"]*)">D
 // Was erst nach einer Änderung im Fenster entsteht: Vier-Augen-Sperre, neue Wiedervorlage, fremder Bereich.
 {
   type Wert = Parameters<typeof bewerteUmordnung>[1];
-  const wie = (d: WissenDokumentZeile, teil: Partial<Wert> = {}): Wert => ({ cluster: d.cluster ?? "", bereich: d.bereich === "legal" ? "recht" : d.bereich, quellenart: d.quellenart ?? "", textgrundlage: d.textgrundlage ?? "original", ...teil });
+  const wie = (d: WissenDokumentZeile, teil: Partial<Wert> = {}): Wert => ({ cluster: d.cluster ?? "", bereich: d.bereich === "legal" ? "recht" : d.bereich, weitere: weitereVon(d), quellenart: d.quellenart ?? "", textgrundlage: d.textgrundlage ?? "original", ...teil });
   const b = (d: WissenDokumentZeile, teil: Partial<Wert> = {}, ichId: string | null = "u-anna") => bewerteUmordnung(d, wie(d, teil), ichId);
 
   const unveraendert = b(basis);
   pruefe("Bewertung: unverändert ist gültig, ohne Sperre, ohne neue Wiedervorlage", unveraendert.gueltig && !unveraendert.gesperrtDurchVierAugen && unveraendert.wiedervorlage === null && unveraendert.art === "fachliteratur" && unveraendert.stufe === 4 && unveraendert.nutzung === "ja" && unveraendert.bereichSteht && !unveraendert.urlFehlt);
   pruefe("Vier Augen: eigene Person ändert Bereich, Quellenart oder Textgrundlage eines freigegebenen Uploads", b(basis, { bereich: "steuer" }).gesperrtDurchVierAugen && b(basis, { quellenart: "praxisbeitrag" }).gesperrtDurchVierAugen && b(basis, { textgrundlage: "original" }).gesperrtDurchVierAugen);
+  pruefe("Vier Augen: auch die weiteren Bereiche eines freigegebenen Uploads ändert die eigene Person nicht", b(basis, { weitere: ["risiko"] }).gesperrtDurchVierAugen && !b(basis, { weitere: ["risiko"] }, "u-bert").gesperrtDurchVierAugen);
+  pruefe("Vier Augen: unveränderte weitere Bereiche (auch in anderer Reihenfolge, mit dem Hauptbereich darunter) sperren nicht",
+    !b({ ...basis, bereich: "audit", weitereBereiche: ["legal", "risiko"] }, { weitere: ["risiko", "recht"] }).gesperrtDurchVierAugen && !b({ ...basis, bereich: "audit", weitereBereiche: ["risiko"] }, { weitere: ["risiko", "audit"] }).gesperrtDurchVierAugen);
+  pruefe("Weitere Bereiche: Startwahl ohne Hauptbereich, mit Schlüsseln statt gespeicherter Werte", JSON.stringify(weitereVon({ bereich: "audit", weitereBereiche: ["legal", "risiko"] })) === JSON.stringify(["recht", "risiko"]) && weitereVon(basis).length === 0);
   pruefe("Vier Augen: der Cluster allein sperrt nicht", !b(basis, { cluster: "publikationen" }).gesperrtDurchVierAugen && b(basis, { cluster: "publikationen" }).gueltig);
   pruefe("Vier Augen: eine andere Person, ohne Anmeldung, ein ungeprüfter Upload oder Bestand sperren nicht", !b(basis, { bereich: "steuer" }, "u-bert").gesperrtDurchVierAugen && !b(basis, { bereich: "steuer" }, null).gesperrtDurchVierAugen && !b({ ...basis, pruefstatus: "ungeprueft" }, { bereich: "steuer" }).gesperrtDurchVierAugen && !b({ ...basis, herkunft: "skript" }, { bereich: "steuer" }).gesperrtDurchVierAugen);
   pruefe("Wiedervorlage: neue Art mit Frist bei einem freigegebenen Upload (Praxisbeitrag 24 Monate, Internetquelle 12)", b(basis, { quellenart: "praxisbeitrag", cluster: "publikationen" }).wiedervorlage === 24 && b(basis, { quellenart: "internetquelle", cluster: "internet" }).wiedervorlage === 12);

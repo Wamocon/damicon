@@ -42,11 +42,12 @@ export const getSessionProfile = cache(async (): Promise<SessionProfile | null> 
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, brigade_id, b2b_kunde_id, pfluecker_id, darf_kontrollieren")
+    .select("id, full_name, email, role, brigade_id, b2b_kunde_id, pfluecker_id, darf_kontrollieren, gesperrt_am")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
-  if (!data) return null;
+  // Ein gesperrtes Konto hat keine Sitzung im Portal (die Datenbank gibt ihm ohnehin keine Rolle mehr, siehe Migration 20261208090000).
+  if (!data || data.gesperrt_am) return null;
 
   const role = (roles as readonly string[]).includes(data.role)
     ? (data.role as Role)

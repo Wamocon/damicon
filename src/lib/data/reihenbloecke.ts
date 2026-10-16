@@ -4,7 +4,7 @@ import {
   reihenbloecke as demoBloecke,
   type ReihenblockStatus,
 } from "@/lib/domain/reihenbloecke";
-import { einsAus, heuteIso } from "@/lib/data/util";
+import { einsAus, heuteIso, leseAlleZeilen } from "@/lib/data/util";
 
 // Reihenbloecke inklusive offener Wartezeitsperre. Kernabfrage von
 // Meilenstein B: der Status entscheidet, ob ein Block gepflueckt werden darf.
@@ -18,6 +18,15 @@ export interface Sperre {
   faellig: boolean;
   /** Verbleibende Tage bis zur Freigabe (0, wenn faellig). */
   resttage: number;
+}
+
+interface SperrZeile {
+  reihenblock_id: string | null;
+  behandelt_am: string | null;
+  wartezeit_tage: number | null;
+  freigabe_am: string | null;
+  mittel_name: string | null;
+  mittel_wirkstoff: string | null;
 }
 
 export interface ReihenblockZeile {
@@ -99,15 +108,32 @@ export async function ladeReihenbloecke(): Promise<ReihenblockListe> {
     .select(
       `id, code, status, laenge_m, letzte_ernte, sorte_id,
        sorten ( name ),
-       reihengruppen ( name, feldparzellen ( name ) ),
-       pflanzenschutz_behandlungen (
-         behandelt_am, wartezeit_tage, freigabe_am, freigegeben,
-         psm_mittel ( name, wirkstoff )
-       )`,
+       reihengruppen ( name, feldparzellen ( name ) )`,
     )
     .order("code");
 
   if (error || !data) return demoListe("fehler");
+
+  // Die Sperren kommen aus der Sicht v_block_sperre, nicht aus den Behandlungen: Buchhaltung und Erzeuger sehen die Behandlungen selbst
+  // nicht (Entscheidung vom 15.10.2026), die Sicht zeigt ihnen bis wann ein Block gesperrt ist, und Mittel und Wirkstoff nur der Leitung und
+  // der Brigade. Eine Sperre, die nicht gelesen werden kann, darf nie wie "keine Sperre" aussehen: ein Fehler macht die ganze Liste zum Fehler.
+  let sperren: SperrZeile[];
+  try {
+    ({ zeilen: sperren } = await leseAlleZeilen<SperrZeile>((von, bis) =>
+      supabase
+        .from("v_block_sperre")
+        .select("reihenblock_id, behandelt_am, wartezeit_tage, freigabe_am, mittel_name, mittel_wirkstoff")
+        .order("reihenblock_id")
+        .order("freigabe_am", { ascending: false })
+        .range(von, bis),
+    ));
+  } catch (fehler) {
+    console.error("[damicon] Sperren der Reihenbloecke lesen fehlgeschlagen:", fehler instanceof Error ? fehler.message : fehler);
+    return demoListe("fehler");
+  }
+  // Massgeblich ist die spaeteste noch nicht quittierte Behandlung (die Sicht ist je Block nach Freigabedatum absteigend geordnet).
+  const sperreJeBlock = new Map<string, SperrZeile>();
+  for (const s of sperren) if (s.reihenblock_id && s.freigabe_am && !sperreJeBlock.has(s.reihenblock_id)) sperreJeBlock.set(s.reihenblock_id, s);
 
   const heute = heuteIso();
 
@@ -115,12 +141,7 @@ export async function ladeReihenbloecke(): Promise<ReihenblockListe> {
     const gruppe = einsAus(row.reihengruppen);
     const parzelle = einsAus(gruppe?.feldparzellen);
 
-    // Massgeblich ist die spaeteste noch nicht quittierte Behandlung.
-    const offen = (row.pflanzenschutz_behandlungen ?? [])
-      .filter((b) => !b.freigegeben && b.freigabe_am)
-      .sort((a, b) => (a.freigabe_am! > b.freigabe_am! ? -1 : 1))[0];
-
-    const mittel = einsAus(offen?.psm_mittel);
+    const offen = sperreJeBlock.get(row.id);
 
     return {
       id: row.id,
@@ -134,11 +155,11 @@ export async function ladeReihenbloecke(): Promise<ReihenblockListe> {
       letzteErnte: row.letzte_ernte,
       sperre: offen
         ? {
-            mittel: mittel
-              ? `${mittel.name}${mittel.wirkstoff ? ` (${mittel.wirkstoff})` : ""}`
+            mittel: offen.mittel_name
+              ? `${offen.mittel_name}${offen.mittel_wirkstoff ? ` (${offen.mittel_wirkstoff})` : ""}`
               : "",
-            behandeltAm: offen.behandelt_am,
-            wartezeitTage: offen.wartezeit_tage,
+            behandeltAm: offen.behandelt_am!,
+            wartezeitTage: offen.wartezeit_tage!,
             freigabeAm: offen.freigabe_am!,
             faellig: offen.freigabe_am! <= heute,
             resttage: tageBis(offen.freigabe_am!),

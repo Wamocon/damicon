@@ -72,6 +72,10 @@ export const resources = [
   // sonst die Investitionsrechnung des Betriebs mitlesen. Das ist eine
   // andere Befugnis als den laufenden Deckungsbeitrag zu sehen.
   "wirtschaftlichkeit",
+  // Fachliche Einstellungen (Fristen, Kapazitaeten, Richtwerte), in der Oberflaeche pflegbar. Bewusst eine eigene Ressource: Wer eine Frist
+  // pflegt, entscheidet damit nicht ueber Zugriffsrechte (die bleiben in dieser Datei und in den Policies). Welche Rolle welche Einstellung
+  // aendern darf, steht je Einstellung (src/lib/einstellungen.ts, betriebs_einstellungen.bearbeiter); update oeffnet hier nur die Seite.
+  "einstellungen",
 ] as const;
 
 export type Resource = (typeof resources)[number];
@@ -208,6 +212,8 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("lohn"),
     ...view("finanzen"),
     ...view("wirtschaftlichkeit"),
+    ...view("einstellungen"),
+    "einstellungen:update",
     ...crud("dokumente"),
     ...crud("compliance"),
     ...view("integrationen"),
@@ -259,6 +265,8 @@ export const rolePermissions: Record<Role, Permission[]> = {
     `lohn:approve`,
     ...all("finanzen"),
     ...all("wirtschaftlichkeit"),
+    ...view("einstellungen"),
+    "einstellungen:update",
     ...crud("dokumente"),
     ...crud("compliance"),
     ...crud("integrationen"),
@@ -331,8 +339,8 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("dashboard"),
     ...view("reihenbloecke"),
     ...view("pflueckaufgaben"),
-    ...view("finanzen"),
-    ...view("dokumente"),
+    // Entschieden am 15.10.2026: dokumente:view, finanzen:view und b2b_portal:view sind hier entfallen. Die Zeilensicherheit liess den
+    // Erzeuger dort nie etwas lesen (Nachweisregister und Buchungen nur Buero, Vorbestellungen nur der Kunde), das Modul oeffnete leer.
     // WMCNL-2299: bis vor Kurzem crud("aggregator"). Die Schreib-RLS auf
     // nachbarbetriebe/zukauf_positionen bleibt laut Migrationskopf
     // 20260908140000 (Punkt 3) ausdruecklich admin/betriebsleitung
@@ -345,7 +353,6 @@ export const rolePermissions: Record<Role, Permission[]> = {
     // tatsaechliche Rechtelage wider, bis die Self-Service-Anforderung
     // feststeht.
     ...view("aggregator"),
-    ...view("b2b_portal"),
     ...view("schulungen"),
   ],
   kunde: [
@@ -358,7 +365,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     `reklamationen:create`,
     ...view("ki_assistent"),
     `ki_assistent:create`,
-    ...view("dokumente"),
+    // dokumente:view entfaellt (15.10.2026): das Nachweisregister liest nur das Buero, fuer den Kunden blieb das Modul leer.
   ],
 };
 

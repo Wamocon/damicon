@@ -15,7 +15,7 @@ import {
   type Verlaesslichkeit,
 } from "@/lib/wissen/listen-filter";
 import { CLUSTER, QUELLENARTEN, type Cluster, type Quellenart } from "@/lib/wissen/quellenart";
-import { bereichSchluessel, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
+import { bereicheVon, UPLOAD_BEREICHE, UPLOAD_ROLLEN } from "@/lib/wissen/upload-konstanten";
 
 // Filter der Dokumentliste (Seite Wissensbasis): Cluster als Schaltflaechen, dazu Suche und Auswahlfelder fuer Bereich, Quellenart, Verlaesslichkeit
 // (amtlich, sicher, nur Hinweis, unsicher), Status, Herkunft und Rolle. Die Zahlen an den Eintraegen zeigen, wie viele Dokumente der Filter bei sonst
@@ -44,7 +44,7 @@ export function WissenListenFilter({
   const aktiv = aktiveFilter(filter);
 
   // Bereiche, die es in der Liste gibt: die fuenf des Uploads und die des Bestands (amtlich, fachquellen ...), mit ihrer Bezeichnung
-  const vorhandeneBereiche = [...new Set(dokumente.map((d) => bereichSchluessel(d.bereich)))];
+  const vorhandeneBereiche = [...new Set(dokumente.flatMap((d) => bereicheVon(d.bereich, d.weitereBereiche)))];
   const bereiche = [
     ...UPLOAD_BEREICHE.filter((b) => vorhandeneBereiche.includes(b)),
     ...vorhandeneBereiche.filter((b) => !(UPLOAD_BEREICHE as readonly string[]).includes(b)).sort(),

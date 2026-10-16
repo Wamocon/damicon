@@ -20,6 +20,8 @@ export interface PreislisteEintrag {
   // Anforderung 5.1/5.2: null = Standard-Preisliste (Fallback fuer alle
   // Kundengruppen), gesetzt = gilt nur fuer diese Kundengruppe.
   kundengruppe: string | null;
+  /** true: die Preise der Liste enthalten die MwSt (brutto). Standard und fehlend: netto (Entscheidung vom 15.10.2026, die ЭСФ rechnet netto plus Satz). */
+  inklMwst?: boolean;
   positionen: PreislistenPositionEintrag[];
 }
 
@@ -57,6 +59,16 @@ export function preisAmStichtag(
   stichtag: string,
   kundengruppe: string | null = null,
 ): number | null {
+  return preisPositionAmStichtag(preislisten, sorteId, stichtag, kundengruppe)?.preisTengeKg ?? null;
+}
+
+/** Wie preisAmStichtag, aber mit der Angabe, ob der Preis die MwSt enthaelt (Eigenschaft der Preisliste, aus der er stammt). */
+export function preisPositionAmStichtag(
+  preislisten: PreislisteEintrag[],
+  sorteId: string,
+  stichtag: string,
+  kundengruppe: string | null = null,
+): { preisTengeKg: number; inklMwst: boolean } | null {
   const tag = stichtag.slice(0, 10);
   const gueltig = preislisten.filter(
     (p) => p.gueltigAb <= tag && (!p.gueltigBis || p.gueltigBis >= tag),
@@ -76,7 +88,7 @@ export function preisAmStichtag(
 
   for (const preisliste of [...gruppenspezifisch, ...standard]) {
     const position = preisliste.positionen.find((pos) => pos.sorteId === sorteId);
-    if (position) return position.preisTengeKg;
+    if (position) return { preisTengeKg: position.preisTengeKg, inklMwst: preisliste.inklMwst === true };
   }
   return null;
 }

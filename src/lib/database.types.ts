@@ -39,6 +39,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      abholrunden: {
+        Row: {
+          ab_erstem_stopp_minuten: number | null
+          ankunft_geraet_zeitpunkt: string | null
+          created_at: string
+          datum: string
+          dauer_minuten: number | null
+          distanz_km: number | null
+          erstellt_von_profil_id: string | null
+          fahrzeug: string | null
+          gestartet_am: string | null
+          id: string
+          kapazitaet_kg: number | null
+          kuehlhaus_an: string | null
+          notiz: string | null
+          routen_geometrie: Json | null
+          start_zeit: string | null
+          status: Database["public"]["Enums"]["tour_status"]
+          updated_at: string
+        }
+        Insert: {
+          ab_erstem_stopp_minuten?: number | null
+          ankunft_geraet_zeitpunkt?: string | null
+          created_at?: string
+          datum: string
+          dauer_minuten?: number | null
+          distanz_km?: number | null
+          erstellt_von_profil_id?: string | null
+          fahrzeug?: string | null
+          gestartet_am?: string | null
+          id?: string
+          kapazitaet_kg?: number | null
+          kuehlhaus_an?: string | null
+          notiz?: string | null
+          routen_geometrie?: Json | null
+          start_zeit?: string | null
+          status?: Database["public"]["Enums"]["tour_status"]
+          updated_at?: string
+        }
+        Update: {
+          ab_erstem_stopp_minuten?: number | null
+          ankunft_geraet_zeitpunkt?: string | null
+          created_at?: string
+          datum?: string
+          dauer_minuten?: number | null
+          distanz_km?: number | null
+          erstellt_von_profil_id?: string | null
+          fahrzeug?: string | null
+          gestartet_am?: string | null
+          id?: string
+          kapazitaet_kg?: number | null
+          kuehlhaus_an?: string | null
+          notiz?: string | null
+          routen_geometrie?: Json | null
+          start_zeit?: string | null
+          status?: Database["public"]["Enums"]["tour_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "abholrunden_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      abholstopps: {
+        Row: {
+          abgeholt_am: string | null
+          ankunft_geplant: string | null
+          bemerkung: string | null
+          created_at: string
+          geraet_zeitpunkt: string | null
+          id: string
+          menge_geplant_kg: number
+          menge_ist_kg: number | null
+          nachbarbetrieb_id: string
+          pflueckbeginn: string | null
+          reihenfolge: number
+          runde_id: string
+          sorte_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          abgeholt_am?: string | null
+          ankunft_geplant?: string | null
+          bemerkung?: string | null
+          created_at?: string
+          geraet_zeitpunkt?: string | null
+          id?: string
+          menge_geplant_kg: number
+          menge_ist_kg?: number | null
+          nachbarbetrieb_id: string
+          pflueckbeginn?: string | null
+          reihenfolge?: number
+          runde_id: string
+          sorte_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          abgeholt_am?: string | null
+          ankunft_geplant?: string | null
+          bemerkung?: string | null
+          created_at?: string
+          geraet_zeitpunkt?: string | null
+          id?: string
+          menge_geplant_kg?: number
+          menge_ist_kg?: number | null
+          nachbarbetrieb_id?: string
+          pflueckbeginn?: string | null
+          reihenfolge?: number
+          runde_id?: string
+          sorte_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "abholstopps_runde_id_fkey"
+            columns: ["runde_id"]
+            isOneToOne: false
+            referencedRelation: "abholrunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "abholstopps_nachbarbetrieb_id_fkey"
+            columns: ["nachbarbetrieb_id"]
+            isOneToOne: false
+            referencedRelation: "nachbarbetriebe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "abholstopps_sorte_id_fkey"
+            columns: ["sorte_id"]
+            isOneToOne: false
+            referencedRelation: "sorten"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       aggregator_einstellungen: {
         Row: {
           id: string
@@ -228,6 +372,96 @@ export type Database = {
           name?: string
           rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      betriebs_einstellungen: {
+        Row: {
+          aktualisiert_am: string
+          aktualisiert_von: string | null
+          bearbeiter: Database["public"]["Enums"]["app_role"][]
+          bereich: string
+          einheit: string | null
+          max_wert: number | null
+          min_wert: number | null
+          quelle: string
+          schluessel: string
+          stand: string
+          standard_text: string | null
+          standard_wert: number | null
+          typ: string
+          wert: number | null
+          wert_text: string | null
+        }
+        Insert: {
+          aktualisiert_am?: string
+          aktualisiert_von?: string | null
+          bearbeiter?: Database["public"]["Enums"]["app_role"][]
+          bereich: string
+          einheit?: string | null
+          max_wert?: number | null
+          min_wert?: number | null
+          quelle: string
+          schluessel: string
+          stand: string
+          standard_text?: string | null
+          standard_wert?: number | null
+          typ: string
+          wert?: number | null
+          wert_text?: string | null
+        }
+        Update: {
+          aktualisiert_am?: string
+          aktualisiert_von?: string | null
+          bearbeiter?: Database["public"]["Enums"]["app_role"][]
+          bereich?: string
+          einheit?: string | null
+          max_wert?: number | null
+          min_wert?: number | null
+          quelle?: string
+          schluessel?: string
+          stand?: string
+          standard_text?: string | null
+          standard_wert?: number | null
+          typ?: string
+          wert?: number | null
+          wert_text?: string | null
+        }
+        Relationships: []
+      }
+      betriebs_einstellungen_verlauf: {
+        Row: {
+          alt_text: string | null
+          alt_wert: number | null
+          geaendert_am: string
+          geaendert_von: string | null
+          grund: string | null
+          id: string
+          neu_text: string | null
+          neu_wert: number | null
+          schluessel: string
+        }
+        Insert: {
+          alt_text?: string | null
+          alt_wert?: number | null
+          geaendert_am?: string
+          geaendert_von?: string | null
+          grund?: string | null
+          id?: string
+          neu_text?: string | null
+          neu_wert?: number | null
+          schluessel: string
+        }
+        Update: {
+          alt_text?: string | null
+          alt_wert?: number | null
+          geaendert_am?: string
+          geaendert_von?: string | null
+          grund?: string | null
+          id?: string
+          neu_text?: string | null
+          neu_wert?: number | null
+          schluessel?: string
         }
         Relationships: []
       }
@@ -459,46 +693,73 @@ export type Database = {
       }
       dokumente: {
         Row: {
+          b2b_kunde_id: string | null
           bezug: string | null
           charge_id: string | null
           created_at: string
+          ersetzt_id: string | null
           foerderdossier_id: string | null
+          gueltig_bis: string | null
+          gueltig_von: string | null
           id: string
           kategorie: Database["public"]["Enums"]["dokument_kategorie"]
+          nachbarbetrieb_id: string | null
           name: string
+          rechtsgrundlage: string | null
           reihenblock_id: string | null
           stand: string | null
           status: Database["public"]["Enums"]["dokument_status"]
           storage_path: string | null
+          unbefristet: boolean
           updated_at: string
+          verantwortlich_id: string | null
+          warnung_tage: number
         }
         Insert: {
+          b2b_kunde_id?: string | null
           bezug?: string | null
           charge_id?: string | null
           created_at?: string
+          ersetzt_id?: string | null
           foerderdossier_id?: string | null
+          gueltig_bis?: string | null
+          gueltig_von?: string | null
           id?: string
           kategorie?: Database["public"]["Enums"]["dokument_kategorie"]
+          nachbarbetrieb_id?: string | null
           name: string
+          rechtsgrundlage?: string | null
           reihenblock_id?: string | null
           stand?: string | null
           status?: Database["public"]["Enums"]["dokument_status"]
           storage_path?: string | null
+          unbefristet?: boolean
           updated_at?: string
+          verantwortlich_id?: string | null
+          warnung_tage?: number
         }
         Update: {
+          b2b_kunde_id?: string | null
           bezug?: string | null
           charge_id?: string | null
           created_at?: string
+          ersetzt_id?: string | null
           foerderdossier_id?: string | null
+          gueltig_bis?: string | null
+          gueltig_von?: string | null
           id?: string
           kategorie?: Database["public"]["Enums"]["dokument_kategorie"]
+          nachbarbetrieb_id?: string | null
           name?: string
+          rechtsgrundlage?: string | null
           reihenblock_id?: string | null
           stand?: string | null
           status?: Database["public"]["Enums"]["dokument_status"]
           storage_path?: string | null
+          unbefristet?: boolean
           updated_at?: string
+          verantwortlich_id?: string | null
+          warnung_tage?: number
         }
         Relationships: [
           {
@@ -527,6 +788,27 @@ export type Database = {
             columns: ["reihenblock_id"]
             isOneToOne: false
             referencedRelation: "reihenbloecke"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_b2b_kunde_id_fkey"
+            columns: ["b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_nachbarbetrieb_id_fkey"
+            columns: ["nachbarbetrieb_id"]
+            isOneToOne: false
+            referencedRelation: "nachbarbetriebe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_verantwortlich_id_fkey"
+            columns: ["verantwortlich_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -762,34 +1044,199 @@ export type Database = {
           },
         ]
       }
+      esf_belege: {
+        Row: {
+          ausgestellt_am: string | null
+          bemerkung: string | null
+          bestaetigt_am: string | null
+          created_at: string
+          entwurf: Json
+          erstellt_von_profil_id: string | null
+          esf_nummer: string | null
+          id: string
+          lieferung_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          ausgestellt_am?: string | null
+          bemerkung?: string | null
+          bestaetigt_am?: string | null
+          created_at?: string
+          entwurf: Json
+          erstellt_von_profil_id?: string | null
+          esf_nummer?: string | null
+          id?: string
+          lieferung_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          ausgestellt_am?: string | null
+          bemerkung?: string | null
+          bestaetigt_am?: string | null
+          created_at?: string
+          entwurf?: Json
+          erstellt_von_profil_id?: string | null
+          esf_nummer?: string | null
+          id?: string
+          lieferung_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "esf_belege_lieferung_id_fkey"
+            columns: ["lieferung_id"]
+            isOneToOne: false
+            referencedRelation: "lieferungen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "esf_belege_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      esutd_ereignisse: {
+        Row: {
+          art: string
+          beleg_dokument_id: string | null
+          beschreibung: string | null
+          bestaetigung: string | null
+          created_at: string
+          ereignis_am: string
+          erfasst_am: string | null
+          id: string
+          status: string
+          updated_at: string
+          vertrag_id: string
+        }
+        Insert: {
+          art: string
+          beleg_dokument_id?: string | null
+          beschreibung?: string | null
+          bestaetigung?: string | null
+          created_at?: string
+          ereignis_am: string
+          erfasst_am?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          vertrag_id: string
+        }
+        Update: {
+          art?: string
+          beleg_dokument_id?: string | null
+          beschreibung?: string | null
+          bestaetigung?: string | null
+          created_at?: string
+          ereignis_am?: string
+          erfasst_am?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          vertrag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "esutd_ereignisse_vertrag_id_fkey"
+            columns: ["vertrag_id"]
+            isOneToOne: false
+            referencedRelation: "esutd_vertraege"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "esutd_ereignisse_beleg_dokument_id_fkey"
+            columns: ["beleg_dokument_id"]
+            isOneToOne: false
+            referencedRelation: "dokumente"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      esutd_meldeverlauf: {
+        Row: {
+          aktion: string
+          art: string
+          beleg_dokument_id: string | null
+          bestaetigung: string | null
+          created_at: string
+          ereignis_id: string | null
+          erfasst_am: string | null
+          id: string
+          pfluecker_id: string
+          von_profil_id: string | null
+          vertrag_id: string
+        }
+        Insert: {
+          aktion: string
+          art: string
+          beleg_dokument_id?: string | null
+          bestaetigung?: string | null
+          created_at?: string
+          ereignis_id?: string | null
+          erfasst_am?: string | null
+          id?: string
+          pfluecker_id: string
+          von_profil_id?: string | null
+          vertrag_id: string
+        }
+        Update: {
+          aktion?: string
+          art?: string
+          beleg_dokument_id?: string | null
+          bestaetigung?: string | null
+          created_at?: string
+          ereignis_id?: string | null
+          erfasst_am?: string | null
+          id?: string
+          pfluecker_id?: string
+          von_profil_id?: string | null
+          vertrag_id?: string
+        }
+        Relationships: []
+      }
       esutd_vertraege: {
         Row: {
+          beleg_dokument_id: string | null
+          bestaetigung: string | null
           created_at: string
           erfasst_am: string | null
           id: string
           outbox_id: string | null
           pfluecker_id: string
           status: Database["public"]["Enums"]["esutd_status"]
+          unterzeichnet_am: string | null
           vertrag_beginn_am: string | null
           vertragsnummer: string | null
         }
         Insert: {
+          beleg_dokument_id?: string | null
+          bestaetigung?: string | null
           created_at?: string
           erfasst_am?: string | null
           id?: string
           outbox_id?: string | null
           pfluecker_id: string
           status?: Database["public"]["Enums"]["esutd_status"]
+          unterzeichnet_am?: string | null
           vertrag_beginn_am?: string | null
           vertragsnummer?: string | null
         }
         Update: {
+          beleg_dokument_id?: string | null
+          bestaetigung?: string | null
           created_at?: string
           erfasst_am?: string | null
           id?: string
           outbox_id?: string | null
           pfluecker_id?: string
           status?: Database["public"]["Enums"]["esutd_status"]
+          unterzeichnet_am?: string | null
           vertrag_beginn_am?: string | null
           vertragsnummer?: string | null
         }
@@ -806,6 +1253,13 @@ export type Database = {
             columns: ["outbox_id"]
             isOneToOne: false
             referencedRelation: "integration_outbox"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "esutd_vertraege_beleg_dokument_id_fkey"
+            columns: ["beleg_dokument_id"]
+            isOneToOne: false
+            referencedRelation: "dokumente"
             referencedColumns: ["id"]
           },
         ]
@@ -920,6 +1374,53 @@ export type Database = {
           },
         ]
       }
+      foerder_checkpunkte: {
+        Row: {
+          bezeichnung: string | null
+          created_at: string
+          dossier_id: string
+          erledigt_am: string | null
+          frist_am: string | null
+          id: string
+          pflicht: boolean
+          reihenfolge: number
+          updated_at: string
+          vorlage_key: string | null
+        }
+        Insert: {
+          bezeichnung?: string | null
+          created_at?: string
+          dossier_id: string
+          erledigt_am?: string | null
+          frist_am?: string | null
+          id?: string
+          pflicht?: boolean
+          reihenfolge?: number
+          updated_at?: string
+          vorlage_key?: string | null
+        }
+        Update: {
+          bezeichnung?: string | null
+          created_at?: string
+          dossier_id?: string
+          erledigt_am?: string | null
+          frist_am?: string | null
+          id?: string
+          pflicht?: boolean
+          reihenfolge?: number
+          updated_at?: string
+          vorlage_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "foerder_checkpunkte_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "foerderdossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       foerderdossiers: {
         Row: {
           antragsnummer: string | null
@@ -961,9 +1462,14 @@ export type Database = {
       }
       integration_outbox: {
         Row: {
+          antwort_status: number | null
           created_at: string
+          ereignis: string | null
           id: string
+          idempotenz_schluessel: string | null
+          integration_id: string | null
           letzter_fehler: string | null
+          naechster_versuch_am: string
           payload: Json
           richtung: string
           status: Database["public"]["Enums"]["outbox_status"]
@@ -973,9 +1479,14 @@ export type Database = {
           ziel_system: string
         }
         Insert: {
+          antwort_status?: number | null
           created_at?: string
+          ereignis?: string | null
           id?: string
+          idempotenz_schluessel?: string | null
+          integration_id?: string | null
           letzter_fehler?: string | null
+          naechster_versuch_am?: string
           payload?: Json
           richtung?: string
           status?: Database["public"]["Enums"]["outbox_status"]
@@ -985,9 +1496,14 @@ export type Database = {
           ziel_system: string
         }
         Update: {
+          antwort_status?: number | null
           created_at?: string
+          ereignis?: string | null
           id?: string
+          idempotenz_schluessel?: string | null
+          integration_id?: string | null
           letzter_fehler?: string | null
+          naechster_versuch_am?: string
           payload?: Json
           richtung?: string
           status?: Database["public"]["Enums"]["outbox_status"]
@@ -996,35 +1512,67 @@ export type Database = {
           versuche?: number
           ziel_system?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "integration_outbox_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrationen"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       integrationen: {
         Row: {
+          adapter: string
+          aktiv: boolean
+          auth_art: string
+          bestaetigung_erwartet: boolean
           created_at: string
+          geheimnis_name: string | null
           id: string
           key: string
           name: string
           status: Database["public"]["Enums"]["integration_status"]
           system: string
           updated_at: string
+          vorlage: Json | null
+          ziel_url: string | null
+          zugang_name: string | null
         }
         Insert: {
+          adapter?: string
+          aktiv?: boolean
+          auth_art?: string
+          bestaetigung_erwartet?: boolean
           created_at?: string
+          geheimnis_name?: string | null
           id?: string
           key: string
           name: string
           status?: Database["public"]["Enums"]["integration_status"]
           system: string
           updated_at?: string
+          vorlage?: Json | null
+          ziel_url?: string | null
+          zugang_name?: string | null
         }
         Update: {
+          adapter?: string
+          aktiv?: boolean
+          auth_art?: string
+          bestaetigung_erwartet?: boolean
           created_at?: string
+          geheimnis_name?: string | null
           id?: string
           key?: string
           name?: string
           status?: Database["public"]["Enums"]["integration_status"]
           system?: string
           updated_at?: string
+          vorlage?: Json | null
+          ziel_url?: string | null
+          zugang_name?: string | null
         }
         Relationships: []
       }
@@ -2018,33 +2566,51 @@ export type Database = {
       }
       nachbarbetriebe: {
         Row: {
+          abhol_bis: string | null
+          abhol_von: string | null
+          adresse: string | null
+          breitengrad: number | null
           created_at: string
+          geokodiert_am: string | null
           id: string
           identifikationsnummer: string | null
           identitaets_digest: string | null
           kontakt: string | null
+          laengengrad: number | null
           name: string
           ort: string | null
           rechtsform: Database["public"]["Enums"]["rechtsform"] | null
           updated_at: string
         }
         Insert: {
+          abhol_bis?: string | null
+          abhol_von?: string | null
+          adresse?: string | null
+          breitengrad?: number | null
           created_at?: string
+          geokodiert_am?: string | null
           id?: string
           identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
+          laengengrad?: number | null
           name: string
           ort?: string | null
           rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Update: {
+          abhol_bis?: string | null
+          abhol_von?: string | null
+          adresse?: string | null
+          breitengrad?: number | null
           created_at?: string
+          geokodiert_am?: string | null
           id?: string
           identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
+          laengengrad?: number | null
           name?: string
           ort?: string | null
           rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
@@ -2446,6 +3012,7 @@ export type Database = {
           id: string
           kundengruppe: Database["public"]["Enums"]["kundengruppe"] | null
           name: string
+          preise_inkl_mwst: boolean
         }
         Insert: {
           aktiv?: boolean
@@ -2455,6 +3022,7 @@ export type Database = {
           id?: string
           kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           name: string
+          preise_inkl_mwst?: boolean
         }
         Update: {
           aktiv?: boolean
@@ -2464,6 +3032,7 @@ export type Database = {
           id?: string
           kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           name?: string
+          preise_inkl_mwst?: boolean
         }
         Relationships: []
       }
@@ -2518,6 +3087,9 @@ export type Database = {
           darf_kontrollieren: boolean
           email: string | null
           full_name: string
+          gesperrt_am: string | null
+          gesperrt_grund: string | null
+          gesperrt_von: string | null
           id: string
           pfluecker_id: string | null
           role: Database["public"]["Enums"]["app_role"]
@@ -2531,6 +3103,9 @@ export type Database = {
           darf_kontrollieren?: boolean
           email?: string | null
           full_name: string
+          gesperrt_am?: string | null
+          gesperrt_grund?: string | null
+          gesperrt_von?: string | null
           id?: string
           pfluecker_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
@@ -2544,6 +3119,9 @@ export type Database = {
           darf_kontrollieren?: boolean
           email?: string | null
           full_name?: string
+          gesperrt_am?: string | null
+          gesperrt_grund?: string | null
+          gesperrt_von?: string | null
           id?: string
           pfluecker_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
@@ -2845,6 +3423,34 @@ export type Database = {
           },
         ]
       }
+      risiko_parameter: {
+        Row: {
+          begruendung: string
+          einheit: string
+          schluessel: string
+          standard_wert: number | null
+          updated_at: string
+          wert: number
+        }
+        Insert: {
+          begruendung: string
+          einheit: string
+          schluessel: string
+          standard_wert?: number | null
+          updated_at?: string
+          wert: number
+        }
+        Update: {
+          begruendung?: string
+          einheit?: string
+          schluessel?: string
+          standard_wert?: number | null
+          updated_at?: string
+          wert?: number
+        }
+        Relationships: [
+        ]
+      }
       rotationsplan_eintraege: {
         Row: {
           brigade_id: string | null
@@ -2974,6 +3580,91 @@ export type Database = {
           {
             foreignKeyName: "schulungsteilnahmen_schulungsvideo_id_fkey"
             columns: ["schulungsvideo_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsvideos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      benachrichtigungen: {
+        Row: {
+          art: string
+          empfaenger_id: string
+          erstellt_am: string
+          gelesen_am: string | null
+          id: string
+          modul: string
+          parameter: Json
+          schluessel: string
+        }
+        Insert: {
+          art: string
+          empfaenger_id: string
+          erstellt_am?: string
+          gelesen_am?: string | null
+          id?: string
+          modul: string
+          parameter?: Json
+          schluessel: string
+        }
+        Update: {
+          art?: string
+          empfaenger_id?: string
+          erstellt_am?: string
+          gelesen_am?: string | null
+          id?: string
+          modul?: string
+          parameter?: Json
+          schluessel?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benachrichtigungen_empfaenger_id_fkey"
+            columns: ["empfaenger_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schulungsvideo_dateien: {
+        Row: {
+          created_at: string
+          dateiname: string | null
+          groesse_bytes: number
+          hochgeladen_von: string | null
+          id: string
+          sprache: string
+          storage_path: string
+          updated_at: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          dateiname?: string | null
+          groesse_bytes: number
+          hochgeladen_von?: string | null
+          id?: string
+          sprache: string
+          storage_path: string
+          updated_at?: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          dateiname?: string | null
+          groesse_bytes?: number
+          hochgeladen_von?: string | null
+          id?: string
+          sprache?: string
+          storage_path?: string
+          updated_at?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schulungsvideo_dateien_video_id_fkey"
+            columns: ["video_id"]
             isOneToOne: false
             referencedRelation: "schulungsvideos"
             referencedColumns: ["id"]
@@ -3250,6 +3941,8 @@ export type Database = {
           geraet_zeitpunkt: string | null
           id: string
           lieferung_id: string
+          logger_kennung: string | null
+          quelle: string
           server_eingang_zeitpunkt: string | null
           temperatur_c: number
         }
@@ -3260,6 +3953,8 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           id?: string
           lieferung_id: string
+          logger_kennung?: string | null
+          quelle?: string
           server_eingang_zeitpunkt?: string | null
           temperatur_c: number
         }
@@ -3270,6 +3965,8 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           id?: string
           lieferung_id?: string
+          logger_kennung?: string | null
+          quelle?: string
           server_eingang_zeitpunkt?: string | null
           temperatur_c?: number
         }
@@ -3334,6 +4031,53 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "schulungsteilnahmen_status"
             referencedColumns: ["profil_id"]
+          },
+        ]
+      }
+      vorbestellung_nachrichten: {
+        Row: {
+          anonymisiert_am: string | null
+          anonymisiert_grund: string | null
+          anonymisiert_von: string | null
+          autor_name: string | null
+          autor_profil_id: string | null
+          autor_rolle: Database["public"]["Enums"]["app_role"] | null
+          created_at: string
+          id: string
+          text: string
+          vorbestellung_id: string
+        }
+        Insert: {
+          anonymisiert_am?: string | null
+          anonymisiert_grund?: string | null
+          anonymisiert_von?: string | null
+          autor_name?: string | null
+          autor_profil_id?: string | null
+          autor_rolle?: Database["public"]["Enums"]["app_role"] | null
+          created_at?: string
+          id?: string
+          text: string
+          vorbestellung_id: string
+        }
+        Update: {
+          anonymisiert_am?: string | null
+          anonymisiert_grund?: string | null
+          anonymisiert_von?: string | null
+          autor_name?: string | null
+          autor_profil_id?: string | null
+          autor_rolle?: Database["public"]["Enums"]["app_role"] | null
+          created_at?: string
+          id?: string
+          text?: string
+          vorbestellung_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vorbestellung_nachrichten_vorbestellung_id_fkey"
+            columns: ["vorbestellung_id"]
+            isOneToOne: false
+            referencedRelation: "vorbestellungen"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -3422,6 +4166,205 @@ export type Database = {
             columns: ["feldparzelle_id"]
             isOneToOne: false
             referencedRelation: "feldparzellen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wirtschaftlichkeit_annahmen: {
+        Row: {
+          echtbetrieb_beginn: string | null
+          herkunft: Json
+          id: number
+          kalkulationszins: number
+          kurs_eur_tenge: number
+          kurs_quelle: string | null
+          kurs_rub_tenge: number
+          kurs_stichtag: string
+          nutzenbeginn_wochen_bis: number | null
+          nutzenbeginn_wochen_von: number | null
+          plan_abschreibung_jahre: number | null
+          plan_fixkosten_entwicklung: number | null
+          plan_kosten_entwicklung: number | null
+          plan_menge_entwicklung: number | null
+          plan_preis_entwicklung: number | null
+          plan_preis_tenge_kg: number | null
+          plan_variable_kosten_tenge_kg: number | null
+          updated_at: string
+          vermarktete_menge_kg: number | null
+          vollkosten_vorher_tenge: number | null
+        }
+        Insert: {
+          echtbetrieb_beginn?: string | null
+          herkunft?: Json
+          id?: number
+          kalkulationszins: number
+          kurs_eur_tenge: number
+          kurs_quelle?: string | null
+          kurs_rub_tenge: number
+          kurs_stichtag: string
+          nutzenbeginn_wochen_bis?: number | null
+          nutzenbeginn_wochen_von?: number | null
+          plan_abschreibung_jahre?: number | null
+          plan_fixkosten_entwicklung?: number | null
+          plan_kosten_entwicklung?: number | null
+          plan_menge_entwicklung?: number | null
+          plan_preis_entwicklung?: number | null
+          plan_preis_tenge_kg?: number | null
+          plan_variable_kosten_tenge_kg?: number | null
+          updated_at?: string
+          vermarktete_menge_kg?: number | null
+          vollkosten_vorher_tenge?: number | null
+        }
+        Update: {
+          echtbetrieb_beginn?: string | null
+          herkunft?: Json
+          id?: number
+          kalkulationszins?: number
+          kurs_eur_tenge?: number
+          kurs_quelle?: string | null
+          kurs_rub_tenge?: number
+          kurs_stichtag?: string
+          nutzenbeginn_wochen_bis?: number | null
+          nutzenbeginn_wochen_von?: number | null
+          plan_abschreibung_jahre?: number | null
+          plan_fixkosten_entwicklung?: number | null
+          plan_kosten_entwicklung?: number | null
+          plan_menge_entwicklung?: number | null
+          plan_preis_entwicklung?: number | null
+          plan_preis_tenge_kg?: number | null
+          plan_variable_kosten_tenge_kg?: number | null
+          updated_at?: string
+          vermarktete_menge_kg?: number | null
+          vollkosten_vorher_tenge?: number | null
+        }
+        Relationships: [
+        ]
+      }
+      wirtschaftlichkeit_ist: {
+        Row: {
+          betrag: number
+          created_at: string
+          erfasst_von_profil_id: string | null
+          id: string
+          kategorie: string
+          monat: string
+          notiz: string | null
+          waehrung: string
+        }
+        Insert: {
+          betrag: number
+          created_at?: string
+          erfasst_von_profil_id?: string | null
+          id?: string
+          kategorie: string
+          monat: string
+          notiz?: string | null
+          waehrung?: string
+        }
+        Update: {
+          betrag?: number
+          created_at?: string
+          erfasst_von_profil_id?: string | null
+          id?: string
+          kategorie?: string
+          monat?: string
+          notiz?: string | null
+          waehrung?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wirtschaftlichkeit_ist_erfasst_von_profil_id_fkey"
+            columns: ["erfasst_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wirtschaftlichkeit_posten: {
+        Row: {
+          art: string
+          betrag: number
+          bezeichnung: string
+          created_at: string
+          datum: string
+          erfasst_von_profil_id: string | null
+          herkunft: string
+          id: string
+          kategorie: string
+          notiz: string | null
+          updated_at: string
+          waehrung: string
+        }
+        Insert: {
+          art: string
+          betrag: number
+          bezeichnung: string
+          created_at?: string
+          datum?: string
+          erfasst_von_profil_id?: string | null
+          herkunft?: string
+          id?: string
+          kategorie: string
+          notiz?: string | null
+          updated_at?: string
+          waehrung?: string
+        }
+        Update: {
+          art?: string
+          betrag?: number
+          bezeichnung?: string
+          created_at?: string
+          datum?: string
+          erfasst_von_profil_id?: string | null
+          herkunft?: string
+          id?: string
+          kategorie?: string
+          notiz?: string | null
+          updated_at?: string
+          waehrung?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wirtschaftlichkeit_posten_erfasst_von_profil_id_fkey"
+            columns: ["erfasst_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wirtschaftlichkeit_staende: {
+        Row: {
+          bezeichnung: string
+          created_at: string
+          erstellt_von_profil_id: string | null
+          id: string
+          snapshot: Json
+          stand_am: string
+        }
+        Insert: {
+          bezeichnung: string
+          created_at?: string
+          erstellt_von_profil_id?: string | null
+          id?: string
+          snapshot: Json
+          stand_am?: string
+        }
+        Update: {
+          bezeichnung?: string
+          created_at?: string
+          erstellt_von_profil_id?: string | null
+          id?: string
+          snapshot?: Json
+          stand_am?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wirtschaftlichkeit_staende_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3792,8 +4735,214 @@ export type Database = {
         }
         Relationships: []
       }
+      v_abholstopps_kuehlkette: {
+        Row: {
+          ergebnis: Database["public"]["Enums"]["kuehlkette_ergebnis"] | null
+          kuehlhaus_an: string | null
+          minuten_bis_kuehlung: number | null
+          runde_id: string | null
+          stopp_id: string | null
+        }
+        Relationships: [
+        ]
+      }
+      v_block_risiko: {
+        Row: {
+          beitrag_ausschuss: number | null
+          beitrag_erfassung: number | null
+          beitrag_kuehlkette: number | null
+          beitrag_sperre: number | null
+          beitrag_ueberfaellig: number | null
+          code: string | null
+          hauptgrund: string | null
+          reihenblock_id: string | null
+          risiko_score: number | null
+          risiko_stufe: string | null
+          sperre_konflikt: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "v_block_risiko_reihenblock_id_fkey"
+            columns: ["reihenblock_id"]
+            isOneToOne: false
+            referencedRelation: "reihenbloecke"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_block_sperre: {
+        Row: {
+          behandelt_am: string | null
+          freigabe_am: string | null
+          mittel_name: string | null
+          mittel_wirkstoff: string | null
+          reihenblock_id: string | null
+          wartezeit_tage: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pflanzenschutz_behandlungen_reihenblock_id_fkey"
+            columns: ["reihenblock_id"]
+            isOneToOne: false
+            referencedRelation: "reihenbloecke"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_dokumente: {
+        Row: {
+          ersetzt_durch_id: string | null
+          ersetzt_id: string | null
+          b2b_kunde_id: string | null
+          bezug: string | null
+          charge_id: string | null
+          created_at: string | null
+          foerderdossier_id: string | null
+          gueltig_bis: string | null
+          gueltig_von: string | null
+          id: string | null
+          kategorie: Database["public"]["Enums"]["dokument_kategorie"] | null
+          nachbarbetrieb_id: string | null
+          nachweis_status: string | null
+          name: string | null
+          rechtsgrundlage: string | null
+          reihenblock_id: string | null
+          stand: string | null
+          status_manuell: Database["public"]["Enums"]["dokument_status"] | null
+          storage_path: string | null
+          tage_bis_ablauf: number | null
+          unbefristet: boolean | null
+          updated_at: string | null
+          verantwortlich_id: string | null
+          warnung_tage: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dokumente_b2b_kunde_id_fkey"
+            columns: ["b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_nachbarbetrieb_id_fkey"
+            columns: ["nachbarbetrieb_id"]
+            isOneToOne: false
+            referencedRelation: "nachbarbetriebe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_verantwortlich_id_fkey"
+            columns: ["verantwortlich_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_reihenblock_id_fkey"
+            columns: ["reihenblock_id"]
+            isOneToOne: false
+            referencedRelation: "reihenbloecke"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dokumente_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "chargen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_esf_offen: {
+        Row: {
+          beleg_id: string | null
+          beleg_status: string | null
+          geliefert_am: string | null
+          kunde: string | null
+          lieferung_id: string | null
+          menge_kg: number | null
+          tage_seit_lieferung: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "v_esf_offen_lieferung_id_fkey"
+            columns: ["lieferung_id"]
+            isOneToOne: false
+            referencedRelation: "lieferungen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_esutd_meldungen: {
+        Row: {
+          art: string | null
+          beleg_dokument_id: string | null
+          beschreibung: string | null
+          bestaetigung: string | null
+          created_at: string | null
+          ereignis_am: string | null
+          erfasst_am: string | null
+          id: string | null
+          meldefrist_am: string | null
+          pfluecker_ausweis: string | null
+          pfluecker_id: string | null
+          pfluecker_name: string | null
+          quelle: string | null
+          status: string | null
+          vertragsnummer: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "v_esutd_meldungen_pfluecker_id_fkey"
+            columns: ["pfluecker_id"]
+            isOneToOne: false
+            referencedRelation: "pfluecker"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_vermarktete_menge: {
+        Row: {
+          belastbar: boolean | null
+          erste_lieferung: string | null
+          menge_kg_12_monate: number | null
+          tage_abdeckung: number | null
+        }
+        Relationships: [
+        ]
+      }
     }
     Functions: {
+      abholrunde_anlegen: {
+        Args: {
+          p_ab_erstem: number | null
+          p_datum: string
+          p_dauer_min: number | null
+          p_distanz_km: number | null
+          p_fahrzeug: string | null
+          p_geometrie: Json | null
+          p_kapazitaet: number | null
+          p_notiz: string | null
+          p_start_zeit: string | null
+          p_stopps: Json
+        }
+        Returns: string
+      }
+      abholrunde_nachbarbetriebe: {
+        Args: never
+        Returns: {
+          abhol_bis: string | null
+          abhol_von: string | null
+          adresse: string | null
+          breitengrad: number | null
+          id: string
+          kontakt: string | null
+          laengengrad: number | null
+          name: string
+          ort: string | null
+        }[]
+      }
       abrechnung_je_nachbarbetrieb: {
         Args: never
         Returns: {
@@ -3805,6 +4954,7 @@ export type Database = {
           spanne_prozent: number
         }[]
       }
+      adresssuche_zulassen: { Args: never; Returns: boolean }
       audit_bereich_fuer: {
         Args: { p_tabelle: string }
         Returns: Database["public"]["Enums"]["audit_bereich"]
@@ -3815,11 +4965,20 @@ export type Database = {
       }
       current_b2b_kunde_id: { Args: never; Returns: string }
       current_brigade_id: { Args: never; Returns: string }
+      current_kundengruppe: {
+        Args: never
+        Returns: Database["public"]["Enums"]["kundengruppe"]
+      }
       current_profil_id: { Args: never; Returns: string }
       einladung_abschliessen: {
         Args: { p_auth_user_id: string; p_code_digest: string; p_email: string }
         Returns: string
       }
+      einstellung_setzen: {
+        Args: { p_grund: string | null; p_schluessel: string; p_text: string | null; p_wert: number | null }
+        Returns: undefined
+      }
+      einstellung_zahl: { Args: { p_schluessel: string }; Returns: number }
       einwilligung_widerrufen: {
         Args: { p_grund: string; p_id: string }
         Returns: undefined
@@ -3831,6 +4990,10 @@ export type Database = {
           erloes_tenge: number
           kosten_tenge: number
         }[]
+      }
+      foerder_checkliste_vorschlag_uebernehmen: {
+        Args: { p_dossier: string; p_punkte: string[] }
+        Returns: number
       }
       geraet_zeitpunkt_pruefen: {
         Args: { p_geraet: string; p_server?: string }
@@ -3855,6 +5018,10 @@ export type Database = {
           vorkuehlung_zeitpunkt: string
           wartezeit_eingehalten: boolean
         }[]
+      }
+      heute_almaty: {
+        Args: never
+        Returns: string
       }
       ki_anbieter_standard_setzen: {
         Args: { p_id: string }
@@ -3881,6 +5048,10 @@ export type Database = {
           sorte_name: string
         }[]
       }
+      integration_bestaetigen: {
+        Args: { p_hinweis: string | null; p_idempotenz: string; p_key: string; p_ok: boolean }
+        Returns: string
+      }
       kpi_aktuell: {
         Args: never
         Returns: {
@@ -3903,6 +5074,39 @@ export type Database = {
           kg_h: number
           name: string
         }[]
+      }
+      benachrichtigungen_erzeugen: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      betrieb_ist_zwoelf_monate: {
+        Args: never
+        Returns: {
+          bis: string
+          buchungen: number
+          erloes_tenge: number
+          kosten_tenge: number
+          menge_kg: number
+          von: string
+        }[]
+      }
+      schwund_herleitung: {
+        Args: { p_stichtag?: string }
+        Returns: {
+          bis: string
+          chargen: number
+          gesamt_kg: number
+          verlust_prozent: number
+          von: string
+        }[]
+      }
+      risiko_parameter_setzen: {
+        Args: { p_grund: string | null; p_schluessel: string; p_wert: number }
+        Returns: undefined
+      }
+      konto_sperren: {
+        Args: { p_grund: string | null; p_profil: string; p_sperren: boolean }
+        Returns: string
       }
       lohn_kz_abzuege_berechnen: {
         Args: {
@@ -3982,6 +5186,16 @@ export type Database = {
         }[]
       }
       mwst_umsatz_12_monate: { Args: { p_stichtag?: string }; Returns: number }
+      nachweis_status: {
+        Args: {
+          p_gueltig_bis: string
+          p_gueltig_von: string
+          p_stichtag: string
+          p_unbefristet: boolean
+          p_warnung_tage: number
+        }
+        Returns: string
+      }
       nummernart_fuer_rechtsform: {
         Args: { p_rechtsform: Database["public"]["Enums"]["rechtsform"] }
         Returns: string
@@ -4029,6 +5243,16 @@ export type Database = {
           wirkstoff: string
         }[]
       }
+      search_everything: {
+        Args: { max_rows?: number; q: string }
+        Returns: {
+          treffer_id: string
+          treffer_rang: number
+          treffer_titel: string
+          treffer_typ: string
+          treffer_untertitel: string
+        }[]
+      }
       sync_aufgabe_status_setzen: {
         Args: {
           p_aktion_id: string
@@ -4059,9 +5283,21 @@ export type Database = {
         Args: { grad: number }
         Returns: Database["public"]["Enums"]["kuehlkette_ergebnis"]
       }
+      transport_logger_messungen_importieren: {
+        Args: { p_lieferung_id: string; p_logger_kennung: string; p_messwerte: Json }
+        Returns: number
+      }
+      vorbestellung_nachricht_anonymisieren: {
+        Args: { p_grund: string; p_id: string }
+        Returns: undefined
+      }
       werktage_addieren: {
         Args: { p_anzahl: number; p_start: string }
         Returns: string
+      }
+      wirtschaftlichkeit_posten_uebernehmen: {
+        Args: { p_posten: Json; p_profil: string }
+        Returns: number
       }
       wissen_suche: {
         Args: {

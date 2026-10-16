@@ -52,6 +52,7 @@ test("WMCNL-2420: Pflücker sieht den eigenen Lohnsatz als Berechnungsgrundlage"
   await page.goto("/de/dashboard/buero/lohn");
 
   const lohnsatzAbschnitt = page.locator("section", { hasText: "Lohnsatz" }).first();
-  await expect(lohnsatzAbschnitt.getByText("Stundenlohn")).toBeVisible();
+  // exact: der Erklaertext darueber nennt "Stundenlohn" ebenfalls.
+  await expect(lohnsatzAbschnitt.getByText("Stundenlohn", { exact: true })).toBeVisible();
   await expect(lohnsatzAbschnitt.getByText("Noch kein Lohnsatz hinterlegt")).toHaveCount(0);
 });

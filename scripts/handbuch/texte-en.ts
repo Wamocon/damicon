@@ -170,7 +170,7 @@ export const en: HandbuchTexte = {
 
   anleitungen: {
     einleitung:
-      "Six procedures that cover the core of the operation. The paths refer to the sidebar.",
+      "Twelve procedures that cover the core of the operation. The paths refer to the sidebar.",
     liste: [
       {
         id: "wartezeit",
@@ -266,6 +266,126 @@ export const en: HandbuchTexte = {
           "The classification can be changed at any time later: in the list choose “Change classification” for a document, then change cluster, area, source type and text basis. The window shows which level follows from the source type and how the source is used in the area. The change is logged. For an approved upload, area, source type and text basis are not changed by the person who uploaded it but by a second person (four-eyes principle, also enforced in the database); the cluster can always be changed.",
           "The AI assistant helps with managing the knowledge base (administration only): it gives an overview of holdings and distribution, names what is waiting for review or is not classified, analyses a document and explains whether the classification is right. It also checks the holdings for outdated material, duplicates and documents already contained in a book, shows the comparison in the original wording on request and gives the quality of a document in percent. It proposes a change of classification and the removal of documents as a card that you confirm. It cannot upload files or approve documents, that stays with you and the second person.",
           "The list can be filtered: at the top by cluster, below by search term in the title, area, reliability (official, reliable, indicative only, unreliable, not classified), source type, status (for example waiting for approval), origin (uploaded or existing holdings) and the role a document is visible to. The filters apply together, and the number behind each entry shows the hits. Unreliable sources are unverified internet sources that the assistant names only as a last resort and labelled. The bulk review only acts on the documents shown.",
+        ],
+      },
+      {
+        id: "esf",
+        titel: "Documenting a delivery with ЭСФ (document register)",
+        einleitung:
+          "Since 1 January 2026 every delivery must be documented through the state ЭСФ system. The portal does not issue the ЭСФ. It keeps the register, prepares the details and shows which delivery has no document yet.",
+        schritte: [
+          "As administration, CEO or accounting open Yard → Delivery note (ЭСФ). “Deliveries without ЭСФ” lists all delivered shipments without an issued document, the oldest first. The age counts from the delivery day. The deadline is set under Office → Settings (default 15 calendar days after the delivery day, Tax Code art. 493) and can be changed there. Deliveries past the deadline are marked.",
+          "“Create draft” stores a snapshot of the details: buyer with identification number, variety, quantity, price per the price list on the delivery day and, if the farm was VAT-registered on that day, the VAT. What is missing (price, variety, identification number, VAT rate) is listed under “The draft still lacks”. Whether the price list holds net or gross prices is set on the price list. The ЭСФ always calculates net plus rate; for a gross list the draft splits the total. Check the draft with accounting before issuing.",
+          "Issue the ЭСФ in the state portal with these details. Then record it in the register with “Record as issued”: enter the ЭСФ number and date. From here on the draft no longer changes.",
+          "If the ЭСФ is confirmed, “Record confirmation”. If it is rejected, “Record rejection” with a reason, then “Start a new draft”.",
+          "Paper is only permitted during an outage of the state system. “Keep on paper” therefore requires a reason. Confirmed documents and documents kept on paper are closed.",
+          "Farm management can see the register but records nothing. The database rejects any status change the process does not know. Every action is logged. The automatic handover to the state system follows once the authority grants access.",
+        ],
+      },
+      {
+        id: "esutd",
+        titel: "Reporting seasonal contracts to ЕСУТД (reporting process)",
+        einleitung:
+          "The conclusion, change and termination of every seasonal contract belong in the state unified system ЕСУТД. The portal does not report by itself. It shows what is to be reported and records what has been reported and what proves it.",
+        schritte: [
+          "As administration, CEO or farm management open Office → Integrations.",
+          "Under “Create a new conclusion” enter the person, the start of the contract and optionally the contract number. For the conclusion the portal calculates the deadline: five working days after both parties have signed (without a date: from the start of the contract), without a holiday calendar. Once it has passed, “Deadline passed” appears on the row and in the risk radar.",
+          "Enter changes and terminations under “Create a change or termination”: contract, type, date and, for a change, what changes. A change must be reported within 15 calendar days of its date, a termination within three working days of its end. The days are set under Office → Settings.",
+          "“Open reports as CSV” downloads the details (name, ID, type, date, contract number) as a plain table for entry in the state system. There is no official import format. The file contains personal data: delete it after entry. Every download is logged.",
+          "After reporting in the state system choose “Record as reported”: report date (not in the future), optionally a confirmation number and a proof. Upload the proof first in the evidence register (Office → Documents, category ЕСУТД proof), then select it here.",
+          "A wrongly recorded report can be reopened: date, confirmation and proof are cleared. A report that is still open can be removed. In the personnel view the ЕСУТД field of a person shows “open” as long as one of their reports is open. Accounting can see the list but records nothing.",
+        ],
+      },
+      {
+        id: "nachweis",
+        titel: "Keeping a proof with a validity period",
+        einleitung:
+          "Certificates, permits and contracts come to an end. The evidence register calculates the status from the period, it is not set by hand.",
+        schritte: [
+          "Open Office → Documents. When adding a document, or through “Edit”, enter valid from, valid until (or “Valid without end date”), the advance warning in days (1 to 365, default 60), the person responsible, the legal basis and, where relevant, the partner.",
+          "The status is valid, expiring (within the warning period), expired or open. Open means: no period recorded or not yet in force. The portal does not invent dates, a proof without a period stands out as a gap.",
+          "“Valid until” is the last day of validity, on the following day the proof counts as expired. The day changes at midnight in Almaty.",
+          "The header counts the states. Proofs that are expiring or expired also appear in the risk radar of the compliance cockpit.",
+        ],
+      },
+      {
+        id: "logger",
+        titel: "Importing the file of a temperature logger",
+        einleitung:
+          "A temperature logger in the vehicle records the temperature of the trip. The portal takes over its file instead of the values being typed in by hand.",
+        schritte: [
+          "Open Yard → Collection rounds and unfold “Import logger file” at the planned delivery.",
+          "Choose the logger’s file, CSV or JSON. CSV: time and temperature per line, separator comma, semicolon or tab, decimal comma or decimal point, up to 2 MB. Optionally enter a serial number or vehicle as identifier. JSON: a list with time and temperature per entry, the time as text or as Unix time.",
+          "Times without a time zone use the zone chosen under “Logger clock” (default Almaty, also UTC, Berlin and Moscow). Values of the last 24 hours are taken over. Older rows, rows in the future, duplicates and unreadable rows are left out, and the portal gives the numbers after the import.",
+          "Each value is rated like a manual measurement (up to 4 degrees fine, up to 8 degrees warning, above that violation) and carries the origin “logger”. A delivered or cancelled delivery no longer accepts values.",
+        ],
+      },
+      {
+        id: "wirtschaftlichkeit",
+        titel: "Maintain the profitability of the operation",
+        einleitung:
+          "The page first calculates what the operation earns: revenue, cost and result over three to five years. Below it follows the calculation of whether the system is worth it. What is not recorded stays open instead of appearing as zero.",
+        schritte: [
+          "Open Office → Profitability. At the top you choose the period of the calculation: 3, 4 or 5 years. It applies to the operation and to the calculation of the system below.",
+          "Under \"Operating assumptions\" open \"Change operating assumptions\" and enter, for the first year, the annual quantity, the selling price per kg and the variable cost per kg, then the yearly change of quantity, price, variable cost and fixed cost in percent and the years over which the system is depreciated. Every value carries its origin: evidenced or estimated. The note below shows price and cost per kg from the financial journal of the last twelve months for comparison.",
+          "Under \"Fixed costs of the operation\" open \"Record fixed costs\": costs that do not depend on the harvest quantity (permanent staff, lease, vehicles, insurance, administration), per year in euro, tenge or ruble, with origin. Every line can be changed and removed.",
+          "If something is missing for the calculation, the page lists it. With all inputs in place it shows six metrics (result in the first and in the last year, result over the whole period, return on sales, contribution margin per kg, break-even), a chart and the calculation year by year. The system is included with its benefit, recurring cost and depreciation as soon as all three are recorded.",
+          "Under \"Second: is the system worth it?\" the calculation of the system follows. On an empty page choose \"Take over model values\" to start with the values of the metric list of 23 September 2026: investment and recurring system cost as evidenced, the annual benefit as estimated.",
+          "Under \"Items of the calculation\" open \"Record an item\": type (investment one-off, recurring system cost per year, benefit per year), category, description, amount, currency (euro, tenge, ruble), date and whether the amount is evidenced or estimated. Every line can be changed and removed.",
+          "Under \"Assumptions\" set the discount rate, the exchange rate with date and source, the full cost per kg, the annual quantity and the first month of live operation. The annual quantity comes from the deliveries as soon as they cover a full year.",
+          "Under \"Plan and actual\" record the cost that was actually avoided per month. It is set against the plan and shown as points on the curves.",
+          "\"Save the current state\" freezes the calculation with items, assumptions and exchange rate. A snapshot never changes again, a later rate does not affect it. \"As document (PDF)\" outputs the calculation in the Damicon layout.",
+          "Administration, CEO and accounting can record. Operations management sees the page.",
+        ],
+      },
+      {
+        id: "abholrunde",
+        titel: "Drive a pickup round at neighbouring farms",
+        einleitung:
+          "A vehicle collects produce at neighbouring farms and brings it to the cold store. From the start of picking, the 60-minute cold chain rule counts.",
+        schritte: [
+          "Open Yard → Collection rounds. The office plans under \"Plan a pickup round\" the date, the vehicle, the neighbouring farms and the expected quantity. With an address the system orders the stops by the shortest route, without one they go to the end.",
+          "The driver opens the round and chooses \"Start round\". Only then can pickups be recorded.",
+          "At each stop \"Record pickup\": the collected quantity and the neighbouring farm's answer to how many minutes ago picking began. If it is missing, the pickup counts as a warning. A stop that does not take place is recorded with \"Cancelled\".",
+          "When all stops are done, the driver reports the arrival at the cold store. Up to 45 minutes from the start of picking the pickup is fine, up to 60 minutes a warning, beyond that a violation.",
+          "Completed rounds no longer change. \"Pickup order (PDF)\" outputs the order for the driver and, after completion, the record, both in the Damicon layout.",
+        ],
+      },
+      {
+        id: "auslieferung",
+        titel: "Connect an integration to a partner system",
+        einleitung:
+          "Events such as an issued ЭСФ invoice can be delivered as a signed webhook to a partner system, for example to accounting. Without explicit activation no record leaves the system.",
+        schritte: [
+          "As administration open Office → Integrations and find the section \"Delivery to partner systems\" at the bottom.",
+          "At the integration open \"Configure\": type \"webhook\", the https address of the partner and the name of the environment variable that holds the shared secret, for example DAMICON_HOOK_ESF. The secret itself is never in the portal, it is set in the server environment.",
+          "Tick \"Delivery active\" and save. If the variable is missing on the server, the portal says so and nothing is delivered.",
+          "The partner system checks the signature in the header X-Damicon-Signatur (HMAC-SHA256 over timestamp and content) and recognises repetitions by the Idempotency-Key.",
+          "The queue shows every event with its status. A temporary error is retried after 1, 5, 15, 60 and 240 minutes, after that the entry is \"failed\". \"Try again\" and \"Deliver now\" are reserved for administration and the CEO.",
+        ],
+      },
+      {
+        id: "rollen",
+        titel: "Assigning roles",
+        einleitung:
+          "The role of an account determines what it may see and do. Only administration can assign it.",
+        schritte: [
+          "As administration open Office → Roles and permissions. Under “Accounts and roles” every account is listed with its role.",
+          "Choose the new role in the row and “Save”. The change applies from the next page the account opens.",
+          "Your own role cannot be changed here. Customer accounts are created through invitations and keep their role.",
+          "The last administrator keeps the role: the database rejects the withdrawal, even with direct access. Every change is logged with the old and the new role.",
+        ],
+      },
+      {
+        id: "nachrichten",
+        titel: "Messages on a pre-order and the delivery schedule",
+        einleitung:
+          "Agreements on quantity and date stay with the pre-order instead of vanishing in phone calls and messengers.",
+        schritte: [
+          "Open Market → B2B portal. Under “Messages on pre-orders” every pre-order has its thread. The customer sees only their own, the office sees all.",
+          "Unfold a pre-order, write the message (up to 2000 characters) and “Send”. The database sets author, role and time from the login.",
+          "Sent messages cannot be changed or deleted. A cancelled pre-order gets no new messages.",
+          "“Delivery schedule as calendar file” downloads the upcoming delivery dates as an ICS file for the calendar. It is a download tied to the session, not a subscription link: download again to refresh. The customer gets only their own dates.",
         ],
       },
     ],
@@ -378,7 +498,7 @@ export const en: HandbuchTexte = {
 
     schnittstellenTitel: "Interfaces",
     schnittstellenEinleitung:
-      "Six endpoints for tasks that have no page of their own. Each checks session and permission itself.",
+      "Nine endpoints for tasks that have no page of their own. Each checks session and permission itself.",
     spalteAufgabe: "Purpose",
     schnittstellen: [
       {
@@ -422,6 +542,18 @@ export const en: HandbuchTexte = {
         aufgabe:
           "Receives the reports from the queue that were created in the field without a connection. They pass through the same checks as the corresponding forms.",
         zugriff: "Signed in, second factor current",
+      },
+      {
+        pfad: "/api/lieferplan",
+        aufgabe:
+          "Delivers the upcoming delivery dates as a calendar file (ICS). A download tied to the session, not a subscription link with a secret in the address. The customer gets only their own dates, the office all of them.",
+        zugriff: "Permission on the B2B portal, second factor current",
+      },
+      {
+        pfad: "/api/esutd/export",
+        aufgabe:
+          "The details of the ЕСУТД reports as a CSV file for entry in the state system, open ones or all. It contains personal data, so every download is logged.",
+        zugriff: "Permission to change personnel data, second factor current",
       },
     ],
   },

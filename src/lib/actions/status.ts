@@ -8,6 +8,8 @@ export interface AktionsStatus {
   meldung?: string;
   /** Zusatzangabe fuer Meldungen mit Platzhalter, z. B. der Blockcode. */
   wert?: string;
+  /** Mehrere benannte Angaben fuer Meldungen mit mehreren Platzhaltern, z. B. die Zaehlung eines Imports. */
+  werte?: Record<string, string | number>;
   /** ID eines neu angelegten Datensatzes. Die Oberflaeche oeffnet ihn danach in
    *  der Detailansicht (Liste mit Detailansicht, WMCNL-2488). */
   id?: string;
@@ -25,6 +27,15 @@ export function ok(meldung: string, wert?: string, sprachen?: string[]): Aktions
 
 export function fehler(meldung: string, wert?: string): AktionsStatus {
   return { stand: "fehler", meldung, wert };
+}
+
+/** Erfolg mit mehreren benannten Platzhaltern, etwa "{uebernommen} Messwerte uebernommen". */
+export function okMitWerten(meldung: string, werte: Record<string, string | number>): AktionsStatus {
+  return { stand: "ok", meldung, werte };
+}
+
+export function fehlerMitWerten(meldung: string, werte: Record<string, string | number>): AktionsStatus {
+  return { stand: "fehler", meldung, werte };
 }
 
 // Datenbankfehler auf sprechende Schluessel abbilden. Der Rohtext bleibt im
@@ -75,6 +86,44 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // (fehler.regel), sonst zeigt die Oberflaeche faelschlich "Wartezeit
       // ist noch nicht abgelaufen", obwohl genau das nicht die Ursache ist.
       return fehler("fehler.reihenblockGesperrt");
+    case "DA013":
+      // esf_beleg_pruefen() (WMCNL-1440): ein Statuswechsel, den der Ablauf nicht kennt, oder die
+      // Aenderung eines abgeschlossenen oder ausgestellten Belegs.
+      return fehler("fehler.esfStatuswechsel");
+    case "DA014":
+      // esf_beleg_pruefen() (WMCNL-1440): einen Beleg gibt es nur zu einer zugestellten Lieferung.
+      return fehler("fehler.esfLieferungOffen");
+    case "DA015":
+      // abholrunde_pruefen() und abholstopp_pruefen() (WMCNL-1577): die Runde oder der Stopp ist abgeschlossen oder erledigt,
+      // oder der Statuswechsel ist nicht vorgesehen.
+      return fehler("fehler.abholrundeAbgeschlossen");
+    case "DA016":
+      // abholrunde_pruefen() und abholstopp_pruefen() (WMCNL-1577): die Runde ist noch nicht gestartet (Abholung), oder es sind
+      // noch Stopps offen (Abschluss).
+      return fehler("fehler.abholrundeNichtGestartet");
+    case "DA017":
+      // esutd_vertrag_loeschen_pruefen() (Pruefung PR #156): ein Vertrag mit erfassten Aenderungen oder Beendigungen bleibt,
+      // die Kaskade haette sie samt Bestaetigung und Beleg geloescht.
+      return fehler("fehler.esutdErfassteMeldungen");
+    case "DA020":
+      // dokument_version_pruefen() (15.10.2026): die Vorversion eines Nachweises aendert sich nach dem Anlegen nicht, und eine neue Version
+      // hat dieselbe Kategorie wie die ersetzte.
+      return fehler("fehler.versionRegel");
+    case "DA019":
+      // profil_sperre_schuetzen() (15.10.2026): ein Konto sperrt nur die Administration ueber konto_sperren().
+      return fehler("fehler.berechtigung");
+    case "DA018":
+      // vorbestellung_nachricht_schuetzen(), transport_logger_quelle_pruefen() und die Unveraenderlichkeit des ЕСУТД-Verlaufs (15.10.2026):
+      // die Zeile ist unveraenderlich, oder die Herkunft "logger" setzt nur der Import.
+      return fehler("fehler.unveraenderlich");
+    case "DA012":
+      // vorbestellung_nachricht_vorbereiten() (WMCNL-1472): zu einer stornierten
+      // Vorbestellung gibt es keine neuen Nachrichten.
+      return fehler("fehler.vorbestellungStorniert");
+    case "DA011":
+      // profil_letzter_admin_schuetzen() (WMCNL-1441): die Rolle admin laesst sich
+      // einem Konto nur entziehen, solange mindestens ein anderes sie behaelt.
+      return fehler("fehler.letzterAdmin");
     case "DA006":
       // pflueckaufgabe_freigabe_pruefen() (WMCNL-2492): der Abschluss
       // verlangt einen Fotobeleg. Eigener Code statt der ueberladenen

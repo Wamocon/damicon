@@ -19,7 +19,7 @@ import {
   reklamationsRechte,
   reklamationStatusMeta,
 } from "@/lib/domain/reklamationen";
-import { LeererZustand } from "@/components/ui/liste";
+import { Blaettern, LeererZustand } from "@/components/ui/liste";
 import { formularZiel } from "@/lib/formular-ziele";
 
 // Reklamationsmanagement (WMCNL-1455). Liste und Detail wie bei
@@ -32,17 +32,22 @@ import { formularZiel } from "@/lib/formular-ziele";
 export async function ReklamationenAnsicht({
   pfad,
   auswahl,
+  rseite,
 }: {
   pfad: string;
   auswahl?: string;
+  /** Seite der Liste aus der Adresse (rseite); unlesbar heisst Seite 1. */
+  rseite?: string;
 }) {
   const [liste, profil, t] = await Promise.all([
-    ladeReklamationen(),
+    ladeReklamationen(Number(rseite) || 1),
     getSessionProfile(),
     getTranslations("reklamationenAnsicht"),
   ]);
 
   const gewaehlt = liste.reklamationen.find((r) => r.id === auswahl) ?? liste.reklamationen[0];
+  // Ein geteilter Link auf eine Reklamation, die nicht auf der angezeigten Seite steht, oeffnet trotzdem ihr Detail (die Liste springt nicht mit).
+  const detailId = !liste.reklamationen.some((r) => r.id === auswahl) && liste.seiten > 1 && auswahl ? auswahl : gewaehlt?.id;
 
   const rechte = reklamationsRechte(profil?.role, liste.quelle === "db");
   const { istBuero, darfAnlegen } = rechte;
@@ -50,7 +55,7 @@ export async function ReklamationenAnsicht({
   const [b2bKunden, chargen, detail] = await Promise.all([
     darfAnlegen && istBuero ? ladeB2bKundenOptionen() : Promise.resolve([]),
     darfAnlegen ? ladeChargenOptionen(istBuero ? null : (profil?.b2bKundeId ?? null)) : Promise.resolve([]),
-    gewaehlt ? ladeReklamation(gewaehlt.id) : Promise.resolve(null),
+    detailId ? ladeReklamation(detailId) : Promise.resolve(null),
   ]);
 
   const heuteIso = new Date().toISOString().slice(0, 10);
@@ -59,6 +64,7 @@ export async function ReklamationenAnsicht({
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <Section
+          id="liste"
           title={t("listTitle")}
           description={t("listLead")}
           action={<DatenquelleBadge quelle={liste.quelle} />}
@@ -81,12 +87,18 @@ export async function ReklamationenAnsicht({
                   r={r}
                   aktiv={r.id === gewaehlt?.id}
                   pfad={pfad}
+                  seite={liste.seite}
                   istBuero={istBuero}
                   heuteIso={heuteIso}
                 />
               ))
             )}
           </div>
+          <Blaettern
+            seite={liste.seite}
+            seiten={liste.seiten}
+            ziel={(s) => ({ pathname: pfad, query: s > 1 ? { rseite: String(s) } : {}, hash: "liste" })}
+          />
         </Section>
 
         <div className="space-y-3">
@@ -116,12 +128,15 @@ function ReklamationsEintrag({
   r,
   aktiv,
   pfad,
+  seite,
   istBuero,
   heuteIso,
 }: {
   r: ReklamationListenEintrag;
   aktiv: boolean;
   pfad: string;
+  /** Die angezeigte Seite bleibt beim Oeffnen eines Eintrags stehen. */
+  seite: number;
   istBuero: boolean;
   heuteIso: string;
 }) {
@@ -132,7 +147,7 @@ function ReklamationsEintrag({
 
   return (
     <Link
-      href={{ pathname: pfad, query: { reklamation: r.id } }}
+      href={{ pathname: pfad, query: seite > 1 ? { reklamation: r.id, rseite: String(seite) } : { reklamation: r.id } }}
       scroll={false}
       className={`block w-full rounded-xl border p-4 text-left transition ${
         aktiv

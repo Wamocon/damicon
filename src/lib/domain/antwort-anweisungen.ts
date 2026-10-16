@@ -56,10 +56,53 @@ export const KEINE_STELLE: Record<AntwortSprache, string> = {
  *  und nicht als Teil der Frage. */
 export const ERINNERUNG: Record<AntwortSprache, string> = {
   de: "Antworte auf Deutsch.",
-  en: "Reply in English.",
-  ru: "Ответь на русском языке.",
-  kk: "Қазақ тілінде жауап бер.",
+  en: "Reply in English, with no German words.",
+  ru: "Ответь на русском языке, без немецких слов.",
+  kk: "Қазақ тілінде жауап бер, неміс сөздерінсіз.",
 };
+
+/** Die deutschen Begriffe, die in Werkzeugdaten und Prompt vorkommen und in einer Antwort in anderer Sprache durchrutschten (15.10.2026: eine russische
+ *  Zusammenfassung enthielt "Betrieb", "Feld" und "Hof" mitten im russischen Satz): Zonen, "wer"-Kennzeichen der Tageslage und die haeufigsten
+ *  Fachwoerter. Die Uebersetzungen sind die der Oberflaeche (src/messages, geprueft in supabase/tests/ki-assistent.mjs), damit Antwort und
+ *  Bildschirm dieselben Woerter benutzen. Deutsch braucht keine Liste. */
+export const BEGRIFFE: Record<Exclude<AntwortSprache, "de">, ReadonlyArray<readonly [string, string]>> = {
+  en: [
+    ["Betrieb", "farm"], ["Feld", "Field"], ["Hof", "Yard"], ["Büro", "Office"], ["Markt", "Market"], ["Nachbarbetrieb", "neighbouring farm"],
+    ["ich / meine Brigade / meine Rolle / Betrieb (Kennzeichen wer)", "me / my crew / my role / the farm"],
+    ["Brigade", "Field crew"], ["Pflücker", "Picker"], ["Erzeuger", "Producer"], ["Kühlkette", "Cold chain"], ["Charge", "Batch"],
+    ["Lieferung", "Delivery"], ["Reklamation", "Complaint"], ["Pflückaufgabe", "Picking task"], ["Prüfbericht", "Audit report"], ["Lohn", "Pay"],
+    ["Schulung", "Training"], ["Frist", "Deadline"], ["Kennzahl", "Figure"], ["überfällig", "Overdue"], ["heute", "Today"],
+  ],
+  ru: [
+    ["Betrieb", "Хозяйство"], ["Feld", "Поле"], ["Hof", "Двор"], ["Büro", "Офис"], ["Markt", "Рынок"], ["Nachbarbetrieb", "Соседнее хозяйство"],
+    ["ich / meine Brigade / meine Rolle / Betrieb (Kennzeichen wer)", "мне / моя бригада / моя роль / хозяйство"],
+    ["Brigade", "Бригада"], ["Pflücker", "Сборщик"], ["Erzeuger", "Производитель"], ["Kühlkette", "Холодовая цепь"], ["Charge", "Партия"],
+    ["Lieferung", "Поставка"], ["Reklamation", "Рекламация"], ["Pflückaufgabe", "Задание на сбор"], ["Prüfbericht", "Отчёт о проверке"], ["Lohn", "Оплата труда"],
+    ["Schulung", "Инструктаж"], ["Frist", "Срок"], ["Kennzahl", "Показатель"], ["überfällig", "Просрочено"], ["heute", "Сегодня"],
+  ],
+  kk: [
+    ["Betrieb", "Шаруашылық"], ["Feld", "Дала"], ["Hof", "Аула"], ["Büro", "Кеңсе"], ["Markt", "Нарық"], ["Nachbarbetrieb", "Көрші шаруашылық"],
+    ["ich / meine Brigade / meine Rolle / Betrieb (Kennzeichen wer)", "маған / менің бригадам / менің рөлім / шаруашылық"],
+    ["Brigade", "Бригада"], ["Pflücker", "Терімші"], ["Erzeuger", "Өндіруші"], ["Kühlkette", "Суық тізбек"], ["Charge", "Партия"],
+    ["Lieferung", "Жеткізу"], ["Reklamation", "Шағым"], ["Pflückaufgabe", "Теру тапсырмасы"], ["Prüfbericht", "Тексеру есебі"], ["Lohn", "Жалақы"],
+    ["Schulung", "Оқыту"], ["Frist", "Мерзім"], ["Kennzahl", "Көрсеткіш"], ["überfällig", "Мерзімі өткен"], ["heute", "Бүгін"],
+  ],
+};
+
+/** Verbot deutscher Woerter in einer Antwort in anderer Sprache, mit der Liste. Leer fuer Deutsch. Steht in der Sprachanweisung am Ende des Prompts. */
+export function begriffeAnweisung(sprache: AntwortSprache): string {
+  if (sprache === "de" || !(sprache in BEGRIFFE)) return "";
+  const liste = BEGRIFFE[sprache].map(([de, uebersetzt]) => `${de} = ${uebersetzt}`).join("; ");
+  return (
+    `NO GERMAN WORDS: The tool data and these instructions carry German labels. Translate every one of them into ${NAME_EN[sprache]}; never copy a German word into the reply ` +
+    "(a sentence with a German word like 'Betrieb', 'Feld' or 'Hof' in the middle of it is a defect, also in summaries and lists). " +
+    `Use these terms: ${liste}. ` +
+    "Every other German word from the data (labels, area and module names, status words) is translated the same way. Only names of people, places, products and varieties, " +
+    "IDs, codes and titles of quoted sources stay as they are."
+  );
+}
+
+const NAME_EN: Record<Exclude<AntwortSprache, "de">, string> = { en: "English", ru: "Russian", kk: "Kazakh" };
 
 export function spracheErinnerung(sprache: AntwortSprache): string {
   return `(${ERINNERUNG[sprache]})`;
@@ -169,7 +212,7 @@ export function quellenAnweisung(sprache: AntwortSprache): string {
       ? "Schließe verbindliche Rechts- und Steuerfragen mit einem Satz ab, dass eine Beratung durch Steuerberater oder Anwalt die Auskunft nicht ersetzt."
       : `Schließe verbindliche Rechts- und Steuerfragen mit einem Satz in der Antwortsprache (${NAME[sprache]}) ab, dass eine Beratung durch Steuerberater oder Anwalt die Auskunft nicht ersetzt.`;
   return [
-    "QUELLEN UND BELEGE: Bei jeder Frage zu Recht, Steuern, Arbeitsrecht, Compliance oder Audit rufst du ZUERST wissenSuchen auf (mit frageRussisch) und antwortest auf Grundlage der gefundenen Belege. Regeln:",
+    "QUELLEN UND BELEGE: Bei jeder Frage zu Recht, Steuern, Arbeitsrecht, Compliance, Audit oder Risiko und Risikomanagement rufst du ZUERST wissenSuchen auf (mit frageRussisch, bei Risiko, Compliance und Audit auch mit frageEnglisch) und antwortest auf Grundlage der gefundenen Belege. Regeln:",
     "1. Jede rechtliche Aussage, Zahl, Frist oder Sanktion bekommt direkt dahinter die Kennung ihres Belegs in eckigen Klammern, zum Beispiel [S1]; mehrere Belege: [S1][S3].",
     "2. Zitiere nur Kennungen, die wissenSuchen in DIESER Antwort geliefert hat. Erfinde nie Fundstellen, Artikelnummern oder Zitate.",
     `3. Nenne bei wichtigen Aussagen die Fundstelle im Klartext (zum Beispiel 'НК РК ст. 82'). Ist der Beleg russisch oder kasachisch, ${uebersetzung}.`,
@@ -179,6 +222,7 @@ export function quellenAnweisung(sprache: AntwortSprache): string {
     "7. Jeder Beleg hat das Feld einordnung (Art der Quelle, Stufe, Stand, Einschränkungen). Gib es bei wichtigen Aussagen in der Antwortsprache in Klammern hinter der Kennung wieder, zum Beispiel [S2] (Fachliteratur, Stand 2026-03-01). Verschweige nie eine Einschränkung wie 'nur als Hinweis' oder 'maschinelle Übersetzung'.",
     "8. Belege mit nutzung hinweis (zum Beispiel Nachschlagewerk, Praxisbeitrag, Norm in einer Rechtsfrage) sind ungeprüfte Hinweise und nie die Grundlage einer verbindlichen Rechts-, Steuer- oder Compliance-Aussage. Nenne sie ausdrücklich als Hinweis. Meldet das Werkzeug die Lage nur_hinweise, sage, dass die Wissensbasis dazu keine belastbare Quelle enthält.",
     "9. Belege mit nutzung notfalls sind ungesicherte Internetquellen (Erfahrungsbericht, Blog, Forum, Bewertungsportal, Wikipedia, KI-Text) ohne amtlichen Charakter. Sie kommen nur vor, wenn die Wissensbasis nichts Besseres hat. Meldet das Werkzeug die Lage nur_unsichere, sage gleich zu Beginn der Antwort in der Antwortsprache, dass es dazu keine offizielle staatliche Quelle gibt und die Angaben nur aus Internetquellen stammen. Nenne jede dieser Quellen ausdrücklich als Internetquelle und als unsicher, nie als Tatsache oder Auskunft, und empfehle die Prüfung bei der zuständigen Behörde oder einer Fachperson.",
+    "10. Meldet wissenSuchen einen Fehler (Feld fehler), ist die Suche technisch gescheitert, nicht die Wissensbasis leer: Rufe es einmal erneut auf. Behaupte nie, es gebe keine Quellen oder Dokumente zu einem Thema, und empfiehl keinen Upload, solange keine Suche gelaufen ist. Ob es zu einem Thema etwas gibt, zeigt nur die Suche, nie die Zahl der Dokumente eines Bereichs: Der Bereich ist ein Ordnungsetikett, und ein Dokument kann in mehreren Bereichen gelten.",
   ].join("\n");
 }
 

@@ -29,7 +29,7 @@ import { WissenUmordnenKnopf } from "@/components/db/wissen-umordnen";
 import { WissenListenFilter } from "@/components/db/wissen-liste-filter";
 import { filtere, KEIN_FILTER, type ListenFilter } from "@/lib/wissen/listen-filter";
 import { linkBrauchbar, schaetzeEin, type Einschaetzung } from "@/lib/wissen/einschaetzung";
-import { bereichSchluessel, UPLOAD_BEREICHE } from "@/lib/wissen/upload-konstanten";
+import { bereicheVon, UPLOAD_BEREICHE } from "@/lib/wissen/upload-konstanten";
 
 // Wissensverwaltung: Seite "Wissensbasis" im Bereich Administration (/dashboard/administration/wissensbasis). Admin-only:
 // Die Seite antwortet ohne ki_assistent:manage mit 404, und alle Server Actions pruefen die Berechtigung noch einmal selbst.
@@ -179,11 +179,9 @@ function WissenDokumentKarte({
   beiErgebnis: (status: AktionsStatus) => void;
 }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
-  // Gespeichert ist "legal", angezeigt wird die Bezeichnung "Recht".
-  const bereichKey = bereichSchluessel(dokument.bereich);
-  const bereichName = (UPLOAD_BEREICHE as readonly string[]).includes(bereichKey)
-    ? t(`bereich.${bereichKey}` as never)
-    : dokument.bereich || t("liste.keinBereich");
+  // Gespeichert ist "legal", angezeigt wird die Bezeichnung "Recht". Gilt das Dokument in mehreren Bereichen, stehen alle da: "Audit + Risiko".
+  const nameVon = (key: string) => ((UPLOAD_BEREICHE as readonly string[]).includes(key) ? t(`bereich.${key}` as never) : key || t("liste.keinBereich"));
+  const bereichName = bereicheVon(dokument.bereich, dokument.weitereBereiche).map(nameVon).join(" + ");
   const artName = istQuellenart(dokument.quellenart) ? t(`quellenart.${dokument.quellenart}` as never) : null;
   const ersterEintrag = dokument.herkunft === "upload";
   const eigener = !!ichId && dokument.hochgeladenVonId === ichId;

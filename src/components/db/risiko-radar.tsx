@@ -1,5 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Landmark, ShieldAlert, ShieldCheck, UserRound } from "lucide-react";
+import { FileCheck2, Landmark, ShieldAlert, ShieldCheck, UserRound } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Card } from "@/components/ui/kit";
 import { FaelligkeitAnzeige } from "@/components/db/faelligkeit-anzeige";
@@ -21,6 +21,7 @@ const kategorieIcon: Record<RisikoKategorie, typeof Landmark> = {
   steuer: Landmark,
   arbeit: UserRound,
   datenschutz: ShieldAlert,
+  nachweis: FileCheck2,
 };
 
 export async function RisikoRadar({ eintraege }: { eintraege: RisikoEintrag[] }) {

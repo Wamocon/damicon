@@ -1,4 +1,5 @@
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
+import { kilogramm } from "@/lib/format/menge";
 import {
   Aufklapper,
   Card,
@@ -493,7 +494,7 @@ async function ChargeAbschnitt({
                 </td>
                 <td className="px-3 py-2.5 text-muted-foreground">{z.sorteName ?? "–"}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">
-                  {z.mengeKg === null ? "–" : `${format.number(z.mengeKg)} kg`}
+                  {z.mengeKg === null ? "–" : `${kilogramm(format, z.mengeKg)}`}
                 </td>
                 <td className="px-3 py-2.5 text-muted-foreground">{geld(z.erloesTenge)}</td>
                 <td className="px-3 py-2.5 text-muted-foreground">{geld(z.kostenTenge)}</td>

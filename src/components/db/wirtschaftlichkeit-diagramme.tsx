@@ -17,11 +17,11 @@
 
 import {
   Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
   Line,
   LineChart,
   ReferenceLine,
@@ -30,6 +30,8 @@ import {
 } from "recharts";
 import {
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -46,6 +48,19 @@ export interface Diagrammtexte {
   wert: string;
   /** Marke am Nulldurchgang der Barwertkurve. */
   nulllinie: string;
+  /** Reihenname der tatsaechlich eingetretenen Werte (Ist) im Tooltip. */
+  ist: string;
+}
+
+/** Plankurve und Ist-Punkte auf derselben Monatsachse: ein Datensatz je Monat, "ist" nur dort, wo ein Ist-Wert vorliegt. */
+function mitIst(punkte: Monatspunkt[], ist: Monatspunkt[] | undefined): { monat: number; wert: number; ist: number | null }[] {
+  const istJeMonat = new Map((ist ?? []).map((p) => [p.monat, p.wert]));
+  return punkte.map((p) => ({ monat: p.monat, wert: p.wert, ist: istJeMonat.get(p.monat) ?? null }));
+}
+
+/** Die Ist-Reihe: Punkte ohne Linie ueber Luecken hinweg, damit ein fehlender Monat nicht als Verlauf erscheint. */
+function IstLinie() {
+  return <Line dataKey="ist" type="linear" stroke="var(--color-ist)" strokeWidth={2} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} />;
 }
 
 /** Gemeinsame Hoehe. Ohne feste Hoehe kollabiert ResponsiveContainer auf null. */
@@ -76,20 +91,23 @@ function prozent(locale: string, anteil: number): string {
  */
 export function RoiKurve({
   punkte,
+  ist,
   markeMonat,
   locale,
   texte,
 }: {
   punkte: Monatspunkt[];
+  /** Ist-Werte auf derselben Achse, falls schon welche erfasst sind. */
+  ist?: Monatspunkt[];
   markeMonat: number;
   locale: string;
   texte: Diagrammtexte;
 }) {
-  const config = { wert: { label: texte.wert, color: "var(--chart-1)" } } satisfies ChartConfig;
+  const config = { wert: { label: texte.wert, color: "var(--chart-1)" }, ist: { label: texte.ist, color: "var(--chart-2)" } } satisfies ChartConfig;
   return (
     <div aria-hidden="true">
       <ChartContainer config={config} className={HOEHE}>
-        <LineChart data={punkte} margin={{ left: 4, right: 8, top: 8, bottom: 0 }}>
+        <LineChart data={mitIst(punkte, ist)} margin={{ left: 4, right: 8, top: 8, bottom: 0 }}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           {/* Ueber drei Jahre jedes Jahr beschriften, ueber ein Jahr jedes
               Quartal - sonst traegt die Jahr-1-Achse nur zwei Marken. */}
@@ -110,6 +128,7 @@ export function RoiKurve({
           <ReferenceLine x={markeMonat} stroke="var(--chart-3)" strokeDasharray="4 3" />
           <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
           <Line dataKey="wert" type="monotone" stroke="var(--color-wert)" strokeWidth={2} dot={false} />
+          {ist && ist.length > 0 ? IstLinie() : null}
         </LineChart>
       </ChartContainer>
     </div>
@@ -123,20 +142,23 @@ export function RoiKurve({
  */
 export function Barwert({
   punkte,
+  ist,
   nulldurchgang,
   locale,
   texte,
 }: {
   punkte: Monatspunkt[];
+  /** Ist-Werte auf derselben Achse, falls schon welche erfasst sind. */
+  ist?: Monatspunkt[];
   nulldurchgang: number | null;
   locale: string;
   texte: Diagrammtexte;
 }) {
-  const config = { wert: { label: texte.wert, color: "var(--chart-4)" } } satisfies ChartConfig;
+  const config = { wert: { label: texte.wert, color: "var(--chart-4)" }, ist: { label: texte.ist, color: "var(--chart-2)" } } satisfies ChartConfig;
   return (
     <div aria-hidden="true">
       <ChartContainer config={config} className={HOEHE}>
-        <AreaChart data={punkte} margin={{ left: 4, right: 8, top: 8, bottom: 0 }}>
+        <ComposedChart data={mitIst(punkte, ist)} margin={{ left: 4, right: 8, top: 8, bottom: 0 }}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <XAxis dataKey="monat" tickLine={false} axisLine={false} tickMargin={6} interval={11} />
           <YAxis
@@ -163,7 +185,8 @@ export function Barwert({
             fillOpacity={0.18}
             strokeWidth={2}
           />
-        </AreaChart>
+          {ist && ist.length > 0 ? IstLinie() : null}
+        </ComposedChart>
       </ChartContainer>
     </div>
   );
@@ -252,6 +275,50 @@ function BetonteBalken({
             ))}
           </Bar>
         </BarChart>
+      </ChartContainer>
+    </div>
+  );
+}
+
+export interface BetriebPunkt {
+  /** Beschriftung der Achse, zum Beispiel "Jahr 3". */
+  name: string;
+  /** Alle drei in Tenge. */
+  erloes: number;
+  kosten: number;
+  ergebnis: number;
+}
+
+export interface BetriebDiagrammtexte {
+  erloes: string;
+  kosten: string;
+  ergebnis: string;
+}
+
+/**
+ * Erlöse und Kosten je Jahr als Balken, das Ergebnis als Linie darüber. Die Kosten sind so gewählt, dass Erlöse minus Kosten das Ergebnis ergibt (der Nutzen
+ * des Systems steht schon darin), damit das Bild ohne Nachrechnen stimmt. Die Linie schneidet die Nulllinie dort, wo der Betrieb in den Gewinn kommt.
+ */
+export function BetriebsDiagramm({ punkte, locale, texte }: { punkte: BetriebPunkt[]; locale: string; texte: BetriebDiagrammtexte }) {
+  const config = {
+    erloes: { label: texte.erloes, color: "var(--chart-2)" },
+    kosten: { label: texte.kosten, color: "var(--chart-5)" },
+    ergebnis: { label: texte.ergebnis, color: "var(--chart-1)" },
+  } satisfies ChartConfig;
+  return (
+    <div aria-hidden="true">
+      <ChartContainer config={config} className="h-60 w-full">
+        <ComposedChart data={punkte} margin={{ left: 4, right: 8, top: 8, bottom: 0 }}>
+          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+          <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={6} />
+          <YAxis tickLine={false} axisLine={false} width={ACHSE_GELD} tickFormatter={(w: number) => kompakt(locale, w)} />
+          <ReferenceLine y={0} stroke="var(--border)" strokeWidth={1.5} />
+          <ChartTooltip content={<ChartTooltipContent indicator="dashed" />} />
+          <ChartLegend content={<ChartLegendContent />} />
+          <Bar dataKey="erloes" fill="var(--color-erloes)" radius={4} />
+          <Bar dataKey="kosten" fill="var(--color-kosten)" radius={4} />
+          <Line dataKey="ergebnis" type="monotone" stroke="var(--color-ergebnis)" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+        </ComposedChart>
       </ChartContainer>
     </div>
   );

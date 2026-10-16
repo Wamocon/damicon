@@ -18,8 +18,9 @@ import { istUploadZeile, uploadQuelleId } from "@/lib/wissen/upload-quelle";
 import { tokens } from "@/lib/wissen/sparse";
 import { schaetzeEin } from "@/lib/wissen/einschaetzung";
 import { gruppiereWissenDokumente } from "@/lib/wissen/dokumente-liste";
-import { aktiveFilter, filtere, KEIN_FILTER, zaehleMit, type ListenFilter } from "@/lib/wissen/listen-filter";
+import { aktiveFilter, filtere, KEIN_FILTER, verteilungNachVerlaesslichkeit, VERTEILUNG_KLASSEN, zaehleMit, type ListenFilter } from "@/lib/wissen/listen-filter";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
+import { bereicheVon } from "@/lib/wissen/upload-konstanten";
 
 let gesamt = 0;
 let fehler = 0;
@@ -457,12 +458,15 @@ async function rest() {
     pruefe("Liste: ein fehlendes Paket macht das Buch unvollständig", fehlt[0]!.unvollstaendig === true && fehlt[0]!.paketeDa === 2);
     const einzeln = gruppiereWissenDokumente([{ ...basis, paket: null, pakete_gesamt: null }, { ...basis, id: "j", paket: null, pakete_gesamt: null }]);
     pruefe("Liste: Zeilen ohne Anzahl zählen einzeln", einzeln[0]!.chunks === 2);
+    const weitere = gruppiereWissenDokumente([{ ...basis, paket: "1", anzahl: 2, weitere_bereiche: ["risiko"] }, { ...basis, id: "j", paket: "2", anzahl: 3, weitere_bereiche: ["risiko", "steuer"] }]);
+    pruefe("Liste: weitere Bereiche kommen aus wissen_liste und werden über die Zeilen eines Dokuments vereinigt", JSON.stringify(weitere[0]!.weitereBereiche) === JSON.stringify(["risiko", "steuer"]));
+    pruefe("Liste: ohne die Spalte (Code vor Migration) sind es keine weiteren Bereiche", JSON.stringify(einzeln[0]!.weitereBereiche) === "[]");
   }
 
   // ---- Filter der Liste -------------------------------------------------------------------------------------
   {
     const z = (teil: Partial<WissenDokumentZeile>): WissenDokumentZeile =>
-      ({ schluessel: "k", schluesselSpalte: "quelle_id", titel: "Dokument", bereich: "legal", rollen: ["admin", "buchhaltung"], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 5, herkunft: "skript", loeschbar: false, quellenart: "fachliteratur", cluster: "buecher", textgrundlage: "original", stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, seitenBestaetigt: null, seitenVermerkt: false, seitenNachgeladen: null, seitenOffen: 0, seitenOffenStellen: null, abgelaufen: false, url: null, ...teil }) as WissenDokumentZeile;
+      ({ schluessel: "k", schluesselSpalte: "quelle_id", titel: "Dokument", bereich: "legal", weitereBereiche: [], rollen: ["admin", "buchhaltung"], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 5, herkunft: "skript", loeschbar: false, quellenart: "fachliteratur", cluster: "buecher", textgrundlage: "original", stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, seitenBestaetigt: null, seitenVermerkt: false, seitenNachgeladen: null, seitenOffen: 0, seitenOffenStellen: null, abgelaufen: false, url: null, ...teil }) as WissenDokumentZeile;
     const gesetz = z({ schluessel: "g", titel: "Steuerkodex 2026", bereich: "steuer", quellenart: "rechtsnorm", cluster: "internet", stufe: 1 });
     const behoerde = z({ schluessel: "b", titel: "KGD Merkblatt", bereich: "amtlich", quellenart: "behoerdeninfo", cluster: "internet", stufe: 3 });
     const buch = z({ schluessel: "u", titel: "Umsatzsteuer Handbuch", bereich: "steuer", herkunft: "upload", pruefstatus: "ungeprueft" });
@@ -471,8 +475,10 @@ async function rest() {
     const offen = z({ schluessel: "o", titel: "Alter Bestand", quellenart: null, cluster: null, stufe: 1, nutzung: "ja" });
     const halb = z({ schluessel: "h", titel: "Halbes Buch", herkunft: "upload", pruefstatus: "ungeprueft", unvollstaendig: true, paketeGesamt: 3, paketeDa: 1 });
     const alt = z({ schluessel: "a", titel: "Abgelaufene Quelle", pruefenBis: "2020-01-01", abgelaufen: true, quellenart: "internetquelle", nutzung: "notfalls", cluster: "internet" });
+    // Gilt in mehreren Bereichen: ISO 31000 steht unter audit und zaehlt zusaetzlich fuer risiko (15.10.2026)
+    const iso = z({ schluessel: "i", titel: "ISO 31000:2018", bereich: "audit", weitereBereiche: ["risiko"], quellenart: "standard", cluster: "internet", stufe: 4 });
     const alle = [gesetz, behoerde, buch, forum, praxis, offen, halb, alt];
-    const ids = (f: Partial<ListenFilter>) => filtere(alle, { ...KEIN_FILTER, ...f }).map((d) => d.schluessel).sort().join("");
+    const ids = (f: Partial<ListenFilter>, liste: readonly WissenDokumentZeile[] = alle) => filtere(liste, { ...KEIN_FILTER, ...f }).map((d) => d.schluessel).sort().join("");
 
     pruefe("Filter: ohne Filter bleibt alles", filtere(alle, KEIN_FILTER).length === alle.length && aktiveFilter(KEIN_FILTER) === 0);
     pruefe("Filter amtlich: Rechtsnorm und Behörde, dazu Bestand ohne Quellenart mit Stufe 1 bis 3", ids({ verlaesslichkeit: "amtlich" }) === "bgo");
@@ -486,13 +492,26 @@ async function rest() {
     pruefe("Suche: ohne Groß- und Kleinschreibung, alle Wörter müssen vorkommen", ids({ suche: "steuerkodex" }) === "g" && ids({ suche: "UMSATZ handbuch" }) === "u" && ids({ suche: "steuerkodex handbuch" }) === "");
     pruefe("Filter zusammen: Bereich Steuern und amtlich", ids({ bereich: "steuer", verlaesslichkeit: "amtlich" }) === "g");
     pruefe("Filter: Zahl der gesetzten Filter", aktiveFilter({ ...KEIN_FILTER, bereich: "steuer", suche: "x" }) === 2);
+    const mitIso = [...alle, iso];
+    pruefe("Filter Bereich: ein Dokument mit weiteren Bereichen erscheint in jedem davon", ids({ bereich: "audit" }, mitIso) === "i" && ids({ bereich: "risiko" }, mitIso) === "i" && ids({ bereich: "risiko" }) === "");
+    pruefe("Filter Bereich: die anderen Bereiche bleiben unberührt (kein Doppelzählen des Hauptbereichs)", ids({ bereich: "recht" }, mitIso) === "afho" && zaehleMit(mitIso, KEIN_FILTER, "bereich", "risiko") === 1 && zaehleMit(mitIso, KEIN_FILTER, "bereich", "audit") === 1);
+    // Verteilung nach Verlässlichkeit: 15.10.2026 meldete der Assistent "310 amtlich oder gesichert" und "120 Notbehelf oder Hinweis" bei 340 Dokumenten,
+    // weil er 90 amtliche und 220 sichere addierte (der Filter "sicher" schließt die amtlichen ein).
+    const verteilung = verteilungNachVerlaesslichkeit(mitIso);
+    const klassenSumme = VERTEILUNG_KLASSEN.reduce((n, k) => n + verteilung[k], 0);
+    pruefe("Verteilung: die Klassen schließen sich aus und ergeben die Zahl der Dokumente", verteilung.summe === mitIso.length && klassenSumme === mitIso.length, JSON.stringify(verteilung));
+    pruefe("Verteilung: ein Dokument steht in genau einer Klasse, nach Nutzung und bei tragenden nach amtlich", verteilung.amtlich === ids({ verlaesslichkeit: "amtlich" }, mitIso).length && verteilung.nurHinweis === ids({ verlaesslichkeit: "hinweis" }, mitIso).length && verteilung.notbehelf === ids({ verlaesslichkeit: "unsicher" }, mitIso).length);
+    const sicherFilter = filtere(mitIso, { ...KEIN_FILTER, verlaesslichkeit: "sicher" }).length;
+    pruefe("Verteilung: der Filter sicher ist amtlich plus tragendSonstige (die amtlichen sind schon darin, nicht addieren)", sicherFilter === verteilung.amtlich + verteilung.tragendSonstige);
+    pruefe("Verteilung: Teilmenge und leere Liste", verteilungNachVerlaesslichkeit([]).summe === 0 && verteilungNachVerlaesslichkeit(filtere(mitIso, { ...KEIN_FILTER, art: "forum" })).notbehelf === 1);
+    pruefe("bereicheVon: Hauptbereich zuerst, gespeichertes legal heißt recht, ohne Doppelte", JSON.stringify(bereicheVon("legal", ["risiko", "legal", "audit"])) === JSON.stringify(["recht", "risiko", "audit"]) && JSON.stringify(bereicheVon("amtlich")) === JSON.stringify(["amtlich"]));
     pruefe("Zähler: so viele Treffer hätte ein Filter bei sonst gleichen Einstellungen", zaehleMit(alle, { ...KEIN_FILTER, bereich: "steuer" }, "verlaesslichkeit", "amtlich") === 1 && zaehleMit(alle, KEIN_FILTER, "cluster", "ohne") === 1);
   }
 
   // ---- Einschaetzung --------------------------------------------------------------------------------
   {
     const zeile = (teil: Partial<WissenDokumentZeile> = {}): WissenDokumentZeile => ({
-      schluessel: "upload:abc", schluesselSpalte: "quelle_id", titel: "Buch", bereich: "steuer", rollen: ["admin"], datum: null,
+      schluessel: "upload:abc", schluesselSpalte: "quelle_id", titel: "Buch", bereich: "steuer", weitereBereiche: [], rollen: ["admin"], datum: null,
       hochgeladenVon: "A", hochgeladenVonId: "a", chunks: 120, herkunft: "upload", loeschbar: true, quellenart: "fachliteratur", cluster: "buecher",
       stufe: 4, rechtsstelle: null, nutzung: "ja", pruefstatus: "ungeprueft", pruefenBis: null, paketeGesamt: 3, paketeDa: 3, unvollstaendig: false,
       guete: "gut", gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, seitenBestaetigt: null, seitenVermerkt: false, seitenNachgeladen: null, seitenOffen: 0, seitenOffenStellen: null, abgelaufen: false, url: null, textgrundlage: "original", ...teil,

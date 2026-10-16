@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { einsAus } from "@/lib/data/util";
 import { preislisteAusZeile } from "@/lib/data/preislisten";
+import { seitenModell } from "@/lib/listen/seiten";
 import {
+  VORBESTELLUNGEN_PRO_SEITE,
   demoKontingente,
   demoPreislisten,
   demoVorbestellungen,
@@ -21,17 +23,30 @@ import {
 
 export interface VorbestellungenUebersicht {
   quelle: Datenquelle;
+  /** Die Zeilen der angezeigten Seite, neueste zuerst. */
   vorbestellungen: VorbestellungZeile[];
+  /** Alle Vorbestellungen, die die Person sehen darf. */
+  gesamt: number;
+  seite: number;
+  seiten: number;
 }
 
 function demoUebersicht(quelle: VorbestellungenUebersicht["quelle"] = "demo"): VorbestellungenUebersicht {
-  return { quelle, vorbestellungen: demoVorbestellungen };
+  return { quelle, vorbestellungen: demoVorbestellungen, gesamt: demoVorbestellungen.length, seite: 1, seiten: 1 };
 }
 
-export async function ladeVorbestellungen(): Promise<VorbestellungenUebersicht> {
+/**
+ * Eine Seite der Vorbestellungen, neueste zuerst (WMCNL-2491). Gezaehlt wird zuerst, damit eine Seite jenseits der letzten auf die letzte faellt, statt dass
+ * PostgREST mit 416 antwortet; die Zeilensicherheit gilt fuer die Zaehlung wie fuer die Zeilen (ein Kunde zaehlt nur die eigenen).
+ */
+export async function ladeVorbestellungen(seite = 1): Promise<VorbestellungenUebersicht> {
   if (!isSupabaseConfigured()) return demoUebersicht();
 
   const supabase = await createClient();
+  const zaehlung = await supabase.from("vorbestellungen").select("id", { count: "exact", head: true });
+  if (zaehlung.error || zaehlung.count === null) return demoUebersicht("fehler");
+  const modell = seitenModell(zaehlung.count, seite, VORBESTELLUNGEN_PRO_SEITE);
+
   const { data, error } = await supabase
     .from("vorbestellungen")
     .select(
@@ -39,7 +54,9 @@ export async function ladeVorbestellungen(): Promise<VorbestellungenUebersicht> 
        b2b_kunden ( id, name ),
        sorten ( name )`,
     )
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id")
+    .range(modell.von, modell.bis);
 
   if (error || !data) return demoUebersicht("fehler");
 
@@ -58,7 +75,7 @@ export async function ladeVorbestellungen(): Promise<VorbestellungenUebersicht> 
     };
   });
 
-  return { quelle: "db", vorbestellungen };
+  return { quelle: "db", vorbestellungen, gesamt: zaehlung.count, seite: modell.seite, seiten: modell.seiten };
 }
 
 export interface KontingenteUebersicht {

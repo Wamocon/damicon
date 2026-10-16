@@ -1,0 +1,42 @@
+name: Benachrichtigungen erzeugen
+
+# Stößt stündlich die Erzeugung der Benachrichtigungen an (GET /api/benachrichtigungen/erzeugen, WMCNL-2486). Ohne diesen Aufruf bleibt die Glocke leer.
+# Die Erzeugung ist idempotent: derselbe Zustand meldet sich nur einmal, ein doppelter Aufruf schadet nicht.
+#
+# Einzurichten (Betreiber, einmal): dieselben Repository-Geheimnisse wie beim Workflow integrationen-ausliefern.yml, also DAMICON_APP_URL (die Adresse der
+# Produktivseite, ohne Schrägstrich am Ende) und CRON_SECRET (derselbe Wert wie auf dem Server). Fehlt eines, meldet der Lauf es und endet ohne Fehler.
+#
+# Geplante Läufe laufen nur auf dem Standardzweig (main). Von Hand lässt sich der Lauf über „Run workflow“ starten.
+
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: benachrichtigungen-erzeugen
+  cancel-in-progress: false
+
+jobs:
+  erzeugen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Erzeugung anstoßen
+        env:
+          APP_URL: ${{ secrets.DAMICON_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::notice::DAMICON_APP_URL oder CRON_SECRET fehlt als Repository-Geheimnis: nichts angestoßen."
+            exit 0
+          fi
+          status=$(curl -sS -o antwort.json -w '%{http_code}' --max-time 40 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/benachrichtigungen/erzeugen" || echo "000")
+          echo "HTTP $status"
+          cat antwort.json 2>/dev/null || true
+          echo
+          if [ "$status" != "200" ]; then
+            echo "::warning::Die Erzeugung antwortete mit HTTP $status (401: Geheimnis stimmt nicht, 503: CRON_SECRET fehlt auf dem Server, 000: keine Verbindung)."
+          fi

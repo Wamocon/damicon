@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Icon } from "@/components/icon";
 import { Himbeere } from "@/components/ki/himbeere";
 import { BlattZeilenInhalt, blattZeilenKlassen } from "@/components/ui/blatt-zeile";
+import { modulFuerTyp } from "@/lib/suche/daten";
 import type { GruppenArt, SuchGruppe, SuchOption } from "@/lib/suche/gruppen";
 import { cn } from "@/lib/utils";
 
@@ -18,9 +19,61 @@ import { cn } from "@/lib/utils";
 const UEBERSCHRIFT = {
   treffer: "gruppeTreffer",
   erwaehnt: "gruppeErwaehnt",
+  daten: "gruppeDaten",
   zuletzt: "gruppeZuletzt",
+  datensuche: null,
   ki: null,
 } as const satisfies Record<GruppenArt, string | null>;
+
+/** Schluessel einer Zeile in der Liste: je Option einer, ueber alle Gruppen eindeutig. */
+function optionSchluessel(option: SuchOption): string {
+  switch (option.art) {
+    case "ziel":
+      return option.ziel.schluessel;
+    case "datensatz":
+      return `daten:${option.treffer.typ}:${option.treffer.id}`;
+    default:
+      return option.art;
+  }
+}
+
+/** Symbol, Text und Untertitel einer Zeile. Die Ziel-Zeile ist der Normalfall, die anderen sind Sonderzeilen. */
+function ZeilenInhalt({ option }: { option: SuchOption }) {
+  const t = useTranslations("suche");
+  switch (option.art) {
+    case "ziel":
+      return (
+        <BlattZeilenInhalt
+          symbol={<Icon name={option.ziel.symbol} className="h-4 w-4" />}
+          text={option.ziel.titel}
+          // Unter "Erwaehnt in" steht statt des Bereichs die Stelle im Text,
+          // sonst sieht man nicht, warum die Seite dort steht.
+          untertitel={option.auszug ?? option.ziel.untertitel}
+        />
+      );
+    case "datensatz": {
+      const { typ, titel, untertitel } = option.treffer;
+      return (
+        <BlattZeilenInhalt
+          symbol={<Icon name={modulFuerTyp(typ).icon} className="h-4 w-4" />}
+          text={titel}
+          // Der Typ vor dem Zusammenhang: derselbe Code kann Steige und
+          // Charge sein, ohne ihn sieht man den Unterschied nicht.
+          untertitel={untertitel ? `${t(`datenTyp.${typ}`)} · ${untertitel}` : t(`datenTyp.${typ}`)}
+        />
+      );
+    }
+    case "datensuche":
+      return (
+        <BlattZeilenInhalt
+          symbol={<Icon name="search" className="h-4 w-4" />}
+          text={t("datenSuchen", { begriff: option.begriff })}
+        />
+      );
+    case "ki":
+      return <BlattZeilenInhalt symbol={<Himbeere groesse={18} />} text={t("kiFragen", { begriff: option.begriff })} />;
+  }
+}
 
 /** Die id einer Option, fuer aria-activedescendant und das Nachscrollen. */
 export function optionId(listeId: string, index: number): string {
@@ -45,8 +98,6 @@ function SuchZeile({
   onAktiv: () => void;
   onWaehle: () => void;
 }) {
-  const t = useTranslations("suche");
-
   return (
     <div
       id={id}
@@ -69,20 +120,7 @@ function SuchZeile({
         aktiv && "border-primary/40 bg-muted ring-2 ring-ring",
       )}
     >
-      {option.art === "ziel" ? (
-        <BlattZeilenInhalt
-          symbol={<Icon name={option.ziel.symbol} className="h-4 w-4" />}
-          text={option.ziel.titel}
-          // Unter "Erwaehnt in" steht statt des Bereichs die Stelle im Text,
-          // sonst sieht man nicht, warum die Seite dort steht.
-          untertitel={option.auszug ?? option.ziel.untertitel}
-        />
-      ) : (
-        <BlattZeilenInhalt
-          symbol={<Himbeere groesse={18} />}
-          text={t("kiFragen", { begriff: option.begriff })}
-        />
-      )}
+      <ZeilenInhalt option={option} />
     </div>
   );
 }
@@ -116,7 +154,7 @@ export function SuchListe({
           const index = naechsterIndex++;
           return (
             <SuchZeile
-              key={option.art === "ziel" ? option.ziel.schluessel : "ki"}
+              key={optionSchluessel(option)}
               option={option}
               id={optionId(listeId, index)}
               aktiv={index === aktivIndex}

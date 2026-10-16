@@ -29,6 +29,7 @@ interface PreislisteRoh {
   gueltig_bis: string | null;
   aktiv: boolean;
   kundengruppe: PreislisteZeile["kundengruppe"];
+  preise_inkl_mwst?: boolean;
   preislisten_positionen: { id: string; preis_tenge_kg: number | string; min_menge_kg: number | string; sorten: { name: string } | { name: string }[] | null }[] | null;
 }
 
@@ -41,6 +42,7 @@ export function preislisteAusZeile(p: PreislisteRoh): PreislisteZeile {
     gueltigBis: p.gueltig_bis,
     aktiv: p.aktiv,
     kundengruppe: p.kundengruppe,
+    inklMwst: p.preise_inkl_mwst === true,
     positionen: (p.preislisten_positionen ?? []).map((pos) => {
       const sorte = einsAus(pos.sorten);
       return {
@@ -64,7 +66,7 @@ export async function ladePreislistenVerwaltung(): Promise<PreislistenUebersicht
   const { data, error } = await supabase
     .from("preislisten")
     .select(
-      `id, name, gueltig_ab, gueltig_bis, aktiv, kundengruppe,
+      `id, name, gueltig_ab, gueltig_bis, aktiv, kundengruppe, preise_inkl_mwst,
        preislisten_positionen ( id, preis_tenge_kg, min_menge_kg, sorten ( name ) )`,
     )
     .order("gueltig_ab", { ascending: false });

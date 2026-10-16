@@ -1,0 +1,272 @@
+// Temperaturlogger (WMCNL-1517, Stufe 1): CSV-Dateien lesen und das Zeitfenster der Datenbank einhalten
+// (src/lib/domain/logger-import.ts). Die Datenbankseite prueft logger-import-db.mts.
+//
+// Aufruf: npm run test:logger-import (ueber tsx, damit die @/-Pfade aufloesen).
+
+import {
+  FENSTER_VERGANGENHEIT_MS,
+  FENSTER_ZUKUNFT_MS,
+  LOGGER_MAX_MESSWERTE,
+  LOGGER_ZEITZONEN,
+  dekodiereLoggerDatei,
+  einheitAusKopf,
+  istLoggerZeitzone,
+  liesLoggerDatei,
+  liesExcelZeitpunkt,
+  liesLoggerJson,
+  liesTemperatur,
+  liesZeitpunkt,
+  waehleMesswerte,
+  zeitzoneAusKopf,
+  type LoggerMesswert,
+} from "@/lib/domain/logger-import";
+
+let fehlgeschlagen = 0;
+function pruefe(name: string, ok: boolean, zusatz = "") {
+  console.log(`${ok ? "PASS" : "FAIL"}  ${name}${zusatz ? "  - " + zusatz : ""}`);
+  if (!ok) fehlgeschlagen++;
+}
+
+// --- 1. Zeitpunkte -------------------------------------------------------------------------------------
+const zeit = (roh: string) => liesZeitpunkt(roh);
+pruefe("Zeit: ohne Angabe gilt Almaty (UTC+5)", zeit("2026-10-14 08:15:00") === "2026-10-14T03:15:00.000Z", String(zeit("2026-10-14 08:15:00")));
+pruefe("Zeit: mit T und ohne Sekunden", zeit("2026-10-14T08:15") === "2026-10-14T03:15:00.000Z");
+pruefe("Zeit: mit Z ist es UTC", zeit("2026-10-14T08:15:00Z") === "2026-10-14T08:15:00.000Z");
+pruefe("Zeit: mit Versatz +05:00 und -03:00", zeit("2026-10-14T08:15:00+05:00") === "2026-10-14T03:15:00.000Z" && zeit("2026-10-14T08:15:00-03:00") === "2026-10-14T11:15:00.000Z");
+pruefe("Zeit: Millisekunden werden verziehen", zeit("2026-10-14 08:15:00.123") === "2026-10-14T03:15:00.000Z");
+pruefe("Zeit: tag-zuerst mit Punkt", zeit("14.10.2026 08:15") === "2026-10-14T03:15:00.000Z");
+pruefe("Zeit: tag-zuerst mit Schraegstrich und Sekunden", zeit("14/10/2026 08:15:30") === "2026-10-14T03:15:30.000Z");
+pruefe("Zeit: einstelliger Tag und Monat", zeit("5.6.2026 7:05") === "2026-06-05T02:05:00.000Z", String(zeit("5.6.2026 7:05")));
+pruefe("Zeit: bei beidem moeglich gilt tag-zuerst (05/06 ist der 5. Juni)", zeit("05/06/2026 10:00") === "2026-06-05T05:00:00.000Z");
+pruefe("Zeit: Monat-zuerst wird nicht erraten (13. Monat gibt es nicht)", zeit("10/14/2026 08:15") === null);
+pruefe("Zeit: Anfuehrungszeichen um das Feld", zeit('"2026-10-14 08:15:00"') === "2026-10-14T03:15:00.000Z");
+pruefe("Zeit: ohne Uhrzeit ist ungueltig", zeit("2026-10-14") === null && zeit("14.10.2026") === null);
+pruefe("Zeit: unmoegliche Daten sind ungueltig", zeit("2026-13-01 10:00") === null && zeit("2026-02-30 10:00") === null && zeit("32.10.2026 10:00") === null && zeit("2026-10-14 25:00") === null);
+pruefe("Zeit: Text und leer sind ungueltig", zeit("gestern") === null && zeit("") === null);
+// Weitere Schreibweisen von Loggerexporten (15.10.2026)
+pruefe("Zeit: zweistelliges Jahr", zeit("14.10.26 08:15") === "2026-10-14T03:15:00.000Z" && zeit("1/2/27 7:05:09") === "2027-02-01T02:05:09.000Z", String(zeit("14.10.26 08:15")));
+pruefe("Zeit: Bindestrich als Trenner im Tag-zuerst-Datum", zeit("14-10-2026 08:15:00") === "2026-10-14T03:15:00.000Z");
+pruefe("Zeit: 12-Stunden-Zeit mit PM und AM", zeit("14/10/2026 8:15:00 PM") === "2026-10-14T15:15:00.000Z" && zeit("14/10/2026 8:15 AM") === "2026-10-14T03:15:00.000Z", String(zeit("14/10/2026 8:15:00 PM")));
+pruefe("Zeit: 12 AM ist Mitternacht, 12 PM Mittag", zeit("14/10/2026 12:00 AM") === "2026-10-13T19:00:00.000Z" && zeit("14/10/2026 12:30 PM") === "2026-10-14T07:30:00.000Z");
+pruefe("Zeit: Stunde 0 oder 13 mit AM/PM ist unsinnig", zeit("14/10/2026 0:15 AM") === null && zeit("14/10/2026 13:15 PM") === null);
+pruefe("Zeit: Monat-zuerst wird auch mit zweistelligem Jahr nicht erraten", zeit("10/14/26 08:15") === null);
+pruefe("Excel: ein Zeitwert mit Bruchteil ist ein Zeitpunkt (Komma oder Punkt)", liesExcelZeitpunkt("46310,34375") === liesExcelZeitpunkt("46310.34375") && liesExcelZeitpunkt("46310.34375") !== null, String(liesExcelZeitpunkt("46310.34375")));
+pruefe("Excel: 46310,5 ist der Mittag des 15.10.2026 (UTC+5)", liesExcelZeitpunkt("46310.5") === "2026-10-15T07:00:00.000Z", String(liesExcelZeitpunkt("46310.5")));
+pruefe("Excel: Zahlen ausserhalb der Jahre 2000 bis 2099 und Text sind keine Zeit", liesExcelZeitpunkt("12.5") === null && liesExcelZeitpunkt("80000") === null && liesExcelZeitpunkt("abc") === null && liesExcelZeitpunkt("") === null);
+pruefe("Kopf: UTC mit Versatz, ohne Versatz, ohne Angabe", zeitzoneAusKopf("Time (UTC+6)") === "Etc/GMT-6" && zeitzoneAusKopf("Zeit [UTC]") === "UTC" && zeitzoneAusKopf("UTC-3") === "Etc/GMT+3" && zeitzoneAusKopf("Zeit") === "Asia/Almaty");
+pruefe("Kopf: halbe Stunden und mehr als 12 bleiben bei der Vorgabe", zeitzoneAusKopf("Time (UTC+5:30)") === "Asia/Almaty" && zeitzoneAusKopf("UTC+14") === "Asia/Almaty");
+
+// --- 2. Temperaturen ----------------------------------------------------------------------------------------
+const temp = (roh: string) => liesTemperatur(roh);
+pruefe("Temperatur: Komma und Punkt", temp("3,5") === 3.5 && temp("3.5") === 3.5);
+pruefe("Temperatur: gerundet auf eine Nachkommastelle", temp("3.54") === 3.5 && temp("3.56") === 3.6 && temp("-0.04") === -0);
+pruefe("Temperatur: negativ, mit Plus, ganze Zahl", temp("-1,2") === -1.2 && temp("+4") === 4 && temp("7") === 7);
+pruefe("Temperatur: mit Einheit", temp("3,5 °C") === 3.5 && temp("3.5°C") === 3.5 && temp("3.5 C") === 3.5 && temp("-2°c") === -2);
+pruefe("Temperatur: Text und leer sind ungueltig", temp("n/a") === null && temp("") === null && temp("3,5,1") === null && temp("--") === null);
+pruefe("Temperatur: ausserhalb von -50 bis 80 ist ungueltig (Geraetefehler)", temp("81") === null && temp("-51") === null && temp("-50") === -50 && temp("80") === 80 && temp("999") === null);
+
+// --- 3. Dateien -----------------------------------------------------------------------------------------------------
+{
+  const csv = "Zeit;Temperatur (°C)\r\n14.10.2026 08:00;3,5\r\n14.10.2026 08:01;3,6\r\n14.10.2026 08:02;4,1\r\n";
+  const r = liesLoggerDatei(csv);
+  pruefe("Datei: Semikolon, Kopfzeile, Dezimalkomma, Windows-Zeilenenden", r.messwerte.length === 3 && r.trennzeichen === ";" && r.ungueltig === 0 && r.messwerte[2].temperaturC === 4.1, JSON.stringify(r.messwerte[2]));
+  pruefe("Datei: die Zeit ist UTC", r.messwerte[0].zeitpunkt === "2026-10-14T03:00:00.000Z");
+}
+{
+  // Excel-Zeitwerte in der Zeitspalte (ein Export, der ueber Excel lief)
+  const r = liesLoggerDatei("Zeit;Temperatur\n46310,34375;3,5\n46310,3444444;3,6\n");
+  pruefe("Datei: Excel-Zeitwerte in der Zeitspalte werden gelesen (auf die Sekunde gerundet)", r.messwerte.length === 2 && r.messwerte[0].zeitpunkt === "2026-10-15T03:15:00.000Z" && r.messwerte[1].zeitpunkt === "2026-10-15T03:16:00.000Z", JSON.stringify(r.messwerte));
+}
+{
+  // Ohne Kopfzeile ist eine grosse Zahl ein Zaehler und keine Zeit
+  const r = liesLoggerDatei("46310;3,5\n46311;3,6\n");
+  pruefe("Datei: ohne Kopf zaehlt eine nackte Zahl nicht als Zeit", r.messwerte.length === 0);
+}
+{
+  const r = liesLoggerDatei("Time (UTC+6);Temp\n2026-10-14 08:00:00;3,5\n14.10.26 08:01;3,6\n");
+  pruefe("Datei: die Zone im Kopf (UTC+6) gilt fuer die Spalte", r.messwerte.length === 2 && r.messwerte[0].zeitpunkt === "2026-10-14T02:00:00.000Z" && r.messwerte[1].zeitpunkt === "2026-10-14T02:01:00.000Z", JSON.stringify(r));
+}
+{
+  const r = liesLoggerDatei("Zeit [UTC];Temperatur\n14.10.2026 03:00;3,5\n2026-10-14T08:01:00+05:00;3,6\n");
+  pruefe("Datei: Zeit [UTC] im Kopf, ein Wert mit eigenem Versatz behaelt ihn", r.messwerte.length === 2 && r.messwerte[0].zeitpunkt === "2026-10-14T03:00:00.000Z" && r.messwerte[1].zeitpunkt === "2026-10-14T03:01:00.000Z", JSON.stringify(r.messwerte));
+}
+{
+  const r = liesLoggerDatei("Date/Time,Temperature [°C],Humidity [%]\n14/10/2026 8:00:00 AM,3.5,80\n14/10/2026 8:01:00 PM,3.6,81\n");
+  pruefe("Datei: Feuchte neben der Temperatur wird nicht gelesen, AM/PM gilt", r.messwerte.length === 2 && r.messwerte.map((m) => m.temperaturC).join() === "3.5,3.6" && r.messwerte[1].zeitpunkt === "2026-10-14T15:01:00.000Z", JSON.stringify(r.messwerte));
+}
+{
+  const r = liesLoggerDatei("Time,Temperature\n2026-10-14 08:00:00,3.5\n2026-10-14 08:01:00,3.6\n");
+  pruefe("Datei: Komma als Trennzeichen mit Punkt als Dezimalzeichen", r.messwerte.length === 2 && r.trennzeichen === "," && r.messwerte[1].temperaturC === 3.6, JSON.stringify(r));
+}
+{
+  const r = liesLoggerDatei("2026-10-14 08:00:00\t3.5\n2026-10-14 08:01:00\t3.6\n");
+  pruefe("Datei: Tabulator ohne Kopfzeile, Spalten nach der Form der Werte", r.messwerte.length === 2 && r.trennzeichen === "\t" && r.messwerte[0].temperaturC === 3.5);
+}
+{
+  const csv = "Geraet;Logger 17\nSeriennummer;A-4711\n\nZeit;Temperatur\n14.10.2026 08:00;3,5\n14.10.2026 08:01;3,6\n";
+  const r = liesLoggerDatei(csv);
+  pruefe("Datei: Vorspann mit Geraetedaten wird uebersprungen", r.messwerte.length === 2 && r.ungueltig === 0, JSON.stringify(r));
+}
+{
+  const csv = "# Export 14.10.2026\nZeit;Temperatur\n14.10.2026 08:00;3,5\n";
+  pruefe("Datei: Kommentarzeilen mit # werden uebersprungen", liesLoggerDatei(csv).messwerte.length === 1);
+}
+{
+  const r = liesLoggerDatei("Дата;Температура\n14.10.2026 08:00;3,5\n14.10.2026 08:01;3,7\n");
+  pruefe("Datei: kyrillische Spaltennamen", r.messwerte.length === 2 && r.messwerte[1].temperaturC === 3.7);
+}
+{
+  const r = liesLoggerDatei("Zeit;Luftfeuchte;Temperatur\n14.10.2026 08:00;80;3,5\n14.10.2026 08:01;81;3,6\n");
+  pruefe("Datei: die Temperaturspalte wird nach dem Namen gefunden, nicht die erste Zahl", r.messwerte.length === 2 && r.messwerte[0].temperaturC === 3.5, JSON.stringify(r.messwerte));
+}
+{
+  const r = liesLoggerDatei("Date/Time,Temp(C),Humidity\n2026-10-14 08:00:00,3.5,80\n");
+  pruefe("Datei: Date/Time und Temp(C)", r.messwerte.length === 1 && r.messwerte[0].temperaturC === 3.5);
+}
+{
+  const csv = "﻿Zeit;Temperatur\n14.10.2026 08:00;3,5\n";
+  pruefe("Datei: eine Byte-Order-Markierung am Anfang stoert nicht", liesLoggerDatei(csv).messwerte.length === 1);
+}
+{
+  const csv = "Zeit;Temperatur\n14.10.2026 08:00;3,5\n14.10.2026 08:01;n/a\n14.10.2026 08:02;\nkaputt;4\n14.10.2026 08:03;3,6\n";
+  const r = liesLoggerDatei(csv);
+  pruefe("Datei: unlesbare Zeilen werden gezaehlt, die lesbaren bleiben", r.messwerte.length === 2 && r.ungueltig === 3, `gelesen ${r.messwerte.length}, ungueltig ${r.ungueltig}`);
+}
+{
+  const r = liesLoggerDatei("14.10.2026 08:00;999\n14.10.2026 08:01;3,5\n");
+  pruefe("Datei: ein Geraetefehler (999) zaehlt als ungueltig", r.messwerte.length === 1 && r.ungueltig === 1);
+}
+{
+  pruefe("Datei: leer", liesLoggerDatei("").messwerte.length === 0 && liesLoggerDatei("   \n\n").messwerte.length === 0);
+  pruefe("Datei: eine einzelne Spalte ohne Trennzeichen", liesLoggerDatei("hallo\nwelt\n").trennzeichen === null);
+  pruefe("Datei: ein Text ohne Messwerte liefert nichts", liesLoggerDatei("Dies ist keine Logger-Datei;sondern Text\nmit zwei;Zeilen\n").messwerte.length === 0);
+}
+{
+  const zeilen = ["Zeit;Temperatur"];
+  for (let i = 0; i < 1440; i++) zeilen.push(`14.10.2026 ${String(Math.floor(i / 60)).padStart(2, "0")}:${String(i % 60).padStart(2, "0")};3,${i % 10}`);
+  const r = liesLoggerDatei(zeilen.join("\n"));
+  pruefe("Datei: ein ganzer Tag im Minutentakt (1440 Werte)", r.messwerte.length === 1440 && r.ungueltig === 0, `Werte ${r.messwerte.length}`);
+}
+
+// --- 3b. JSON (Stufe 2) --------------------------------------------------------------------------------------------------
+{
+  const objekte = JSON.stringify([{ time: "2026-10-14T08:00:00Z", temperature: 3.5 }, { time: "2026-10-14T08:01:00Z", temperature: "3,6" }, { time: "2026-10-14T08:02:00Z", temperature: 4.14 }]);
+  const r = liesLoggerDatei(objekte);
+  pruefe("JSON: ein Array von Objekten, Zahl und Text als Temperatur, gerundet", r.messwerte.length === 3 && r.trennzeichen === "json" && r.ungueltig === 0 && r.messwerte[1].temperaturC === 3.6 && r.messwerte[2].temperaturC === 4.1 && r.messwerte[0].zeitpunkt === "2026-10-14T08:00:00.000Z", JSON.stringify(r.messwerte));
+  const verpackt = JSON.stringify({ device: "TL-4711", readings: [{ timestamp: "14.10.2026 08:00", value: 2.9 }, { timestamp: "14.10.2026 08:01", value: 3.1 }] });
+  const v = liesLoggerDatei(verpackt);
+  pruefe("JSON: die Liste steht unter readings, Zeit tag-zuerst gilt als Almaty-Zeit", v.messwerte.length === 2 && v.messwerte[0].zeitpunkt === "2026-10-14T03:00:00.000Z", JSON.stringify(v));
+  const tiefer = liesLoggerJson(JSON.stringify({ export: { datenpunkte: 1, data: [{ zeit: "2026-10-14 08:00:00", temperatur: 5 }] } }));
+  pruefe("JSON: eine Ebene tiefer wird gefunden", tiefer.messwerte.length === 1 && tiefer.messwerte[0].zeitpunkt === "2026-10-14T03:00:00.000Z");
+  const paare = liesLoggerDatei(JSON.stringify([["2026-10-14T08:00:00Z", 3.5], ["2026-10-14T08:01:00Z", 3.7]]));
+  pruefe("JSON: Paare aus Zeit und Temperatur", paare.messwerte.length === 2 && paare.messwerte[1].temperaturC === 3.7);
+  const unix = liesLoggerDatei(JSON.stringify([{ t: 1_760_428_800, c: 3.5 }, { t: 1_760_428_860_000, c: 3.6 }]));
+  pruefe("JSON: Unix-Sekunden und Unix-Millisekunden", unix.messwerte.length === 2 && unix.messwerte[0].zeitpunkt === "2025-10-14T08:00:00.000Z" && unix.messwerte[1].zeitpunkt === "2025-10-14T08:01:00.000Z", JSON.stringify(unix.messwerte));
+  const gemischt = liesLoggerDatei(JSON.stringify([{ time: "2026-10-14T08:00:00Z", temperature: 3.5 }, { time: "kein Datum", temperature: 3 }, { time: "2026-10-14T08:02:00Z", temperature: 999 }, { time: "2026-10-14T08:03:00Z" }, 42, null]));
+  pruefe("JSON: unlesbare Eintraege werden gezaehlt, nicht uebernommen (kein Datum, Wert ausser Bereich, ohne Temperatur, kein Objekt)", gemischt.messwerte.length === 1 && gemischt.ungueltig === 5, JSON.stringify([gemischt.messwerte.length, gemischt.ungueltig]));
+  pruefe("JSON: kein JSON oder keine Liste ergibt nichts, ohne Wurf", liesLoggerJson("{kaputt").messwerte.length === 0 && liesLoggerJson('{"a":1}').messwerte.length === 0 && liesLoggerJson('"text"').messwerte.length === 0 && liesLoggerJson("").trennzeichen === null);
+  pruefe("JSON: eine Datei mit Kodierungsmarke wird gelesen", liesLoggerDatei("\uFEFF" + objekte).messwerte.length === 3);
+  const csvMitKlammer = liesLoggerDatei("[Geraet];TL-4711\nZeit;Temperatur\n14.10.2026 08:00;3,5\n14.10.2026 08:01;3,6\n");
+  pruefe("JSON: eine CSV-Datei, deren Vorspann mit einer Klammer beginnt, bleibt eine CSV-Datei", csvMitKlammer.messwerte.length === 2 && csvMitKlammer.trennzeichen === ";");
+  const leereListe = liesLoggerDatei("[]");
+  pruefe("JSON: eine leere Liste ergibt keine Messwerte", leereListe.messwerte.length === 0);
+}
+
+// --- 4. Zeitfenster der Datenbank ------------------------------------------------------------------------------------
+const JETZT = new Date("2026-10-14T10:00:00Z");
+const messwert = (minutenVorJetzt: number, t = 3.5): LoggerMesswert => ({ zeitpunkt: new Date(JETZT.getTime() - minutenVorJetzt * 60_000).toISOString(), temperaturC: t });
+{
+  const a = waehleMesswerte([messwert(10), messwert(60), messwert(600)], JETZT);
+  pruefe("Fenster: Werte der letzten Stunden werden uebernommen", a.uebernehmen.length === 3 && a.zuAlt === 0 && a.inDerZukunft === 0);
+  pruefe("Fenster: nach Zeit sortiert", a.uebernehmen[0].zeitpunkt < a.uebernehmen[2].zeitpunkt);
+}
+{
+  const a = waehleMesswerte([messwert(24 * 60 + 5), messwert(23 * 60 + 40), messwert(30)], JETZT);
+  pruefe("Fenster: aelter als 24 Stunden wird ausgelassen, knapp darunter (mit Sicherheitsabstand) bleibt", a.zuAlt === 1 && a.uebernehmen.length === 2, `zuAlt ${a.zuAlt}, bleibt ${a.uebernehmen.length}`);
+}
+pruefe("Fenster: die Grenzen sind enger als die der Datenbank (24 Stunden, 5 Minuten)", FENSTER_VERGANGENHEIT_MS < 24 * 3_600_000 && FENSTER_ZUKUNFT_MS < 5 * 60_000);
+{
+  const a = waehleMesswerte([messwert(-3), messwert(-10), messwert(5)], JETZT);
+  pruefe("Fenster: drei Minuten in der Zukunft sind erlaubt (Geraeteuhr), zehn nicht", a.inDerZukunft === 1 && a.uebernehmen.length === 2, `Zukunft ${a.inDerZukunft}`);
+}
+{
+  const a = waehleMesswerte([messwert(10), messwert(10), messwert(20)], JETZT);
+  pruefe("Fenster: doppelte Zeitpunkte in der Datei zaehlen einmal", a.uebernehmen.length === 2 && a.doppelt === 1);
+}
+{
+  const vorhanden = new Set([messwert(10).zeitpunkt]);
+  const a = waehleMesswerte([messwert(10), messwert(20)], JETZT, vorhanden);
+  pruefe("Fenster: ein Wert, der schon in der Datenbank steht, wird nicht doppelt gespeichert (erneuter Import)", a.uebernehmen.length === 1 && a.doppelt === 1);
+}
+{
+  const viele: LoggerMesswert[] = [];
+  for (let i = 0; i < LOGGER_MAX_MESSWERTE + 100; i++) viele.push({ zeitpunkt: new Date(JETZT.getTime() - (i + 1) * 1000).toISOString(), temperaturC: 3.5 });
+  const a = waehleMesswerte(viele, JETZT);
+  pruefe("Obergrenze: hoechstens 5000 Werte, bei mehr bleiben die neuesten", a.uebernehmen.length === LOGGER_MAX_MESSWERTE && a.uebernehmen.at(-1)?.zeitpunkt === viele[0].zeitpunkt);
+}
+pruefe("Leere Eingabe", waehleMesswerte([], JETZT).uebernehmen.length === 0);
+
+// --- Kodierung, Einheit, elproCLOUD, Zeitzone (15.10.2026) ---------------------------------------------------------------------------------------
+{
+  const csv = "Zeit;Temperatur (°C)\r\n14.10.2026 08:00;3,5\r\n";
+  pruefe("Kodierung: UTF-8 bleibt UTF-8, auch mit Byte-Reihenfolge-Marke", dekodiereLoggerDatei(Buffer.from(csv, "utf8")) === csv && dekodiereLoggerDatei(Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from(csv, "utf8")])) === csv);
+  const utf16 = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(csv, "utf16le")]);
+  pruefe("Kodierung: UTF-16 mit Byte-Reihenfolge-Marke wird gelesen", dekodiereLoggerDatei(utf16) === csv, JSON.stringify(dekodiereLoggerDatei(utf16)));
+  // Windows-1252: Das Gradzeichen und Umlaute sind je ein Byte (0xB0, 0xE4); als UTF-8 gelesen waeren sie ungueltig.
+  const w1252 = Buffer.from([...Buffer.from("Ger", "latin1"), 0xe4, ...Buffer.from("t;Logger 1\nZeit;Temperatur (", "latin1"), 0xb0, ...Buffer.from("C)\n14.10.2026 08:00;3,5\n", "latin1")]);
+  const t1252 = dekodiereLoggerDatei(w1252);
+  pruefe("Kodierung: Windows-1252 mit Gradzeichen und Umlaut", t1252.includes("(°C)") && t1252.includes("Gerät"), JSON.stringify(t1252));
+  const r1252 = liesLoggerDatei(t1252);
+  pruefe("Kodierung: eine Windows-1252-Datei ergibt dieselben Messwerte", r1252.messwerte.length === 1 && r1252.messwerte[0].temperaturC === 3.5 && r1252.ungueltig === 0);
+  // Windows-1251: kyrillische Kopfzeile (Дата и время; Температура)
+  const k1251 = new Uint8Array([0xc4, 0xe0, 0xf2, 0xe0, 0x3b, 0xd2, 0xe5, 0xec, 0xef, 0xe5, 0xf0, 0xe0, 0xf2, 0xf3, 0xf0, 0xe0, 0x0a, ...Buffer.from("14.10.2026 08:00;3,5\n", "latin1")]);
+  const t1251 = dekodiereLoggerDatei(k1251);
+  pruefe("Kodierung: Windows-1251 mit kyrillischer Kopfzeile", t1251.startsWith("Дата;Температура"), JSON.stringify(t1251.slice(0, 20)));
+  const r1251 = liesLoggerDatei(t1251);
+  pruefe("Kodierung: eine Windows-1251-Datei ergibt die Messwerte (Spaltennamen Дата, Температура)", r1251.messwerte.length === 1 && r1251.messwerte[0].temperaturC === 3.5, JSON.stringify(r1251));
+}
+{
+  pruefe("Einheit: Kopf mit Klammern oder Gradzeichen", einheitAusKopf("Temperatur [K]") === "K" && einheitAusKopf("Temp. (°F)") === "F" && einheitAusKopf("Temperatur [°C]") === "C" && einheitAusKopf("Temperatur") === "C" && einheitAusKopf("Temp °F") === "F");
+  pruefe("Einheit: Kelvin wird umgerechnet (277,15 K sind 4,0 °C)", liesTemperatur("277,15", "K") === 4 && liesTemperatur("273.15", "K") === 0);
+  pruefe("Einheit: Fahrenheit wird umgerechnet (39,2 °F sind 4,0 °C)", liesTemperatur("39.2", "F") === 4 && liesTemperatur("32", "F") === 0);
+  pruefe("Einheit: nach der Umrechnung gilt der Bereich (400 K sind ausserhalb)", liesTemperatur("400", "K") === null && liesTemperatur("5", "K") === null);
+  const k = liesLoggerDatei("Zeit;Temperatur [K]\n14.10.2026 08:00;277,15\n14.10.2026 08:01;278,15\n");
+  pruefe("Datei: Temperatur in Kelvin laut Kopf", k.messwerte.map((m) => m.temperaturC).join() === "4,5" && k.ungueltig === 0, JSON.stringify(k.messwerte));
+  const f = liesLoggerDatei("Zeit,Temperature (°F)\n2026-10-14 08:00:00,39.2\n");
+  pruefe("Datei: Temperatur in Fahrenheit laut Kopf", f.messwerte.length === 1 && f.messwerte[0].temperaturC === 4);
+}
+{
+  const elpro = JSON.stringify({
+    data: [
+      { sensorId: "S-1", deviceId: "D-9", value: 277.15, timeStamp: "2026-10-14T03:00:00", unit: "K" },
+      { sensorId: "S-1", deviceId: "D-9", value: 4.5, timeStamp: "2026-10-14T03:01:00Z", unit: "°C" },
+      { sensorId: "S-1", deviceId: "D-9", value: 41, timeStamp: 1791946860, unit: "F" },
+    ],
+  });
+  const r = liesLoggerJson(elpro);
+  pruefe("elproCLOUD: Eintraege mit sensorId, Kelvin, Celsius und Fahrenheit werden gelesen", r.messwerte.length === 3 && r.ungueltig === 0, JSON.stringify(r));
+  pruefe("elproCLOUD: eine Zeit ohne Zone gilt als UTC (nicht als Almaty-Zeit)", r.messwerte[0].zeitpunkt === "2026-10-14T03:00:00.000Z" && r.messwerte[0].temperaturC === 4, JSON.stringify(r.messwerte[0]));
+  pruefe("elproCLOUD: 41 °F sind 5,0 °C", r.messwerte[2].temperaturC === 5, JSON.stringify(r.messwerte[2]));
+  const ohneKennung = liesLoggerJson(JSON.stringify([{ time: "2026-10-14 08:00:00", temperature: 4.5 }]));
+  pruefe("JSON ohne Geraetekennung: eine Zeit ohne Zone gilt weiter als Almaty-Zeit", ohneKennung.messwerte[0]?.zeitpunkt === "2026-10-14T03:00:00.000Z");
+  const objekt = liesLoggerJson(JSON.stringify({ unit: "K", readings: [{ time: "2026-10-14T03:00:00Z", value: 277.15 }, { time: "2026-10-14T03:01:00Z", value: 278.15, unit: "C" }] }));
+  pruefe("JSON: die Einheit am Objekt gilt, wo der Eintrag keine eigene hat (der Eintrag in °C wird als 278 °C abgelehnt)", objekt.messwerte.length === 1 && objekt.messwerte[0].temperaturC === 4 && objekt.ungueltig === 1, JSON.stringify(objekt));
+  const unbekannt = liesLoggerJson(JSON.stringify([{ time: "2026-10-14T03:00:00Z", value: 4.5, unit: "Rankine" }]));
+  pruefe("JSON: eine unbekannte Einheit wird nicht erraten", unbekannt.messwerte.length === 0 && unbekannt.ungueltig === 1);
+}
+{
+  const csv = "Zeit;Temperatur\n14.10.2026 08:00;3,5\n";
+  const almaty = liesLoggerDatei(csv).messwerte[0].zeitpunkt;
+  const utc = liesLoggerDatei(csv, "UTC").messwerte[0].zeitpunkt;
+  const berlin = liesLoggerDatei(csv, "Europe/Berlin").messwerte[0].zeitpunkt;
+  const moskau = liesLoggerDatei(csv, "Europe/Moscow").messwerte[0].zeitpunkt;
+  pruefe("Zeitzone: dieselbe Uhrzeit ergibt je nach gewählter Uhr des Loggers andere Zeitpunkte", almaty === "2026-10-14T03:00:00.000Z" && utc === "2026-10-14T08:00:00.000Z" && berlin === "2026-10-14T06:00:00.000Z" && moskau === "2026-10-14T05:00:00.000Z", JSON.stringify([almaty, utc, berlin, moskau]));
+  pruefe("Zeitzone: die Auswahl nennt die Betriebszeit zuerst und lehnt andere Angaben ab", LOGGER_ZEITZONEN[0] === "Asia/Almaty" && istLoggerZeitzone("UTC") && !istLoggerZeitzone("America/New_York") && !istLoggerZeitzone(""));
+}
+
+console.log("");
+if (fehlgeschlagen > 0) {
+  console.error(`${fehlgeschlagen} Pruefung(en) fehlgeschlagen.`);
+  process.exit(1);
+}
+console.log("Alle Pruefungen bestanden.");

@@ -12,8 +12,9 @@ import { readFileSync } from "node:fs";
 const R = process.cwd().split("\\").join("/") + "/";
 const dateien = execSync("git ls-files src", { cwd: R, encoding: "utf8" }).split("\n").filter((f) => /\.(tsx?)$/.test(f));
 
-/** Aufrufe, an denen eine Prüfung erkennbar ist (getSessionProfile auch ohne Klammern: als Abhängigkeit übergeben). */
-const PRUEF = /requirePermission\(|getSessionProfile\b|requireAal2Aktuell\(|auth\.getUser\(|verwaltungsProfil\(/;
+/** Aufrufe, an denen eine Prüfung erkennbar ist (getSessionProfile auch ohne Klammern: als Abhängigkeit übergeben). mitRecht() ist der Helfer in
+ *  src/lib/actions/zugriff.ts, der requirePermission() aufruft und den Fehler als Status zurückgibt (seit 15.10.2026, vorher sechs Kopien). */
+const PRUEF = /requirePermission\(|mitRecht\(|getSessionProfile\b|requireAal2Aktuell\(|auth\.getUser\(|verwaltungsProfil\(|sitzungFuerRoute\(/;
 
 /** Bewusst ohne Anmeldung erreichbar, jeweils mit Grund. */
 const OEFFENTLICH = new Map([
@@ -22,6 +23,9 @@ const OEFFENTLICH = new Map([
   ["src/app/[locale]/login/actions.ts abmelden", "Abmeldung"],
   ["src/app/[locale]/login/mfa/actions.ts mfaAnmeldenBestaetigen", "zweiter Faktor der Anmeldung (Sitzung aus Schritt 1)"],
   ["src/lib/actions/einladungen.ts einladungEinloesen", "Einladungscode statt Anmeldung, Digest-Prüfung im Rumpf"],
+  ["src/app/api/integrationen/ausliefern/route.ts GET", "Cron-Dienst ohne Sitzung: Bearer-Geheimnis CRON_SECRET, zeitkonstanter Vergleich, ohne Geheimnis 503"],
+  ["src/app/api/benachrichtigungen/erzeugen/route.ts GET", "Cron-Dienst ohne Sitzung: Bearer-Geheimnis CRON_SECRET, zeitkonstanter Vergleich, ohne Geheimnis 503"],
+  ["src/app/api/integrationen/bestaetigung/[key]/route.ts POST", "Rückmeldung des Partners ohne Sitzung: HMAC-Signatur mit dem Geheimnis der Integration, zeitkonstanter Vergleich, Zeitstempel innerhalb von fünf Minuten, sonst 401"],
 ]);
 
 function bloecke(text) {

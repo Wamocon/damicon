@@ -31,6 +31,7 @@ import { z } from "zod";
 import { hasPermission, type Role } from "@/lib/rbac";
 import { ladeMwstStatus } from "@/lib/data/mwst";
 import { ladeOffeneEsutdFristen } from "@/lib/data/esutd";
+import { ladeNachweisFristen } from "@/lib/data/dokumente";
 import { ladeCompliance } from "@/lib/data/compliance";
 import { ladeKuehlkettenUebersicht } from "@/lib/data/kuehlkette";
 import { baueRisikoEintraege, risikoAufbereiten, type RisikoRohdaten } from "@/lib/domain/risikoradar";
@@ -82,7 +83,7 @@ const mwstStatusAbrufen = tool({
 // --- Arbeitsrecht-Fachberater: ESUTD -----------------------------------------
 const esutdOffeneFristenAbrufen = tool({
   description:
-    "Ruft alle offenen ESUTD-Meldefristen ab (Arbeitsverträge, die innerhalb von 5 Werktagen nach Vertragsbeginn im ESUTD-System erfasst werden müssen). Nutze dieses Werkzeug für Fragen zu Arbeitsverträgen, ESUTD oder Meldefristen für Pflücker.",
+    "Ruft alle offenen ESUTD-Meldefristen ab: Abschluss, Änderung und Beendigung eines Arbeitsvertrags, die im ESUTD-System gemeldet werden müssen. Die Fristen stammen aus den Einstellungen des Betriebs (Standard: Abschluss 5 Arbeitstage nach Unterschrift, Änderung 15 Kalendertage, Beendigung 3 Arbeitstage). Nutze dieses Werkzeug für Fragen zu Arbeitsverträgen, ESUTD oder Meldefristen für Pflücker.",
   inputSchema: leeresSchema,
   execute: async () => {
     const fristen = await ladeOffeneEsutdFristen();
@@ -91,6 +92,7 @@ const esutdOffeneFristenAbrufen = tool({
       ziel: ZIEL_ESUTD,
       anzahl: fristen.length,
       fristen: fristen.map((f) => ({
+        art: f.art,
         pfluecker: f.pfluecker,
         meldefristAm: f.meldefristAm,
         ueberfaellig: new Date(f.meldefristAm).getTime() < jetzt,
@@ -149,7 +151,7 @@ const kuehlketteAbrufen = tool({
 // (tagesLageAbrufen, lib/ai/tages-lage.ts) nimmt dieselben Fristen auf, mit
 // derselben Rollenpruefung, statt sie ein zweites Mal zusammenzusuchen.
 /** Teilquellen des Radars, die ausfallen koennen - benannt wie die Kategorie ihrer Eintraege. */
-export type RadarAusfall = "steuer" | "datenschutz";
+export type RadarAusfall = "steuer" | "datenschutz" | "nachweis";
 
 /**
  * Welche geladenen Daten ins Radar duerfen (Fund 9 der Pruefung vom
@@ -169,12 +171,15 @@ export function radarRohdaten(geladen: {
     vorfaelle: (RisikoRohdaten["vorfaelleUeberfaellig"][number] & { ueberfaellig: boolean })[];
     drittweitergaben: (RisikoRohdaten["drittweitergabenUeberfaellig"][number] & { ueberfaellig: boolean })[];
   } | null;
+  /** Nachweisregister (WMCNL-1469). Ausfall der Quelle zaehlt wie bei den anderen: sie faellt weg und steht unter "ausgefallen". */
+  nachweise?: { fristen: RisikoRohdaten["nachweise"]; ausgefallen: boolean } | null;
 }): { rohdaten: RisikoRohdaten; ausgefallen: RadarAusfall[] } {
   const ausgefallen: RadarAusfall[] = [];
   const mwstAusfall = geladen.mwst?.quelle === "fehler";
   const cockpitAusfall = geladen.cockpit?.quelle === "fehler";
   if (mwstAusfall) ausgefallen.push("steuer");
   if (cockpitAusfall) ausgefallen.push("datenschutz");
+  if (geladen.nachweise?.ausgefallen) ausgefallen.push("nachweis");
   const mwst = mwstAusfall ? null : (geladen.mwst?.status ?? null);
   const cockpit = cockpitAusfall ? null : geladen.cockpit;
   return {
@@ -184,6 +189,7 @@ export function radarRohdaten(geladen: {
       esutdFristen: geladen.esutdFristen,
       vorfaelleUeberfaellig: cockpit?.vorfaelle.filter((v) => v.ueberfaellig) ?? [],
       drittweitergabenUeberfaellig: cockpit?.drittweitergaben.filter((d) => d.ueberfaellig) ?? [],
+      nachweise: geladen.nachweise?.ausgefallen ? [] : (geladen.nachweise?.fristen ?? []),
     },
     ausgefallen,
   };
@@ -193,12 +199,16 @@ export async function ladeRadarEintraege(rolle: Role | null | undefined) {
   const darfMwst = hasPermission(rolle, "stammdaten", "view");
   const darfEsutd = hasPermission(rolle, "personal", "view");
   const darfCompliance = hasPermission(rolle, "compliance", "view");
-  const [mwst, esutdFristen, cockpit] = await Promise.all([
+  // "update" statt "view": erzeuger und kunde haben im RBAC dokumente:view, die Zeilensicherheit
+  // (dokumente_select_buero) laesst aber nur das Buero das Register lesen.
+  const darfNachweise = hasPermission(rolle, "dokumente", "update");
+  const [mwst, esutdFristen, cockpit, nachweise] = await Promise.all([
     darfMwst ? ladeMwstStatus() : Promise.resolve(null),
     darfEsutd ? ladeOffeneEsutdFristen() : Promise.resolve([]),
     darfCompliance ? ladeCompliance() : Promise.resolve(null),
+    darfNachweise ? ladeNachweisFristen() : Promise.resolve(null),
   ]);
-  const { rohdaten, ausgefallen } = radarRohdaten({ mwst, esutdFristen, cockpit });
+  const { rohdaten, ausgefallen } = radarRohdaten({ mwst, esutdFristen, cockpit, nachweise });
   const eintraege = await baueRisikoEintraege(rohdaten);
   return { ...risikoAufbereiten(eintraege), ausgefallen };
 }
@@ -231,7 +241,7 @@ export function radarAntwort(ergebnis: Awaited<ReturnType<typeof ladeRadarEintra
 function baueRadar(rolle: Role | null | undefined) {
   return tool({
     description:
-      "Ruft ALLE offenen gesetzlichen Fristen zusammen ab (Steuer, Arbeitsrecht, Datenschutz), nach Dringlichkeit sortiert - überfällige zuerst. Nutze dieses Werkzeug, wenn nach dem GESAMTEN Risikostand gefragt wird, nicht nur nach einem einzelnen Bereich. Steht im Ergebnis fehler 'quelle-ausgefallen', konnten die Bereiche unter 'ausgefallen' nicht geladen werden: sage das, statt 'keine Fristen' zu melden.",
+      "Ruft ALLE offenen gesetzlichen Fristen zusammen ab (Steuer, Arbeitsrecht, Datenschutz) und abgelaufene oder bald ablaufende Nachweise (Zertifikate, Verträge, Genehmigungen), nach Dringlichkeit sortiert - überfällige zuerst. Nutze dieses Werkzeug, wenn nach dem GESAMTEN Risikostand gefragt wird, nicht nur nach einem einzelnen Bereich. Steht im Ergebnis fehler 'quelle-ausgefallen', konnten die Bereiche unter 'ausgefallen' nicht geladen werden: sage das, statt 'keine Fristen' zu melden.",
     inputSchema: leeresSchema,
     execute: async () => {
       return radarAntwort(await ladeRadarEintraege(rolle));

@@ -174,7 +174,7 @@ export const de: HandbuchTexte = {
 
   anleitungen: {
     einleitung:
-      "Sechs Abläufe, die den Kern des Betriebs abdecken. Die Pfade beziehen sich auf die Seitenleiste.",
+      "Zwölf Abläufe, die den Kern des Betriebs abdecken. Die Pfade beziehen sich auf die Seitenleiste.",
     liste: [
       {
         id: "wartezeit",
@@ -270,6 +270,126 @@ export const de: HandbuchTexte = {
           "Die Einordnung lässt sich später jederzeit ändern: In der Liste bei jedem Dokument „Einordnung ändern“ wählen, dann Cluster, Bereich, Quellenart und Textgrundlage ändern. Das Fenster zeigt, welche Stufe aus der Quellenart folgt und wie die Quelle im Bereich genutzt wird. Die Änderung wird protokolliert. Bei einem freigegebenen Upload ändert nicht die hochladende Person Bereich, Quellenart und Textgrundlage, sondern eine zweite (Vier-Augen-Prinzip, auch in der Datenbank erzwungen); der Cluster bleibt frei änderbar.",
           "Der KI-Assistent hilft bei der Verwaltung der Wissensbasis (nur Administration): Er gibt Überblick über Bestand und Verteilung, nennt, was auf Prüfung wartet oder nicht eingeordnet ist, analysiert ein Dokument und begründet, ob die Einordnung stimmt. Er prüft auch den Bestand auf Veraltetes, Dubletten und Dokumente, die schon in einem Buch stehen, zeigt auf Wunsch den Vergleich im Wortlaut und nennt die Qualität eines Dokuments in Prozent. Eine Änderung der Einordnung und das Entfernen von Dokumenten schlägt er als Karte vor, die Sie bestätigen. Dateien hochladen und Dokumente freigeben kann er nicht, das bleibt bei Ihnen und der zweiten Person.",
           "Die Liste lässt sich filtern: oben nach Cluster, darunter nach Suchbegriff im Titel, Bereich, Verlässlichkeit (amtlich, sicher, nur als Hinweis, unsicher, nicht eingeordnet), Quellenart, Status (zum Beispiel wartet auf Freigabe), Herkunft (hochgeladen oder Bestand) und der Rolle, für die ein Dokument sichtbar ist. Die Filter gelten zusammen, die Zahl hinter jedem Eintrag nennt die Treffer. Unsichere Quellen sind ungesicherte Internetquellen, die der Assistent nur im Notfall und gekennzeichnet nennt. Die Sammelprüfung wirkt nur auf die gezeigten Dokumente.",
+        ],
+      },
+      {
+        id: "esf",
+        titel: "Eine Lieferung mit ЭСФ belegen (Belegregister)",
+        einleitung:
+          "Seit 01.01.2026 muss jede Lieferung über das staatliche ЭСФ-System belegt werden. Das Portal stellt die ЭСФ nicht aus. Es führt das Register, bereitet die Angaben vor und zeigt, welche Lieferung noch keinen Beleg hat.",
+        schritte: [
+          "Als Administration, Geschäftsführung oder Buchhaltung Hof → Lieferschein (ЭСФ) öffnen. „Lieferungen ohne ЭСФ“ zeigt alle zugestellten Lieferungen ohne ausgestellten Beleg, die älteste zuerst. Das Alter zählt ab dem Liefertag. Die Frist steht unter Büro → Einstellungen (Standard 15 Kalendertage nach dem Liefertag, Steuerkodex Art. 493) und lässt sich dort ändern. Lieferungen über der Frist sind markiert.",
+          "„Entwurf erstellen“ legt ein Standbild der Angaben an: Käufer mit Identifikationsnummer, Sorte, Menge, Preis laut Preisliste am Liefertag und, wenn der Betrieb am Liefertag MwSt-registriert war, die MwSt. Was fehlt (Preis, Sorte, Identifikationsnummer, MwSt-Satz), steht unter „Dem Entwurf fehlt noch“. Ob die Preisliste netto oder brutto führt, steht an der Preisliste. Die ЭСФ rechnet immer netto plus Satz, bei einer Bruttoliste teilt der Entwurf den Gesamtbetrag. Den Entwurf vor dem Ausstellen mit der Buchhaltung abgleichen.",
+          "Die ЭСФ im staatlichen Portal mit diesen Angaben ausstellen. Danach im Register „Als ausgestellt erfassen“: ЭСФ-Nummer und Datum eintragen. Ab hier ändert sich der Entwurf nicht mehr.",
+          "Wird die ЭСФ bestätigt, „Bestätigung erfassen“. Wird sie abgelehnt, „Ablehnung erfassen“ mit Grund, danach „Neuen Entwurf beginnen“.",
+          "Papier ist nur bei einer Störung des staatlichen Systems zulässig. „Auf Papier führen“ verlangt deshalb eine Begründung. Bestätigte und auf Papier geführte Belege sind abgeschlossen.",
+          "Die Betriebsleitung sieht das Register, erfasst aber nichts. Einen Statuswechsel, den der Ablauf nicht kennt, weist die Datenbank ab. Jede Aktion steht im Protokoll. Die automatische Übergabe an das staatliche System folgt, sobald der Zugang der Behörde vorliegt.",
+        ],
+      },
+      {
+        id: "esutd",
+        titel: "Saisonverträge ins ЕСУТД melden (Meldeprozess)",
+        einleitung:
+          "Abschluss, Änderung und Beendigung jedes Saisonvertrags gehören in das staatliche Einheitssystem ЕСУТД. Das Portal meldet nicht selbst. Es zeigt, was zu melden ist, und hält fest, was gemeldet ist und womit es belegt ist.",
+        schritte: [
+          "Als Administration, Geschäftsführung oder Betriebsleitung Büro → Integrationen öffnen.",
+          "Unter „Neuen Abschluss anlegen“ Person, Vertragsbeginn und optional die Vertragsnummer eintragen. Für den Abschluss rechnet das Portal die Meldefrist: fünf Arbeitstage nach der Unterschrift beider Seiten (ohne Angabe: ab Vertragsbeginn), ohne Feiertagskalender. Ist sie verstrichen, steht „Frist überschritten“ an der Zeile und im Risiko-Radar.",
+          "Änderung und Beendigung unter „Änderung oder Beendigung anlegen“: Vertrag, Art, Datum und bei einer Änderung, was sich ändert. Für eine Änderung gelten 15 Kalendertage ab dem Datum der Änderung, für eine Beendigung drei Arbeitstage ab dem Ende. Die Tage stehen unter Büro → Einstellungen.",
+          "„Offene Meldungen als CSV“ lädt die Angaben (Name, Ausweis, Art, Datum, Vertragsnummer) als einfache Tabelle für die Eingabe im staatlichen System. Ein amtliches Importformat gibt es nicht. Die Datei enthält personenbezogene Daten: nach der Eingabe löschen. Jeder Abruf steht im Protokoll.",
+          "Nach der Meldung im staatlichen System „Als gemeldet erfassen“: Meldedatum (nicht in der Zukunft), optional Bestätigungsnummer und ein Beleg. Den Beleg zuerst im Nachweisregister hochladen (Büro → Dokumente, Kategorie ЕСУТД-Nachweis), dann hier auswählen.",
+          "Eine falsch erfasste Meldung lässt sich „Wieder öffnen“: Datum, Bestätigung und Beleg werden geleert. Eine noch offene Meldung lässt sich entfernen. In der Personal-Ansicht zeigt das ЕСУТД-Feld einer Person „offen“, solange eine ihrer Meldungen offen ist. Die Buchhaltung sieht die Liste, erfasst aber nichts.",
+        ],
+      },
+      {
+        id: "nachweis",
+        titel: "Einen Nachweis mit Gültigkeit führen",
+        einleitung:
+          "Zertifikate, Genehmigungen und Verträge haben ein Ende. Das Nachweisregister rechnet den Status aus dem Zeitraum, er wird nicht von Hand gesetzt.",
+        schritte: [
+          "Büro → Dokumente öffnen. Beim Aufnehmen oder über „Bearbeiten“ Gültig ab, Gültig bis (oder „Unbefristet gültig“), die Vorwarnung in Tagen (1 bis 365, Vorgabe 60), Verantwortlichen, Rechtsgrundlage und gegebenenfalls Partner eintragen.",
+          "Der Status lautet gültig, läuft ab (innerhalb der Vorwarnzeit), abgelaufen oder offen. Offen heißt: kein Zeitraum erfasst oder noch nicht wirksam. Das Portal erfindet keine Daten, ein Nachweis ohne Zeitraum fällt als Lücke auf.",
+          "„Gültig bis“ ist der letzte Gültigkeitstag, am Folgetag gilt der Nachweis als abgelaufen. Der Tag wechselt um Mitternacht in Almaty.",
+          "Die Kopfzeile zählt die Stände. Nachweise, die ablaufen oder abgelaufen sind, erscheinen auch im Risiko-Radar des Compliance-Cockpits.",
+        ],
+      },
+      {
+        id: "logger",
+        titel: "Die Datei eines Temperaturloggers importieren",
+        einleitung:
+          "Ein Temperaturlogger im Fahrzeug zeichnet die Temperatur der Fahrt auf. Das Portal übernimmt seine Datei, statt dass die Werte von Hand abgetippt werden.",
+        schritte: [
+          "Hof → Abholrunden öffnen und bei der geplanten Lieferung „Logger-Datei importieren“ aufklappen.",
+          "Die Datei des Loggers wählen. CSV: Zeit und Temperatur je Zeile, Trenner Komma, Semikolon oder Tabulator, Dezimalkomma oder Dezimalpunkt, bis 2 MB. Optional Seriennummer oder Fahrzeug als Kennung eintragen. JSON: eine Liste mit Zeit und Temperatur je Eintrag, die Zeit als Text oder als Unix-Zeit.",
+          "Zeiten ohne Zeitzone gelten in der Zeitzone, die unter „Uhr des Loggers“ gewählt ist (Standard Almaty, auch UTC, Berlin und Moskau). Übernommen werden Werte der letzten 24 Stunden. Ältere, solche in der Zukunft, doppelte und nicht lesbare Zeilen lässt das Portal aus und nennt die Zahlen nach dem Import.",
+          "Jeder Wert wird wie eine Handmessung bewertet (bis 4 Grad in Ordnung, bis 8 Grad Warnung, darüber Verstoß) und trägt die Herkunft „logger“. Eine zugestellte oder stornierte Lieferung nimmt keine Werte mehr an.",
+        ],
+      },
+      {
+        id: "wirtschaftlichkeit",
+        titel: "Die Wirtschaftlichkeit des Betriebs führen",
+        einleitung:
+          "Die Seite rechnet zuerst, was der Betrieb verdient: Erlöse, Kosten und Ergebnis über drei bis fünf Jahre. Darunter folgt die Rechnung, ob sich das System lohnt. Was nicht erfasst ist, bleibt offen, statt als Null zu erscheinen.",
+        schritte: [
+          "Büro → Wirtschaftlichkeit öffnen. Oben steht der Zeitraum der Rechnung: 3, 4 oder 5 Jahre. Er gilt für den Betrieb und für die Rechnung des Systems darunter.",
+          "Unter „Annahmen des Betriebs“ „Annahmen des Betriebs ändern“ aufklappen und für das erste Jahr die Jahresmenge, den Verkaufspreis je kg und die variablen Kosten je kg eintragen, dazu die jährliche Entwicklung von Menge, Preis, variablen Kosten und Fixkosten in Prozent und die Jahre der Abschreibung des Systems. Jeder Wert trägt seine Herkunft: belegt oder geschätzt. Der Hinweis darunter zeigt zum Vergleich Preis und Kosten je kg aus dem Finanzjournal der letzten zwölf Monate.",
+          "Unter „Fixkosten des Betriebs“ „Fixkosten erfassen“ aufklappen: Kosten, die nicht an der Erntemenge hängen (festes Personal, Pacht, Fahrzeuge, Versicherung, Verwaltung), je Jahr in Euro, Tenge oder Rubel, mit Herkunft. Jede Zeile lässt sich ändern und entfernen.",
+          "Fehlt für die Rechnung etwas, nennt die Seite es in einer Liste. Sind alle Angaben da, zeigt sie sechs Kennzahlen (Ergebnis im ersten und im letzten Jahr, Ergebnis über den ganzen Zeitraum, Umsatzrendite, Deckungsbeitrag je kg, Gewinnschwelle), ein Diagramm und die Rechnung Jahr für Jahr. Das System fließt mit Nutzen, laufenden Kosten und Abschreibung ein, sobald alle drei erfasst sind.",
+          "Unter „Zweitens: Lohnt sich das System?“ steht die Rechnung des Systems. Auf einer leeren Seite „Modellwerte übernehmen“ wählen, um mit den Werten der Kennzahlenliste vom 23.09.2026 zu beginnen: Investition und laufende Systemkosten als belegt, der Jahresnutzen als geschätzt.",
+          "Unter „Posten der Rechnung“ „Posten erfassen“ aufklappen: Art (Investition einmalig, laufende Systemkosten je Jahr, Nutzen je Jahr), Kategorie, Bezeichnung, Betrag, Währung (Euro, Tenge, Rubel), Datum und ob der Betrag belegt oder geschätzt ist. Jede Zeile lässt sich ändern und entfernen.",
+          "Unter „Annahmen“ den Kalkulationszins, den Wechselkurs mit Stichtag und Quelle, die Vollkosten je kg, die Jahresmenge und den ersten Monat des Echtbetriebs setzen. Die Jahresmenge kommt aus den Lieferungen, sobald diese ein volles Jahr abdecken.",
+          "Unter „Plan und Ist“ die tatsächlich vermiedenen Kosten je Monat erfassen. Sie stehen gegen den Plan und als Punkte auf den Kurven.",
+          "Mit „Aktuellen Stand festhalten“ wird die Rechnung samt Posten, Annahmen und Kurs eingefroren. Ein Stand ändert sich nie mehr, ein späterer Kurs verändert ihn nicht. „Als Dokument (PDF)“ gibt die Rechnung im Damicon-Layout aus.",
+          "Erfassen dürfen Administration, Geschäftsführung und Buchhaltung. Die Betriebsleitung sieht die Seite.",
+        ],
+      },
+      {
+        id: "abholrunde",
+        titel: "Eine Abholrunde bei Nachbarbetrieben fahren",
+        einleitung:
+          "Ein Fahrzeug holt Ware bei Nachbarbetrieben ab und bringt sie ins Kühlhaus. Ab dem Pflückbeginn zählt die 60-Minuten-Regel der Kühlkette.",
+        schritte: [
+          "Hof → Abholrunden öffnen. Das Büro plant unter „Abholrunde planen“ das Datum, das Fahrzeug, die Nachbarbetriebe und die erwartete Menge. Mit Anschrift ordnet das System die Stopps nach der kürzesten Strecke, ohne Anschrift stehen sie am Ende.",
+          "Der Fahrer öffnet die Runde und wählt „Runde starten“. Erst dann lassen sich Abholungen erfassen.",
+          "Bei jedem Stopp „Abholung erfassen“: die abgeholte Menge und die Antwort des Nachbarbetriebs, vor wie vielen Minuten das Pflücken begann. Fehlt die Angabe, wird die Abholung als Warnung gewertet. Ein Stopp, der nicht stattfindet, wird mit „Entfällt“ erfasst.",
+          "Sind alle Stopps erledigt, meldet der Fahrer die Ankunft im Kühlhaus. Bis 45 Minuten ab Pflückbeginn ist die Abholung in Ordnung, bis 60 Minuten eine Warnung, darüber ein Verstoß.",
+          "Abgeschlossene Runden ändern sich nicht mehr. „Abholauftrag (PDF)“ gibt den Auftrag für den Fahrer aus, nach dem Abschluss den Nachweis, beides im Damicon-Layout.",
+        ],
+      },
+      {
+        id: "auslieferung",
+        titel: "Eine Integration an ein Partnersystem anbinden",
+        einleitung:
+          "Ereignisse wie ein ausgestellter ЭСФ-Beleg lassen sich als signierter Webhook an ein Partnersystem ausliefern, zum Beispiel an die Buchhaltung. Ohne ausdrückliche Aktivierung verlässt kein Datensatz das System.",
+        schritte: [
+          "Als Administration Büro → Integrationen öffnen und unten den Abschnitt „Auslieferung an Partnersysteme“ suchen.",
+          "Bei der Integration „Konfigurieren“ aufklappen: Art „Webhook“, die https-Adresse des Partners und den Namen der Umgebungsvariable, die das gemeinsame Geheimnis hält, zum Beispiel DAMICON_HOOK_ESF. Das Geheimnis selbst steht nie im Portal, es wird in der Umgebung des Servers gesetzt.",
+          "„Auslieferung aktiv“ anhaken und speichern. Fehlt die Variable auf dem Server, sagt das Portal es, und es wird nichts ausgeliefert.",
+          "Das Partnersystem prüft die Signatur im Kopf X-Damicon-Signatur (HMAC-SHA256 über Zeitstempel und Inhalt) und erkennt Wiederholungen am Idempotency-Key.",
+          "Die Warteschlange zeigt jedes Ereignis mit seinem Status. Ein vorläufiger Fehler wird nach 1, 5, 15, 60 und 240 Minuten wiederholt, danach steht der Eintrag auf „gescheitert“. „Erneut versuchen“ und „Jetzt ausliefern“ sind der Administration und der Geschäftsführung vorbehalten.",
+        ],
+      },
+      {
+        id: "rollen",
+        titel: "Rollen vergeben",
+        einleitung:
+          "Die Rolle eines Kontos bestimmt, was es sehen und tun darf. Vergeben kann sie nur die Administration.",
+        schritte: [
+          "Als Administration Büro → Rollen und Rechte öffnen. Unter „Konten und Rollen“ steht jedes Konto mit seiner Rolle.",
+          "In der Zeile die neue Rolle wählen und „Speichern“. Die Änderung gilt ab der nächsten Seite, die das Konto öffnet.",
+          "Die eigene Rolle lässt sich hier nicht ändern. Kundenkonten entstehen über Einladungen und behalten ihre Rolle.",
+          "Der letzte Administrator behält seine Rolle: die Datenbank weist den Entzug ab, auch bei direktem Zugriff. Jede Änderung steht im Protokoll, mit der alten und der neuen Rolle.",
+        ],
+      },
+      {
+        id: "nachrichten",
+        titel: "Nachrichten zu einer Vorbestellung und Lieferplan",
+        einleitung:
+          "Absprachen zu Menge und Termin bleiben an der Vorbestellung, statt in Telefonaten und Messengern zu verschwinden.",
+        schritte: [
+          "Markt → B2B-Portal öffnen. Unter „Nachrichten zu Vorbestellungen“ steht je Vorbestellung ein Verlauf. Der Kunde sieht nur seine eigenen, das Büro alle.",
+          "Eine Vorbestellung aufklappen, die Nachricht schreiben (bis 2000 Zeichen) und „Senden“. Autor, Rolle und Zeitpunkt setzt die Datenbank aus der Anmeldung.",
+          "Gesendete Nachrichten lassen sich nicht ändern oder löschen. Zu einer stornierten Vorbestellung gibt es keine neuen Nachrichten.",
+          "„Lieferplan als Kalenderdatei“ lädt die kommenden Liefertermine als ICS-Datei für den Kalender. Es ist ein Download an die Sitzung, kein Abo-Link: zum Aktualisieren erneut herunterladen. Der Kunde bekommt nur seine Termine.",
         ],
       },
     ],
@@ -390,7 +510,7 @@ export const de: HandbuchTexte = {
 
     schnittstellenTitel: "Schnittstellen",
     schnittstellenEinleitung:
-      "Sechs Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.",
+      "Neun Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.",
     spalteAufgabe: "Aufgabe",
     schnittstellen: [
       {
@@ -434,6 +554,18 @@ export const de: HandbuchTexte = {
         aufgabe:
           "Nimmt die Meldungen aus der Warteschlange entgegen, die im Feld ohne Netz entstanden sind. Sie laufen durch dieselbe Prüfung wie die zugehörigen Formulare.",
         zugriff: "Angemeldet, zweiter Faktor aktuell",
+      },
+      {
+        pfad: "/api/lieferplan",
+        aufgabe:
+          "Liefert die kommenden Liefertermine als Kalenderdatei (ICS). Ein Download an die Sitzung, kein Abo-Link mit Geheimnis in der Adresse. Der Kunde bekommt nur seine Termine, das Büro alle.",
+        zugriff: "Recht am B2B-Portal, zweiter Faktor aktuell",
+      },
+      {
+        pfad: "/api/esutd/export",
+        aufgabe:
+          "Die Angaben der ЕСУТД-Meldungen als CSV-Datei für die Eingabe im staatlichen System, offene oder alle. Sie enthält personenbezogene Daten, deshalb steht jeder Abruf im Protokoll.",
+        zugriff: "Recht, Personal zu ändern, zweiter Faktor aktuell",
       },
     ],
   },

@@ -72,6 +72,7 @@ class Abfrage implements PromiseLike<{ data: unknown; error: AttrappenFehler | n
   private filter: Filter[] = [];
   private sortierung: { spalte: string; aufsteigend: boolean }[] = [];
   private grenze: number | null = null;
+  private bereich: [number, number] | null = null;
   private zaehlen = false;
   private nurKopf = false;
   private einzeln = false;
@@ -139,6 +140,10 @@ class Abfrage implements PromiseLike<{ data: unknown; error: AttrappenFehler | n
     this.grenze = anzahl;
     return this;
   }
+  range(von: number, bis: number) {
+    this.bereich = [von, bis];
+    return this;
+  }
   maybeSingle() {
     this.einzeln = true;
     return this;
@@ -157,7 +162,8 @@ class Abfrage implements PromiseLike<{ data: unknown; error: AttrappenFehler | n
       }
       return 0;
     });
-    const geschnitten = this.grenze === null ? sortiert : sortiert.slice(0, this.grenze);
+    const begrenzt = this.grenze === null ? sortiert : sortiert.slice(0, this.grenze);
+    const geschnitten = this.bereich === null ? begrenzt : begrenzt.slice(this.bereich[0], this.bereich[1] + 1);
     this.protokoll.push({ tabelle: this.tabelle, count: this.zaehlen, head: this.nurKopf, treffer: passend.length });
     const count = this.zaehlen ? passend.length : null;
     if (this.nurKopf) return { data: null, error: null, count };

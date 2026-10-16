@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
-import { berechneTemperatursummen, saisonStart, type WetterTag } from "@/lib/domain/wetter";
+import { berechneTemperatursummen, saisonStart, summeBis, type WetterTag } from "@/lib/domain/wetter";
 
 // Wetteranbindung mit Temperatursummen-Heuristik (Anforderung 2.13). RLS
 // (wetter_messungen_select_intern) laesst jede angemeldete Rolle lesen -
@@ -10,6 +10,8 @@ import { berechneTemperatursummen, saisonStart, type WetterTag } from "@/lib/dom
 export interface WetterUebersicht {
   quelle: Datenquelle;
   tage: WetterTag[];
+  /** Die erste Ernte (Charge) der laufenden Saison und die Wärmesumme an diesem Tag; null ohne Ernte oder ohne Lesezugriff auf die Chargen. */
+  ersteErnte: { datum: string; summe: number | null } | null;
 }
 
 const demoTage: WetterTag[] = berechneTemperatursummen(
@@ -26,7 +28,7 @@ const demoTage: WetterTag[] = berechneTemperatursummen(
 );
 
 function demoUebersicht(quelle: WetterUebersicht["quelle"] = "demo"): WetterUebersicht {
-  return { quelle, tage: demoTage };
+  return { quelle, tage: demoTage, ersteErnte: null };
 }
 
 export async function ladeWetterUebersicht(): Promise<WetterUebersicht> {
@@ -50,14 +52,17 @@ export async function ladeWetterUebersicht(): Promise<WetterUebersicht> {
   const jeTag = new Map<string, (typeof data)[number]>();
   for (const zeile of data) jeTag.set(zeile.gemessen_am, zeile);
 
-  return {
-    quelle: "db",
-    tage: [...jeTag.values()].map((t) => ({
-      datum: t.gemessen_am,
-      tempMinC: t.temp_min_c === null ? null : Number(t.temp_min_c),
-      tempMaxC: t.temp_max_c === null ? null : Number(t.temp_max_c),
-      niederschlagMm: t.niederschlag_mm === null ? null : Number(t.niederschlag_mm),
-      temperatursumme: Number(t.temperatursumme ?? 0),
-    })),
-  };
+  const tage: WetterTag[] = [...jeTag.values()].map((t) => ({
+    datum: t.gemessen_am,
+    tempMinC: t.temp_min_c === null ? null : Number(t.temp_min_c),
+    tempMaxC: t.temp_max_c === null ? null : Number(t.temp_max_c),
+    niederschlagMm: t.niederschlag_mm === null ? null : Number(t.niederschlag_mm),
+    temperatursumme: Number(t.temperatursumme ?? 0),
+  }));
+
+  // Die erste Ernte der Saison ordnet die Zahl ein: was die Pflanzen bis dahin an Wärme hatten. Eine Zeile genügt.
+  const { data: ernte } = await supabase.from("chargen").select("ernte_datum").gte("ernte_datum", start).order("ernte_datum", { ascending: true }).limit(1);
+  const erste = ernte?.[0]?.ernte_datum ?? null;
+
+  return { quelle: "db", tage, ersteErnte: erste === null ? null : { datum: erste, summe: summeBis(tage, erste)?.summe ?? null } };
 }

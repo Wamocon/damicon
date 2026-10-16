@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { dokumentAendern, dokumentAnlegen } from "@/lib/actions/dokumente";
+import { dokumentAendern, dokumentAnlegen, dokumentNeueVersion } from "@/lib/actions/dokumente";
 import { leer } from "@/lib/actions/status";
 import {
   AktionsMeldung,
@@ -13,6 +13,8 @@ import {
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
+import type { DokumentZeile, NachweisOptionen } from "@/lib/data/dokumente";
+import { WARNUNG_TAGE_MAX, WARNUNG_TAGE_MIN, WARNUNG_TAGE_STANDARD } from "@/lib/domain/nachweise";
 
 const kategorien = [
   "spritzmittelprotokoll",
@@ -23,56 +25,94 @@ const kategorien = [
   "sonstiges",
 ] as const;
 
-const statusWerte = ["gueltig", "prueflauf", "abgelaufen"] as const;
+/** Die Werte, mit denen das Formular beim Aendern vorbelegt wird. */
+type Vorbelegung = Pick<
+  DokumentZeile,
+  | "gueltigVon"
+  | "gueltigBis"
+  | "unbefristet"
+  | "warnungTage"
+  | "verantwortlichId"
+  | "rechtsgrundlage"
+  | "partnerArt"
+  | "partnerId"
+>;
+
+// Die Felder des Registers, die beim Anlegen und beim Aendern gleich sind:
+// Gueltigkeit, Vorwarnzeit, Verantwortlicher, Rechtsgrundlage und Partner. Der
+// Status steht nicht darunter, er folgt aus dem Zeitraum. Jedes Feld traegt
+// seinen aktuellen Wert als key: aendert sich der Wert nach einem
+// revalidatePath(), wird das Feld neu aufgebaut und zeigt nicht den Stand von
+// vor dem Speichern.
+function NachweisFelder({ werte, optionen }: { werte?: Vorbelegung; optionen: NachweisOptionen }) {
+  const t = useTranslations("dokumenteVerwaltung");
+  const partnerWert = werte?.partnerArt && werte.partnerId ? `${werte.partnerArt}:${werte.partnerId}` : "";
+  return (
+    <>
+      <Feld key={`von-${werte?.gueltigVon ?? ""}`} label={t("feld.gueltigVon")} name="gueltig_von" type="date" defaultValue={werte?.gueltigVon ?? ""} />
+      <Feld key={`bis-${werte?.gueltigBis ?? ""}`} label={t("feld.gueltigBis")} name="gueltig_bis" type="date" defaultValue={werte?.gueltigBis ?? ""} />
+      <label className="flex items-end gap-2 pb-2 schrift-label font-semibold text-card-foreground">
+        <input key={`unbef-${werte?.unbefristet}`} type="checkbox" name="unbefristet" defaultChecked={werte?.unbefristet ?? false} className="h-3.5 w-3.5" />
+        {t("feld.unbefristet")}
+      </label>
+      <Feld
+        key={`warn-${werte?.warnungTage ?? ""}`}
+        label={t("feld.warnungTage")}
+        name="warnung_tage"
+        type="number"
+        defaultValue={String(werte?.warnungTage ?? WARNUNG_TAGE_STANDARD)}
+        hinweis={t("hinweis.warnungTage", { min: WARNUNG_TAGE_MIN, max: WARNUNG_TAGE_MAX })}
+      />
+      <Auswahl
+        key={`verantw-${werte?.verantwortlichId ?? ""}`}
+        label={t("feld.verantwortlich")}
+        name="verantwortlich_id"
+        defaultValue={werte?.verantwortlichId ?? ""}
+        options={[{ wert: "", text: t("keinVerantwortlicher") }, ...optionen.verantwortliche.map((p) => ({ wert: p.id, text: p.label }))]}
+      />
+      <Auswahl
+        key={`partner-${partnerWert}`}
+        label={t("feld.partner")}
+        name="partner"
+        defaultValue={partnerWert}
+        options={[{ wert: "", text: t("keinPartner") }, ...optionen.partner]}
+      />
+      <Feld key={`recht-${werte?.rechtsgrundlage ?? ""}`} label={t("feld.rechtsgrundlage")} name="rechtsgrundlage" defaultValue={werte?.rechtsgrundlage ?? ""} placeholder={t("beispiel.rechtsgrundlage")} />
+    </>
+  );
+}
 
 export function DokumentFormular({
   dossiers = [],
+  optionen,
 }: {
   /** Foerderdossiers zur Auswahl (Anforderung 4.12). Leer im Demo-Modus. */
   dossiers?: { id: string; bezeichnung: string }[];
+  optionen: NachweisOptionen;
 }) {
   const [status, action] = useActionState(dokumentAnlegen, leer);
   const pfad = usePathname();
   const t = useTranslations("dokumenteVerwaltung");
   const k = useTranslations("dokumentKategorie");
-  const s = useTranslations("dokumenteDemo.status");
 
   return (
     <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
         <input type="hidden" name="pfad" value={pfad} />
-        <Feld
-          label={t("feld.name")}
-          name="name"
-          required
-          placeholder={t("beispiel.name")}
-        />
-        <Auswahl
-          label={t("feld.kategorie")}
-          name="kategorie"
-          options={kategorien.map((wert) => ({ wert, text: k(wert) }))}
-        />
+        <Feld label={t("feld.name")} name="name" required placeholder={t("beispiel.name")} />
+        <Auswahl label={t("feld.kategorie")} name="kategorie" options={kategorien.map((wert) => ({ wert, text: k(wert) }))} />
         <Feld label={t("feld.bezug")} name="bezug" placeholder="T-N-A-04" />
         <Feld label={t("feld.stand")} name="stand" type="date" />
-        <Auswahl
-          label={t("feld.status")}
-          name="status"
-          options={statusWerte.map((wert) => ({ wert, text: s(wert) }))}
-        />
+        <NachweisFelder optionen={optionen} />
         {dossiers.length > 0 ? (
           <Auswahl
             label={t("feld.foerderdossier")}
             name="foerderdossier_id"
-            options={[
-              { wert: "", text: t("keinDossier") },
-              ...dossiers.map((d) => ({ wert: d.id, text: d.bezeichnung })),
-            ]}
+            options={[{ wert: "", text: t("keinDossier") }, ...dossiers.map((d) => ({ wert: d.id, text: d.bezeichnung }))]}
           />
         ) : null}
         <label className="block space-y-1">
-          <span className="text-[11px] font-semibold text-card-foreground">
-            {t("feld.datei")}
-          </span>
+          <span className="text-[11px] font-semibold text-card-foreground">{t("feld.datei")}</span>
           <input
             type="file"
             name="datei"
@@ -92,84 +132,86 @@ export function DokumentFormular({
   );
 }
 
-// Zeilenformular: Bezeichnung, Bezug, Stand und Status eines vorhandenen
-// Dokuments nachfuehren. Aufbau wie ZukaufPreisNachtragenFormular, schmal
-// genug fuer eine Tabellenzelle, mit eigener Rueckmeldung je Zeile.
-//
-// Die Felder sind unkontrolliert (defaultValue). Damit sie nach einem
-// revalidatePath() nicht auf dem Stand von vor dem Neuladen stehen bleiben, und
-// ein spaeteres Speichern fremde Aenderungen nicht zurueckschreibt, tragen sie
-// den aktuellen Wert als key: aendert sich der Wert, wird das Feld neu
-// aufgebaut. Die Rueckmeldung der Zeile bleibt dabei erhalten.
+// Aendern: Bezeichnung, Bezug, Stand und alle Felder des Registers eines
+// vorhandenen Dokuments. Steht in einer aufklappbaren Zeile der Tabelle, mit
+// eigener Rueckmeldung je Dokument. Die Datei bleibt unangetastet.
 export function DokumentAendernFormular({
-  id,
-  name,
-  bezug,
-  bezugAnzeige,
-  stand,
-  status,
+  dokument,
+  optionen,
 }: {
-  id: string;
-  name: string;
-  /** Der gespeicherte Bezug, null wenn keiner gesetzt ist. */
-  bezug: string | null;
-  /** Anzeigewert (Block- oder Chargencode als Fallback), nur als Platzhalter. */
-  bezugAnzeige?: string;
-  stand: string | null;
-  status: string;
+  dokument: Pick<DokumentZeile, "id" | "name" | "bezugRoh" | "stand"> & Vorbelegung & { bezug: string };
+  optionen: NachweisOptionen;
 }) {
   const [zustand, action] = useActionState(dokumentAendern, leer);
   const t = useTranslations("dokumenteVerwaltung");
-  const s = useTranslations("dokumenteDemo.status");
 
   return (
-    <form action={action} className="flex flex-wrap items-end gap-1.5">
+    <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
       <PfadFeld />
-      <input type="hidden" name="id" value={id} />
-      <input
-        key={`name-${name}`}
-        name="name"
-        defaultValue={name}
-        required
-        aria-label={t("feld.name")}
-        className="h-7 w-36 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition focus:border-primary"
-      />
-      <input
-        key={`bezug-${bezug ?? ""}`}
+      <input type="hidden" name="id" value={dokument.id} />
+      <Feld key={`name-${dokument.name}`} label={t("feld.name")} name="name" required defaultValue={dokument.name} />
+      <Feld
+        key={`bezug-${dokument.bezugRoh ?? ""}`}
+        label={t("feld.bezug")}
         name="bezug"
-        defaultValue={bezug ?? ""}
-        placeholder={bezug ? undefined : bezugAnzeige || undefined}
-        aria-label={t("feld.bezug")}
-        className="h-7 w-24 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary"
+        defaultValue={dokument.bezugRoh ?? ""}
+        placeholder={dokument.bezugRoh ? undefined : dokument.bezug || undefined}
       />
-      <input
-        key={`stand-${stand ?? ""}`}
-        name="stand"
-        type="date"
-        defaultValue={stand ?? ""}
-        aria-label={t("feld.stand")}
-        className="h-7 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition focus:border-primary"
-      />
-      <select
-        key={`status-${status}`}
-        name="status"
-        defaultValue={status}
-        aria-label={t("feld.status")}
-        className="h-7 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition focus:border-primary"
-      >
-        {statusWerte.map((wert) => (
-          <option key={wert} value={wert}>
-            {s(wert)}
-          </option>
-        ))}
-      </select>
-      <button
-        type="submit"
-        className="inline-flex h-7 items-center justify-center rounded-md border border-border bg-card px-2 text-[11px] font-bold text-foreground transition hover:border-primary"
-      >
-        {t("aendernKnopf")}
-      </button>
-      <AktionsMeldung status={zustand} />
+      <Feld key={`stand-${dokument.stand ?? ""}`} label={t("feld.stand")} name="stand" type="date" defaultValue={dokument.stand ?? ""} />
+      <NachweisFelder werte={dokument} optionen={optionen} />
+      <div className="sm:col-span-2 lg:col-span-3 flex flex-wrap items-center gap-3">
+        <SubmitKnopf label={t("aendernKnopf")} status={zustand} />
+        <AktionsMeldung status={zustand} />
+      </div>
+    </form>
+  );
+}
+
+// Neue Version: das Zertifikat wurde erneuert. Vorbelegt mit den Werten der aktuellen Version, der Zeitraum ist neu einzutragen. Die alte
+// Version bleibt als frühere Version erhalten und zählt nicht mehr als aktuell.
+export function DokumentNeueVersionFormular({
+  dokument,
+  optionen,
+}: {
+  dokument: Pick<DokumentZeile, "id" | "name" | "bezugRoh" | "stand" | "warnungTage" | "verantwortlichId" | "rechtsgrundlage" | "partnerArt" | "partnerId">;
+  optionen: NachweisOptionen;
+}) {
+  const [zustand, action] = useActionState(dokumentNeueVersion, leer);
+  const t = useTranslations("dokumenteVerwaltung");
+  const n = useTranslations("nachweisregister");
+  const werte: Vorbelegung = {
+    gueltigVon: null,
+    gueltigBis: null,
+    unbefristet: false,
+    warnungTage: dokument.warnungTage,
+    verantwortlichId: dokument.verantwortlichId,
+    rechtsgrundlage: dokument.rechtsgrundlage,
+    partnerArt: dokument.partnerArt,
+    partnerId: dokument.partnerId,
+  };
+
+  return (
+    <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+      <PfadFeld />
+      <input type="hidden" name="vorgaenger_id" value={dokument.id} />
+      <p className="text-[11px] leading-4 text-muted-foreground sm:col-span-2 lg:col-span-3">{n("versionLead")}</p>
+      <Feld label={t("feld.name")} name="name" required defaultValue={dokument.name} />
+      <Feld label={t("feld.bezug")} name="bezug" defaultValue={dokument.bezugRoh ?? ""} />
+      <Feld label={t("feld.stand")} name="stand" type="date" defaultValue={dokument.stand ?? ""} />
+      <NachweisFelder werte={werte} optionen={optionen} />
+      <label className="block space-y-1">
+        <span className="text-[11px] font-semibold text-card-foreground">{t("feld.datei")}</span>
+        <input
+          type="file"
+          name="datei"
+          accept="application/pdf,image/jpeg,image/png,image/webp"
+          className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs file:font-semibold file:text-foreground"
+        />
+      </label>
+      <div className="sm:col-span-2 lg:col-span-3 flex flex-wrap items-center gap-3">
+        <SubmitKnopf label={t("versionKnopf")} status={zustand} />
+        <AktionsMeldung status={zustand} />
+      </div>
     </form>
   );
 }

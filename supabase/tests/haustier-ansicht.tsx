@@ -464,6 +464,71 @@ async function huellePlatz(): Promise<void> {
   schliesse();
 }
 
+/** Himbi weicht dem angedockten Panel nur aus, wenn es sie verdecken würde (Rückmeldung vom 15.10.2026). Das Fenster ist 1600 px breit, das Panel 400 px
+ *  (die Messsonde liest --ki-pane-breite; jsdom hat kein Layout). Himbi steht standardmäßig 20 px vom rechten Rand.
+ *  Nicht hier: Neu rechnen bei geänderter Panelbreite (MutationObserver am Dokument). Das verlässt sich auf Ereignisse, die jsdom nicht zuverlässig
+ *  liefert (ein zweiter Lauf störte die folgenden Fälle); es steht im Browsertest e2e/himbi-panel.spec.ts. */
+function mitPanelSonde<T>(lauf: () => Promise<T>): Promise<T> {
+  setzeFenster({ breite: 1600 }, false);
+  const proto = window.Element.prototype;
+  const echt = proto.getBoundingClientRect;
+  proto.getBoundingClientRect = function (this: Element) {
+    if (this instanceof window.HTMLElement && this.style.cssText.includes("--ki-pane-breite")) {
+      const breite = parseFloat(document.documentElement.style.getPropertyValue("--ki-pane-breite")) || 400;
+      return { x: 0, y: 0, left: 0, top: 0, width: breite, height: 0, right: breite, bottom: 0, toJSON: () => ({}) } as DOMRect;
+    }
+    return echt.call(this);
+  };
+  return lauf().finally(() => {
+    proto.getBoundingClientRect = echt;
+    document.documentElement.removeAttribute("style");
+  });
+}
+const paneSchub = () => wurzel()?.style.getPropertyValue("--hb-pane-schub") ?? "";
+
+async function huelleAusweichen(): Promise<void> {
+  const uhr = neuerFall("huelle-ausweichen");
+  await mitPanelSonde(async () => {
+    // Standardposition: das Panel würde sie verdecken, sie rückt um die ganze Panelbreite (wie bisher)
+    const { ansicht, neu: neuProps } = zeigeHuelle();
+    pruefe("Ausweichen: zu geschlossenem Panel gibt es weder Schub noch Marke", paneSchub() === "" && daten("pane-verdeckt") === null);
+    neuProps({ paneOffen: true });
+    halte("Standardposition, Panel auf");
+    pruefe("Ausweichen: an der Standardposition rückt Himbi um die ganze Panelbreite", paneSchub() === "400px" && daten("pane-verdeckt") === "true", `${paneSchub()} ${daten("pane-verdeckt")}`);
+    neuProps({ paneOffen: false });
+    halte("Panel zu");
+    pruefe("Ausweichen: beim Schließen fallen Schub und Marke weg", paneSchub() === "" && daten("pane-verdeckt") === null);
+    ansicht.unmount();
+    pruefe("Ausweichen: beim Abbau bleiben weder Zeitgeber noch Bilder", uhr.offen().zeitgeber === 0 && uhr.offen().intervalle === 0 && uhr.offen().bilder === 0, json(uhr.offen()));
+  });
+  schliesse();
+}
+
+async function huelleAusweichenLinks(): Promise<void> {
+  neuerFall("huelle-ausweichen-links");
+  await mitPanelSonde(async () => {
+    // Himbi wurde weit nach links gezogen (800 px): das Panel berührt sie nie, sie bleibt stehen
+    localStorage.setItem("damicon-haustier-pos", json({ x: -800, y: -30 }));
+    const { ansicht, neu: neuProps } = zeigeHuelle();
+    neuProps({ paneOffen: true });
+    halte("weit links, Panel auf");
+    pruefe("Ausweichen: steht Himbi weit links, bewegt sie sich nicht (Schub 0, nicht verdeckt)", paneSchub() === "0px" && daten("pane-verdeckt") === "false", `${paneSchub()} ${daten("pane-verdeckt")}`);
+    ansicht.unmount();
+  });
+  schliesse();
+}
+
+async function huelleAusweichenBuehne(): Promise<void> {
+  neuerFall("huelle-ausweichen-buehne");
+  await mitPanelSonde(async () => {
+    // Auf der Bühne (Mitte) rechnet Himbi nicht: Standardwerte
+    const { ansicht } = zeigeHuelle({ paneOffen: true, buehne: true });
+    pruefe("Ausweichen: auf der Bühne gibt es weder Schub noch Marke", paneSchub() === "" && daten("pane-verdeckt") === null, `${paneSchub()} ${daten("pane-verdeckt")}`);
+    ansicht.unmount();
+  });
+  schliesse();
+}
+
 async function huelleSpeicher(): Promise<void> {
   const uhr = neuerFall("huelle-speicher");
   localStorage.setItem("damicon-haustier-pos", "kaputt{");
@@ -1291,14 +1356,21 @@ async function dashboardTipp(): Promise<void> {
   halte("zurück: der Tipp ist wieder da");
   klicke("Später");
   halte("Später");
-  await ausloesen(() => navigation.setzePfad("/dashboard/hof/lieferschein-esf"));
+  // Ein Modul im Reifegrad "in-entwicklung": seit WMCNL-2470 ist auch die Wirtschaftlichkeit angebunden und kein Modul mehr ein
+  // Platzhalter. Der Fall braucht eines, das es ist: die Wirtschaftlichkeit wird fuer die Dauer des Falls so gesetzt.
+  const { modules: modulListe } = await import("@/lib/modules");
+  const platzhalter = modulListe.find((m) => m.key === "wirtschaftlichkeit");
+  if (!platzhalter) throw new Error("Modul wirtschaftlichkeit fehlt");
+  platzhalter.reifegrad = "in-entwicklung";
+  await ausloesen(() => navigation.setzePfad("/dashboard/buero/wirtschaftlichkeit"));
   await uhr.vor(8000);
   halte("Modul in Entwicklung: kein Tipp");
+  platzhalter.reifegrad = "angebunden";
   await lageNeu({ role: "picker" });
   await ausloesen(() => navigation.setzePfad("/dashboard/hof/kuehlkette"));
   await uhr.vor(8000);
   halte("Rolle ohne Recht: kein Tipp");
-  pruefe("Dashboard: kein Tipp auf Platzhalterseiten und ohne Leserecht", blasenText() === null && sessionStorage.getItem("damicon-haustier-tipp:esf") === null && sessionStorage.getItem("damicon-haustier-tipp:kuehlkette") === null);
+  pruefe("Dashboard: kein Tipp auf Platzhalterseiten und ohne Leserecht", blasenText() === null && sessionStorage.getItem("damicon-haustier-tipp:wirtschaftlichkeit") === null && sessionStorage.getItem("damicon-haustier-tipp:kuehlkette") === null);
   await lageNeu({ role: "admin" });
   await ausloesen(() => setzeSichtbarkeit("hidden"));
   await uhr.vor(7000);
@@ -1927,6 +1999,9 @@ const FAELLE = [
   huellePlatz,
   huelleSpeicher,
   huelleZiehen,
+  huelleAusweichen,
+  huelleAusweichenLinks,
+  huelleAusweichenBuehne,
   huelleKlick,
   huelleWegschicken,
   huelleErleichtert,

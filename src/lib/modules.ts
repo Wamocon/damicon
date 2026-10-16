@@ -154,7 +154,10 @@ export const modules: ModuleDef[] = [
     slug: "lieferschein-esf",
     icon: "file-check-2",
     resource: "integrationen",
-    reifegrad: "in-entwicklung",
+    // WMCNL-1440 (Stufe 1): Belegregister unter RLS (esf_belege) mit Entwurf, Status und der Liste der
+    // Lieferungen ohne ЭСФ. Die Anbindung an das staatliche System (Stufe 2) steht noch aus: sie
+    // braucht den Zugang der Behoerde.
+    reifegrad: "angebunden",
   },
 
   // --------------------------------------------------------------- Zone Buero
@@ -199,10 +202,12 @@ export const modules: ModuleDef[] = [
     // Jahre. Nebeneinander in der Leiste ist der Unterschied leichter zu
     // erklaeren als quer durch das Menue verteilt.
     //
-    // Die Zahlen sind noch Modellwerte aus der Kennzahlenliste der
-    // Geschaeftsfuehrung (lib/domain/wirtschaftlichkeit.ts), nicht aus dem
-    // Betrieb - deshalb "in-entwicklung", obwohl die Seite rechnet.
-    reifegrad: "in-entwicklung",
+    // Seit WMCNL-2470 rechnet die Seite aus erfassten Posten und Annahmen
+    // (Tabellen wirtschaftlichkeit_*, Migration 20261207090000), mit Plan-Ist-
+    // Vergleich und festgehaltenen Staenden. Die Modellwerte der
+    // Kennzahlenliste (lib/domain/wirtschaftlichkeit.ts) sind nur noch der
+    // Startpunkt und der Rueckfall ohne Datenbank.
+    reifegrad: "angebunden",
   },
   {
     key: "personal",
@@ -246,7 +251,20 @@ export const modules: ModuleDef[] = [
     slug: "integrationen",
     icon: "plug",
     resource: "integrationen",
-    reifegrad: "in-entwicklung",
+    // WMCNL-1447 (Stufe 1): Meldeprozess fuer das Einheitssystem ЕСУТД unter RLS (Abschluss,
+    // Aenderung, Beendigung mit Frist, Bestaetigung und Beleg). Die automatische Meldung und die
+    // Konnektoren zu den uebrigen Systemen (Stufe 2) brauchen den Zugang der Behoerden.
+    reifegrad: "angebunden",
+  },
+  {
+    key: "einstellungen",
+    zone: "buero",
+    slug: "einstellungen",
+    icon: "sliders-horizontal",
+    resource: "einstellungen",
+    // Fristen, Kapazitaeten und Richtwerte, die Administration, Geschaeftsfuehrung und die zustaendigen Fachrollen pflegen
+    // (Migration 20261208030000). Zugriffsrechte gehoeren nicht hierher.
+    reifegrad: "angebunden",
   },
   {
     key: "foerdermittel",

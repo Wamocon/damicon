@@ -13,6 +13,8 @@ import { baueWissenVerwaltungWerkzeuge, findeDokument } from "@/lib/ai/wissen-ve
 import { WISSEN_VERWALTUNG_ANWEISUNG } from "@/lib/ai/wissen-verwaltung-anweisung";
 import { roles } from "@/lib/rbac";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { bereinigeStichwort, zaehleStichwortTreffer } from "@/lib/wissen/stichwort-treffer";
 
 let gesamt = 0;
 let fehler = 0;
@@ -56,7 +58,7 @@ pruefe("Eingabe: ein zu langer Grund wird abgelehnt", schema?.safeParse({ dokume
 
 // ---- Dokumente finden ----------------------------------------------------------------------------------------------------------------------------
 const zeile = (schluessel: string, titel: string): WissenDokumentZeile =>
-  ({ schluessel, schluesselSpalte: "quelle_id", titel, bereich: "legal", rollen: [], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 1, herkunft: "skript", loeschbar: false, quellenart: null, cluster: null, textgrundlage: null, stufe: null, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, seitenBestaetigt: null, seitenVermerkt: false, seitenNachgeladen: null, seitenOffen: 0, seitenOffenStellen: null, abgelaufen: false, url: null }) as WissenDokumentZeile;
+  ({ schluessel, schluesselSpalte: "quelle_id", titel, bereich: "legal", weitereBereiche: [], rollen: [], datum: null, hochgeladenVon: null, hochgeladenVonId: null, chunks: 1, herkunft: "skript", loeschbar: false, quellenart: null, cluster: null, textgrundlage: null, stufe: null, rechtsstelle: null, nutzung: "ja", pruefstatus: "freigegeben", pruefenBis: null, paketeGesamt: null, paketeDa: 0, unvollstaendig: false, guete: null, gueteHinweise: [], gueteProzent: null, originalGroesse: null, seitenFehlend: 0, seitenStellen: null, seitenVermerk: null, seitenBestaetigt: null, seitenVermerkt: false, seitenNachgeladen: null, seitenOffen: 0, seitenOffenStellen: null, abgelaufen: false, url: null }) as WissenDokumentZeile;
 const liste = [zeile("upload:aaa", "Steuerrecht Handbuch 2026"), zeile("upload:bbb", "Steuerrecht Kommentar"), zeile("skript/c.md", "ISO 31000 Risikomanagement")];
 pruefe("Finden: eine Kennung trifft genau", findeDokument(liste, "upload:bbb").treffer?.titel === "Steuerrecht Kommentar");
 pruefe("Finden: ein eindeutiger Titelteil trifft (Groß- und Kleinschreibung egal)", findeDokument(liste, "iso 31000").treffer?.schluessel === "skript/c.md");
@@ -79,5 +81,57 @@ const quelle = readFileSync("src/lib/ai/wissen-verwaltung-werkzeug.ts", "utf8");
 pruefe("Werkzeuge: schreiben nie selbst (kein update, insert oder delete)", !/\.(update|insert|delete|upsert)\(/.test(quelle));
 pruefe("Werkzeuge: Recht wird vor dem Aufbau geprüft (ki_assistent:manage)", /hasPermission\(rolle, "ki_assistent", "manage"\)/.test(quelle));
 
-console.log(`\n${gesamt - fehler}/${gesamt} bestanden`);
-if (fehler > 0) process.exit(1);
+// ---- Themen pruefen statt Bereichszahlen deuten (15.10.2026) ---------------------------------------------------------------------------------
+// Der Assistent folgerte aus "Bereich Risiko: 0 Dokumente", die Wissensbasis habe nichts zu Risikomanagement, und empfahl, ISO 31000 hochzuladen.
+pruefe("Anweisung 3b: Themenfragen nie mit der Zahl der Dokumente eines Bereichs beantworten, stichwort und wissenSuchen nutzen, Upload erst danach",
+  /3b\. THEMEN PRÜFEN/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /NIE die Zahl der Dokumente eines Bereichs/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /stichwort/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /wissenSuchen/.test(WISSEN_VERWALTUNG_ANWEISUNG) && /Empfiehl einen Upload erst/.test(WISSEN_VERWALTUNG_ANWEISUNG));
+pruefe("Anweisung 3b: ein technischer Fehler ist kein Befund über den Bestand", /KEIN Befund über den Bestand/.test(WISSEN_VERWALTUNG_ANWEISUNG));
+pruefe("Anweisung 3b: gilt ein Dokument für mehrere Bereiche, wird die zusätzliche Einordnung vorgeschlagen", /weitereBereiche/.test(WISSEN_VERWALTUNG_ANWEISUNG));
+{
+  const abrufen = baueWissenVerwaltungWerkzeuge("admin")!.wissensbasisAbrufen as unknown as { description: string; inputSchema: { safeParse(x: unknown): { success: boolean } } };
+  pruefe("Werkzeug wissensbasisAbrufen: kennt den Filter stichwort (max. 60 Zeichen)", abrufen.inputSchema.safeParse({ stichwort: "Risiko" }).success && !abrufen.inputSchema.safeParse({ stichwort: "x".repeat(61) }).success);
+  pruefe("Werkzeug wissensbasisAbrufen: die Beschreibung nennt stichwort, das Etikett und das Verbot, Themen mit Bereichszahlen zu beantworten", /stichwort/.test(abrufen.description) && /Ordnungsetikett/.test(abrufen.description) && /NIE mit der Zahl der Dokumente eines Bereichs/.test(abrufen.description));
+  pruefe("Werkzeug wissensbasisAbrufen: der Hinweis steht im Ergebnis (Etikett, mehrere Bereiche, kein Upload ohne Themenprüfung) und der Fehlerhinweis verbietet Schlüsse auf den Bestand",
+    /Ordnungsetikett/.test(quelle) && /mehreren Bereichen/.test(quelle) && /empfiehl keinen Upload/.test(quelle) && /sagt nichts über den Inhalt der Wissensbasis/.test(quelle));
+}
+
+function dbMitSeiten(seiten: { quelle_id: string | null; pfad: string | null }[][], protokoll: { filter: string[]; bereiche: [number, number][] }, fehlerMeldung?: string): SupabaseClient {
+  let seite = 0;
+  const kette = {
+    select: () => kette,
+    or: (f: string) => (protokoll.filter.push(f), kette),
+    order: () => kette,
+    range: (von: number, bis: number) => {
+      protokoll.bereiche.push([von, bis]);
+      const daten = seiten[seite++] ?? [];
+      return Promise.resolve(fehlerMeldung ? { data: null, error: { message: fehlerMeldung } } : { data: daten, error: null });
+    },
+  };
+  return { from: () => kette } as unknown as SupabaseClient;
+}
+const zeilenMit = (n: number, quelle: string) => Array.from({ length: n }, () => ({ quelle_id: quelle, pfad: null }));
+async function stichwort() {
+  pruefe("Stichwort bereinigen: Kommas, Klammern, Prozent und Sternchen entfallen, Leerraum wird zusammengezogen",
+    bereinigeStichwort("  ISO 31000:2018 ),text.ilike.%*  ") === "ISO 31000:2018 text.ilike." && bereinigeStichwort("Риск-менеджмент") === "Риск-менеджмент" && bereinigeStichwort("x".repeat(100)).length === 60);
+  const p1 = { filter: [] as string[], bereiche: [] as [number, number][] };
+  const kurz = await zaehleStichwortTreffer(dbMitSeiten([], p1), "ab");
+  pruefe("Stichwort: unter drei Zeichen wird nicht gesucht", kurz.je.size === 0 && !kurz.gekuerzt && p1.bereiche.length === 0);
+  const p2 = { filter: [] as string[], bereiche: [] as [number, number][] };
+  const eine = await zaehleStichwortTreffer(dbMitSeiten([[...zeilenMit(2, "a"), ...zeilenMit(1, "b"), { quelle_id: null, pfad: "c.md" }, { quelle_id: null, pfad: null }]], p2), "Risiko");
+  pruefe("Stichwort: Treffer je Dokument (quelle_id, sonst pfad), Zeilen ohne Kennung zählen nicht, eine kurze Seite beendet das Lesen", eine.je.get("a") === 2 && eine.je.get("b") === 1 && eine.je.get("c.md") === 1 && eine.je.size === 3 && !eine.gekuerzt && p2.bereiche.length === 1);
+  pruefe("Stichwort: der Filter sucht in Text und Titel, ohne Beachtung der Schreibweise", p2.filter[0] === "text.ilike.%Risiko%,titel.ilike.%Risiko%");
+  const p3 = { filter: [] as string[], bereiche: [] as [number, number][] };
+  const viele = await zaehleStichwortTreffer(dbMitSeiten(Array.from({ length: 8 }, () => zeilenMit(1000, "z")), p3), "und");
+  pruefe("Stichwort: ein sehr häufiges Wort wird bei 6000 Abschnitten gekürzt und so gekennzeichnet", viele.gekuerzt && viele.je.get("z") === 6000 && p3.bereiche.length === 6 && p3.bereiche[1]![0] === 1000, `${p3.bereiche.length} Seiten`);
+  const fehlerText = await zaehleStichwortTreffer(dbMitSeiten([[]], { filter: [], bereiche: [] }, "boom"), "Risiko").then(() => "kein Fehler", (e) => String(e));
+  pruefe("Stichwort: ein Datenbankfehler wird geworfen, nicht verschluckt", fehlerText.includes("boom"), fehlerText);
+}
+stichwort()
+  .then(() => {
+    console.log(`\n${gesamt - fehler}/${gesamt} bestanden`);
+    if (fehler > 0) process.exit(1);
+  })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });

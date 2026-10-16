@@ -229,7 +229,7 @@
       },
       "stand": {
         "q": "Was ist heute schon gebaut?",
-        "a": "{gesamt} Module in vier Bereichen: {angebunden} an der Datenbank mit echten Schreibvorgängen, {entwicklung} als sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
+        "a": "{gesamt} Module in vier Bereichen: {entwicklung, plural, =0 {alle an der Datenbank mit echten Schreibvorgängen} other {{angebunden} an der Datenbank mit echten Schreibvorgängen, {entwicklung} als sichtbare Menüpunkte in Entwicklung}}. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
       },
       "daten": {
         "q": "Wo liegen die Daten?",
@@ -344,8 +344,8 @@
   },
   "suche": {
     "titel": "Suche",
-    "platzhalter": "Seite oder Modul suchen …",
-    "eingabe": "Seite oder Modul suchen",
+    "platzhalter": "Seite, Modul oder Code suchen …",
+    "eingabe": "Seite, Modul oder Code suchen",
     "oeffnen": "Suche öffnen",
     "schliessen": "Suche schließen",
     "bedienung": "Pfeiltasten wählen einen Treffer, die Eingabetaste öffnet ihn, Esc schließt die Suche.",
@@ -353,10 +353,28 @@
     "gruppeTreffer": "Seiten und Module",
     "gruppeZuletzt": "Zuletzt geöffnet",
     "gruppeErwaehnt": "Erwähnt in",
-    "leer": "Namen eines Bereichs, Moduls oder einer Seite eingeben.",
+    "leer": "Namen eines Bereichs, Moduls oder einer Seite eingeben, oder einen Code wie eine Chargen-Nummer.",
     "keineTreffer": "Keine Seite und kein Modul zu „{begriff}“.",
     "anzahl": "{anzahl, plural, one {# Treffer} other {# Treffer}}",
-    "kiFragen": "KI fragen: {begriff}"
+    "kiFragen": "KI fragen: {begriff}",
+    "gruppeDaten": "Datensätze",
+    "datenSuchen": "In Daten suchen: „{begriff}“",
+    "datenLaedt": "Datensätze werden gesucht …",
+    "datenFehler": {
+      "anmeldung": "Die Datensuche braucht eine Anmeldung.",
+      "nichtVerfuegbar": "Die Datensuche ist in dieser Ansicht nicht verfügbar.",
+      "fehler": "Die Datensuche ist fehlgeschlagen. Bitte noch einmal versuchen."
+    },
+    "keineDaten": "Keine Seite, kein Modul und kein Datensatz zu „{begriff}“.",
+    "datenTyp": {
+      "steige": "Steige",
+      "charge": "Charge",
+      "aufgabe": "Pflückaufgabe",
+      "pfluecker": "Pflücker",
+      "block": "Reihenblock",
+      "dokument": "Dokument",
+      "kunde": "Kunde"
+    }
   },
   "dashboard": {
     "notifications": "Benachrichtigungen",
@@ -535,7 +553,7 @@
     "vorgezogenHinweis": "Der Termin liegt noch in der Zukunft, die Pflückaufgabe dazu ist aber schon angelegt.",
     "ueberspringenKnopf": "Überspringen",
     "reaktivierenKnopf": "Reaktivieren",
-    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Temperatursumme steht im Wetter-Modul. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
+    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Wärmesumme steht im Wetter-Modul. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
     "formular": {
       "generieren": {
         "titel": "Plan erzeugen / erweitern",
@@ -648,10 +666,10 @@
       "todo": "Automatische Intervallrechnung je Reihenblock, Brigadenzuteilung, Prüfung auf Konflikte mit Wartezeitsperren, Kalender-Export (.ics)."
     },
     "wetter": {
-      "title": "Wetter und Temperatursumme",
+      "title": "Wetter und Wärmesumme",
       "navTitle": "Wetter",
-      "description": "Wetterdaten je Standort mit Temperatursummenrechnung als Grundlage für die Mengenprognose.",
-      "summary": "Einfache Wetterschnittstelle mit Temperatursumme je Parzelle. Erklärbar, prüfbar und innerhalb einer Saison validierbar.",
+      "description": "Wetterdaten und die Wärmesumme seit Jahresbeginn, erklärt und mit der ersten Ernte eingeordnet.",
+      "summary": "Wetterdaten von Open-Meteo mit der Wärmesumme seit dem 1. Januar. Erklärbar, prüfbar und innerhalb einer Saison vergleichbar.",
       "todo": "Eine eigene Wetterstation am Betrieb statt der Werte aus dem Netz, Hinweis auf verschobene Reifefenster."
     },
     "kuehlkette": {
@@ -664,9 +682,9 @@
     "logistik": {
       "title": "Abholrunden und Tourenplanung",
       "navTitle": "Abholrunden",
-      "description": "Feste Abholrunden im Feld, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung nach den Lieferfenstern der Kunden.",
+      "description": "Abholrunden bei Nachbarbetrieben mit der 60-Minuten-Regel der Kühlkette, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung der Auslieferung.",
       "summary": "Übergabequittung mit Mengen- und Temperaturabgleich (Vorkühlung und Transport), lückenloser Kühlkettennachweis bis zum Kunden.",
-      "todo": "Tourenliste je Fahrzeug und Lieferzeitfenster fehlen noch."
+      "todo": "Fahrzeugkapazität und Lieferzeitfenster der Kunden fehlen noch."
     },
     "qr_steigen": {
       "title": "QR-Steigenkennung",
@@ -678,16 +696,16 @@
     "esf": {
       "title": "Elektronischer Lieferschein (ЭСФ)",
       "navTitle": "Lieferschein (ЭСФ)",
-      "description": "Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Die Anbindung an das staatliche ЭСФ-System ist vorgesehen, eine eigene Buchhaltung nicht.",
-      "summary": "Führt künftig die Belegkette von der Charge zum Lieferschein und nimmt die Statusrückmeldung aus dem staatlichen System auf. Pflichtintegration.",
-      "todo": "Anbindung an das ИС ЭСФ, Belegkette Charge zu Lieferschein, Statusrückmeldung und Wiederholung."
+      "description": "Belegregister für die elektronische Rechnung (ЭСФ): welche Lieferung hat welchen Beleg, welche hat noch keinen. Die Angaben für das Portal werden vorbereitet, ausgestellt wird weiterhin im staatlichen System.",
+      "summary": "Zeigt die Lieferungen ohne ЭСФ, bereitet die Angaben aus Lieferung, Preisliste und MwSt-Stand vor und führt den Status bis zur Bestätigung. Pflichtintegration, die Anbindung folgt mit dem Zugang der Behörde.",
+      "todo": "Stufe 2: automatische Übergabe an das ИС ЭСФ und Statusrückmeldung, sobald der Zugang der Behörde vorliegt."
     },
     "rollen": {
       "title": "Rollen und Rechte",
       "navTitle": "Rollen und Rechte",
       "description": "Acht Kernrollen von der Geschäftsführung und Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden, mit einer Rechtematrix über Ressourcen und Aktionen.",
-      "summary": "Legt fest, wer was sehen und ändern darf. Eine neue Rolle lässt sich anlegen, ohne dass an den Modulen etwas geändert werden muss.",
-      "todo": "Nutzerverwaltung, Rollenzuweisung, feingranulare Zugriffsregeln je Ressource."
+      "summary": "Legt fest, wer was sehen und ändern darf. Die Administration weist Konten ihre Rolle zu. Eine neue Rolle lässt sich anlegen, ohne dass an den Modulen etwas geändert werden muss.",
+      "todo": "Konten für Mitarbeitende anlegen und sperren, feingranulare Zugriffsregeln je Ressource."
     },
     "finanzen": {
       "title": "Deckungsbeitrag und Finanzen",
@@ -713,9 +731,9 @@
     "dokumente": {
       "title": "Dokumentenverwaltung",
       "navTitle": "Dokumente",
-      "description": "Geschützte Ablage für Spritzmittelprotokolle, ЕСУТД-Nachweise, Liefer- und Rahmenverträge, Förderdossiers und Zertifikate - verknüpft mit Reihenblock und Charge.",
-      "summary": "Kategorisierte, geschützte Dokumentenablage mit Verknüpfung zu Reihenblock und Charge.",
-      "todo": "Versionen je Dokument, Ablauffristen mit Erinnerung."
+      "description": "Geschützte Ablage und Nachweisregister für Zertifikate, Verträge, Genehmigungen, Versicherungen, Spritzmittelprotokolle, ЕСУТД-Nachweise und Förderdossiers, mit Gültigkeitszeitraum, automatischem Ablaufstatus und Verantwortlichem, verknüpft mit Reihenblock, Charge und Partnern.",
+      "summary": "Kategorisierte, geschützte Dokumentenablage mit automatischem Ablaufstatus, Verantwortlichem und Verknüpfung zu Reihenblock, Charge und Partnern.",
+      "todo": "Versionen je Dokument."
     },
     "compliance": {
       "title": "Compliance-Cockpit",
@@ -727,9 +745,9 @@
     "integrationen": {
       "title": "Staatliche Integrationen",
       "navTitle": "Integrationen",
-      "description": "Vorgesehen sind Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
-      "summary": "Bekommt je Zielsystem einen Konnektor mit Statusrückmeldung und Wiederholung. Die Buchhaltung bleibt außen vor.",
-      "todo": "Konnektoren je System, Testzugänge, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge."
+      "description": "Meldeprozess für das Einheitssystem ЕСУТД: Abschluss, Änderung und Beendigung der Saisonverträge mit Frist, Bestätigung und Beleg. Konnektoren zu ЭСФ, virtuellem Lagerbestand und den Förderportalen gosagro.kz und qoldau.kz sind vorgesehen. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
+      "summary": "Führt die Meldungen an das ЕСУТД und erinnert an die Frist des Abschlusses. Die automatische Übergabe folgt mit dem Zugang der Behörde.",
+      "todo": "Stufe 2: Konnektoren je System mit Testzugängen, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge."
     },
     "foerdermittel": {
       "title": "Fördermitteldossier",
@@ -739,11 +757,11 @@
       "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm. Offen ist zuerst, welche Felder und Nachweise gosagro.kz und qoldau.kz je Programm verlangen."
     },
     "wirtschaftlichkeit": {
-      "title": "Wirtschaftlichkeit der Einführung",
+      "title": "Wirtschaftlichkeit des Betriebs",
       "navTitle": "Wirtschaftlichkeit",
-      "description": "Investitionsrechnung zur Einführung: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Noch Modellwerte, keine Betriebszahlen.",
-      "summary": "Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung. Modellrechnung, noch nicht aus dem Betrieb.",
-      "todo": "Erfassung der Investitions-, Betriebs- und Nutzenposten, Historie je Stand, Plan-Ist-Vergleich."
+      "description": "Erlöse, Kosten und Ergebnis des Betriebs über drei bis fünf Jahre, mit Fixkosten, Gewinnschwelle und den Annahmen dahinter. Darunter die Investitionsrechnung des Systems: Amortisation, Rendite und Kapitalwert.",
+      "summary": "Betriebsergebnis über drei bis fünf Jahre, Gewinnschwelle und Fixkosten. Darunter Amortisation, Rendite und Kapitalwert des Systems.",
+      "todo": "Der Nutzen des Systems gilt erst als belegt, wenn der Betrieb Ist-Werte liefert. Bis dahin steht er als geschätzt."
     },
     "sortenkatalog": {
       "title": "Sorten- und Kontingentkatalog",
@@ -800,6 +818,13 @@
       "description": "Rechtsform und ИИН oder БИН für den eigenen Betrieb, die Zulieferbetriebe und die Kunden - die Angaben, die auf jedem Beleg stehen müssen.",
       "summary": "Ein bäuerlicher Betrieb trägt einen ИИН, eine juristische Person einen БИН. Die Prüfziffer weist einen Zahlendreher ab, bevor er auf eine Rechnung gerät.",
       "todo": "Nummern für Zulieferbetriebe und Kunden erheben."
+    },
+    "einstellungen": {
+      "title": "Einstellungen",
+      "navTitle": "Einstellungen",
+      "description": "Fristen, Kapazitäten und Richtwerte, die Administration, Geschäftsführung und die zuständigen Fachrollen selbst pflegen.",
+      "summary": "Elf fachliche Werte und die Gewichte der Block-Risiko-Bewertung, mit Grenzen, Quelle und Änderungsverlauf. Zugriffsrechte stehen hier nicht zur Wahl.",
+      "todo": "Nichts mehr offen."
     }
   },
   "reihenblockStatusHint": {
@@ -952,7 +977,57 @@
       "wissenSammelFreigegeben": "Freigegeben und durchsuchbar: {wert} Dokumente (Einzelheiten im Fenster).",
       "wissenSammelAbgelehnt": "Abgelehnt: {wert} Dokumente. Sie bleiben gesperrt und lassen sich löschen.",
       "wissenUmgeordnet": "Einordnung von „{wert}“ geändert.",
-      "wissenNachgeladen": "Seiten {wert} nachgeladen und ins Buch eingereiht."
+      "wissenNachgeladen": "Seiten {wert} nachgeladen und ins Buch eingereiht.",
+      "rolleGeaendert": "Rolle von „{wert}“ geändert.",
+      "nachricht": "Nachricht gesendet.",
+      "loggerImport": "{anzahl} Messwerte übernommen. Ausgelassen: {zuAlt} älter als 24 Stunden, {zukunft} in der Zukunft, {doppelt} schon vorhanden, {unlesbar} nicht lesbar.",
+      "checkpunkt": "Punkt hinzugefügt.",
+      "checkpunktErledigt": "Punkt erledigt.",
+      "checkpunktGeoeffnet": "Punkt wieder geöffnet.",
+      "checkpunktEntfernt": "Punkt entfernt.",
+      "checklisteVorschlag": "Allgemeiner Vorschlag übernommen.",
+      "esfEntwurf": "Entwurf gespeichert.",
+      "esfEntwurfVerworfen": "Entwurf verworfen.",
+      "esfAusgestellt": "Beleg als ausgestellt erfasst.",
+      "esfBestaetigt": "Bestätigung erfasst.",
+      "esfAbgelehnt": "Ablehnung erfasst.",
+      "esfPapier": "Beleg auf Papier geführt.",
+      "esfNeuBegonnen": "Neuer Entwurf begonnen.",
+      "esutdVertrag": "Abschluss angelegt.",
+      "esutdEreignis": "Meldung angelegt.",
+      "esutdErfasst": "Meldung als gemeldet erfasst.",
+      "esutdGeoeffnet": "Meldung wieder geöffnet.",
+      "esutdEntfernt": "Meldung entfernt.",
+      "wiPostenGespeichert": "Posten gespeichert.",
+      "wiPostenEntfernt": "Posten entfernt.",
+      "wiIstErfasst": "Ist-Wert erfasst.",
+      "wiIstEntfernt": "Ist-Wert entfernt.",
+      "wiAnnahmenGespeichert": "Annahmen gespeichert.",
+      "wiStandFestgehalten": "Stand festgehalten.",
+      "wiModellUebernommen": "Modellwerte übernommen.",
+      "abholrundeErstellt": "Abholrunde angelegt, die Stopps sind nach der kürzesten Strecke geordnet.",
+      "abholrundeOhneRoute": "Abholrunde angelegt. Ohne Route oder ohne Anschrift stehen die Stopps in der gewählten Reihenfolge.",
+      "abholrundeVerworfen": "Abholrunde verworfen.",
+      "abholrundeGestartet": "Runde gestartet.",
+      "abholungErfasst": "Abholung erfasst.",
+      "stoppEntfallen": "Stopp als entfallen erfasst.",
+      "abholrundeAbgeschlossen": "Runde abgeschlossen. Die Ankunft im Kühlhaus ist festgehalten.",
+      "integrationGespeichert": "Konfiguration gespeichert.",
+      "integrationGespeichertOhneGeheimnis": "Konfiguration gespeichert. Die Umgebungsvariable {wert} ist auf dem Server noch nicht gesetzt, bis dahin wird nichts ausgeliefert.",
+      "integrationWiederholt": "Der Eintrag wartet wieder auf die Auslieferung.",
+      "auslieferung": "{versucht} versucht: {zugestellt} zugestellt, {wiederholen} warten auf die Wiederholung, {gescheitert} gescheitert.",
+      "auslieferungNichts": "Nichts fällig.",
+      "nachrichtAnonymisiert": "Nachricht anonymisiert.",
+      "einstellungGespeichert": "Einstellung gespeichert.",
+      "zeitfensterGespeichert": "Abholfenster gespeichert.",
+      "kontoAngelegt": "Konto angelegt. Vorläufiges Passwort (nur jetzt sichtbar, bitte der Person sicher übergeben): {wert}",
+      "kontoGesperrt": "Konto von „{wert}“ gesperrt.",
+      "kontoEntsperrt": "Konto von „{wert}“ entsperrt.",
+      "passwortGeaendert": "Passwort geändert.",
+      "dokumentVersion": "Neue Version „{wert}“ angelegt.",
+      "videoEntfernt": "Videodatei entfernt.",
+      "wiSchwundUebernommen": "Der Schwund-Nutzen ist als Posten übernommen.",
+      "biAnnahmenGespeichert": "Annahmen des Betriebs gespeichert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1035,7 +1110,107 @@
       "wissenKeineAenderung": "Es wurde nichts geändert: Die gewählten Angaben entsprechen der bisherigen Einordnung.",
       "wissenSeitenNichtBestaetigt": "Dieses Buch hat offene fehlende Seiten. Zum Freigeben sind die gedruckten Seitenzahlen anzugeben, die korrekt fehlen. Bitte einzeln im Prüffenster freigeben, nicht in der Sammelfreigabe.",
       "wissenSeitenNichtAbgedeckt": "Die angegebenen Seiten decken nicht alle fehlenden Seiten ab. Offen: {wert}. Es fehlt echter Inhalt, das Buch lässt sich nicht freigeben. Bitte die Seiten nachladen oder das Buch löschen und neu hochladen.",
-      "wissenNachtragUngueltig": "Die nachgeladenen Seiten passen zu keiner offenen Lücke dieses Buchs. Es wurde nichts eingereiht."
+      "wissenNachtragUngueltig": "Die nachgeladenen Seiten passen zu keiner offenen Lücke dieses Buchs. Es wurde nichts eingereiht.",
+      "zeitraum": "Der Gültigkeitszeitraum passt nicht: Das Ende liegt vor dem Beginn, oder ein unbefristetes Dokument hat ein Enddatum.",
+      "eigeneRolle": "Die eigene Rolle lässt sich hier nicht ändern. Bitte eine andere Administration darum bitten.",
+      "kundenkonto": "Kundenkonten werden über Einladungen verwaltet, nicht über die Rollenzuweisung.",
+      "rolleUnveraendert": "Das Konto hat diese Rolle schon.",
+      "letzterAdmin": "Der letzte Administrator behält seine Rolle. Zuerst eine weitere Administration ernennen.",
+      "nachrichtZuLang": "Die Nachricht ist länger als 2000 Zeichen.",
+      "vorbestellungStorniert": "Zu einer stornierten Vorbestellung gibt es keine neuen Nachrichten.",
+      "loggerDateiLeer": "Die Datei enthält keine lesbaren Messwerte (erwartet: Zeit und Temperatur je Zeile).",
+      "loggerDateiZuGross": "Die Datei ist größer als 2 MB.",
+      "loggerKeineNeuen": "Nichts übernommen. Ausgelassen: {zuAlt} älter als 24 Stunden, {zukunft} in der Zukunft, {doppelt} schon vorhanden, {unlesbar} nicht lesbar.",
+      "checkpunktZuLang": "Der Punkt ist länger als 200 Zeichen.",
+      "checklisteNichtLeer": "Die Checkliste hat schon Punkte. Der Vorschlag gilt nur für eine leere Liste.",
+      "esfNummer": "Bitte die ЭСФ-Nummer angeben, höchstens 100 Zeichen.",
+      "esfDatum": "Bitte ein gültiges Datum angeben, nicht in der Zukunft und nicht vor dem Ausstellen.",
+      "esfBemerkung": "Bitte einen Grund mit 3 bis 500 Zeichen angeben.",
+      "esfStatuswechsel": "Dieser Statuswechsel ist nicht vorgesehen, oder der Beleg hat sich inzwischen geändert.",
+      "esutdErfassteMeldungen": "Der Vertrag hat erfasste Meldungen (Änderung oder Beendigung) und bleibt bestehen. Erst die Erledigung zurücknehmen, dann entfernen.",
+      "esfLieferungOffen": "Nur zu einer zugestellten Lieferung gibt es einen Beleg.",
+      "esfBelegFehlt": "Der Beleg wurde nicht gefunden.",
+      "esfSchonAusgestellt": "Zu dieser Lieferung gibt es schon einen ausgestellten Beleg.",
+      "esutdDatum": "Bitte ein gültiges Datum angeben, das Meldedatum nicht in der Zukunft.",
+      "esutdVertragsnummer": "Die Vertragsnummer ist länger als 60 Zeichen.",
+      "esutdBeschreibung": "Bitte beschreiben, was sich ändert, mit 3 bis 300 Zeichen.",
+      "esutdBestaetigung": "Die Bestätigungsnummer ist länger als 100 Zeichen.",
+      "esutdMeldungFehlt": "Die Meldung wurde nicht gefunden oder hat sich inzwischen geändert.",
+      "wiBezeichnung": "Bitte eine Bezeichnung mit 1 bis 120 Zeichen angeben.",
+      "wiKategorie": "Bitte eine gültige Kategorie angeben, höchstens 60 Zeichen. Beim Nutzen: Schwund, Handarbeit, Audit oder Sonstiges.",
+      "wiBetrag": "Bitte einen Betrag von 0 oder mehr angeben.",
+      "wiWaehrung": "Bitte Euro, Tenge oder Rubel wählen.",
+      "wiDatum": "Bitte ein gültiges Datum angeben.",
+      "wiMonat": "Bitte einen gültigen Monat angeben.",
+      "wiNotiz": "Die Notiz darf höchstens 500 Zeichen haben.",
+      "wiAnnahme": "Bitte die Annahmen prüfen: Zins 0 bis 100 Prozent, Kurse größer als 0, Menge und Vollkosten größer als 0 oder leer, Wochen als Paar, „von“ nicht größer als „bis“.",
+      "wiStandName": "Bitte eine Bezeichnung für den Stand mit 1 bis 120 Zeichen angeben.",
+      "wiStandLeer": "Ohne erfasste Posten gibt es nichts festzuhalten.",
+      "wiStandLesefehler": "Die Daten konnten gerade nicht vollständig gelesen werden. Der Stand wurde nicht festgehalten, bitte gleich noch einmal versuchen.",
+      "wiNichtGefunden": "Der Eintrag wurde nicht gefunden.",
+      "wiModellNichtLeer": "Es sind schon Posten erfasst. Die Modellwerte lassen sich nur auf eine leere Liste übernehmen.",
+      "arDatum": "Bitte ein gültiges Datum angeben.",
+      "arFahrzeug": "Das Fahrzeug darf höchstens 60 Zeichen haben.",
+      "arNotiz": "Die Notiz darf höchstens 500 Zeichen haben.",
+      "arStopps": "Bitte mindestens einen Nachbarbetrieb wählen.",
+      "arMenge": "Bitte eine Menge in Kilogramm angeben, größer als 0 (bei der Abholung 0 oder mehr).",
+      "arDoppelt": "Ein Nachbarbetrieb kann nur einmal in einer Runde stehen.",
+      "arVorlauf": "Bitte den Pflückbeginn in Minuten vor der Abholung angeben, höchstens 1440, oder das Feld leer lassen.",
+      "arBemerkung": "Die Bemerkung darf höchstens 500 Zeichen haben.",
+      "arBetriebFehlt": "Ein gewählter Nachbarbetrieb wurde nicht gefunden. Bitte die Seite neu laden.",
+      "abholrundeAbgeschlossen": "Das geht nicht mehr: die Runde oder der Stopp ist schon abgeschlossen oder erledigt.",
+      "abholrundeNichtGestartet": "Dazu muss die Runde laufen. Zum Abschließen darf außerdem kein Stopp mehr offen sein.",
+      "integrationAdapter": "Bitte „manuell“ oder „Webhook“ wählen.",
+      "integrationUrl": "Bitte eine gültige https-Adresse angeben, ohne Zugangsdaten, höchstens 500 Zeichen.",
+      "integrationUrlIntern": "Diese Adresse zeigt ins eigene Netz oder auf die eigene Maschine. Ziele müssen öffentlich erreichbar sein.",
+      "integrationGeheimnis": "Bitte nur den Namen der Umgebungsvariable angeben. Er beginnt mit DAMICON_HOOK_, danach folgen Großbuchstaben, Ziffern und Unterstriche (bis 48 Zeichen). Nicht das Geheimnis selbst.",
+      "integrationUnvollstaendig": "Aktiv gibt es nur als Webhook mit Adresse und dem Namen des Geheimnisses.",
+      "integrationNichtGescheitert": "Nur ein gescheiterter Eintrag lässt sich erneut versuchen.",
+      "auslieferung": "Die Auslieferung ist fehlgeschlagen. Details stehen im Server-Log.",
+      "unveraenderlich": "Dieser Eintrag ist unveränderlich.",
+      "anonymisierungGrund": "Bitte einen Grund mit 3 bis 300 Zeichen angeben, ohne personenbezogene Angaben.",
+      "einstellungGrenzen": "Der Wert liegt außerhalb der erlaubten Grenzen.",
+      "einstellungGanzzahl": "Bitte eine ganze Zahl angeben.",
+      "wiIstSchonDa": "Für diesen Monat, diese Kategorie und diese Währung gibt es schon einen Wert. Den vorhandenen entfernen und neu erfassen.",
+      "adresssucheGrenze": "Zu viele Adresssuchen in der letzten Stunde. Bitte später noch einmal versuchen (Grenze in den Einstellungen).",
+      "arKapazitaet": "Bitte eine Kapazität zwischen 1 und 100000 kg angeben oder das Feld leer lassen.",
+      "arStartzeit": "Bitte die Abfahrt als Uhrzeit angeben (HH:MM) oder leer lassen.",
+      "arFenster": "Das Abholfenster braucht Beginn und Ende (HH:MM), der Beginn liegt vor dem Ende.",
+      "integrationAuth": "Bitte Signatur oder HTTP Basic wählen.",
+      "integrationZugang": "Für HTTP Basic fehlt der Name der Umgebungsvariable (DAMICON_HOOK_ plus Großbuchstaben, Ziffern und Unterstriche).",
+      "integrationVorlage_kein_json": "Die Vorlage ist kein gültiges JSON.",
+      "integrationVorlage_kein_objekt": "Die Vorlage muss ein JSON-Objekt sein.",
+      "integrationVorlage_zu_gross": "Die Vorlage ist länger als 20000 Zeichen.",
+      "integrationVorlage_zu_tief": "Die Vorlage ist zu tief verschachtelt (höchstens 8 Ebenen).",
+      "integrationVorlage_zu_viele_platzhalter": "Die Vorlage hat mehr als 200 Platzhalter.",
+      "integrationVorlage_pfad": "Unbekannter Pfad in der Vorlage: {wert}.",
+      "integrationVorlage_leer": "Die Vorlage ist leer.",
+      "kontoName": "Bitte einen Namen mit 2 bis 100 Zeichen angeben.",
+      "kontoEmail": "Bitte eine gültige E-Mail-Adresse angeben.",
+      "kontoRolle": "Bitte eine Rolle für Mitarbeitende wählen.",
+      "kontoVorhanden": "Zu dieser E-Mail-Adresse gibt es schon ein Konto.",
+      "kontoAnlegen": "Das Konto konnte nicht angelegt werden. Bitte später noch einmal versuchen.",
+      "eigeneSperre": "Das eigene Konto sperrt man nicht.",
+      "sperrgrund": "Bitte einen Grund mit 3 bis 300 Zeichen angeben.",
+      "kontoSperreAuth": "Das Konto von „{wert}“ ist in der Datenbank gesperrt, die Anmeldung beim Auth-Dienst ließ sich nicht umstellen. Bitte noch einmal sperren.",
+      "passwortKurz": "Das Passwort braucht mindestens 12 Zeichen.",
+      "passwortLang": "Das Passwort ist zu lang (höchstens 72 Bytes).",
+      "passwortUngleich": "Die beiden Eingaben stimmen nicht überein.",
+      "passwortEinfach": "Das Passwort ist zu einfach (nicht die E-Mail-Adresse, mehr als drei verschiedene Zeichen).",
+      "passwortGleich": "Das neue Passwort muss sich vom alten unterscheiden.",
+      "passwortAendern": "Das Passwort konnte nicht geändert werden. Bitte später noch einmal versuchen.",
+      "risikoSchwellen": "Die Schwelle für „hoch“ muss über der Schwelle für „mittel“ liegen. Erst die obere Schwelle anheben, dann die untere, oder umgekehrt beim Senken.",
+      "risikoAusschuss": "Der kritische Ausschuss muss über dem Zielwert liegen.",
+      "risikoGewichte": "Mindestens ein Gewicht muss über null liegen.",
+      "versionSchonErsetzt": "Dieser Nachweis hat schon eine neuere Version. Bitte die Seite neu laden und die aktuelle Version erneuern.",
+      "versionRegel": "Eine neue Version hat dieselbe Kategorie wie die ersetzte, und ihre Vorversion ändert sich nicht mehr.",
+      "wiSchwundOffen": "Aus den Betriebsdaten lässt sich zurzeit kein Nutzen herleiten.",
+      "biEingabe": "Bitte nur Zahlen eintragen.",
+      "biPreis": "Der Verkaufspreis muss größer als 0 sein oder leer bleiben.",
+      "biKosten": "Die variablen Kosten dürfen nicht negativ sein.",
+      "biMenge": "Die Jahresmenge muss größer als 0 sein oder leer bleiben.",
+      "biEntwicklung": "Eine jährliche Entwicklung liegt zwischen minus 50 und plus 100 Prozent.",
+      "biAbschreibung": "Die Abschreibung läuft über ganze Jahre, von 1 bis 20."
     },
     "einladungen": {
       "erfolg": {
@@ -1141,14 +1316,28 @@
       "stand": "Stand",
       "status": "Status",
       "datei": "Datei",
-      "foerderdossier": "Fördermitteldossier"
+      "foerderdossier": "Fördermitteldossier",
+      "gueltigVon": "Gültig ab",
+      "gueltigBis": "Gültig bis",
+      "unbefristet": "Unbefristet gültig",
+      "warnungTage": "Vorwarnung (Tage vor Ablauf)",
+      "verantwortlich": "Verantwortlich",
+      "partner": "Partner",
+      "rechtsgrundlage": "Rechtsgrundlage"
     },
     "beispiel": {
-      "name": "Spritzprotokoll KW 37 - Parzelle Nord"
+      "name": "Spritzprotokoll KW 37, Parzelle Nord",
+      "rechtsgrundlage": "z. B. Auflage des Abnehmers"
     },
     "keinDossier": "kein Dossier",
     "aendernKnopf": "Speichern",
-    "linkNichtVerfuegbar": "Datei vorhanden, Link momentan nicht verfügbar"
+    "linkNichtVerfuegbar": "Datei vorhanden, Link momentan nicht verfügbar",
+    "hinweis": {
+      "warnungTage": "{min} bis {max} Tage, Vorgabe 60."
+    },
+    "keinVerantwortlicher": "niemand festgelegt",
+    "keinPartner": "kein Partner",
+    "versionKnopf": "Neue Version anlegen"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "Ohne Brigade",
@@ -1393,9 +1582,8 @@
     "ohneErntetag": "ohne Erntetag"
   },
   "wirtschaftlichkeitAnsicht": {
-    "eyebrow": "Investitionsrechnung",
-    "titel": "Lohnt sich die Einführung?",
-    "lead": "Was der Sprung kostet, wann das Geld zurück ist und was das Besitzen kostet, gerechnet über drei Jahre.",
+    "titel": "Zweitens: Lohnt sich das System?",
+    "lead": "Was der Sprung kostet, wann das Geld zurück ist und was das Besitzen kostet, gerechnet über {jahre} Jahre.",
     "modellPille": "Modellrechnung",
     "modellHinweis": "Modellrechnung vom {stichtag}. Die Werte stammen aus der Kennzahlenliste der Geschäftsführung, nicht aus dem laufenden Betrieb. Was geschätzt ist, steht an der Kachel.",
     "kursHinweis": "Umgerechnet zum Kurs der Nationalbank der Republik Kasachstan vom {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸.",
@@ -1410,10 +1598,11 @@
       "titel": "Vier weitere Kennzahlen",
       "lead": "Amortisationsdauer, Gesamtkosten, vermiedene Kosten und Zeit bis zum Nutzenbeginn."
     },
-    "fussnote": "Rendite, Amortisationsdauer und die Kosten je Kilogramm hängen vollständig am angenommenen Jahresnutzen. Wirkt die gezeigte Senkung je Kilogramm zu hoch, ist der Jahresnutzen zu hoch angesetzt. Sobald die Betriebszahlen erfasst sind, rechnet die Seite aus echten Posten statt aus Konstanten.",
+    "fussnote": "Rendite, Amortisationsdauer und die Kosten je Kilogramm hängen am Jahresnutzen. Wirkt die gezeigte Senkung je Kilogramm zu hoch, ist der Jahresnutzen zu hoch angesetzt. Die Ist-Werte weiter unten zeigen, ob er im Betrieb eintritt.",
     "diagramm": {
       "wert": "Wert",
-      "nulllinie": "Geld zurück"
+      "nulllinie": "Geld zurück",
+      "ist": "Tatsächlich"
     },
     "stapel": {
       "capex": "Einmalig",
@@ -1435,41 +1624,45 @@
         "frage": "Lohnt es sich überhaupt?",
         "rechenweg": "Jahresnutzen minus einmalige und laufende Kosten, geteilt durch beide zusammen."
       },
-      "roiDreiJahre": {
-        "label": "Rendite über 3 Jahre",
+      "roiHorizont": {
+        "label": "Rendite über {jahre} Jahre",
         "frage": "Lohnt es sich richtig?",
-        "rechenweg": "Dreifacher Jahresnutzen minus einmalige und dreifache laufende Kosten, geteilt durch den Einsatz."
+        "rechenweg": "Jahresnutzen mal {jahre} minus einmalige Kosten und laufende Kosten mal {jahre}, geteilt durch den Einsatz."
       },
       "capex": {
         "label": "Kosten bis Abnahme",
         "frage": "Was kostet der Sprung?",
-        "rechenweg": "Festpreis bis zur Abnahme. Eine Zahl, keine Spanne."
+        "rechenweg": "Festpreis bis zur Abnahme. Eine Zahl, keine Spanne.",
+        "rechenwegErfasst": "Summe der erfassten Investitionsposten."
       },
       "opex": {
         "label": "Laufende Kosten je Jahr",
         "frage": "Was kostet das Besitzen?",
-        "rechenweg": "Hosting, Wartung, Support und Weiterentwicklung."
+        "rechenweg": "Hosting, Wartung, Support und Weiterentwicklung.",
+        "rechenwegErfasst": "Summe der erfassten Betriebsposten je Jahr."
       },
       "tco": {
-        "label": "Gesamtkosten über 3 Jahre",
+        "label": "Gesamtkosten über {jahre} Jahre",
         "frage": "Was kostet der Vergleich wirklich?",
-        "rechenweg": "Einmalige Kosten plus drei Jahre laufende Kosten, gegen jede Alternative."
+        "rechenweg": "Einmalige Kosten plus {jahre} Jahre laufende Kosten, gegen jede Alternative."
       },
       "vermiedeneKosten": {
         "label": "Vermiedene Kosten je Jahr",
         "frage": "Woher kommt der Nutzen?",
-        "rechenweg": "Schwund, Handarbeit und Auditvorbereitung. Zurückgerechnet aus den vorgegebenen Renditewerten."
+        "rechenweg": "Schwund, Handarbeit und Auditvorbereitung. Zurückgerechnet aus den vorgegebenen Renditewerten.",
+        "rechenwegErfasst": "Summe der erfassten Nutzenposten je Jahr: Schwund, Handarbeit, Auditvorbereitung und Sonstiges."
       },
       "kapitalwert": {
         "label": "Kapitalwert",
         "frage": "Hält es dem Finanzchef stand?",
-        "rechenweg": "Barwert des Nutzens minus Investition über drei Jahre, monatlich mit {zins} abgezinst."
+        "rechenweg": "Barwert des Nutzens minus Investition über {jahre} Jahre, monatlich mit {zins} abgezinst."
       },
       "kostenJeKilogramm": {
         "label": "Kosten je Kilogramm",
         "frage": "Wird der Betrieb günstiger?",
         "rechenweg": "Vollkosten geteilt durch die vermarktete Menge, vorher gegen nachher. Braucht Betriebszahlen.",
-        "rechenwegMitWerten": "Vollkosten geteilt durch die vermarktete Menge. Vorher {vorher} ₸, abzüglich {ersparnis} ₸ Nutzen je Kilogramm bei {menge} kg Jahresmenge."
+        "rechenwegMitWerten": "Vollkosten geteilt durch die vermarktete Menge. Vorher {vorher} ₸, abzüglich {ersparnis} ₸ Nutzen je Kilogramm bei {menge} kg Jahresmenge.",
+        "rechenwegMengeOffen": "Die vermarktete Jahresmenge fehlt noch. Sie kommt aus den Lieferungen, sobald diese ein volles Jahr abdecken, oder von Hand aus den Annahmen."
       },
       "nutzenbeginn": {
         "label": "Zeit bis Nutzenbeginn",
@@ -1480,7 +1673,21 @@
     "jeKilogramm": {
       "vorher": "Vorher",
       "nachher": "Nachher"
-    }
+    },
+    "pille": {
+      "offen": "Teilweise offen",
+      "geschaetzt": "Teilweise geschätzt",
+      "belegt": "Belegt"
+    },
+    "erfasstHinweis": "Die Kennzahlen rechnen aus den {anzahl} erfassten Posten und den Annahmen weiter unten. Was geschätzt ist oder noch fehlt, steht an der Kachel.",
+    "erfasstLeer": "Es ist noch kein Posten erfasst, deshalb stehen alle Kennzahlen auf offen. Unten lassen sich die Posten erfassen oder die Werte der Kennzahlenliste als Startpunkt übernehmen.",
+    "standHinweis": "Festgehaltener Stand „{name}“ vom {datum}. Die Seite zeigt die Rechnung von damals, mit den Posten und dem Kurs von damals.",
+    "standUnbekannt": "Der angeforderte Stand wurde nicht gefunden. Gezeigt wird die laufende Rechnung.",
+    "nurLesen": "Nur Ansicht: erfassen dürfen Administration, Geschäftsführung und Buchhaltung.",
+    "jahresnutzenOffen": "Der Jahresnutzen ist noch nicht erfasst. Ohne ihn bleiben Rendite, Amortisationsdauer, Kapitalwert und die Kosten je Kilogramm offen.",
+    "jahresnutzenGeschaetzt": "Alle Kennzahlen beruhen auf einem Jahresnutzen von {tenge} ({rubel}). Diese Zahl ist geschätzt und noch nicht aus dem Betrieb belegt.",
+    "jahresnutzenBelegt": "Alle Kennzahlen beruhen auf einem Jahresnutzen von {tenge} ({rubel}), als belegt erfasst.",
+    "kursHinweisQuelle": "Umgerechnet zum Kurs vom {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸. Quelle: {quelle}."
   },
   "finanzVorschau": {
     "titel": "Finanzen im laufenden Monat",
@@ -1563,19 +1770,24 @@
     },
     "risikoRadar": {
       "titel": "Risiko-Radar",
-      "lead": "Alle offenen gesetzlichen Fristen aus Steuer-, Arbeits- und Datenschutzrecht an einer Stelle - nach Dringlichkeit sortiert.",
+      "lead": "Alle offenen gesetzlichen Fristen aus Steuer-, Arbeits- und Datenschutzrecht und abgelaufene oder bald ablaufende Nachweise an einer Stelle, nach Dringlichkeit sortiert.",
       "anzahlOffen": "{anzahl} offene Frist(en)",
-      "alleErledigt": "Keine offene Frist - Steuer-, Arbeits- und Datenschutzrecht sind aktuell im Plan.",
+      "alleErledigt": "Keine offene Frist. Steuer-, Arbeits- und Datenschutzrecht und die Nachweise sind aktuell im Plan.",
       "ansehen": "Ansehen →",
       "kategorie": {
         "steuer": "Steuerrecht",
         "arbeit": "Arbeitsrecht",
-        "datenschutz": "Datenschutz"
+        "datenschutz": "Datenschutz",
+        "nachweis": "Nachweise"
       },
       "labelMwst": "MwSt-Registrierung nach Schwellenüberschreitung",
       "labelEsutd": "ESUTD-Meldung für {name}",
       "labelVorfall": "Meldung eines Datenschutzvorfalls an die Behörde",
-      "labelDrittweitergabe": "Benachrichtigung über Weitergabe an {empfaenger}"
+      "labelDrittweitergabe": "Benachrichtigung über Weitergabe an {empfaenger}",
+      "labelNachweisAbgelaufen": "Nachweis abgelaufen: {name}",
+      "labelNachweisLaeuftAb": "Nachweis läuft ab: {name}",
+      "labelEsutdAenderung": "ESUTD-Meldung einer Änderung für {name}",
+      "labelEsutdBeendigung": "ESUTD-Meldung einer Beendigung für {name}"
     },
     "stat": {
       "einwilligungenAktiv": "Aktive Einwilligungen",
@@ -1719,7 +1931,16 @@
     "titel": "Benachrichtigungen",
     "leer": "Keine neuen Benachrichtigungen.",
     "leerHinweis": "Alarme und Fristen sehen Sie weiterhin direkt in den Modulen.",
-    "schliessen": "Benachrichtigungen schließen"
+    "schliessen": "Benachrichtigungen schließen",
+    "alleGelesen": "Alle als gelesen markieren",
+    "ungelesenAnzahl": "{anzahl} ungelesen",
+    "art": {
+      "nachweis_abgelaufen": "Nachweis abgelaufen: {name}",
+      "nachweis_laeuft_ab": "Nachweis läuft bald ab: {name}",
+      "esf_ueberfaellig": "Lieferungen ohne ЭСФ über der Frist: {anzahl}",
+      "esutd_ueberfaellig": "Überfällige ЕСУТД-Meldungen: {anzahl}",
+      "block_risiko_hoch": "Reihenblöcke mit Risikostufe hoch: {anzahl}"
+    }
   },
   "sync": {
     "knopf": {
@@ -1779,27 +2000,55 @@
     "keineMessungen": "Noch keine Kühlmessung erfasst."
   },
   "wetterAnsicht": {
-    "summeTitel": "Temperatursumme",
-    "summeLead": "Kumulierte Wärmeeinheiten über 5 °C Basistemperatur seit Saisonbeginn - eine Heuristik für die Mengenprognose, kein Prognosemodell.",
-    "seit": "seit",
-    "hinweis": "Reine Beobachtungsgröße. Ein Zusammenhang mit der tatsächlichen Erntemenge ist erst nach einer vollen Saison mit echten Vergleichsdaten belastbar auswertbar.",
+    "summeTitel": "Wärmesumme seit Jahresbeginn",
+    "summeLead": "Wie viel Wärme die Pflanzen seit dem 1. Januar bekommen haben. Die Einheit heißt Gradtage und ist keine Temperatur.",
     "keineDaten": "Noch keine Wetterdaten erfasst.",
-    "tageTitel": "Letzte 14 Tage",
-    "tageLead": "Tagesminimum, Tagesmaximum, Niederschlag und die kumulierte Temperatursumme bis zu diesem Tag.",
+    "tageTitel": "Die letzten 14 Tage",
+    "tageLead": "Jeder Tag mit seinem Beitrag und der Summe bis zu diesem Tag.",
     "veraltet": "Die Messreihe endet am {datum}. Mit „Jetzt aktualisieren“ unten kommen die fehlenden Tage dazu.",
     "col": {
       "datum": "Datum",
-      "min": "Min.",
-      "max": "Max.",
+      "min": "Tiefster Wert",
+      "max": "Höchster Wert",
       "niederschlag": "Niederschlag",
-      "summe": "Summe"
+      "summe": "Summe seit 1. Januar",
+      "mittel": "Mittelwert",
+      "beitrag": "Zählt"
     },
     "formular": {
       "titel": "Wetterdaten aktualisieren",
-      "lead": "Holt die Saison seit dem 1. Januar sowie die letzten Tage von Open-Meteo und schreibt die Temperatursumme neu.",
+      "lead": "Holt die Saison seit dem 1. Januar sowie die letzten Tage von Open-Meteo und rechnet die Wärmesumme neu.",
       "knopf": "Jetzt aktualisieren"
     },
-    "note": "Koordinaten und Basistemperatur sind Platzhalter (Almaty-Stadtgebiet, 5 °C) und sollten durch die tatsächlichen Werte der Plantage ersetzt bzw. von einer Agronomin oder einem Agronomen bestätigt werden."
+    "einheit": "Gradtage",
+    "standSeit": "Stand {datum}, gezählt seit dem {start}",
+    "stat": {
+      "letzterTag": "Letzter Tag",
+      "siebenTage": "Letzte 7 Tage",
+      "schnitt": "Durchschnitt je Tag"
+    },
+    "erklaerung": {
+      "titel": "So entsteht die Zahl",
+      "schritt1": "Für jeden Tag wird der Mittelwert aus dem tiefsten und dem höchsten Wert gebildet.",
+      "schritt2": "Liegt der Mittelwert über {basis} °C, zählt der Unterschied. Ein kühlerer Tag zählt 0.",
+      "schritt3": "Alle Tage seit dem 1. Januar werden zusammengezählt. Die Summe wächst nur und sinkt nie.",
+      "beispiel": "Beispiel {datum}: tiefster Wert {min} °C, höchster Wert {max} °C, Mittelwert {mittel} °C. {mittel} minus {basis} ergibt {beitrag} Gradtage für diesen Tag.",
+      "beispielKalt": "Beispiel {datum}: Der Mittelwert von {mittel} °C liegt nicht über {basis} °C. Der Tag zählt 0 Gradtage.",
+      "hoch": "Die Zahl ist groß, weil sie über {tage} Tage wächst. Im Durchschnitt kommen {schnitt} Gradtage je Tag zusammen."
+    },
+    "verlauf": {
+      "titel": "Verlauf seit Jahresbeginn",
+      "lead": "Im Sommer steigt die Kurve steil, im Winter bleibt sie flach, weil kalte Tage nichts beitragen.",
+      "wert": "Wärmesumme",
+      "ersteErnte": "Erste Ernte"
+    },
+    "einordnung": {
+      "ersteErnte": "Die erste Ernte dieses Jahres war am {datum}. Die Wärmesumme lag an diesem Tag bei {summe} Gradtagen.",
+      "ersteErnteOhneSumme": "Die erste Ernte dieses Jahres war am {datum}. Für diesen Tag liegen keine Wetterwerte vor.",
+      "keineErnte": "In diesem Jahr ist noch keine Ernte erfasst. Deshalb gibt es noch keinen Vergleichswert.",
+      "hinweis": "Aus einer einzigen Saison lässt sich keine Regel ableiten. Erst mehrere Jahre zeigen, bei welcher Wärmesumme die Ernte beginnt. Eine Vorhersage der Erntemenge ist die Wärmesumme nicht."
+    },
+    "grundlagen": "Grundlagen: Wetterdaten von Open-Meteo für den Punkt {breite} Grad Nord, {laenge} Grad Ost (Stadtgebiet Almaty). Gezählt wird ab dem 1. Januar mit einer Basistemperatur von {basis} °C, der üblichen Schwelle für Beerenobst. Der genaue Standort der Plantage steht noch aus."
   },
   "kanaeleAnsicht": {
     "titel": "Kontaktkanäle",
@@ -2268,6 +2517,7 @@
         "periodeEnde": "Bis",
         "dokument": "Dokument",
         "bereich": "Bereich",
+        "weitereBereiche": "Gilt auch in",
         "quellenart": "Quellenart",
         "cluster": "Cluster",
         "textgrundlage": "Textgrundlage",
@@ -2408,6 +2658,8 @@
       },
       "formular": {
         "bereich": "Bereich",
+        "weitereBereiche": "Gilt auch in",
+        "weitereBereicheHinweis": "Ein Dokument, das für mehrere Bereiche gilt (zum Beispiel ISO 31000 für Audit und Risiko), erscheint in jedem davon. Der Hauptbereich bestimmt weiter, wofür die Quelle taugt.",
         "cluster": "Cluster",
         "bitteWaehlen": "Bitte wählen",
         "rollen": "Wer darf das Dokument sehen?",
@@ -3618,6 +3870,21 @@
         "keinBezug": "kein Bezug",
         "knopf": "Lieferung anlegen"
       }
+    },
+    "loggerImport": {
+      "titel": "Logger-Datei importieren",
+      "datei": "CSV- oder JSON-Datei des Temperaturloggers",
+      "kennung": "Logger (optional)",
+      "kennungBeispiel": "z. B. Seriennummer oder Fahrzeug",
+      "hinweis": "Zeit und Temperatur je Zeile, oder als JSON eine Liste mit Zeit und Temperatur je Eintrag. Zeiten ohne Zeitzone gelten in der Zeitzone, die hier gewählt ist. Kelvin und Fahrenheit werden in Grad Celsius umgerechnet. Werte, die älter als 24 Stunden sind, übernimmt das System nicht.",
+      "knopf": "Importieren",
+      "zeitzone": "Uhr des Loggers",
+      "zonen": {
+        "Asia_Almaty": "Almaty (Betriebszeit)",
+        "UTC": "UTC (Weltzeit)",
+        "Europe_Berlin": "Berlin (MEZ/MESZ)",
+        "Europe_Moscow": "Moskau"
+      }
     }
   },
   "b2bPortalAnsicht": {
@@ -3717,7 +3984,9 @@
         "gueltigAb": "Gültig ab",
         "gueltigBis": "Gültig bis (optional)",
         "kundengruppe": "Kundengruppe (optional)",
-        "knopf": "Preisliste anlegen"
+        "knopf": "Preisliste anlegen",
+        "inklMwst": "Preise enthalten die MwSt (brutto)",
+        "inklMwstHinweis": "Vorgabe: netto. Die ЭСФ rechnet immer netto plus Satz. Bei einer Bruttoliste teilt sie den Gesamtbetrag. Die Angabe gilt für die ganze Liste und lässt sich nicht mehr ändern."
       },
       "position": {
         "sorte": "Sorte",
@@ -3729,7 +3998,9 @@
         "label": "Kundengruppe",
         "knopf": "Speichern"
       }
-    }
+    },
+    "netto": "netto",
+    "brutto": "inkl. MwSt"
   },
   "sortenkatalogAnsicht": {
     "sortenTitel": "Sorten",
@@ -3820,7 +4091,8 @@
       "erfasst": "erfasst",
       "offen": "offen"
     },
-    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind nicht Teil dieser Ansicht - die Temperatursumme steht im Wetter-Modul."
+    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind nicht Teil dieser Ansicht - die Wärmesumme steht im Wetter-Modul.",
+    "esutdAltbestand": "Status aus der alten Erfassung: Im Meldeprozess steht kein Vertrag zu dieser Person. Bitte den Vertrag im Modul Compliance nachtragen."
   },
   "erlebnis": {
     "bento": {
@@ -4408,5 +4680,1316 @@
         "description": "Dokumente in die Wissensbasis laden, nach Cluster, Quellenart und Stufe einordnen und von einer zweiten Person freigeben lassen. Der Assistent durchsucht sie bei Recht-, Steuer-, Compliance-, Audit- und Risikofragen."
       }
     }
+  },
+  "nachweisregister": {
+    "status": {
+      "gueltig": "gültig",
+      "laeuft_ab": "läuft ab",
+      "abgelaufen": "abgelaufen",
+      "offen": "offen"
+    },
+    "col": {
+      "gueltigBis": "Gültig bis",
+      "verantwortlich": "Verantwortlich"
+    },
+    "unbefristet": "unbefristet",
+    "keinZeitraum": "kein Zeitraum erfasst",
+    "inTagen": "{tage, plural, one {in # Tag} other {in # Tagen}}",
+    "vorTagen": "{tage, plural, one {vor # Tag} other {vor # Tagen}}",
+    "zaehlung": "Stand des Registers",
+    "bearbeiten": "Bearbeiten",
+    "heute": "heute",
+    "neueVersion": "Neue Version",
+    "vorversionen": "{anzahl, plural, one {# frühere Version} other {# frühere Versionen}}",
+    "bis": "bis {datum}",
+    "versionLead": "Der Nachweis wurde erneuert: Die neue Version ersetzt diesen Eintrag im Register. Die alte bleibt als frühere Version erhalten und zählt nicht mehr als aktuell. Bitte den neuen Zeitraum eintragen."
+  },
+  "blockRisiko": {
+    "col": "Risiko",
+    "stufe": {
+      "hoch": "hoch",
+      "mittel": "mittel",
+      "niedrig": "niedrig"
+    },
+    "punkte": "{punkte} von 100",
+    "keinMangel": "kein Mangel",
+    "grund": {
+      "ueberfaellig": "Durchgang überfällig",
+      "sperre": "Erntezeit durch Sperre verloren",
+      "ausschuss": "Hoher Ausschuss",
+      "kuehlkette": "Kühlketten-Verstöße",
+      "erfassung": "Erfassungslücke",
+      "sperre_konflikt": "Aufgabe liegt in der Wartezeitsperre"
+    },
+    "erklaerung": {
+      "titel": "So entsteht der Risikowert",
+      "lead": "Fünf Faktoren, gewichtet. Gewichte und Schwellen stehen mit Begründung in der Datenbank. Ändern dürfen Administration und Geschäftsführung unter Büro → Einstellungen.",
+      "gewicht": "Gewicht {gewicht}",
+      "faktor": {
+        "ueberfaellig": {
+          "name": "Versäumter Durchgang",
+          "regel": "Die älteste offene Aufgabe oder der älteste offene Rotationstermin ist überfällig. Ab {tage, plural, one {# Tag} other {# Tagen}} Verzug gilt der Faktor als voll, denn dann ist ein ganzer Durchgang verloren."
+        },
+        "sperre": {
+          "name": "Wartezeitsperre",
+          "regel": "Wird eine offene Aufgabe vor dem Ende der Sperre fällig, ist das ein Konflikt: Faktor voll und immer Stufe hoch. Sonst zählt jeder durch die Sperre entfallende Durchgang anteilig, ab {durchgaenge, plural, one {# Durchgang} other {# Durchgängen}} voll."
+        },
+        "ausschuss": {
+          "name": "Ausschuss",
+          "regel": "Ausschussquote der letzten {tage, plural, one {# Tag} other {# Tage}}. Null beim Ziel von {ziel} Prozent, voll bei {kritisch} Prozent."
+        },
+        "kuehlkette": {
+          "name": "Kühlkette",
+          "regel": "Verstöße gegen die 60-Minuten-Regel bei Chargen des Blocks in den letzten {tage, plural, one {# Tag} other {# Tagen}}, ab {anzahl, plural, one {# Verstoß} other {# Verstößen}} voll."
+        },
+        "erfassung": {
+          "name": "Erfassungslücke",
+          "regel": "Auf dem Block wurde in den letzten {aktiv, plural, one {# Tag} other {# Tagen}} gearbeitet, es gibt aber keine offene Aufgabe und keine aus den letzten {tage, plural, one {# Tag} other {# Tagen}}."
+        }
+      },
+      "schwellen": "Stufe hoch ab {hoch} Punkten, mittel ab {mittel}. Der Konflikt mit der Wartezeitsperre ist immer hoch."
+    }
+  },
+  "rollenZuweisung": {
+    "titel": "Konten und Rollen",
+    "lead": "Die Rolle eines Kontos bestimmt, was es sehen und tun darf. Eine Änderung gilt ab der nächsten Seite, die das Konto öffnet.",
+    "col": {
+      "name": "Name",
+      "email": "E-Mail",
+      "rolle": "Rolle",
+      "aendern": "Ändern"
+    },
+    "knopf": "Speichern",
+    "kundeHinweis": "Kundenkonto, verwaltet über Einladungen",
+    "eigenesKonto": "Eigenes Konto",
+    "nurAdministration": "Rollen vergibt nur die Administration.",
+    "leer": "Keine Konten sichtbar.",
+    "hinweis": "Der letzte Administrator behält seine Rolle. Die eigene Rolle lässt sich hier nicht ändern.",
+    "gesperrtSeit": "gesperrt seit {datum}",
+    "sperrgrund": "Grund: {grund}",
+    "anlegen": {
+      "titel": "Konto für Mitarbeitende anlegen",
+      "lead": "Die Person bekommt ein vorläufiges Passwort, das hier einmal angezeigt wird. Sie ändert es bei der ersten Anmeldung auf der Seite Sicherheit. Kundenkonten entstehen über Einladungen.",
+      "name": "Name",
+      "email": "E-Mail",
+      "rolle": "Rolle",
+      "knopf": "Konto anlegen"
+    },
+    "sperre": {
+      "sperren": "Konto sperren",
+      "entsperren": "Konto entsperren",
+      "grund": "Grund der Sperre",
+      "sperrenKnopf": "Sperren",
+      "entsperrenKnopf": "Entsperren"
+    }
+  },
+  "nachrichten": {
+    "titel": "Nachrichten zu Vorbestellungen",
+    "lead": "Absprachen zu Menge und Termin bleiben an der Vorbestellung. Gesendete Nachrichten lassen sich nicht ändern oder löschen.",
+    "keineVorbestellung": "Noch keine Vorbestellung.",
+    "keineNachrichten": "Noch keine Nachrichten.",
+    "gekuerzt": "Gezeigt werden {gezeigt} von {gesamt} Vorbestellungen: zuerst die offenen mit dem jüngsten Verlauf. Ältere stehen in der Liste der Vorbestellungen oben.",
+    "anzahl": "{anzahl, plural, one {# Nachricht} other {# Nachrichten}}",
+    "feld": "Nachricht",
+    "platzhalter": "z. B. Bitte einen Tag früher liefern",
+    "hinweis": "Höchstens {max} Zeichen. Gesendete Nachrichten sind unveränderlich.",
+    "senden": "Senden",
+    "storniert": "Zu einer stornierten Vorbestellung gibt es keine neuen Nachrichten.",
+    "download": {
+      "knopf": "Lieferplan als Kalenderdatei",
+      "hinweis": "Die Kalenderdatei (ICS) enthält die kommenden Liefertermine. Zum Aktualisieren erneut herunterladen."
+    },
+    "anonymisiert": "Anonymisiert am {datum}",
+    "anonymisieren": {
+      "knopf": "Anonymisieren",
+      "grund": "Grund (ohne personenbezogene Angaben)",
+      "hinweis": "Text und Name werden entfernt, der Verlauf bleibt. Das lässt sich nicht rückgängig machen.",
+      "bestaetigen": "Endgültig anonymisieren",
+      "grundVermerk": "Grund: {grund}"
+    }
+  },
+  "lieferplan": {
+    "kalenderName": "Damicon Lieferplan",
+    "titelLieferung": "Lieferung: {sorte}, {menge} kg",
+    "titelVorbestellung": "Vorbestellung: {sorte}, {menge} kg",
+    "lieferungGeplant": "Lieferung geplant",
+    "status": {
+      "angefragt": "Vorbestellung angefragt, noch nicht bestätigt",
+      "bestaetigt": "Vorbestellung bestätigt"
+    },
+    "kunde": "Kunde: {kunde}",
+    "sorteMenge": "{sorte}, {menge} kg",
+    "ohneSorte": "Sorte offen"
+  },
+  "foerdermittelCheckliste": {
+    "titel": "Checklisten der Dossiers",
+    "lead": "Was ein Antrag braucht, legt die Förderstelle fest. Die Checkliste hilft, nichts zu vergessen, und erinnert an Fristen. Sie ist kein amtliches Formular.",
+    "keineDossiers": "Noch kein Dossier.",
+    "leer": "Noch keine Punkte",
+    "fortschritt": "{erledigt} von {gesamt} erledigt ({prozent} %)",
+    "pflichtOffen": "Pflicht offen: {anzahl}",
+    "ueberfaellig": "Frist überschritten: {anzahl}",
+    "vollstaendig": "Alle Pflichtpunkte sind erledigt.",
+    "vorschlagHinweis": "Fünf allgemeine Punkte als Vorschlag, kein amtlicher Katalog. Bitte mit den Vorgaben der Förderstelle abgleichen und anpassen.",
+    "vorschlagUebernehmen": "Allgemeinen Vorschlag übernehmen",
+    "freiwillig": "freiwillig",
+    "erledigtAm": "erledigt am {datum}",
+    "erledigen": "Erledigt",
+    "oeffnen": "Wieder öffnen",
+    "entfernen": "Entfernen",
+    "hinzufuegen": "Punkt hinzufügen",
+    "beispiel": "z. B. Angebot der Kühlanlage einholen",
+    "feld": {
+      "bezeichnung": "Neuer Punkt",
+      "frist": "Frist (optional)",
+      "pflicht": "Pflichtpunkt"
+    },
+    "vorlage": {
+      "antragsformular": "Antragsformular ausgefüllt und unterschrieben",
+      "identifikation": "Nachweis der Rechtsform und der Identifikationsnummer",
+      "kostenaufstellung": "Kosten- oder Investitionsaufstellung mit Angeboten",
+      "flaechennachweis": "Nachweis der Flächen und des Anbaus",
+      "zahlungsbelege": "Zahlungsbelege für die Abrechnung"
+    }
+  },
+  "esfAnsicht": {
+    "titel": "Belegregister der elektronischen Rechnung (ЭСФ)",
+    "lead": "Das Register zeigt, welche zugestellte Lieferung welchen Beleg hat und welche noch keinen. Ausgestellt wird die ЭСФ weiterhin im staatlichen Portal. Das System bereitet die Angaben vor und führt den Stand.",
+    "stufeHinweis": "Die automatische Übergabe an das staatliche System folgt, sobald der Zugang der Behörde vorliegt. Papier ist nur bei einer Störung des Systems zulässig und braucht eine Begründung.",
+    "nurLesen": "Nur Ansicht: erfassen dürfen Administration, Geschäftsführung und Buchhaltung.",
+    "zaehlOffen": "Ohne Beleg",
+    "offen": {
+      "titel": "Lieferungen ohne ЭСФ",
+      "lead": "Zugestellt, aber ohne ausgestellten Beleg. Das Alter zählt ab dem Liefertag, die Frist beträgt {frist} Kalendertage (Einstellung der Buchhaltung).",
+      "leer": "Alle zugestellten Lieferungen haben einen ausgestellten Beleg.",
+      "col": {
+        "kunde": "Kunde",
+        "geliefertAm": "Geliefert am",
+        "menge": "Menge",
+        "alter": "Alter",
+        "beleg": "Beleg"
+      },
+      "heute": "heute",
+      "tage": "{tage, plural, one {# Tag} other {# Tage}}",
+      "keinBeleg": "noch kein Entwurf",
+      "leadOhneFrist": "Zugestellt, aber ohne ausgestellten Beleg. Das Alter zählt ab dem Liefertag. Eine Frist ist in den Einstellungen nicht gesetzt.",
+      "ueberfaellig": "{tage, plural, one {# Tag} other {# Tage}} überfällig",
+      "nochTage": "noch {tage, plural, one {# Tag} other {# Tage}}",
+      "letzterTag": "letzter Tag"
+    },
+    "belege": {
+      "titel": "Belege",
+      "lead": "Der Entwurf ist ein Standbild der Angaben am Liefertag. Ab dem Ausstellen ändert er sich nicht mehr.",
+      "leer": "Noch kein Beleg angelegt."
+    },
+    "status": {
+      "entwurf": "Entwurf",
+      "ausgestellt": "ausgestellt",
+      "bestaetigt": "bestätigt",
+      "abgelehnt": "abgelehnt",
+      "papier": "Papier (Störung)"
+    },
+    "nummerMit": "ЭСФ-Nummer {nummer}",
+    "ausgestelltAm": "ausgestellt am {datum}",
+    "bestaetigtAm": "bestätigt am {datum}",
+    "entwurf": {
+      "titel": "Angaben für das Portal",
+      "stichtag": "Liefertag",
+      "kaeufer": "Käufer",
+      "identifikationsnummer": "Identifikationsnummer (IIN oder BIN)",
+      "fehlt": "fehlt",
+      "sorte": "Sorte",
+      "charge": "Charge",
+      "menge": "Menge",
+      "preis": "Preis je kg laut Preisliste",
+      "betrag": "Betrag",
+      "mwst": "MwSt {prozent} %",
+      "nichtRegistriert": "Der Betrieb war am Liefertag nicht MwSt-registriert, keine MwSt im Entwurf.",
+      "gesamt": "Gesamt",
+      "annahme": "Annahme: Die Preisliste führt Nettopreise, die MwSt kommt obendrauf. Die Angabe steht an der Preisliste.",
+      "lueckenTitel": "Dem Entwurf fehlt noch:",
+      "unlesbar": "Der gespeicherte Entwurf ist nicht lesbar. Bitte neu berechnen.",
+      "annahmeBrutto": "Annahme: Die Preisliste führt Bruttopreise (inklusive MwSt). Der Betrag ohne MwSt ist der Gesamtbetrag geteilt durch 1 plus Satz. Die Angabe steht an der Preisliste."
+    },
+    "luecke": {
+      "preis": "Kein Preis in der Preisliste am Liefertag",
+      "sorte": "Keine Sorte an Lieferung oder Charge",
+      "identifikationsnummer": "Identifikationsnummer des Kunden fehlt",
+      "mwstSatz": "Kein MwSt-Satz für den Liefertag hinterlegt"
+    },
+    "aktion": {
+      "entwurfErstellen": "Entwurf erstellen",
+      "entwurfNeu": "Entwurf neu berechnen",
+      "entwurfVerwerfen": "Entwurf verwerfen",
+      "neuBeginnen": "Neuen Entwurf beginnen",
+      "ausgestellt": {
+        "titel": "Als ausgestellt erfassen",
+        "nummer": "ЭСФ-Nummer",
+        "datum": "Ausgestellt am",
+        "knopf": "Erfassen"
+      },
+      "bestaetigt": {
+        "titel": "Bestätigung erfassen",
+        "datum": "Bestätigt am",
+        "knopf": "Erfassen"
+      },
+      "abgelehnt": {
+        "titel": "Ablehnung erfassen",
+        "grund": "Grund der Ablehnung",
+        "knopf": "Erfassen"
+      },
+      "papier": {
+        "titel": "Auf Papier führen (Störung)",
+        "grund": "Art und Dauer der Störung",
+        "knopf": "Auf Papier führen"
+      }
+    },
+    "zaehlUeberfaellig": "Frist überschritten"
+  },
+  "esutdAnsicht": {
+    "titel": "Meldeprozess im Einheitssystem (ЕСУТД)",
+    "lead": "Abschluss, Änderung und Beendigung jedes Saisonvertrags gehören ins staatliche Einheitssystem ЕСУТД. Die Liste zeigt, was zu melden ist, was gemeldet ist und womit es belegt ist. Gemeldet wird weiterhin im staatlichen System, Damicon führt den Stand.",
+    "stufeHinweis": "Die Meldefristen kommen aus den Einstellungen: Abschluss {tageAbschluss} Arbeitstage nach der Unterschrift (sonst nach Vertragsbeginn), Änderung {tageAnpassung} Kalendertage, Beendigung {tageBeendigung} Arbeitstage. Samstag und Sonntag zählen nicht, einen Feiertagskalender gibt es nicht. Die automatische Meldung folgt, sobald der Zugang der Behörde vorliegt.",
+    "nurLesen": "Nur Ansicht: erfassen dürfen Administration, Geschäftsführung und Betriebsleitung.",
+    "zaehl": {
+      "offen": "Offen",
+      "ueberfaellig": "Frist überschritten",
+      "erfasst": "Gemeldet"
+    },
+    "art": {
+      "abschluss": "Abschluss",
+      "aenderung": "Änderung",
+      "beendigung": "Beendigung"
+    },
+    "status": {
+      "offen": "offen",
+      "erfasst": "gemeldet"
+    },
+    "liste": {
+      "titel": "Meldungen",
+      "leer": "Noch keine Meldung angelegt.",
+      "col": {
+        "person": "Person",
+        "art": "Art",
+        "datum": "Datum",
+        "frist": "Frist",
+        "status": "Status",
+        "beleg": "Beleg"
+      },
+      "ohneName": "Name nicht sichtbar",
+      "keineFrist": "keine Frist hinterlegt",
+      "fristBis": "bis {datum}",
+      "ueberfaellig": "Frist überschritten",
+      "ausweis": "Ausweis {ausweis}",
+      "vertrag": "Vertrag {nummer}",
+      "erfasstAm": "gemeldet am {datum}",
+      "bestaetigung": "Bestätigung {nummer}",
+      "beleg": "Beleg: {name}",
+      "keinBeleg": "kein Beleg"
+    },
+    "aktion": {
+      "erfassen": {
+        "titel": "Als gemeldet erfassen",
+        "datum": "Gemeldet am",
+        "bestaetigung": "Bestätigungsnummer (optional)",
+        "beleg": "Beleg (optional)",
+        "keinBeleg": "kein Beleg",
+        "hinweis": "Belege liegen im Nachweisregister (Kategorie ЕСУТД-Nachweis). Dort hochladen, hier auswählen.",
+        "knopf": "Erfassen"
+      },
+      "oeffnen": "Wieder öffnen",
+      "entfernen": "Entfernen"
+    },
+    "neu": {
+      "abschluss": {
+        "titel": "Neuen Abschluss anlegen",
+        "person": "Person",
+        "bitteWaehlen": "bitte wählen",
+        "keinePersonen": "Keine Person sichtbar.",
+        "beginn": "Vertragsbeginn",
+        "nummer": "Vertragsnummer (optional)",
+        "knopf": "Anlegen",
+        "unterschrift": "Unterschrieben am (leer: Vertragsbeginn)",
+        "unterschriftHinweis": "Ab hier läuft die Meldefrist."
+      },
+      "ereignis": {
+        "titel": "Änderung oder Beendigung anlegen",
+        "vertrag": "Vertrag",
+        "keineVertraege": "Noch kein Abschluss erfasst.",
+        "art": "Art",
+        "datum": "Datum der Änderung oder des Vertragsendes",
+        "beschreibung": "Was ändert sich? (bei Beendigung freiwillig)",
+        "knopf": "Anlegen"
+      }
+    },
+    "export": {
+      "knopf": "Offene Meldungen als CSV",
+      "hinweis": "Die Datei enthält Namen und Ausweisnummern. Nur für die Eingabe im staatlichen System verwenden und danach löschen. Ein amtliches Importformat gibt es hier nicht, die Datei ist eine einfache Tabelle.",
+      "spalte": {
+        "person": "Person",
+        "ausweis": "Ausweis",
+        "art": "Art",
+        "vertrag": "Vertragsnummer",
+        "datum": "Datum",
+        "frist": "Frist",
+        "beschreibung": "Beschreibung",
+        "status": "Status",
+        "erfasstAm": "Gemeldet am",
+        "bestaetigung": "Bestätigungsnummer"
+      }
+    },
+    "verlauf": {
+      "titel": "Verlauf der Meldungen",
+      "lead": "Jedes Erfassen und Wiederöffnen, mit den Angaben, die beim Wiederöffnen aus der Meldung verschwinden. Der Verlauf lässt sich nicht ändern.",
+      "erfasst": "gemeldet am {datum}",
+      "geoeffnet": "wieder geöffnet (vorher gemeldet am {datum})"
+    }
+  },
+  "dokument": {
+    "rahmen": {
+      "untertitel": "Himbeerbetrieb Kasachstan",
+      "vertraulich": "Vertraulich",
+      "fussVertraulich": "Vertraulich · nur für den vorgesehenen Empfängerkreis",
+      "seite": "Seite",
+      "von": "von",
+      "inhalt": "Inhalt",
+      "kennung": "Dokumentnummer",
+      "erstelltAm": "Erstellt am",
+      "ersteller": "Erstellt von",
+      "siegel": "Siegel und Nachweis",
+      "siegelKurz": "Siegel",
+      "siegelHinweis": "Das Siegel ist eine SHA-256-Prüfsumme über den Inhalt dieses Dokuments. Jeder Abruf steht mit derselben Prüfsumme im Protokoll des Systems, damit sich später zeigen lässt, dass der Inhalt unverändert ist.",
+      "unterschrift": "Unterschrift",
+      "ortDatum": "Ort, Datum",
+      "freigabe": "Freigabe",
+      "freigabeText": "Zur Kenntnis genommen und zur weiteren Verwendung freigegeben.",
+      "hinweise": "Einschränkungen",
+      "drucken": "Drucken oder als PDF speichern",
+      "tippDruck": "Tipp für den Druckdialog: „Kopf- und Fußzeilen“ ausschalten, Papierformat A4. Farben und Marke werden automatisch übernommen."
+    },
+    "esutd": {
+      "art": "ЕСУТД · Meldeprozess",
+      "titel": "Meldungen an das Einheitssystem ЕСУТД",
+      "dateiname": "ЕСУТД-Meldungen",
+      "untertitelOffen": "Offene Meldungen",
+      "untertitelAlle": "Alle Meldungen",
+      "stand": "Stand",
+      "umfang": "Umfang",
+      "umfangWert": "{anzahl, plural, one {# Meldung} other {# Meldungen}}",
+      "zusammenfassung": "Abschluss, Änderung und Beendigung der Saisonverträge. Gemeldet wird im staatlichen System, Damicon führt den Stand und hält fest, womit die Meldung belegt ist.",
+      "abschnittMeldungen": "Meldungen",
+      "abschnittHinweise": "Fristen und Annahmen",
+      "leer": "In dieser Auswahl gibt es keine Meldung.",
+      "personenbezug": "Das Dokument enthält personenbezogene Daten. Nur an Berechtigte weitergeben und nicht länger aufbewahren, als der Zweck es verlangt.",
+      "keinAmtlichesFormat": "Ein amtliches Importformat des staatlichen Systems gibt es hier nicht. Das Dokument ist eine Übersicht, keine Meldung."
+    },
+    "esf": {
+      "art": "ЭСФ · Elektronische Rechnung",
+      "titelRegister": "Belegregister der elektronischen Rechnung",
+      "titelBeleg": "ЭСФ-Beleg",
+      "untertitelRegister": "Lieferungen ohne ЭСФ und Stand der Belege",
+      "dateinameRegister": "ЭСФ-Belegregister",
+      "dateinameBeleg": "ЭСФ-Beleg-{kunde}",
+      "umfang": "Umfang",
+      "umfangWert": "{offen} Lieferungen ohne ausgestellten Beleg, {belege} Belege",
+      "zusammenfassungRegister": "Welche zugestellte Lieferung hat welchen ЭСФ-Beleg und welche noch keinen. Ausgestellt wird die ЭСФ im staatlichen Portal.",
+      "zusammenfassungBeleg": "Angaben für das staatliche Portal und Stand dieses Belegs.",
+      "status": "Status",
+      "bemerkung": "Bemerkung",
+      "nummerDaten": "Nummer und Daten",
+      "abschnittStand": "Stand des Belegs",
+      "abschnittHinweise": "Hinweise",
+      "keinErsatz": "Dieses Dokument ersetzt die ЭСФ nicht. Es hält die Angaben und den Stand fest, die elektronische Rechnung wird im staatlichen System ausgestellt."
+    },
+    "foerderung": {
+      "art": "Fördermittel · Checkliste",
+      "titel": "Checkliste zum Förderantrag",
+      "dateiname": "Checkliste-{titel}",
+      "antragsnummer": "Antragsnummer",
+      "fortschritt": "Fortschritt",
+      "pflichtOffen": "Pflicht offen",
+      "ueberfaellig": "Frist überschritten",
+      "abschnittDossier": "Dossier",
+      "abschnittPunkte": "Punkte der Checkliste",
+      "abschnittHinweise": "Hinweise",
+      "notizen": "Notizen",
+      "punkt": "Punkt",
+      "verbindlichkeit": "Verbindlichkeit",
+      "pflicht": "Pflicht",
+      "offen": "offen"
+    },
+    "lieferung": {
+      "art": "Lieferung · Übergabequittung",
+      "titel": "Übergabequittung und Kühlkette",
+      "dateiname": "Lieferung-{kunde}",
+      "charge": "Charge",
+      "status": "Status",
+      "hoechstwert": "Ungünstigste Messung",
+      "messungen": "Messungen",
+      "vomLogger": "davon vom Logger",
+      "zusammenfassungMitUrteil": "Gesamturteil der Kühlkette: {urteil}. Maßgeblich ist die ungünstigste Messung aus Vorkühlung und Transport.",
+      "zusammenfassungOhneUrteil": "Zu dieser Lieferung liegt noch keine Temperaturmessung vor.",
+      "abschnittLieferung": "Lieferung",
+      "abschnittUebergabe": "Übergabe",
+      "abschnittKuehlkette": "Kühlkette beim Transport",
+      "tag": "Liefertag",
+      "nochNichtUebergeben": "Die Lieferung ist noch nicht übergeben.",
+      "zeitpunkt": "Zeitpunkt",
+      "temperatur": "Temperatur",
+      "bewertung": "Bewertung",
+      "herkunft": "Herkunft",
+      "kennung": "Logger",
+      "quelleLogger": "Logger",
+      "quelleManuell": "Handmessung",
+      "regel": "Bewertung je Messung: bis 4 °C in Ordnung, bis 8 °C Warnung, darüber Verstoß. Werte aus einer Logger-Datei tragen die Herkunft Logger und die Kennung des Geräts.",
+      "keineMessungen": "Für den Transport wurde keine Messung erfasst.",
+      "empfaenger": "Empfänger"
+    },
+    "nachweise": {
+      "art": "Nachweisregister",
+      "titel": "Nachweisregister mit Gültigkeit",
+      "untertitel": "Zertifikate, Genehmigungen, Verträge und Protokolle",
+      "dateiname": "Nachweisregister",
+      "stand": "Stand",
+      "umfang": "Umfang",
+      "umfangWert": "{anzahl, plural, one {# Nachweis} other {# Nachweise}}",
+      "zusammenfassung": "Der Status folgt aus dem Zeitraum: gültig, läuft ab, abgelaufen oder offen. Er wird nicht von Hand gesetzt.",
+      "abschnittRegister": "Register",
+      "abschnittHinweise": "Hinweise",
+      "leer": "Keine Nachweise erfasst.",
+      "regelStatus": "Gültig bis ist der letzte Gültigkeitstag. Am Folgetag gilt der Nachweis als abgelaufen. Der Tag wechselt um Mitternacht in Almaty.",
+      "regelOffen": "Offen heißt: kein Zeitraum erfasst oder noch nicht wirksam. Das System erfindet keine Daten, ein Nachweis ohne Zeitraum fällt als Lücke auf."
+    },
+    "lieferplan": {
+      "art": "Lieferplan",
+      "titel": "Lieferplan",
+      "untertitel": "Kommende Liefertermine ab {datum}",
+      "dateiname": "Lieferplan",
+      "stand": "Stand",
+      "termine": "Termine",
+      "fest": "fest eingeplant",
+      "wunsch": "Wunschtermine",
+      "menge": "Menge",
+      "zusammenfassung": "Fest eingeplante Lieferungen auf einer Tour und Vorbestellungen mit Wunschtermin, ohne Doppelungen.",
+      "abschnittTermine": "Termine",
+      "abschnittHinweise": "Hinweise",
+      "leer": "Keine kommenden Termine.",
+      "regel": "Eine Vorbestellung, zu der schon eine geplante Lieferung auf einer Tour gehört, steht nicht noch einmal da: dort gilt der Tag der Tour, nicht der Wunsch. Der Kunde sieht nur seine eigenen Termine.",
+      "datum": "Datum",
+      "artSpalte": "Art",
+      "kunde": "Kunde",
+      "sorte": "Sorte"
+    },
+    "knopf": {
+      "standard": "Als Dokument (PDF)",
+      "hinweis": "Öffnet das Dokument im Damicon-Layout in einem neuen Tab. Dort lässt es sich drucken oder als PDF speichern.",
+      "register": "Register als Dokument",
+      "lieferung": "Übergabequittung und Kühlkette",
+      "lieferplan": "Lieferplan als Dokument",
+      "checkliste": "Checkliste als Dokument",
+      "alle": "Alle Meldungen als Dokument",
+      "offen": "Offene Meldungen als Dokument"
+    },
+    "wirtschaftlichkeit": {
+      "art": "Wirtschaftlichkeit · Investitionsrechnung",
+      "titel": "Investitionsrechnung zur Einführung",
+      "dateiname": "Wirtschaftlichkeit",
+      "untertitelLaufend": "Laufende Rechnung",
+      "untertitelModell": "Modellrechnung",
+      "untertitelStand": "Festgehaltener Stand „{name}“",
+      "meta": {
+        "stand": "Stand",
+        "kurs": "Kurs",
+        "zins": "Kalkulationszins",
+        "posten": "Erfasste Posten"
+      },
+      "col": {
+        "kennzahl": "Kennzahl",
+        "wert": "Wert",
+        "herkunft": "Herkunft"
+      },
+      "zusammenfassung": "Gerechnet aus {anzahl} erfassten Posten. {geschaetzt} Kennzahlen beruhen auf Schätzungen, {offen} sind noch offen, weil Angaben fehlen.",
+      "zusammenfassungModell": "Modellrechnung nach der Kennzahlenliste der Geschäftsführung vom 23.09.2026, nicht aus dem laufenden Betrieb.",
+      "zusammenfassungLeer": "Es sind noch keine Posten erfasst, deshalb sind alle Kennzahlen offen.",
+      "abschnittKennzahlen": "Kennzahlen",
+      "abschnittPosten": "Posten der Rechnung",
+      "abschnittAnnahmen": "Annahmen",
+      "abschnittPlanIst": "Plan und Ist",
+      "abschnittHinweise": "Hinweise zur Belastbarkeit",
+      "hinweiseTitel": "Bei der Bewertung zu beachten",
+      "leerPosten": "Keine Posten erfasst.",
+      "hinweis": {
+        "modell": "Modellrechnung ohne Datenbankanbindung: Die Werte stammen aus der Kennzahlenliste vom 23.09.2026.",
+        "stand": "Dieses Dokument zeigt einen festgehaltenen Stand. Es rechnet mit den Posten und dem Kurs von damals, nicht mit den heutigen.",
+        "geschaetzt": "Geschätzt, weil sie an Annahmen hängen, die der Betrieb noch nicht belegt hat: {liste}.",
+        "offen": "Offen, weil Angaben fehlen: {liste}."
+      }
+    },
+    "abholauftrag": {
+      "art": "Abholrunde · Auftrag",
+      "titel": "Abholauftrag",
+      "titelNachweis": "Nachweis der Abholrunde",
+      "dateiname": "Abholauftrag-{datum}",
+      "unbekannt": "unbekannt",
+      "planungOffen": "Für diese Runde wurde keine Route berechnet, deshalb gibt es keine Fahrzeitschätzung.",
+      "planungOk": "Geschätzte Fahrt vom ersten Stopp ins Kühlhaus: {minuten} Minuten. Das passt in die 60 Minuten.",
+      "planungKnapp": "Geschätzte Fahrt vom ersten Stopp ins Kühlhaus: {minuten} Minuten. Das ist knapp: die Uhr läuft schon ab dem Pflückbeginn, also vor dem Eintreffen des Fahrzeugs.",
+      "planungZuLang": "Geschätzte Fahrt vom ersten Stopp ins Kühlhaus: {minuten} Minuten. Das überschreitet die 60 Minuten, auch ohne Wartezeit beim Nachbarbetrieb. Die Runde sollte geteilt werden.",
+      "abschnittStopps": "Stopps",
+      "abschnittRegel": "Regel der Kühlkette",
+      "abschnittErgebnis": "Ergebnis je Abholung",
+      "abschnittHinweise": "Hinweise",
+      "regel": "Ab dem Pflückbeginn zählt die Uhr, bis die Ware im Kühlhaus ist. Bis {warnung} Minuten gilt die Abholung als in Ordnung, bis {rot} Minuten als Warnung, darüber als Verstoß. Den Pflückbeginn nennt der Nachbarbetrieb. Fehlt er, gilt die Abholung als Warnung.",
+      "keineStopps": "Diese Runde hat keine Stopps.",
+      "keineAbholung": "Es wurde nichts abgeholt.",
+      "verstossTitel": "Verstoß gegen die 60-Minuten-Regel",
+      "verstossText": "Mindestens eine Abholung hat die Grenze von {grenze} Minuten bis zum Kühlhaus überschritten. Die Ware ist nach den Regeln der Kühlkette zu prüfen, bevor sie weiterverarbeitet oder verkauft wird.",
+      "col": {
+        "nr": "Nr.",
+        "betrieb": "Nachbarbetrieb",
+        "erwartet": "Erwartet",
+        "abgeholt": "Abgeholt",
+        "status": "Stand",
+        "pflueckbeginn": "Pflückbeginn",
+        "abholung": "Abholung",
+        "minuten": "Minuten bis Kühlhaus",
+        "ergebnis": "Ergebnis"
+      },
+      "meta": {
+        "datum": "Datum",
+        "fahrzeug": "Fahrzeug",
+        "status": "Status",
+        "ankunft": "Ankunft im Kühlhaus",
+        "kapazitaet": "Kapazität",
+        "abfahrt": "Abfahrt"
+      },
+      "kennzahl": {
+        "stopps": "Stopps",
+        "erwartet": "Erwartete Menge",
+        "abgeholt": "Abgeholte Menge",
+        "offen": "Offene Stopps"
+      },
+      "zusammenfassungAbgeschlossen": "Die Runde ist abgeschlossen: {abgeholt} Abholungen, {entfallen} entfallen. Das Dokument ändert sich nicht mehr.",
+      "zusammenfassungOffen": "Auftrag für {anzahl} Stopps. Der Fahrer erfasst jede Abholung mit der Menge und dem Pflückbeginn, den der Nachbarbetrieb nennt.",
+      "fahrer": "Fahrer",
+      "ankunftCa": "Ankunft ca. {zeit}",
+      "fensterZeit": "Fenster {von} bis {bis}"
+    }
+  },
+  "wirtschaftlichkeitErfassung": {
+    "posten": {
+      "titel": "Posten der Rechnung",
+      "lead": "Einmalige Investition, laufende Betriebskosten und erwarteter Nutzen, je Jahr. Die Kennzahlen oben rechnen aus diesen Zeilen. Fehlt eine Art ganz, bleibt alles offen, was von ihr abhängt.",
+      "art": {
+        "investition": "Investition (einmalig)",
+        "betrieb": "Laufende Systemkosten (je Jahr)",
+        "nutzen": "Nutzen (je Jahr)"
+      },
+      "col": {
+        "kategorie": "Kategorie",
+        "bezeichnung": "Bezeichnung",
+        "datum": "Datum",
+        "betrag": "Betrag",
+        "herkunft": "Herkunft"
+      },
+      "summe": "Summe {betrag}",
+      "nichtErfasst": "nicht erfasst",
+      "keineZeile": "Noch kein Posten dieser Art erfasst.",
+      "neu": "Posten erfassen",
+      "entfernen": "Entfernen"
+    },
+    "kategorie": {
+      "schwund": "Schwund",
+      "handarbeit": "Handarbeit",
+      "audit": "Auditvorbereitung",
+      "sonstiges": "Sonstiges"
+    },
+    "herkunft": {
+      "belegt": "belegt",
+      "geschaetzt": "geschätzt"
+    },
+    "waehrung": {
+      "EUR": "Euro (EUR)",
+      "KZT": "Tenge (KZT)",
+      "RUB": "Rubel (RUB)"
+    },
+    "form": {
+      "art": "Art",
+      "kategorie": "Kategorie",
+      "kategorieBeispiel": "z. B. Entwicklung, Hosting",
+      "bezeichnung": "Bezeichnung",
+      "betrag": "Betrag",
+      "waehrung": "Währung",
+      "datum": "Datum",
+      "herkunft": "Herkunft",
+      "notiz": "Notiz (optional)",
+      "monat": "Monat",
+      "anlegen": "Posten anlegen",
+      "speichern": "Speichern"
+    },
+    "modell": {
+      "titel": "Mit den Werten der Kennzahlenliste beginnen",
+      "lead": "Noch ist nichts erfasst. Die Werte der Kennzahlenliste vom 23.09.2026 lassen sich als Startpunkt übernehmen: Investition und laufende Kosten als belegt, der zurückgerechnete Jahresnutzen als geschätzt. Danach lässt sich jede Zeile ändern.",
+      "knopf": "Modellwerte übernehmen",
+      "investition": {
+        "bezeichnung": "Einführung Damicon bis zur Abnahme (Festpreis)",
+        "kategorie": "Einführung"
+      },
+      "betrieb": {
+        "bezeichnung": "Hosting, Wartung, Support und Weiterentwicklung",
+        "kategorie": "Betrieb"
+      },
+      "nutzen": {
+        "bezeichnung": "Vermiedene Kosten insgesamt (aus den Renditevorgaben zurückgerechnet)"
+      },
+      "notiz": "Kennzahlenliste der Geschäftsführung vom 23.09.2026"
+    },
+    "annahmen": {
+      "titel": "Annahmen",
+      "lead": "Zins, Kurs, Vollkosten und Menge, mit denen gerechnet wird. Jede Angabe trägt ihre Herkunft. Ein festgehaltener Stand behält seine Werte.",
+      "offen": "offen",
+      "zins": "Kalkulationszins je Jahr",
+      "kurs": "Wechselkurs",
+      "stichtag": "Stand {datum}",
+      "vollkosten": "Vollkosten je kg vor der Einführung",
+      "menge": "Vermarktete Menge je Jahr",
+      "mengeAusAnnahme": "Von Hand gesetzt.",
+      "mengeAusLieferungen": "Summe der zugestellten Lieferungen der letzten 12 Monate.",
+      "mengeZuKurz": "Die Lieferungen reichen erst {tage} Tage zurück ({menge} kg bisher). Eine Jahresmenge gibt es nach einem vollen Jahr oder von Hand unter „Annahmen ändern“.",
+      "mengeKeine": "Noch keine zugestellte Lieferung. Die Menge lässt sich von Hand setzen.",
+      "nutzenbeginn": "Zeit bis Nutzenbeginn",
+      "wochen": "{von} bis {bis} Wochen",
+      "echtbetrieb": "Beginn des Echtbetriebs",
+      "aendern": "Annahmen ändern",
+      "form": {
+        "zins": "Kalkulationszins in Prozent",
+        "herkunft": "Herkunft",
+        "kursEur": "1 EUR in Tenge",
+        "kursRub": "1 RUB in Tenge",
+        "kursStichtag": "Stichtag des Kurses",
+        "kursQuelle": "Quelle des Kurses",
+        "vollkosten": "Vollkosten je kg vorher (₸)",
+        "menge": "Vermarktete Menge je Jahr (kg)",
+        "mengeHinweis": "Leer lassen, wenn die Menge aus den Lieferungen kommen soll.",
+        "wochenVon": "Nutzenbeginn frühestens (Wochen)",
+        "wochenBis": "Nutzenbeginn spätestens (Wochen)",
+        "echtbetrieb": "Erster Monat des Echtbetriebs",
+        "echtbetriebHinweis": "Ab hier läuft der Plan-Ist-Vergleich."
+      },
+      "zinsCheck": "Zins-Check (Kapitalwert)",
+      "zinsCheckHinweis": "Zum Vergleich: Der Richtwert liegt bei {richtwert} %. Herleitung und Quellen stehen in den Einstellungen. Der Zins oben bleibt Ihre Annahme."
+    },
+    "planIst": {
+      "titel": "Plan und Ist",
+      "lead": "Was an Kosten vermieden werden soll (ein Zwölftel des Jahresnutzens je Monat) gegen das, was tatsächlich vermieden wurde. Die Ist-Werte stehen auch als Punkte auf den Kurven oben.",
+      "leer": "Noch kein Monat. Sobald der Beginn des Echtbetriebs in den Annahmen gesetzt ist oder ein Ist-Wert vorliegt, erscheint hier der Vergleich.",
+      "col": {
+        "monat": "Monat",
+        "plan": "Plan",
+        "ist": "Ist",
+        "abweichung": "Abweichung",
+        "istKumuliert": "Ist gesamt",
+        "notiz": "Notiz"
+      },
+      "eintraege": "Erfasste Ist-Werte",
+      "neu": "Ist-Wert erfassen",
+      "erfassen": "Ist-Wert erfassen"
+    },
+    "staende": {
+      "titel": "Festgehaltene Stände",
+      "lead": "Ein Stand hält Posten, Annahmen und Ergebnis fest, mit dem Kurs vom Tag. Er ändert sich nicht mehr. Später lässt sich nachsehen, was damals gerechnet wurde.",
+      "leer": "Noch kein Stand festgehalten.",
+      "ansehen": "Ansehen",
+      "angezeigt": "angezeigt",
+      "zumAktuellen": "Zurück zur laufenden Rechnung",
+      "festhaltenTitel": "Aktuellen Stand festhalten",
+      "festhaltenLead": "Hält den heutigen Stand mit Posten, Ist-Werten, Annahmen und Kurs fest.",
+      "name": "Bezeichnung des Standes",
+      "nameBeispiel": "z. B. Quartalsstand Q1 2027",
+      "festhalten": "Stand festhalten"
+    },
+    "schwund": {
+      "titel": "Schwund-Nutzen aus den Betriebsdaten",
+      "lead": "Was der geringere Schwund wert ist, hergeleitet aus der Verlustquote vor der Einführung und der der letzten 365 Tage.",
+      "vorher": "Verlustquote vor der Einführung (Baseline)",
+      "jetzt": "Verlustquote der letzten 365 Tage",
+      "menge": "Jahresmenge (Menge plus Ausschuss)",
+      "kosten": "Vollkosten je Kilogramm",
+      "offen": "offen",
+      "zeitraum": "Grundlage: {chargen} Chargen von {von} bis {bis}.",
+      "ergebnis": "Vermiedene Verluste: {kg} kg im Jahr, bewertet mit den Vollkosten: {nutzen} EUR im Jahr.",
+      "hinweis": "Ein Vorschlag, kein Messwert. Bewertet wird mit den Vollkosten, nicht mit dem Verkaufserlös, das ist vorsichtig. Der Posten bekommt die Herkunft „geschätzt“ und lässt sich wie jeder andere ändern.",
+      "knopf": "Als Nutzen-Posten übernehmen",
+      "bezeichnung": "Schwund (aus der Verlustquote hergeleitet)",
+      "notiz": "Verlustquote von {vorher} % auf {jetzt} %, Jahresmenge {menge} kg, Vollkosten {kosten} KZT je kg, vermiedene Verluste {kg} kg.",
+      "grund": {
+        "keineBaseline": "Die Baseline nennt keine Verlustquote als Zahl. Sie wird in den Kennzahlen der Baseline gepflegt.",
+        "keineBetriebsdaten": "Es gibt noch keine Chargen mit Menge und Ausschuss aus den letzten 365 Tagen.",
+        "zuWenigDaten": "Zu wenige Chargen für eine belastbare Quote (mindestens zehn). Die Herleitung folgt, sobald mehr erfasst sind.",
+        "keineKosten": "Es fehlen die Vollkosten je Kilogramm in den Annahmen.",
+        "keineBesserung": "Die Verlustquote liegt nicht unter der Baseline: daraus folgt kein Nutzen."
+      }
+    }
+  },
+  "abholrundenAnsicht": {
+    "titel": "Abholrunden bei Nachbarbetrieben",
+    "lead": "Ein Fahrzeug holt Ware bei Nachbarbetrieben ab und bringt sie ins Kühlhaus. Das ist die Gegenrichtung zur Tourenplanung der Auslieferung.",
+    "regel": "Ab dem Pflückbeginn zählt die 60-Minuten-Regel der Kühlkette, bis die Ware im Kühlhaus ist: bis 45 Minuten in Ordnung, bis 60 Minuten Warnung, darüber Verstoß. Den Pflückbeginn nennt der Nachbarbetrieb, der Fahrer trägt ihn bei der Abholung ein. Ohne Angabe gilt die Abholung als Warnung.",
+    "nurLesen": "Planen dürfen Administration, Geschäftsführung, Betriebsleitung und Buchhaltung. Den Ablauf erfassen zusätzlich die Fahrer der Brigade.",
+    "leer": "Noch keine Abholrunde geplant.",
+    "status": {
+      "geplant": "geplant",
+      "unterwegs": "unterwegs",
+      "abgeschlossen": "abgeschlossen"
+    },
+    "stoppStatus": {
+      "geplant": "offen",
+      "abgeholt": "abgeholt",
+      "entfallen": "entfallen"
+    },
+    "ergebnis": {
+      "ok": "in Ordnung",
+      "warnung": "Warnung",
+      "verstoss": "Verstoß"
+    },
+    "runde": {
+      "ohneFahrzeug": "ohne Fahrzeug",
+      "stopps": "{anzahl, plural, one {# Stopp} other {# Stopps}}",
+      "plan": "erwartet {menge} kg",
+      "ist": "abgeholt {menge} kg",
+      "gestartet": "gestartet {zeit}",
+      "ankunft": "im Kühlhaus {zeit}",
+      "route": "Route {km} km, {minuten} Minuten insgesamt",
+      "keineRoute": "Keine Route berechnet: Anschriften fehlen, oder der Routendienst war nicht erreichbar.",
+      "abErstem": "{minuten} Minuten Fahrt vom ersten Stopp ins Kühlhaus",
+      "ergebnisse": "{ok} in Ordnung, {warnung} Warnungen, {rot} Verstöße",
+      "auftrag": "Abholauftrag (PDF)",
+      "abgeschlossenTitel": "Abgeschlossene Runden ({anzahl})",
+      "abgeschlossenLead": "Abgeschlossene Runden ändern sich nicht mehr. Sie sind der Nachweis der 60-Minuten-Regel.",
+      "kapazitaet": "Kapazität {nutzlast} kg, Auslastung {prozent} %",
+      "ueberKapazitaet": "über der Kapazität",
+      "knapp": "Kapazität knapp",
+      "platz": "Kapazität reicht",
+      "start": "Abfahrt {zeit}"
+    },
+    "planung": {
+      "ok": "Fahrt passt",
+      "knapp": "Fahrt knapp",
+      "zuLang": "Fahrt zu lang"
+    },
+    "stopp": {
+      "plan": "erwartet {menge} kg",
+      "ist": "abgeholt {menge} kg",
+      "pflueckbeginn": "Pflückbeginn {zeit}",
+      "pflueckUnbekannt": "Pflückbeginn unbekannt, als Warnung gewertet",
+      "abgeholtAm": "abgeholt {zeit}",
+      "minuten": "{minuten} Minuten bis zum Kühlhaus",
+      "ankunft": "Ankunft ca. {zeit}",
+      "fenster": "Fenster {von} bis {bis}",
+      "fensterFrueh": "vor dem Fenster",
+      "fensterSpaet": "nach dem Fenster",
+      "fensterIm": "im Fenster",
+      "doppelt": "auch in einer anderen Runde dieses Tages"
+    },
+    "aktion": {
+      "starten": "Runde starten",
+      "verwerfen": "Runde verwerfen",
+      "entfaellt": "Entfällt"
+    },
+    "abholung": {
+      "titel": "Abholung erfassen",
+      "menge": "Abgeholte Menge (kg)",
+      "pflueckVor": "Pflückbeginn vor wie vielen Minuten?",
+      "pflueckVorHinweis": "Seit wann pflückt der Nachbarbetrieb diese Ware? Leer lassen, wenn unbekannt.",
+      "bemerkung": "Bemerkung (optional)",
+      "knopf": "Abholung speichern"
+    },
+    "abschluss": {
+      "titel": "Ankunft im Kühlhaus",
+      "offen": "Es sind noch {anzahl, plural, one {# Stopp} other {# Stopps}} offen. Jeder Stopp ist abgeholt oder entfallen, bevor die Runde endet.",
+      "bereit": "Alle Stopps sind erledigt. Die Runde kann abgeschlossen werden.",
+      "knopf": "Ankunft im Kühlhaus melden"
+    },
+    "planen": {
+      "titel": "Abholrunde planen",
+      "lead": "Datum, Fahrzeug und die Nachbarbetriebe mit der erwarteten Menge. Mit Anschrift ordnet das System die Stopps nach der kürzesten Strecke.",
+      "datum": "Datum",
+      "fahrzeug": "Fahrzeug (optional)",
+      "fahrzeugBeispiel": "z. B. Kühlwagen 1",
+      "notiz": "Notiz (optional)",
+      "menge": "Menge (kg)",
+      "keineBetriebe": "Es sind noch keine Nachbarbetriebe angelegt. Sie entstehen im Aggregator-Modul.",
+      "keineKoordinaten": "Ohne Anschrift, kommt ans Ende",
+      "knopf": "Abholrunde anlegen",
+      "kapazitaet": "Kapazität des Fahrzeugs (kg)",
+      "kapazitaetHinweis": "Leer: keine Prüfung. Vorgabe aus den Einstellungen.",
+      "start": "Abfahrt am Betrieb",
+      "startHinweis": "Damit schätzt die Planung die Ankunft je Stopp."
+    },
+    "adresse": {
+      "label": "Anschrift",
+      "platzhalter": "Straße, Ort",
+      "knopf": "Anschrift speichern"
+    },
+    "zeitfenster": {
+      "keins": "Kein Abholfenster",
+      "gesetzt": "Abholfenster {von} bis {bis}",
+      "von": "von",
+      "bis": "bis",
+      "knopf": "Fenster speichern"
+    }
+  },
+  "integrationAuslieferung": {
+    "titel": "Auslieferung an Partnersysteme",
+    "lead": "Soll ein Ereignis an ein anderes System gehen, zum Beispiel ein ausgestellter ЭСФ-Beleg an die Buchhaltung, stellt Damicon es in eine Warteschlange und liefert es als signierten Webhook aus. Ohne ausdrückliche Aktivierung verlässt kein Datensatz das System.",
+    "stand": "Die staatlichen Portale selbst (Stufe 2 von ЭСФ und ЕСУТД) brauchen den Zugang der Behörde. Diese Auslieferung ist der Rahmen dafür und für einen Partner wie die Buchhaltung.",
+    "cron": "Der Cron-Dienst ruft /api/integrationen/ausliefern auf, mit dem Geheimnis CRON_SECRET. Ohne Cron liefert der Knopf unten aus.",
+    "nurAdmin": "Konfigurieren und wiederholen dürfen Administration und Geschäftsführung.",
+    "integrationen": {
+      "titel": "Integrationen",
+      "adapter": {
+        "manuell": "manuell",
+        "webhook": "Webhook"
+      },
+      "keinZiel": "kein Ziel",
+      "aktiv": "aktiv",
+      "aus": "aus",
+      "geheimnisGesetzt": "Geheimnis gesetzt",
+      "geheimnisFehlt": "Geheimnis fehlt ({name})",
+      "aendern": "Konfigurieren",
+      "vorlage": "Vorlage aktiv",
+      "zugangGesetzt": "Zugang gesetzt",
+      "zugangFehlt": "Zugang fehlt ({name})"
+    },
+    "form": {
+      "adapter": "Art der Anbindung",
+      "adapterManuell": "manuell (Eingabe im Zielsystem von Hand)",
+      "adapterWebhook": "Webhook (signierter POST)",
+      "url": "Adresse des Ziels",
+      "urlHinweis": "Nur https, keine Adresse im eigenen Netz.",
+      "geheimnis": "Name der Umgebungsvariable mit dem Geheimnis",
+      "geheimnisHinweis": "Der Wert steht nie in der Datenbank, nur sein Name, zum Beispiel DAMICON_HOOK_ESF. Gesetzt wird er in der Umgebung des Servers.",
+      "aktiv": "Auslieferung aktiv",
+      "knopf": "Speichern",
+      "auth": "Zugang beim Ziel",
+      "authHmac": "Nur Signatur (HMAC)",
+      "authBasic": "Signatur und Benutzer mit Kennwort (HTTP Basic)",
+      "zugang": "Name der Umgebungsvariable mit Benutzer:Kennwort",
+      "zugangHinweis": "Nur bei HTTP Basic (zum Beispiel OData von 1C). Der Wert hat die Form Benutzer:Kennwort und steht nie in der Datenbank. Beginnt mit DAMICON_HOOK_.",
+      "bestaetigung": "Der Partner meldet den Eingang zurück",
+      "bestaetigungHinweis": "Der Partner ruft {pfad} auf, signiert wie unsere Nachricht, mit idempotenzSchluessel und ok. Bis dahin gilt ein gesendeter Eintrag als unbestätigt.",
+      "vorlage": {
+        "label": "Vorlage für das Zielformat (JSON)",
+        "beispiel": "Beispiel für 1C einfügen",
+        "platzhalter": "Leer: der Umschlag geht unverändert hinaus.",
+        "hinweis": "Platzhalter wie '{{daten.entwurf.kunde.name}}' oder '{{umschlag.idempotenzSchluessel}}'. Ein Text, der nur aus einem Platzhalter besteht, behält den Typ des Werts (Zahl bleibt Zahl). Nur Nachschlagen, keine Ausdrücke.",
+        "vorschau": "Vorschau mit einem Beispiel (ЭСФ ausgestellt)",
+        "fehler": {
+          "kein_json": "Das ist kein gültiges JSON.",
+          "kein_objekt": "Die Vorlage ist ein JSON-Objekt mit geschweiften Klammern.",
+          "zu_gross": "Die Vorlage ist länger als 20000 Zeichen.",
+          "zu_tief": "Die Vorlage ist tiefer als 8 Ebenen verschachtelt.",
+          "zu_viele_platzhalter": "Mehr als 200 Platzhalter.",
+          "pfad": "Unbekannter Pfad „{wert}“. Erlaubt: umschlag oder daten, danach Namen mit Punkt, Listeneinträge als [0].",
+          "leer": "Leer."
+        }
+      }
+    },
+    "warteschlange": {
+      "titel": "Warteschlange",
+      "leer": "Noch kein Ereignis in der Warteschlange.",
+      "col": {
+        "ereignis": "Ereignis",
+        "ziel": "Ziel",
+        "status": "Status",
+        "versuche": "Versuche",
+        "naechster": "Nächster Versuch oder Abschluss"
+      },
+      "status": {
+        "pending": "wartet",
+        "sent": "zugestellt",
+        "acked": "bestätigt",
+        "failed": "gescheitert"
+      },
+      "ohneEreignis": "ohne Ereignis",
+      "ohneIntegration": "keiner Integration zugeordnet, wird nicht ausgeliefert",
+      "versucheVon": "{versuche} von {max}",
+      "wiederholen": "Erneut versuchen",
+      "jetzt": "Jetzt ausliefern",
+      "bestaetigungOffen": "Bestätigung offen"
+    }
+  },
+  "einstellungen": {
+    "lead": "Diese Werte stehen nicht im Programm, sondern hier. Jede Änderung ist protokolliert. Wer was lesen oder schreiben darf, steht nicht zur Wahl: Das regeln die Rollen und die Datenbank.",
+    "nichtGesetzt": "nicht gesetzt",
+    "nurLesen": "Nur Ansicht: ändern dürfen Administration, Geschäftsführung und die zuständige Fachrolle.",
+    "standard": "Standard: {wert}",
+    "stand": "Stand der Quelle: {datum}",
+    "geaendert": "zuletzt geändert {datum}",
+    "quelle": "Quelle: {quelle}",
+    "bereich": {
+      "steuer": {
+        "titel": "Steuer",
+        "lead": "Fristen der elektronischen Rechnung."
+      },
+      "arbeitsrecht": {
+        "titel": "Arbeitsrecht",
+        "lead": "Meldefristen im Einheitssystem ЕСУТД."
+      },
+      "abholung": {
+        "titel": "Abholrunden",
+        "lead": "Kapazität der Fahrzeuge."
+      },
+      "finanzen": {
+        "titel": "Finanzen",
+        "lead": "Richtwerte der Investitionsrechnung."
+      },
+      "auslieferung": {
+        "titel": "Auslieferung",
+        "lead": "Zeitbudget der Schnittstelle zu Partnersystemen."
+      },
+      "sicherheit": {
+        "titel": "Sicherheit",
+        "lead": "Grenzen gegen Missbrauch."
+      }
+    },
+    "einheit": {
+      "kalendertage": "Kalendertage",
+      "arbeitstage": "Arbeitstage",
+      "kg": "kg",
+      "prozent": "Prozent",
+      "sekunden": "Sekunden",
+      "anfragen_je_stunde": "Anfragen je Person und Stunde",
+      "minuten": "Minuten"
+    },
+    "formular": {
+      "wert": "Wert",
+      "leerHinweis": "Leer lassen heißt: nicht gesetzt, keine Prüfung.",
+      "grund": "Grund (freiwillig)",
+      "speichern": "Speichern"
+    },
+    "verlauf": {
+      "titel": "Verlauf der Änderungen",
+      "lead": "Wer wann welchen Wert geändert hat. Der Verlauf lässt sich nicht ändern."
+    },
+    "eintrag": {
+      "esf_frist_tage": {
+        "label": "Frist für die ЭСФ",
+        "beschreibung": "So viele Kalendertage nach dem Liefertag darf die elektronische Rechnung (ЭСФ) spätestens ausgestellt werden. Danach gilt die Lieferung in der Liste als überfällig."
+      },
+      "esutd_frist_abschluss_tage": {
+        "label": "ЕСУТД: Frist für den Abschluss",
+        "beschreibung": "Arbeitstage nach der Unterschrift beider Seiten (ohne Angabe: nach Vertragsbeginn), bis der Vertrag im Einheitssystem gemeldet sein muss. Samstag und Sonntag zählen nicht, Feiertage sind nicht hinterlegt."
+      },
+      "esutd_frist_aenderung_tage": {
+        "label": "ЕСУТД: Frist für eine Änderung",
+        "beschreibung": "Kalendertage nach dem Tag der Änderung, bis sie gemeldet sein muss."
+      },
+      "esutd_frist_beendigung_tage": {
+        "label": "ЕСУТД: Frist für eine Beendigung",
+        "beschreibung": "Arbeitstage nach dem Ende des Vertrags, bis die Beendigung gemeldet sein muss. Samstag und Sonntag zählen nicht."
+      },
+      "abholung_fahrzeug_kapazitaet_kg": {
+        "label": "Fahrzeugkapazität der Abholrunden",
+        "beschreibung": "Nutzlast des Kühlfahrzeugs in kg. Plant eine Runde mehr als diese Menge, warnt die Planung. Leer heißt: keine Prüfung. Eine einzelne Runde kann eine eigene Kapazität tragen."
+      },
+      "wirtschaftlichkeit_kalkulationszins_richtwert": {
+        "label": "Richtwert für den Kalkulationszins",
+        "beschreibung": "Vorschlag für den Zinssatz der Investitionsrechnung, solange der Betrieb keinen eigenen Wert einträgt. Nominal, in Prozent."
+      },
+      "wirtschaftlichkeit_zins_sensitivitaet_niedrig": {
+        "label": "Vergleichszins unten",
+        "beschreibung": "Untere Vergleichsrechnung zum Richtwert, in Prozent."
+      },
+      "wirtschaftlichkeit_zins_sensitivitaet_hoch": {
+        "label": "Vergleichszins oben",
+        "beschreibung": "Obere Vergleichsrechnung zum Richtwert, in Prozent."
+      },
+      "auslieferung_zeitbudget_sekunden": {
+        "label": "Zeitbudget der Auslieferung",
+        "beschreibung": "So lange läuft ein Lauf der Auslieferung höchstens. Was bis dahin nicht gesendet ist, bleibt für den nächsten Lauf."
+      },
+      "sicherheit_adresssuche_je_stunde": {
+        "label": "Grenze der Adresssuche",
+        "beschreibung": "Wie oft eine Person je Stunde eine Anschrift in Koordinaten umrechnen lassen darf (Geokodierung)."
+      },
+      "abholung_aufenthalt_minuten": {
+        "label": "Zeit je Stopp der Abholrunde",
+        "beschreibung": "Minuten für Wiegen, Verladen und Übergabe bei einem Nachbarbetrieb. Die Planung rechnet sie zur Fahrzeit, wenn sie die Ankunft je Stopp schätzt. Eine Planungsannahme, nach den ersten Runden zu prüfen."
+      }
+    },
+    "risiko": {
+      "titel": "Block-Risiko: Gewichte und Schwellen",
+      "lead": "Der Punktwert eines Reihenblocks (0 bis 100) entsteht aus fünf Faktoren. Das Gewicht sagt, wie schwer ein Faktor im Verhältnis zu den anderen wiegt, gerechnet wird durch ihre Summe. Ändern dürfen nur Administration und Geschäftsführung, jede Änderung steht im Verlauf.",
+      "nurLesen": "Nur Ansicht: ändern dürfen Administration und Geschäftsführung.",
+      "bereich": "erlaubt: {min} bis {max}",
+      "gruppe": {
+        "gewichte": "Gewichte der fünf Faktoren",
+        "faktoren": "Wann ein Faktor als voll gilt",
+        "zeitfenster": "Zeitfenster",
+        "schwellen": "Schwellen der Stufen"
+      },
+      "eintrag": {
+        "gewicht_ueberfaellig": {
+          "label": "Gewicht: versäumter Pflückdurchgang",
+          "einheit": "Gewicht",
+          "beschreibung": "Ein ausgelassener Pflückdurchgang vernichtet die Ernte des Blocks für den Zyklus: die schwerste und häufigste Folge."
+        },
+        "gewicht_sperre": {
+          "label": "Gewicht: Wartezeitsperre",
+          "einheit": "Gewicht",
+          "beschreibung": "Konflikt zwischen einer offenen Aufgabe und der Wartezeitsperre sowie verlorene Erntezeit durch die Sperre."
+        },
+        "gewicht_ausschuss": {
+          "label": "Gewicht: Ausschuss",
+          "einheit": "Gewicht",
+          "beschreibung": "Ausschuss mindert den Erlös der Ernte, trifft aber nur Teile davon."
+        },
+        "gewicht_kuehlkette": {
+          "label": "Gewicht: Kühlkette",
+          "einheit": "Gewicht",
+          "beschreibung": "Verstöße gegen die 60-Minuten-Regel treffen die Charge, nicht den Block selbst."
+        },
+        "gewicht_erfassung": {
+          "label": "Gewicht: Erfassungslücke",
+          "einheit": "Gewicht",
+          "beschreibung": "Eine Erfassungslücke ist ein Hinweis, kein Schaden: es gibt bewusste Pausen."
+        },
+        "intervall_max_tage": {
+          "label": "Längstes Pflückintervall",
+          "einheit": "Tage",
+          "beschreibung": "Längstes Pflückintervall des Rotationsplans. Verzug in dieser Länge bedeutet einen verlorenen Durchgang."
+        },
+        "ausschuss_ziel_prozent": {
+          "label": "Ausschuss: Zielwert",
+          "einheit": "Prozent",
+          "beschreibung": "Bis hierhin zählt der Ausschuss nicht. Der Zielwert der Kennzahl Verlustquote."
+        },
+        "ausschuss_kritisch_prozent": {
+          "label": "Ausschuss: kritischer Wert",
+          "einheit": "Prozent",
+          "beschreibung": "Ab hier gilt der Ausschuss-Faktor als voll. Muss über dem Zielwert liegen."
+        },
+        "kuehl_verstoesse_voll": {
+          "label": "Kühlketten-Verstöße bis voll",
+          "einheit": "Verstöße",
+          "beschreibung": "Ab so vielen Verstößen in der Betrachtungszeit gilt der Faktor als voll."
+        },
+        "sperre_durchgaenge_voll": {
+          "label": "Entfallende Durchgänge bis voll",
+          "einheit": "Durchgänge",
+          "beschreibung": "Ab so vielen durch die Sperre entfallenden Durchgängen gilt der Sperr-Faktor als voll."
+        },
+        "betrachtung_tage": {
+          "label": "Betrachtungszeit",
+          "einheit": "Tage",
+          "beschreibung": "Zeitfenster für Ausschuss und Kühlketten-Verstöße, standardmäßig eine Erntewoche."
+        },
+        "aktiv_tage": {
+          "label": "Block gilt als in Arbeit",
+          "einheit": "Tage",
+          "beschreibung": "Ein Block gilt als in Arbeit, wenn in dieser Zeit eine Aufgabe auf ihm lag."
+        },
+        "schwelle_hoch": {
+          "label": "Schwelle: Stufe hoch",
+          "einheit": "Punkte",
+          "beschreibung": "Ab hier Stufe hoch. Muss über der Schwelle für mittel liegen."
+        },
+        "schwelle_mittel": {
+          "label": "Schwelle: Stufe mittel",
+          "einheit": "Punkte",
+          "beschreibung": "Ab hier Stufe mittel."
+        }
+      }
+    }
+  },
+  "passwort": {
+    "titel": "Passwort ändern",
+    "lead": "Mindestens {min} Zeichen. Es gilt ab der nächsten Anmeldung.",
+    "vorlaeufig": "Ihr Passwort ist vorläufig. Bitte setzen Sie jetzt ein eigenes.",
+    "neu": "Neues Passwort",
+    "wiederholung": "Noch einmal",
+    "knopf": "Passwort ändern"
+  },
+  "schulungsvideos": {
+    "titel": "Schulungsvideos",
+    "lead": "Kurze Videos zur Einarbeitung, in der Sprache der Person abgespielt, wo es sie gibt.",
+    "pflicht": "Pflicht",
+    "dauer": "{min} Min. {sek} Sek.",
+    "nochKeinVideo": "Dazu gibt es noch kein Video.",
+    "keineDatei": "Keine Videodatei vorhanden.",
+    "sprachwahl": "Sprache des Videos",
+    "kein_video_support": "Ihr Browser kann dieses Video nicht abspielen.",
+    "sprache": {
+      "de": "Deutsch",
+      "en": "English",
+      "ru": "Русский",
+      "kk": "Қазақша"
+    },
+    "entfernen": "Datei entfernen",
+    "upload": {
+      "titel": "Videodatei hochladen oder ersetzen",
+      "sprache": "Sprache",
+      "datei": "Datei (MP4 oder WebM)",
+      "knopf": "Hochladen",
+      "laeuft": "Lädt … {prozent} %",
+      "fertig": "Die Videodatei ist gespeichert.",
+      "hinweis": "MP4 oder WebM, höchstens 500 MB. Eine vorhandene Datei in derselben Sprache wird ersetzt. Der Upload läuft in Stücken und kann nach einem Abbruch fortgesetzt werden."
+    },
+    "fehler": {
+      "zugriff": "Dafür fehlt die Berechtigung.",
+      "ungueltig": "Das Video oder die Sprache ist ungültig.",
+      "typ": "Nur MP4- oder WebM-Dateien sind möglich.",
+      "groesse": "Die Datei ist leer oder größer als 500 MB.",
+      "nichtDa": "Die Datei ist nach dem Hochladen nicht im Speicher angekommen. Bitte noch einmal versuchen.",
+      "speicher": "Der Speicher hat die Datei nicht angenommen. Bitte noch einmal versuchen.",
+      "unbekannt": "Das Hochladen ist fehlgeschlagen."
+    }
+  },
+  "betriebsrechnung": {
+    "zeitraum": {
+      "label": "Zeitraum der Rechnung",
+      "jahre": "{jahre} Jahre"
+    },
+    "abschnitt": {
+      "titel": "Der Betrieb in den nächsten {jahre} Jahren",
+      "lead": "Jahr 1 sind die zwölf Monate ab Beginn des Echtbetriebs. Menge, Preis und Kosten des ersten Jahres sind Annahmen oder stammen aus dem Betrieb, danach ändern sie sich um einen festen Satz je Jahr."
+    },
+    "pille": {
+      "belegt": "Belegt",
+      "geschaetzt": "Teilweise geschätzt",
+      "offen": "Angaben fehlen"
+    },
+    "hinweis": {
+      "belegt": "Alle Eingaben dieser Rechnung sind belegt.",
+      "geschaetzt": "Die Rechnung steht auf Annahmen, die als geschätzt gekennzeichnet sind. Je mehr davon aus dem Betrieb belegt ist, desto belastbarer ist das Ergebnis.",
+      "offen": "Für die Rechnung fehlen noch Angaben.",
+      "mitSystem": "Das System ist in der Rechnung enthalten: sein Nutzen, seine laufenden Kosten und seine Abschreibung.",
+      "ohneSystem": "Das System ist noch nicht enthalten, weil seine Posten unten unvollständig sind (Investition, laufende Kosten und Nutzen)."
+    },
+    "fehlt": {
+      "titel": "Das fehlt noch für die Rechnung",
+      "menge": "Jahresmenge im ersten Jahr, unter „Annahmen des Betriebs“",
+      "preis": "Verkaufspreis je Kilogramm, unter „Annahmen des Betriebs“",
+      "variableKosten": "Variable Kosten je Kilogramm, unter „Annahmen des Betriebs“",
+      "fixkosten": "Fixkosten des Betriebs, weiter unten erfassen"
+    },
+    "kennzahl": {
+      "ergebnisErstesJahr": {
+        "label": "Ergebnis im 1. Jahr",
+        "frage": "Was bleibt im ersten Jahr übrig?",
+        "rechenweg": "Erlöse minus variable Kosten minus Fixkosten.",
+        "rechenwegMitSystem": "Erlöse minus variable Kosten minus Fixkosten, dazu der Nutzen des Systems minus seine laufenden Kosten und seine Abschreibung."
+      },
+      "ergebnisLetztesJahr": {
+        "label": "Ergebnis im Jahr {jahr}",
+        "frage": "Wohin entwickelt sich das Ergebnis?",
+        "rechenweg": "Dieselbe Rechnung mit den Werten des Jahres {jahr}, nach den jährlichen Entwicklungssätzen."
+      },
+      "ergebnisSumme": {
+        "label": "Ergebnis über {jahre} Jahre",
+        "frage": "Was bleibt insgesamt übrig?",
+        "rechenweg": "Die Ergebnisse aller {jahre} Jahre zusammen."
+      },
+      "umsatzrendite": {
+        "label": "Umsatzrendite im Jahr {jahr}",
+        "frage": "Wie viel von jedem Tenge Umsatz bleibt als Ergebnis?",
+        "rechenweg": "Ergebnis geteilt durch die Erlöse des Jahres."
+      },
+      "deckungsbeitrag": {
+        "label": "Deckungsbeitrag je kg",
+        "frage": "Was bringt ein Kilogramm nach den variablen Kosten?",
+        "rechenweg": "Preis minus variable Kosten je Kilogramm, im ersten Jahr."
+      },
+      "gewinnschwelle": {
+        "label": "Gewinnschwelle im 1. Jahr",
+        "frage": "Ab welcher Menge verdient der Betrieb?",
+        "rechenweg": "Fixkosten geteilt durch den Deckungsbeitrag je Kilogramm.",
+        "rechenwegMitSystem": "Fixkosten abzüglich der Wirkung des Systems, geteilt durch den Deckungsbeitrag je Kilogramm."
+      }
+    },
+    "gewinnschwelle": {
+      "gedeckt": "bereits gedeckt",
+      "nie": "nicht erreichbar",
+      "puffer": "Die Planmenge darf um {anteil} sinken, bevor ein Verlust entsteht.",
+      "unterSchwelle": "Die Planmenge liegt {anteil} unter der Gewinnschwelle, im ersten Jahr entsteht ein Verlust.",
+      "keinDeckungsbeitrag": "Der Deckungsbeitrag je Kilogramm ist nicht positiv."
+    },
+    "einheit": {
+      "tonnen": "t",
+      "kilogramm": "kg",
+      "millionen": "Mio."
+    },
+    "tabelle": {
+      "titel": "Die Rechnung Jahr für Jahr",
+      "lead": "Beträge in Millionen Tenge, Menge in Tonnen, Preis in Tenge je Kilogramm. Was abgezogen wird, steht mit Minus.",
+      "position": "Position",
+      "jahr": "Jahr {jahr}",
+      "zeile": {
+        "menge": "Menge (t)",
+        "preis": "Preis (₸ je kg)",
+        "erloes": "Erlöse",
+        "variableKosten": "Variable Kosten",
+        "deckungsbeitrag": "Deckungsbeitrag",
+        "fixkosten": "Fixkosten",
+        "betriebsergebnis": "Betriebsergebnis",
+        "nutzen": "Nutzen des Systems",
+        "systemKosten": "Laufende Kosten des Systems",
+        "abschreibung": "Abschreibung des Systems",
+        "ergebnis": "Ergebnis",
+        "kumuliert": "Ergebnis kumuliert"
+      }
+    },
+    "diagramm": {
+      "titel": "Erlöse, Kosten und Ergebnis je Jahr",
+      "lead": "Die Kosten sind hier alle Kosten abzüglich des Nutzens des Systems, so dass Erlöse minus Kosten das Ergebnis ergibt.",
+      "leadOhneSystem": "Die Kosten sind hier variable Kosten plus Fixkosten, so dass Erlöse minus Kosten das Ergebnis ergibt.",
+      "erloes": "Erlöse",
+      "kosten": "Kosten",
+      "ergebnis": "Ergebnis",
+      "jahr": "Jahr {jahr}"
+    },
+    "annahmen": {
+      "titel": "Annahmen des Betriebs",
+      "lead": "Die Werte des ersten Jahres und die jährliche Entwicklung. Jeder Wert trägt seine Herkunft: belegt, wenn er aus dem Betrieb stammt, sonst geschätzt.",
+      "menge": "Jahresmenge im 1. Jahr",
+      "preis": "Verkaufspreis je kg im 1. Jahr",
+      "kosten": "Variable Kosten je kg im 1. Jahr",
+      "mengeEntwicklung": "Mengenentwicklung je Jahr",
+      "preisEntwicklung": "Preisentwicklung je Jahr",
+      "kostenEntwicklung": "Entwicklung der variablen Kosten je Jahr",
+      "fixkostenEntwicklung": "Entwicklung der Fixkosten je Jahr",
+      "abschreibung": "Abschreibung des Systems",
+      "abschreibungWert": "{jahre} Jahre, gleichmäßig",
+      "nichtGesetzt": "nicht gesetzt",
+      "ohneVeraenderung": "ohne Veränderung gerechnet",
+      "journal": "Aus dem Journal der letzten zwölf Monate: Preis {preis} ₸ je kg, variable Kosten {kosten} ₸ je kg, Deckungsbeitrag {deckungsbeitrag} ₸ je kg, bei {menge} kg Ernte und {buchungen} Buchungen. Es zählen nur gebuchte Kosten: Was nicht im Journal steht, fehlt auch hier.",
+      "journalLeer": "Das Journal der letzten zwölf Monate liefert keinen Vergleichswert, denn es fehlen Erlöse oder Erntemenge.",
+      "aendern": "Annahmen des Betriebs ändern",
+      "form": {
+        "menge": "Jahresmenge im ersten Jahr (kg)",
+        "mengeHinweis": "Dieselbe Zahl wie die Jahresmenge bei den Annahmen des Systems.",
+        "preis": "Verkaufspreis je kg im ersten Jahr (₸)",
+        "kosten": "Variable Kosten je kg im ersten Jahr (₸)",
+        "mengeProzent": "Mengenentwicklung je Jahr (%)",
+        "preisProzent": "Preisentwicklung je Jahr (%)",
+        "kostenProzent": "Entwicklung der variablen Kosten je Jahr (%)",
+        "fixkostenProzent": "Entwicklung der Fixkosten je Jahr (%)",
+        "entwicklungHinweis": "5 heißt fünf Prozent mehr als im Vorjahr, minus ist ein Rückgang. Leer gilt als keine Veränderung.",
+        "abschreibung": "Abschreibung des Systems (Jahre)",
+        "abschreibungHinweis": "Die Investition wird gleichmäßig über diese Jahre abgeschrieben. Leer gelten fünf Jahre.",
+        "herkunft": "Herkunft"
+      }
+    },
+    "fixkosten": {
+      "titel": "Fixkosten des Betriebs",
+      "lead": "Kosten, die nicht an der Erntemenge hängen: festes Personal, Pacht, Fahrzeuge, Versicherung und Verwaltung. Beträge je Jahr, in Euro, Tenge oder Rubel.",
+      "summe": "Summe je Jahr: {betrag}",
+      "leer": "Noch keine Fixkosten erfasst. Ohne sie lässt sich das Ergebnis nicht rechnen.",
+      "neu": "Fixkosten erfassen",
+      "kategorieBeispiel": "zum Beispiel Personal"
+    },
+    "nurLesen": "Nur Ansicht: erfassen dürfen Administration, Geschäftsführung und Buchhaltung.",
+    "standHinweis": "Ein festgehaltener Stand hält nur die Rechnung des Systems fest. Die Wirtschaftlichkeit des Betriebs rechnet immer mit den laufenden Werten und steht deshalb hier nicht. Sie ist in der laufenden Ansicht zu sehen."
   }
 }

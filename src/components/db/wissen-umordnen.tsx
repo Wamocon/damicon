@@ -8,7 +8,7 @@ import { leer, type AktionsStatus } from "@/lib/actions/status";
 import type { WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 import { CLUSTER, clusterPasst, istCluster, nutzungFuer, QUELLENARTEN, TEXTGRUNDLAGEN } from "@/lib/wissen/quellenart";
 import { bereichSchluessel, UPLOAD_BEREICHE } from "@/lib/wissen/upload-konstanten";
-import { bewerteUmordnung, type UmordnenWert } from "@/lib/wissen/umordnen-bewertung";
+import { bewerteUmordnung, weitereVon, type UmordnenWert } from "@/lib/wissen/umordnen-bewertung";
 
 // Einordnung eines Dokuments nachtraeglich aendern: Cluster, Bereich, Quellenart und Textgrundlage (hochgeladen und Bestand). Das Fenster zeigt, was die
 // Aenderung bewirkt (Stufe, Nutzung im Bereich). Bei einem freigegebenen Upload darf die hochladende Person die wirksamen Angaben nicht aendern
@@ -17,6 +17,7 @@ import { bewerteUmordnung, type UmordnenWert } from "@/lib/wissen/umordnen-bewer
 const startWert = (dokument: WissenDokumentZeile): UmordnenWert => ({
   cluster: dokument.cluster ?? "",
   bereich: bereichSchluessel(dokument.bereich),
+  weitere: weitereVon(dokument),
   quellenart: dokument.quellenart ?? "",
   textgrundlage: dokument.textgrundlage ?? "original",
 });
@@ -69,6 +70,8 @@ export function WissenUmordnenKnopf({
           <PfadFeld />
           <input type="hidden" name="schluessel" value={dokument.schluessel} />
           <input type="hidden" name="spalte" value={dokument.schluesselSpalte} />
+          {/* Ohne Haken sendet ein Kontrollkasten nichts: Die Marke sagt dem Server, dass die weiteren Bereiche mitgeschickt werden (auch keiner). */}
+          <input type="hidden" name="weitereBereicheGesetzt" value="1" />
           <h3 id={titelId} className="text-sm font-black">
             {tU("titel")}
           </h3>
@@ -110,7 +113,9 @@ function UmordnenFelder({
   const tCluster = useTranslations("kiAssistentAnsicht.wissensVerwaltung.cluster");
   const tText = useTranslations("kiAssistentAnsicht.wissensVerwaltung.textgrundlage");
   const feld = "w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground disabled:opacity-60";
-  const aendere = (name: keyof UmordnenWert) => (e: ChangeEvent<HTMLSelectElement>) => setWert({ ...wert, [name]: e.target.value });
+  const aendere = (name: Exclude<keyof UmordnenWert, "weitere">) => (e: ChangeEvent<HTMLSelectElement>) => setWert({ ...wert, [name]: e.target.value });
+  const schalteWeitere = (bereich: string) => (e: ChangeEvent<HTMLInputElement>) =>
+    setWert({ ...wert, weitere: e.target.checked ? [...wert.weitere, bereich] : wert.weitere.filter((w) => w !== bereich) });
   const eigenerBereich = bereichSchluessel(dokument.bereich);
 
   return (
@@ -138,6 +143,18 @@ function UmordnenFelder({
           {!(UPLOAD_BEREICHE as readonly string[]).includes(eigenerBereich) ? <option value={eigenerBereich}>{dokument.bereich}</option> : null}
         </select>
       </label>
+      <fieldset className="space-y-0.5 sm:col-span-2">
+        <legend className="text-[11px] font-semibold">{t("formular.weitereBereiche")}</legend>
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          {UPLOAD_BEREICHE.filter((b) => b !== wert.bereich).map((b) => (
+            <label key={b} className="inline-flex items-center gap-1.5 text-xs">
+              <input type="checkbox" name="weitereBereiche" value={b} checked={wert.weitere.includes(b)} onChange={schalteWeitere(b)} />
+              {tBereich(b)}
+            </label>
+          ))}
+        </div>
+        <p className="text-[11px] text-muted-foreground">{t("formular.weitereBereicheHinweis")}</p>
+      </fieldset>
       <label className="block space-y-0.5">
         <span className="text-[11px] font-semibold">{t("formular.quellenart")}</span>
         <select className={feld} name="quellenart" value={wert.quellenart} onChange={aendere("quellenart")}>

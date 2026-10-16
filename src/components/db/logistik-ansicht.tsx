@@ -1,14 +1,18 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { kilogramm } from "@/lib/format/menge";
 import { Card, Section, StatusPill, type Tone } from "@/components/ui/kit";
+import { DokumentKnopf } from "@/components/ui/dokument-knopf";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   LieferungAnlegenFormular,
   LieferungStornierenKnopf,
+  TransportLoggerFormular,
   TransportMessungFormular,
   UebergabeErfassenFormular,
 } from "@/components/db/lieferungen-formulare";
 import { TourErstellenFormular, TourLoeschenFormular } from "@/components/db/tourenplanung-formulare";
 import { TourKarte } from "@/components/db/tour-karte";
+import { AbholrundenAnsicht } from "@/components/db/abholrunden-ansicht";
 import {
   ladeB2bKundeOptionenFuerLieferung,
   ladeChargeOptionenFuerLieferung,
@@ -41,6 +45,7 @@ export async function LogistikAnsicht() {
     getTranslations("lieferungenAnsicht"),
   ]);
   const kkT = await getTranslations("nachweiskette");
+  const dk = await getTranslations("dokument.knopf");
   const tt = await getTranslations("tourenplanungAnsicht");
   const format = await getFormatter();
 
@@ -98,10 +103,10 @@ export async function LogistikAnsicht() {
                   <div>
                     <dt className="text-muted-foreground">{t("menge")}</dt>
                     <dd className="font-semibold text-foreground">
-                      {format.number(l.mengeKg)} kg
+                      {kilogramm(format, l.mengeKg)}
                       {l.bestellteMengeKg !== null && l.bestellteMengeKg !== l.mengeKg ? (
                         <span className="ml-1 text-[11px] text-muted-foreground">
-                          ({t("bestellt")}: {format.number(l.bestellteMengeKg)} kg)
+                          ({t("bestellt")}: {kilogramm(format, l.bestellteMengeKg)})
                         </span>
                       ) : null}
                     </dd>
@@ -131,6 +136,10 @@ export async function LogistikAnsicht() {
                   ) : null}
                 </dl>
 
+                <div className="mt-2">
+                  <DokumentKnopf art="lieferung" parameter={{ lieferung: l.id }} label={dk("lieferung")} klein />
+                </div>
+
                 {l.transportMessungen.length > 0 ? (
                   <div className="mt-2 border-t border-border pt-2">
                     <p className="text-[11px] font-semibold text-muted-foreground">
@@ -154,7 +163,10 @@ export async function LogistikAnsicht() {
                     stehen. Es gibt keinen separaten "im Uebergabemoment"-Weg
                     (uebergabeErfassen() nimmt keine Temperatur entgegen). */}
                 {darfErfassen && l.status === "geplant" ? (
-                  <TransportMessungFormular lieferungId={l.id} />
+                  <>
+                    <TransportMessungFormular lieferungId={l.id} />
+                    <TransportLoggerFormular lieferungId={l.id} />
+                  </>
                 ) : null}
 
                 {darfErfassen && l.status === "geplant" ? (
@@ -218,7 +230,7 @@ export async function LogistikAnsicht() {
                           {i + 1}
                         </span>
                         <span className="font-semibold text-foreground">{s.kunde}</span>
-                        <span className="text-muted-foreground">{format.number(s.mengeKg)} kg</span>
+                        <span className="text-muted-foreground">{kilogramm(format, s.mengeKg)}</span>
                       </li>
                     ))}
                   </ol>
@@ -233,6 +245,9 @@ export async function LogistikAnsicht() {
           <p className="text-[11px] leading-4 text-muted-foreground">{tt("hinweis")}</p>
         </Section>
       ) : null}
+
+      {/* Abholrunden bei Nachbarbetrieben (WMCNL-1577): die Gegenrichtung zur Tourenplanung, mit der 60-Minuten-Regel der Kuehlkette. */}
+      {siehtTouren ? <AbholrundenAnsicht /> : null}
 
       <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{t("note")}</Card>
     </div>

@@ -8,10 +8,11 @@ import { dienstClient } from "@/lib/wissen/admin-zugriff";
 import { baueBefunde, PFLEGE, zaehleBefunde, type DokumentNaehe } from "@/lib/wissen/bestandspflege";
 import { istQuelleId } from "@/lib/wissen/bestandspflege-entfernen";
 import { schaetzeEin } from "@/lib/wissen/einschaetzung";
-import { filtere, HERKUENFTE, KEIN_FILTER, STATUS_FILTER, VERLAESSLICHKEITEN, verlaesslichkeitVon, type ListenFilter } from "@/lib/wissen/listen-filter";
+import { filtere, HERKUENFTE, KEIN_FILTER, STATUS_FILTER, VERLAESSLICHKEITEN, verteilungNachVerlaesslichkeit, type ListenFilter } from "@/lib/wissen/listen-filter";
 import { CLUSTER, QUELLENARTEN } from "@/lib/wissen/quellenart";
 import { ladeNaehe, ladeVergleich } from "@/lib/wissen/speicher-bestandspflege";
-import { bereichSchluessel } from "@/lib/wissen/upload-konstanten";
+import { bereinigeStichwort, zaehleStichwortTreffer } from "@/lib/wissen/stichwort-treffer";
+import { bereichSchluessel, bereicheVon } from "@/lib/wissen/upload-konstanten";
 
 // Werkzeuge fuer die VERWALTUNG der Wissensbasis (Hochladen, Einordnen, Analysieren), nur fuer die Administration (ki_assistent:manage). Sie lesen
 // ueber dieselbe Zusammenfassung wie die Seite Wissensbasis (wissen_liste) und fassen sich kurz: Der Assistent bekommt Zahlen, Einordnungen und
@@ -19,6 +20,20 @@ import { bereichSchluessel } from "@/lib/wissen/upload-konstanten";
 // bestaetigt, und mit denselben Regeln wie die Oberflaeche (umordnen.ts, Vier-Augen-Pruefung in der Datenbank). Freigeben kann er nichts.
 
 const MAX_AUSZUG = 900;
+
+/** Steht in jedem Ergebnis von wissensbasisAbrufen: wie sich die Zahlen zueinander verhalten. Am 15.10.2026 meldete der Assistent "310 amtlich oder gesichert"
+ *  und "120 Notbehelf oder Hinweis" bei 340 Dokumenten: Er hatte "amtlich" (90) und "sicher" (220) addiert, obwohl "sicher" die amtlichen einschließt. */
+const ZAHLEN_HINWEIS =
+  "Zahlen: nachVerlaesslichkeit und trefferNachVerlaesslichkeit sind eine Aufteilung, deren Klassen sich ausschließen und zusammen die Zahl der Dokumente ergeben (summe): amtlich, tragendSonstige, nurHinweis, notbehelf, gesperrt. " +
+  "'Tragend' ist amtlich plus tragendSonstige; 'nur Hinweis oder Notbehelf' ist nurHinweis plus notbehelf. Der Filter verlaesslichkeit=sicher enthält die amtlichen mit: addiere seine Zahl nie zu amtlich. " +
+  "nachCluster, nachQuellenart und die Klassen ergeben je für sich die Gesamtzahl; nachBereich nicht (ein Dokument zählt in jedem seiner Bereiche). " +
+  "Rechne Summen und Prozente nur aus solchen Zahlen, die sich nicht überschneiden, und prüfe, dass die Teile zur Gesamtzahl passen, bevor du sie nennst.";
+
+/** Steht in jedem Ergebnis von wissensbasisAbrufen: Der Bereich sagt nicht, was die Wissensbasis weiß. */
+const BEREICH_HINWEIS =
+  "Der Bereich ist nur ein Ordnungsetikett, und ein Dokument kann in mehreren Bereichen gelten (Feld bereiche: der Hauptbereich zuerst, dann die weiteren). " +
+  "Ob die Wissensbasis ein Thema abdeckt, zeigt nie die Zahl der Dokumente eines Bereichs, sondern nur der Filter stichwort (Wort im Text oder Titel, über alle Bereiche) und die Suche wissenSuchen. " +
+  "Schließe aus einem kleinen oder leeren Bereich nie, dass Wissen fehlt, und empfiehl keinen Upload, bevor du das Thema mit stichwort und wissenSuchen geprüft hast.";
 const BEFUND_ARTEN = ["arbeitsdokument", "veraltet", "dublette", "abgedeckt", "wiedervorlage", "herkunft"] as const;
 const BEFUND_STUFEN = ["entfernen", "pruefen", "hinweis"] as const;
 
@@ -44,6 +59,13 @@ export function findeDokument(liste: readonly WissenDokumentZeile[], text: strin
   return { treffer: null, kandidaten: passend.slice(0, 8) };
 }
 
+/** Dokumente je Bereich: ein Dokument zählt in jedem Bereich, in dem es gilt. */
+const zaehleBereiche = (liste: readonly WissenDokumentZeile[]): Record<string, number> => {
+  const m: Record<string, number> = {};
+  for (const d of liste) for (const b of bereicheVon(d.bereich, d.weitereBereiche)) m[b || "ohne"] = (m[b || "ohne"] ?? 0) + 1;
+  return m;
+};
+
 const zaehle = <T>(liste: readonly T[], f: (x: T) => string | null): Record<string, number> => {
   const m: Record<string, number> = {};
   for (const x of liste) {
@@ -60,6 +82,7 @@ function kurz(d: WissenDokumentZeile) {
     schluessel: d.schluessel,
     titel: d.titel,
     bereich: bereichSchluessel(d.bereich),
+    bereiche: bereicheVon(d.bereich, d.weitereBereiche),
     quellenart: d.quellenart,
     cluster: d.cluster,
     textgrundlage: d.textgrundlage,
@@ -124,12 +147,13 @@ export function baueWissenVerwaltungWerkzeuge(rolle: Role | null | undefined) {
   const wissensbasisAbrufen = tool({
     description:
       "Überblick über die Wissensbasis für die Verwaltung: Zahl der Dokumente und Abschnitte, Verteilung nach Cluster, Quellenart und Bereich, wie viele Dokumente noch ohne Einordnung sind, auf Prüfung warten, unvollständig oder abgelaufen sind, und die Liste der Dokumente (mit Kennung, Einordnung, Nutzung und bei wartenden Dokumenten Empfehlung und Gründe). " +
-      "Filtere wie die Liste der Verwaltung: suche (Teil des Titels), bereich, quellenart, verlaesslichkeit (amtlich = Gesetz, Urteil, Erlass, Behörde; sicher = tragende Quelle, schließt amtliche ein; hinweis = nur als Hinweis; unsicher = ungesicherte Internetquelle, nur Notbehelf; ohne = nicht eingeordnet), status (wartet, freigegeben, abgelehnt, unvollstaendig, abgelaufen), cluster und herkunft. 'Bereich' ist das Sachgebiet der Wissensbasis, keine Zone der Anwendung. Nutze es bei Fragen wie 'Was ist in der Wissensbasis?', 'Was wartet auf Prüfung?', 'Welche Quellen sind unsicher?', 'Was haben wir amtlich zu Steuern?'.",
+      "Filtere wie die Liste der Verwaltung: suche (Teil des Titels), stichwort (Wort im TEXT oder Titel, über alle Bereiche: für Fragen, ob es zu einem THEMA wie Risiko, ISO 31000 oder Lieferkette etwas gibt), bereich, quellenart, verlaesslichkeit (amtlich = Gesetz, Urteil, Erlass, Behörde; sicher = tragende Quelle, schließt amtliche ein; hinweis = nur als Hinweis; unsicher = ungesicherte Internetquelle, nur Notbehelf; ohne = nicht eingeordnet), status (wartet, freigegeben, abgelehnt, unvollstaendig, abgelaufen), cluster und herkunft. Die Verteilung nach Verlässlichkeit (nachVerlaesslichkeit, trefferNachVerlaesslichkeit) besteht aus Klassen, die sich ausschließen und zusammen die Zahl der Dokumente ergeben; der Filter verlaesslichkeit=sicher schließt die amtlichen ein, addiere beide nie. 'Bereich' ist das Sachgebiet der Wissensbasis, keine Zone der Anwendung, und nur ein Ordnungsetikett: ein Dokument kann in mehreren Bereichen gelten (Feld bereiche). Ob es zu einem Thema Wissen gibt, beantwortest du NIE mit der Zahl der Dokumente eines Bereichs, sondern mit stichwort und wissenSuchen. Nutze es bei Fragen wie 'Was ist in der Wissensbasis?', 'Was wartet auf Prüfung?', 'Welche Quellen sind unsicher?', 'Was haben wir amtlich zu Steuern?'.",
     inputSchema: z.object({
       suche: z.string().max(120).optional().describe("Teil des Titels"),
+      stichwort: z.string().max(60).optional().describe("Wort oder Wortgruppe im TEXT oder Titel (zum Beispiel Risiko, risk, ISO 31000, COSO): zeigt die Dokumente, die das Thema behandeln, egal in welchem Bereich"),
       nurWartend: z.boolean().optional().describe("Kurzform für status wartet"),
       nurOhneEinordnung: z.boolean().optional().describe("Kurzform für verlaesslichkeit ohne"),
-      bereich: z.string().max(40).optional().describe("recht, steuer, compliance, audit, risiko oder ein Bestandsbereich (amtlich, fachquellen, kernwissen)"),
+      bereich: z.string().max(40).optional().describe("recht, steuer, compliance, audit, risiko oder ein Bestandsbereich (amtlich, fachquellen, kernwissen); zählt auch Dokumente mit, die dort zusätzlich gelten"),
       quellenart: z.enum(QUELLENARTEN).optional(),
       verlaesslichkeit: z.enum(VERLAESSLICHKEITEN).optional(),
       status: z.enum(STATUS_FILTER).optional(),
@@ -137,9 +161,11 @@ export function baueWissenVerwaltungWerkzeuge(rolle: Role | null | undefined) {
       herkunft: z.enum(HERKUENFTE).optional().describe("upload (hochgeladen) oder skript (Bestand)"),
       limit: z.number().int().min(1).max(40).optional().describe("Höchstens so viele Dokumente in der Liste (Standard 15)"),
     }),
-    execute: async ({ suche, nurWartend, nurOhneEinordnung, bereich, quellenart, verlaesslichkeit, status, cluster, herkunft, limit }) => {
+    execute: async ({ suche, stichwort, nurWartend, nurOhneEinordnung, bereich, quellenart, verlaesslichkeit, status, cluster, herkunft, limit }) => {
       try {
         const alle = await ladeDokumente();
+        const wort = stichwort ? bereinigeStichwort(stichwort) : "";
+        const probe = wort ? await zaehleStichwortTreffer(dienstClient(), wort) : null;
         const filter: ListenFilter = {
           ...KEIN_FILTER,
           suche: suche ?? "",
@@ -150,13 +176,24 @@ export function baueWissenVerwaltungWerkzeuge(rolle: Role | null | undefined) {
           cluster: cluster ?? null,
           herkunft: herkunft ?? null,
         };
-        const sicht = filtere(alle, filter);
+        const treffer = (d: WissenDokumentZeile) => probe?.je.get(d.schluessel) ?? 0;
+        // Mit Stichwort bleiben nur Dokumente, die es enthalten, die mit den meisten Treffern zuerst.
+        const sicht = probe ? filtere(alle, filter).filter((d) => treffer(d) > 0).sort((a, b) => treffer(b) - treffer(a)) : filtere(alle, filter);
         const grenze = limit ?? 15;
         return {
           gesamt: { dokumente: alle.length, abschnitte: alle.reduce((n, d) => n + d.chunks, 0) },
           nachCluster: zaehle(alle, (d) => d.cluster),
           nachQuellenart: zaehle(alle, (d) => d.quellenart),
-          nachBereich: zaehle(alle, (d) => bereichSchluessel(d.bereich)),
+          // Ein Dokument zählt in jedem seiner Bereiche (Hauptbereich und weitere): die Summe kann über der Zahl der Dokumente liegen.
+          nachBereich: zaehleBereiche(alle),
+          nachVerlaesslichkeit: verteilungNachVerlaesslichkeit(alle),
+          ...(probe
+            ? {
+                stichwort: { wort, dokumente: sicht.length, nachBereich: zaehleBereiche(sicht), ...(probe.gekuerzt ? { gekuerzt: true, hinweis: "Sehr häufiges Wort: Die Zahlen sind eine Untergrenze." } : {}) },
+              }
+            : {}),
+          hinweis: BEREICH_HINWEIS,
+          zahlenHinweis: ZAHLEN_HINWEIS,
           ohneEinordnung: alle.filter(ohneEinordnung).length,
           wartendAufPruefung: alle.filter((d) => d.herkunft === "upload" && d.pruefstatus === "ungeprueft").length,
           unvollstaendig: alle.filter((d) => d.unvollstaendig).length,
@@ -165,12 +202,17 @@ export function baueWissenVerwaltungWerkzeuge(rolle: Role | null | undefined) {
           alsHinweis: alle.filter((d) => d.nutzung === "hinweis").length,
           filter: { ...filter, suche: filter.suche || undefined },
           treffer: sicht.length,
-          trefferNachVerlaesslichkeit: Object.fromEntries(VERLAESSLICHKEITEN.map((v) => [v, sicht.filter((d) => verlaesslichkeitVon(d, v)).length])),
-          dokumente: sicht.slice(0, grenze).map(kurz),
+          trefferNachVerlaesslichkeit: verteilungNachVerlaesslichkeit(sicht),
+          dokumente: sicht.slice(0, grenze).map((d) => (probe ? { ...kurz(d), abschnitteMitStichwort: treffer(d) } : kurz(d))),
           gekuerzt: sicht.length > grenze,
         };
-      } catch {
-        return { fehler: "wissensbasis-nicht-lesbar", hinweis: "Die Dokumentliste ist gerade nicht lesbar. Sage das offen." };
+      } catch (fehler) {
+        console.error("[damicon] wissensbasisAbrufen fehlgeschlagen", { meldung: String(fehler instanceof Error ? fehler.message : fehler).slice(0, 300) });
+        return {
+          fehler: "wissensbasis-nicht-lesbar",
+          hinweis:
+            "Die Dokumentliste ist gerade technisch nicht lesbar. Das sagt nichts über den Inhalt der Wissensbasis: Nenne keine Zahlen aus früheren Antworten als aktuell, behaupte keine Lücken und empfiehl keinen Upload. Versuche es einmal erneut, sonst sage offen, dass die Liste gerade nicht lief.",
+        };
       }
     },
   });

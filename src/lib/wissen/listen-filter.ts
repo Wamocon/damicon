@@ -13,7 +13,7 @@
 
 import { ohneEinordnung, type WissenDokumentZeile } from "@/lib/wissen/dokumente-liste";
 import type { Cluster, Quellenart } from "@/lib/wissen/quellenart";
-import { bereichSchluessel } from "@/lib/wissen/upload-konstanten";
+import { bereicheVon } from "@/lib/wissen/upload-konstanten";
 
 export const VERLAESSLICHKEITEN = ["amtlich", "sicher", "hinweis", "unsicher", "ohne"] as const;
 export type Verlaesslichkeit = (typeof VERLAESSLICHKEITEN)[number];
@@ -68,6 +68,24 @@ export function verlaesslichkeitVon(d: WissenDokumentZeile, v: Verlaesslichkeit)
   }
 }
 
+/** Die Klassen der Verteilung nach Verlaesslichkeit. Sie SCHLIESSEN SICH AUS und ergeben zusammen die Zahl der Dokumente: Jedes Dokument steht in genau einer,
+ *  nach seiner Nutzung (quellenart.ts), und bei tragenden Quellen nach amtlich oder nicht. Anders als der Filter `verlaesslichkeit`, dessen Stufe "sicher" die
+ *  amtlichen einschliesst: Wer beide Zahlen addiert, zaehlt die amtlichen doppelt (15.10.2026: "310 amtlich oder gesichert" bei 340 Dokumenten, weil
+ *  90 amtliche und 220 sichere addiert wurden). */
+export const VERTEILUNG_KLASSEN = ["amtlich", "tragendSonstige", "nurHinweis", "notbehelf", "gesperrt"] as const;
+export type VerteilungKlasse = (typeof VERTEILUNG_KLASSEN)[number];
+
+export function verteilungNachVerlaesslichkeit(liste: readonly WissenDokumentZeile[]): Record<VerteilungKlasse, number> & { summe: number } {
+  const v: Record<VerteilungKlasse, number> = { amtlich: 0, tragendSonstige: 0, nurHinweis: 0, notbehelf: 0, gesperrt: 0 };
+  for (const d of liste) {
+    if (d.nutzung === "ja") v[istAmtlich(d) ? "amtlich" : "tragendSonstige"]++;
+    else if (d.nutzung === "hinweis") v.nurHinweis++;
+    else if (d.nutzung === "notfalls") v.notbehelf++;
+    else v.gesperrt++;
+  }
+  return { ...v, summe: liste.length };
+}
+
 export function statusVon(d: WissenDokumentZeile, s: StatusFilter): boolean {
   switch (s) {
     case "wartet":
@@ -86,7 +104,7 @@ export function statusVon(d: WissenDokumentZeile, s: StatusFilter): boolean {
 /** Passt das Dokument zu allen gesetzten Filtern? `ausser` laesst einen Filter weg (fuer die Zaehler an den Auswahlfeldern). */
 export function passtZumFilter(d: WissenDokumentZeile, f: ListenFilter, ausser?: keyof ListenFilter): boolean {
   if (ausser !== "cluster" && f.cluster !== null && (f.cluster === "ohne" ? !ohneEinordnung(d) : d.cluster !== f.cluster)) return false;
-  if (ausser !== "bereich" && f.bereich !== null && bereichSchluessel(d.bereich) !== f.bereich) return false;
+  if (ausser !== "bereich" && f.bereich !== null && !bereicheVon(d.bereich, d.weitereBereiche).includes(f.bereich)) return false;
   if (ausser !== "art" && f.art !== null && d.quellenart !== f.art) return false;
   if (ausser !== "verlaesslichkeit" && f.verlaesslichkeit !== null && !verlaesslichkeitVon(d, f.verlaesslichkeit)) return false;
   if (ausser !== "status" && f.status !== null && !statusVon(d, f.status)) return false;

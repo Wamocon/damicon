@@ -1,4 +1,4 @@
-import { STRAHLEN } from "@/components/brand/damicon-logo";
+import { GRAU, PETROL, TINTE, esc, logoSvg, rahmenCss } from "@/lib/dokument/damicon-dokument";
 import { bereichsAuszug, kennzahlen } from "@/lib/pruefung/befund";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import type { Befund, Bericht } from "@/lib/pruefung/typen";
@@ -22,7 +22,6 @@ export interface PdfTexte {
   p: Uebersetze;
 }
 
-const esc = (s: string): string => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 /** Wie sich die zitierten Quellen verteilen: amtlich und Rechtsquelle (Stufe 1 bis 3), Fachquellen, ungesicherte Internetquellen (Notbehelf). */
 export function quellenlage(belege: Bericht["belege"]): { amtlich: number; fach: number; unsicher: number } {
   const unsicher = belege.filter((q) => q.nutzung === "notfalls").length;
@@ -31,21 +30,6 @@ export function quellenlage(belege: Bericht["belege"]): { amtlich: number; fach:
 }
 
 const FRIST: Record<string, string> = { sofort: "sofort", "7 Tage": "tage7", "30 Tage": "tage30", "90 Tage": "tage90" };
-
-// Farben der Marke: dieselben Werte wie app/icon.svg. Das Dokument lebt in einem eigenen Rahmen ohne die Theme-Variablen der App.
-const PETROL = "#00768f";
-const GOLD = "#f2c14b";
-const HIMBEERE = "#ff5c7a";
-const TINTE = "#14212b";
-const GRAU = "#5b6b78";
-
-/** Die Bildmarke (Sonnensiegel) als eigenstaendiges SVG; dieselben Strahlen wie components/brand/damicon-logo.tsx. */
-function logoSvg(px: number): string {
-  const strahlen = STRAHLEN.map((d) => `<path d="${d}"/>`).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="${px}" height="${px}"><rect width="128" height="128" rx="28" fill="${PETROL}"/><circle cx="64" cy="64" r="46" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="4.5"/><g fill="none" stroke="${GOLD}" stroke-width="4.5" stroke-linecap="round">${strahlen}</g><circle cx="64" cy="68" r="15" fill="${HIMBEERE}"/><path d="M32 92H96" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="5.5" stroke-linecap="round"/></svg>`;
-}
-const base64 = (s: string): string => (typeof btoa === "function" ? btoa(s) : Buffer.from(s, "utf8").toString("base64"));
-const logoAlsUrl = (px: number): string => `data:image/svg+xml;base64,${base64(logoSvg(px))}`;
 
 function datum(iso: string, sprache: string): string {
   try {
@@ -76,35 +60,10 @@ export function pdfDateiname(b: Bericht, auszug?: BerichtAuszug): string {
   return `Compliance-Prüfbericht${teil}-${b.erstelltAm.slice(0, 10)}-${b.id.slice(0, 8)}`;
 }
 
-const STIL = (x: PdfTexte, b: Bericht, titelKurz: string): string => `
-@page { size: A4; margin: 25mm 16mm 22mm;
-  @top-left { content: url("${logoAlsUrl(18)}"); vertical-align: middle; padding-bottom: 3mm; border-bottom: 0.75pt solid ${PETROL}; }
-  @top-center { content: "Damicon  ·  ${titelKurz.replace(/"/g, "'")}"; font: 700 7.5pt "Segoe UI", system-ui, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: ${PETROL}; vertical-align: middle; padding-bottom: 3mm; border-bottom: 0.75pt solid ${PETROL}; }
-  @top-right { content: "${esc(b.id.slice(0, 8))}"; font: 600 7.5pt ui-monospace, Consolas, monospace; color: ${GRAU}; vertical-align: middle; padding-bottom: 3mm; border-bottom: 0.75pt solid ${PETROL}; }
-  @bottom-left { content: "${x.p("fussVertraulich").replace(/"/g, "'")}"; font: 7.5pt "Segoe UI", system-ui, sans-serif; color: ${GRAU}; vertical-align: top; padding-top: 3mm; border-top: 0.5pt solid #cfd8de; }
-  @bottom-right { content: "${x.p("seite").replace(/"/g, "'")} " counter(page) " ${x.p("von").replace(/"/g, "'")} " counter(pages); font: 600 7.5pt "Segoe UI", system-ui, sans-serif; color: ${TINTE}; vertical-align: top; padding-top: 3mm; border-top: 0.5pt solid #cfd8de; }
-}
-@page :first { margin: 0; @top-left { content: none; border: 0; } @top-center { content: none; border: 0; } @top-right { content: none; border: 0; } @bottom-left { content: none; border: 0; } @bottom-right { content: none; border: 0; } }
-* { box-sizing: border-box; }
-html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-body { margin: 0; font: 9.6pt/1.5 "Segoe UI", system-ui, -apple-system, Arial, sans-serif; color: ${TINTE}; }
-p { margin: 0 0 5pt; }
-h1, h2, h3, h4 { font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif; }
-
-/* ---- Deckblatt ---- */
-.deck { position: relative; display: flex; flex-direction: column; width: 210mm; height: 297mm; break-after: page; overflow: hidden; }
-.deck__band { display: flex; align-items: center; justify-content: space-between; padding: 14mm 18mm 12mm; color: #fff; background: linear-gradient(135deg, ${PETROL} 0%, #005a6e 100%); }
-.deck__marke { display: flex; align-items: center; gap: 4mm; }
-.deck__marke strong { display: block; font-size: 17pt; letter-spacing: 0.22em; }
-.deck__marke small { display: block; margin-top: 1mm; font-size: 8pt; letter-spacing: 0.08em; opacity: 0.85; }
-.stempel { padding: 2mm 5mm; border: 1.5pt solid ${GOLD}; border-radius: 1.5mm; font-size: 8.5pt; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase; color: ${GOLD}; transform: rotate(-3deg); }
-.deck__linie { display: flex; height: 3mm; }
-.deck__linie i:first-child { width: 34%; background: ${GOLD}; }
-.deck__linie i:last-child { width: 6%; background: ${HIMBEERE}; }
-.deck__inhalt { flex: 1; display: flex; flex-direction: column; padding: 16mm 18mm 0; }
-.deck__art { margin: 0 0 3mm; font-size: 8.5pt; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: ${PETROL}; }
-.deck h1 { margin: 0; font-size: 31pt; line-height: 1.08; letter-spacing: -0.015em; }
-.deck__sub { margin: 4mm 0 0; font-size: 11pt; color: ${GRAU}; }
+const STIL = (x: PdfTexte, b: Bericht, titelKurz: string): string =>
+  rahmenCss({ fussVertraulich: x.p("fussVertraulich"), seite: x.p("seite"), von: x.p("von") }, titelKurz, esc(b.id.slice(0, 8))) +
+  `
+/* ---- Besonderheiten des Pruefberichts: Reifegrad auf dem Deckblatt, Prioritaeten, Befunde, Quellen ---- */
 .deck__reife { display: grid; grid-template-columns: 34mm 1fr; align-items: center; gap: 7mm; margin-top: 12mm; padding: 7mm 8mm; border: 1pt solid #cfd8de; border-radius: 3mm; background: #f6f9fa; }
 .deck__ring { position: relative; width: 34mm; height: 34mm; }
 .deck__ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -114,30 +73,9 @@ h1, h2, h3, h4 { font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-
 .deck__reife p { margin: 2mm 0 0; font-size: 9.5pt; color: #33434f; }
 .deck__zahlen { display: flex; flex-wrap: wrap; gap: 3mm 6mm; margin-top: 3mm; font-size: 8.5pt; color: ${GRAU}; }
 .deck__zahlen b { color: ${TINTE}; }
-.deck__meta { width: 100%; margin-top: 10mm; border-collapse: collapse; font-size: 9pt; }
-.deck__meta th { width: 38mm; padding: 2mm 0; background: none; text-align: left; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: ${GRAU}; border-bottom: 0.5pt solid #e1e7eb; vertical-align: top; }
-.deck__meta td { padding: 2mm 0; border-bottom: 0.5pt solid #e1e7eb; }
-.deck__inhaltsliste { margin-top: 9mm; columns: 2; column-gap: 12mm; }
-.deck__inhaltstitel { margin: 0 0 2mm; font-size: 8pt; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: ${PETROL}; break-after: avoid; }
-.deck__inhaltsliste ol { margin: 0; padding-left: 5mm; font-size: 9pt; line-height: 1.7; }
-.deck__fuss { padding: 6mm 18mm 8mm; border-top: 0.75pt solid #cfd8de; font-size: 7.5pt; color: ${GRAU}; }
-.deck__fuss code { font: 7.5pt ui-monospace, Consolas, monospace; overflow-wrap: anywhere; color: ${TINTE}; }
-
-/* ---- Textteil ---- */
-main { counter-reset: abschnitt; }
-h2 { counter-increment: abschnitt; margin: 20pt 0 8pt; padding-bottom: 4pt; border-bottom: 1.5pt solid ${PETROL}; font-size: 13pt; color: ${PETROL}; break-after: avoid; }
-h2::before { content: counter(abschnitt) ".  "; color: ${GOLD}; -webkit-text-stroke: 0.2pt ${PETROL}; }
-h2:first-child { margin-top: 0; }
-h3 { margin: 0 0 3pt; font-size: 10.5pt; }
-.lead { font-size: 10.5pt; line-height: 1.55; }
 ol.prio { margin: 0; padding: 0; list-style: none; counter-reset: prio; }
 ol.prio li { counter-increment: prio; position: relative; margin-bottom: 4pt; padding: 5pt 8pt 5pt 26pt; border: 0.75pt solid #cfd8de; border-radius: 3pt; font-weight: 600; break-inside: avoid; }
 ol.prio li::before { content: counter(prio); position: absolute; left: 7pt; top: 5pt; display: grid; place-items: center; width: 13pt; height: 13pt; border-radius: 50%; font-size: 8pt; font-weight: 800; color: #fff; background: ${PETROL}; }
-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-th { text-align: left; padding: 4pt 6pt; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.06em; color: ${GRAU}; border-bottom: 1pt solid #cfd8de; background: #f6f9fa; }
-td { padding: 4.5pt 6pt; vertical-align: top; border-bottom: 0.5pt solid #e1e7eb; }
-tr { break-inside: avoid; }
-td.zahl, th.zahl { text-align: center; font-variant-numeric: tabular-nums; }
 td.nb { white-space: nowrap; }
 .tabelle-bereich td:first-child { font-weight: 700; }
 .befund { margin: 0 0 9pt; padding: 8pt 10pt 8pt 11pt; border: 1pt solid #cfd8de; border-left: 4pt solid var(--f, #5b7488); border-radius: 3pt; break-inside: avoid; }
@@ -147,20 +85,13 @@ td.nb { white-space: nowrap; }
 .befund[data-status="konform"] { --f: #17805a; }
 .befund__kopf { display: flex; flex-wrap: wrap; align-items: center; gap: 4pt; margin-bottom: 4pt; font-size: 7.5pt; }
 .nr { font: 700 8pt ui-monospace, Consolas, monospace; color: ${GRAU}; margin-right: 2pt; }
-.marke2 { display: inline-block; padding: 0 5pt; border: 0.75pt solid currentColor; border-radius: 8pt; font-weight: 700; color: var(--f); }
 .marke2.neutral { color: ${GRAU}; }
-.klein { font-size: 8.5pt; color: ${GRAU}; }
 .quellen { margin-top: 4pt; font-size: 8.5pt; }
 .massnahmen { margin: 4pt 0 0; padding-left: 14pt; font-size: 9pt; }
 .legende { display: grid; gap: 3pt; margin-top: 6pt; font-size: 8.5pt; color: #33434f; }
 .legende span::before { content: ""; display: inline-block; width: 7pt; height: 7pt; margin-right: 5pt; border-radius: 2pt; background: var(--f); }
 .quelle { margin: 0 0 7pt; padding: 6pt 8pt; border: 0.75pt solid #cfd8de; border-radius: 3pt; break-inside: avoid; }
 .quelle blockquote { margin: 3pt 0 0; padding-left: 6pt; border-left: 1.5pt solid #cfd8de; font-size: 8.5pt; color: #33434f; }
-.freigabe { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10mm; margin-top: 8mm; break-inside: avoid; }
-.freigabe div { padding-top: 14mm; border-top: 0.75pt solid ${TINTE}; font-size: 8pt; color: ${GRAU}; }
-.siegel { margin-top: 8pt; padding: 8pt 10pt; border: 1pt dashed ${PETROL}; border-radius: 4pt; break-inside: avoid; }
-.siegel code { font: 8pt ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
-.hinweis { margin-top: 10pt; font-size: 8pt; color: ${GRAU}; }
 `;
 
 function befundHtml(b: Befund, nr: number, belegeNachId: Map<string, Bericht["belege"][number]>, x: PdfTexte): string {

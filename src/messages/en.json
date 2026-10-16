@@ -229,7 +229,7 @@
       },
       "stand": {
         "q": "What is already built today?",
-        "a": "{gesamt} modules across four areas: {angebunden} on the database with real writes, {entwicklung} as visible menu entries under development. The figures on the start page are placeholders until the first fully measured season."
+        "a": "{gesamt} modules across four areas: {entwicklung, plural, =0 {all on the database with real writes} other {{angebunden} on the database with real writes, {entwicklung} as visible menu entries under development}}. The figures on the start page are placeholders until the first fully measured season."
       },
       "daten": {
         "q": "Where is the data held?",
@@ -344,8 +344,8 @@
   },
   "suche": {
     "titel": "Search",
-    "platzhalter": "Search pages and modules …",
-    "eingabe": "Search pages and modules",
+    "platzhalter": "Search pages, modules or codes …",
+    "eingabe": "Search pages, modules or codes",
     "oeffnen": "Open search",
     "schliessen": "Close search",
     "bedienung": "Arrow keys choose a result, Enter opens it, Esc closes the search.",
@@ -353,10 +353,28 @@
     "gruppeTreffer": "Pages and modules",
     "gruppeZuletzt": "Recently opened",
     "gruppeErwaehnt": "Mentioned in",
-    "leer": "Type the name of a zone, module or page.",
+    "leer": "Type the name of a zone, module or page, or a code such as a batch number.",
     "keineTreffer": "No page or module matches “{begriff}”.",
     "anzahl": "{anzahl, plural, one {# result} other {# results}}",
-    "kiFragen": "Ask AI: {begriff}"
+    "kiFragen": "Ask AI: {begriff}",
+    "gruppeDaten": "Records",
+    "datenSuchen": "Search records: “{begriff}”",
+    "datenLaedt": "Searching records …",
+    "datenFehler": {
+      "anmeldung": "Searching records requires a sign-in.",
+      "nichtVerfuegbar": "Searching records is not available in this view.",
+      "fehler": "The record search failed. Please try again."
+    },
+    "keineDaten": "No page, module or record matches “{begriff}”.",
+    "datenTyp": {
+      "steige": "Crate",
+      "charge": "Batch",
+      "aufgabe": "Picking task",
+      "pfluecker": "Picker",
+      "block": "Row block",
+      "dokument": "Document",
+      "kunde": "Customer"
+    }
   },
   "dashboard": {
     "notifications": "Notifications",
@@ -535,7 +553,7 @@
     "vorgezogenHinweis": "The date is still in the future, but the picking task for it has already been created.",
     "ueberspringenKnopf": "Skip",
     "reaktivierenKnopf": "Reactivate",
-    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included here - the growing-degree-day total is in the weather module. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
+    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included here - the heat sum is in the weather module. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
     "formular": {
       "generieren": {
         "titel": "Generate / extend plan",
@@ -648,10 +666,10 @@
       "todo": "Automatic interval calculation per row block, brigade assignment, a check for conflicts with pre-harvest locks, calendar export (.ics)."
     },
     "wetter": {
-      "title": "Weather and growing degree days",
+      "title": "Weather and heat sum",
       "navTitle": "Weather",
-      "description": "Weather data per location with a growing-degree-day calculation as the basis for the volume forecast.",
-      "summary": "A simple weather interface with growing degree days per plot. Explainable, verifiable and validatable within a season.",
+      "description": "Weather data and the heat sum since the start of the year, explained and set against the first harvest.",
+      "summary": "Weather data from Open-Meteo with the heat sum since 1 January. Explainable, verifiable and comparable within a season.",
       "todo": "A weather station on the farm instead of the values from the network, and a note on shifted ripening windows."
     },
     "kuehlkette": {
@@ -664,9 +682,9 @@
     "logistik": {
       "title": "Collection rounds and route planning",
       "navTitle": "Collection rounds",
-      "description": "Fixed collection rounds in the field so filled crates do not sit in the sun, plus route planning by the clients' delivery windows.",
+      "description": "Pickup rounds at neighbouring farms with the 60-minute cold chain rule, so that filled crates do not stand in the sun, plus delivery tour planning.",
       "summary": "Handover receipt with volume and temperature reconciliation (pre-cooling and transport), unbroken cold-chain evidence all the way to the customer.",
-      "todo": "Route list per vehicle and delivery time windows are still missing."
+      "todo": "Vehicle capacity and customer delivery time windows are still missing."
     },
     "qr_steigen": {
       "title": "QR crate identification",
@@ -678,16 +696,16 @@
     "esf": {
       "title": "Electronic delivery note (ЭСФ)",
       "navTitle": "Delivery note (ЭСФ)",
-      "description": "An electronic delivery note in line with the goods-accompanying-document obligation. A link to the state ЭСФ system is planned, accounting of its own is not.",
-      "summary": "Will carry the evidence chain from the batch to the delivery note and take in the status feedback from the state system. Mandatory integration.",
-      "todo": "Connection to ИС ЭСФ, evidence chain batch to delivery note, status feedback and retry."
+      "description": "Document register for the electronic invoice (ЭСФ): which delivery has which document and which has none yet. The details for the portal are prepared, issuing stays in the state system.",
+      "summary": "Shows the deliveries without ЭСФ, prepares the details from delivery, price list and VAT status and tracks the status up to confirmation. Mandatory integration, the link follows once the authority grants access.",
+      "todo": "Stage 2: automatic handover to ИС ЭСФ and status feedback once the authority grants access."
     },
     "rollen": {
       "title": "Roles and permissions",
       "navTitle": "Roles and permissions",
       "description": "Eight core roles, from the CEO and administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client, with a permission matrix over resources and actions.",
       "summary": "Sets out who may see and change what. A new role can be added without changing anything in the modules.",
-      "todo": "User management, role assignment, fine-grained access rules per resource."
+      "todo": "Creating and blocking staff accounts, fine-grained access rules per resource."
     },
     "finanzen": {
       "title": "Contribution margin and finance",
@@ -713,9 +731,9 @@
     "dokumente": {
       "title": "Document management",
       "navTitle": "Documents",
-      "description": "A secure store for spray records, ЕСУТД evidence, supply and framework contracts, grant dossiers and certificates - linked to the row block and the batch.",
-      "summary": "A categorised, secure document store linked to the row block and the batch.",
-      "todo": "Versions per document, expiry dates with a reminder."
+      "description": "A secure store and evidence register for certificates, contracts, permits, insurance, spray records, ЕСУТД evidence and grant dossiers, with validity period, automatic expiry status and a responsible person, linked to the row block, the batch and partners.",
+      "summary": "A categorised, secure document store with automatic expiry status, a responsible person and links to row block, batch and partners.",
+      "todo": "Versions per document."
     },
     "compliance": {
       "title": "Compliance cockpit",
@@ -727,9 +745,9 @@
     "integrationen": {
       "title": "State integrations",
       "navTitle": "Integrations",
-      "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.",
-      "summary": "Will get one connector per target system, with status feedback and retry. Accounting stays out of scope.",
-      "todo": "Connectors per system, test access, handling of errors and retries, an overview of the pending items."
+      "description": "Reporting process for the unified system ЕСУТД: conclusion, change and termination of seasonal contracts with deadline, confirmation and proof. Connectors to ЭСФ, virtual stock and the funding portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.",
+      "summary": "Tracks the reports to ЕСУТД and reminds of the deadline for the conclusion. The automatic handover follows once the authority grants access.",
+      "todo": "Stage 2: connectors per system with test access, handling of errors and retries, overview of the pending operations."
     },
     "foerdermittel": {
       "title": "Grant application dossier",
@@ -739,11 +757,11 @@
       "todo": "Application templates and evidence checklists per grant programme. The first open question is which fields and documents gosagro.kz and qoldau.kz ask for per programme."
     },
     "wirtschaftlichkeit": {
-      "title": "Business case for the rollout",
-      "navTitle": "Business case",
-      "description": "Investment appraisal for the rollout: payback period, return in year one and over three years, one-off and recurring cost, net present value. Model figures so far, not yet operational data.",
-      "summary": "Payback, return, one-off and recurring cost, net present value of the rollout. Model calculation, not yet from operations.",
-      "todo": "Capture of investment, operating and benefit items, history per revision, plan versus actual."
+      "title": "Profitability of the operation",
+      "navTitle": "Profitability",
+      "description": "Revenue, cost and result of the operation over three to five years, with fixed costs, break-even and the assumptions behind them. Below it the investment appraisal of the system: payback, return and net present value.",
+      "summary": "Operating result over three to five years, break-even and fixed costs. Below it payback, return and net present value of the system.",
+      "todo": "The benefit of the system counts as evidenced only once operations deliver actual figures. Until then it is shown as estimated."
     },
     "sortenkatalog": {
       "title": "Variety and quota catalogue",
@@ -800,6 +818,13 @@
       "description": "Legal form and IIN or BIN for the farm itself, its supplying farms and its customers - the details that must appear on every document.",
       "summary": "A peasant farm carries an IIN, a legal entity a BIN. The check digit rejects a transposed number before it reaches an invoice.",
       "todo": "Collect numbers for supplying farms and customers."
+    },
+    "einstellungen": {
+      "title": "Settings",
+      "navTitle": "Settings",
+      "description": "Deadlines, capacities and reference values that administration, management and the responsible specialist roles maintain themselves.",
+      "summary": "Eleven business values and the weights of the block-risk rating, with limits, source and change history. Access rights are not up for choice here.",
+      "todo": "Nothing open."
     }
   },
   "reihenblockStatusHint": {
@@ -952,7 +977,57 @@
       "wissenSammelFreigegeben": "Approved and searchable: {wert} documents (details in the window).",
       "wissenSammelAbgelehnt": "Rejected: {wert} documents. They stay blocked and can be deleted.",
       "wissenUmgeordnet": "Classification of “{wert}” changed.",
-      "wissenNachgeladen": "Pages {wert} loaded and inserted into the book."
+      "wissenNachgeladen": "Pages {wert} loaded and inserted into the book.",
+      "rolleGeaendert": "Role of “{wert}” changed.",
+      "nachricht": "Message sent.",
+      "loggerImport": "{anzahl} readings imported. Skipped: {zuAlt} older than 24 hours, {zukunft} in the future, {doppelt} already present, {unlesbar} unreadable.",
+      "checkpunkt": "Item added.",
+      "checkpunktErledigt": "Item done.",
+      "checkpunktGeoeffnet": "Item reopened.",
+      "checkpunktEntfernt": "Item removed.",
+      "checklisteVorschlag": "General suggestion applied.",
+      "esfEntwurf": "Draft saved.",
+      "esfEntwurfVerworfen": "Draft discarded.",
+      "esfAusgestellt": "Document recorded as issued.",
+      "esfBestaetigt": "Confirmation recorded.",
+      "esfAbgelehnt": "Rejection recorded.",
+      "esfPapier": "Document kept on paper.",
+      "esfNeuBegonnen": "New draft started.",
+      "esutdVertrag": "Conclusion created.",
+      "esutdEreignis": "Report created.",
+      "esutdErfasst": "Report recorded as reported.",
+      "esutdGeoeffnet": "Report reopened.",
+      "esutdEntfernt": "Report removed.",
+      "wiPostenGespeichert": "Item saved.",
+      "wiPostenEntfernt": "Item removed.",
+      "wiIstErfasst": "Actual value recorded.",
+      "wiIstEntfernt": "Actual value removed.",
+      "wiAnnahmenGespeichert": "Assumptions saved.",
+      "wiStandFestgehalten": "Snapshot saved.",
+      "wiModellUebernommen": "Model values taken over.",
+      "abholrundeErstellt": "Pickup round created, the stops are ordered by the shortest route.",
+      "abholrundeOhneRoute": "Pickup round created. Without a route or without an address, the stops stay in the chosen order.",
+      "abholrundeVerworfen": "Pickup round discarded.",
+      "abholrundeGestartet": "Round started.",
+      "abholungErfasst": "Pickup recorded.",
+      "stoppEntfallen": "Stop recorded as cancelled.",
+      "abholrundeAbgeschlossen": "Round completed. The arrival at the cold store is recorded.",
+      "integrationGespeichert": "Configuration saved.",
+      "integrationGespeichertOhneGeheimnis": "Configuration saved. The environment variable {wert} is not yet set on the server, so nothing is delivered until then.",
+      "integrationWiederholt": "The entry is waiting for delivery again.",
+      "auslieferung": "{versucht} attempted: {zugestellt} delivered, {wiederholen} waiting for retry, {gescheitert} failed.",
+      "auslieferungNichts": "Nothing due.",
+      "nachrichtAnonymisiert": "Message anonymised.",
+      "einstellungGespeichert": "Setting saved.",
+      "zeitfensterGespeichert": "Pickup window saved.",
+      "kontoAngelegt": "Account created. Temporary password (visible only now, please hand it over securely): {wert}",
+      "kontoGesperrt": "Account of \"{wert}\" blocked.",
+      "kontoEntsperrt": "Account of \"{wert}\" unblocked.",
+      "passwortGeaendert": "Password changed.",
+      "dokumentVersion": "New version “{wert}” created.",
+      "videoEntfernt": "Video file removed.",
+      "wiSchwundUebernommen": "The loss benefit was adopted as an item.",
+      "biAnnahmenGespeichert": "Operating assumptions saved."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1035,7 +1110,107 @@
       "wissenKeineAenderung": "Nothing was changed: the chosen values match the current classification.",
       "wissenSeitenNichtBestaetigt": "This book has open missing pages. To approve it, enter the printed page numbers that are correctly missing. Please approve it individually in the review window, not in the bulk approval.",
       "wissenSeitenNichtAbgedeckt": "The pages entered do not cover all missing pages. Open: {wert}. Real content is missing, so the book cannot be approved. Please load the pages later or delete the book and upload it again.",
-      "wissenNachtragUngueltig": "The loaded pages do not match any open gap of this book. Nothing was inserted."
+      "wissenNachtragUngueltig": "The loaded pages do not match any open gap of this book. Nothing was inserted.",
+      "zeitraum": "The validity period does not fit: the end is before the start, or a document without expiry has an end date.",
+      "eigeneRolle": "Your own role cannot be changed here. Please ask another administrator.",
+      "kundenkonto": "Customer accounts are managed through invitations, not through role assignment.",
+      "rolleUnveraendert": "The account already has this role.",
+      "letzterAdmin": "The last administrator keeps the role. Appoint another administrator first.",
+      "nachrichtZuLang": "The message is longer than 2000 characters.",
+      "vorbestellungStorniert": "A cancelled pre-order gets no new messages.",
+      "loggerDateiLeer": "The file contains no readable readings (expected: time and temperature per line).",
+      "loggerDateiZuGross": "The file is larger than 2 MB.",
+      "loggerKeineNeuen": "Nothing imported. Skipped: {zuAlt} older than 24 hours, {zukunft} in the future, {doppelt} already present, {unlesbar} unreadable.",
+      "checkpunktZuLang": "The item is longer than 200 characters.",
+      "checklisteNichtLeer": "The checklist already has items. The suggestion only applies to an empty list.",
+      "esfNummer": "Please enter the ЭСФ number, at most 100 characters.",
+      "esfDatum": "Please enter a valid date, not in the future and not before the issue date.",
+      "esfBemerkung": "Please give a reason of 3 to 500 characters.",
+      "esfStatuswechsel": "This status change is not provided for, or the document has changed in the meantime.",
+      "esutdErfassteMeldungen": "The contract has recorded reports (change or termination) and stays. Reopen those first, then remove it.",
+      "esfLieferungOffen": "Only a delivered shipment can have a document.",
+      "esfBelegFehlt": "The document was not found.",
+      "esfSchonAusgestellt": "This delivery already has an issued document.",
+      "esutdDatum": "Please enter a valid date, the report date not in the future.",
+      "esutdVertragsnummer": "The contract number is longer than 60 characters.",
+      "esutdBeschreibung": "Please describe what changes, with 3 to 300 characters.",
+      "esutdBestaetigung": "The confirmation number is longer than 100 characters.",
+      "esutdMeldungFehlt": "The report was not found or has changed in the meantime.",
+      "wiBezeichnung": "Please enter a description of 1 to 120 characters.",
+      "wiKategorie": "Please enter a valid category of at most 60 characters. For the benefit: shrinkage, manual work, audit or other.",
+      "wiBetrag": "Please enter an amount of 0 or more.",
+      "wiWaehrung": "Please choose euro, tenge or ruble.",
+      "wiDatum": "Please enter a valid date.",
+      "wiMonat": "Please enter a valid month.",
+      "wiNotiz": "The note may have at most 500 characters.",
+      "wiAnnahme": "Please check the assumptions: rate 0 to 100 percent, exchange rates above 0, quantity and full cost above 0 or empty, weeks as a pair with \"from\" not above \"to\".",
+      "wiStandName": "Please enter a name for the snapshot of 1 to 120 characters.",
+      "wiStandLeer": "Without recorded items there is nothing to save.",
+      "wiStandLesefehler": "The data could not be read completely just now. The snapshot was not saved, please try again in a moment.",
+      "wiNichtGefunden": "The entry was not found.",
+      "wiModellNichtLeer": "Items are already recorded. The model values can only be taken over onto an empty list.",
+      "arDatum": "Please enter a valid date.",
+      "arFahrzeug": "The vehicle may have at most 60 characters.",
+      "arNotiz": "The note may have at most 500 characters.",
+      "arStopps": "Please choose at least one neighbouring farm.",
+      "arMenge": "Please enter a quantity in kilograms above 0 (at pickup 0 or more).",
+      "arDoppelt": "A neighbouring farm can only appear once in a round.",
+      "arVorlauf": "Please enter the start of picking in minutes before the pickup, at most 1440, or leave the field empty.",
+      "arBemerkung": "The remark may have at most 500 characters.",
+      "arBetriebFehlt": "A chosen neighbouring farm was not found. Please reload the page.",
+      "abholrundeAbgeschlossen": "That is no longer possible: the round or the stop is already completed or done.",
+      "abholrundeNichtGestartet": "The round has to be running for that. To complete it, no stop may be open any more.",
+      "integrationAdapter": "Please choose \"manual\" or \"webhook\".",
+      "integrationUrl": "Please enter a valid https address without credentials, at most 500 characters.",
+      "integrationUrlIntern": "This address points into the own network or to the own machine. Targets must be publicly reachable.",
+      "integrationGeheimnis": "Please enter only the name of the environment variable. It starts with DAMICON_HOOK_, followed by capital letters, digits and underscores (up to 48 characters). Not the secret itself.",
+      "integrationUnvollstaendig": "Active exists only as a webhook with an address and the name of the secret.",
+      "integrationNichtGescheitert": "Only a failed entry can be tried again.",
+      "auslieferung": "The delivery failed. Details are in the server log.",
+      "unveraenderlich": "This entry cannot be changed.",
+      "anonymisierungGrund": "Please give a reason of 3 to 300 characters, without personal data.",
+      "einstellungGrenzen": "The value is outside the permitted limits.",
+      "einstellungGanzzahl": "Please enter a whole number.",
+      "wiIstSchonDa": "There is already a value for this month, category and currency. Remove the existing one and enter it again.",
+      "adresssucheGrenze": "Too many address searches in the last hour. Please try again later (limit in the settings).",
+      "arKapazitaet": "Please enter a capacity between 1 and 100000 kg or leave the field empty.",
+      "arStartzeit": "Please enter the departure as a time (HH:MM) or leave it empty.",
+      "arFenster": "The pickup window needs a start and an end (HH:MM), the start before the end.",
+      "integrationAuth": "Please choose signature or HTTP Basic.",
+      "integrationZugang": "For HTTP Basic the name of the environment variable is missing (DAMICON_HOOK_ plus capital letters, digits and underscores).",
+      "integrationVorlage_kein_json": "The template is not valid JSON.",
+      "integrationVorlage_kein_objekt": "The template must be a JSON object.",
+      "integrationVorlage_zu_gross": "The template is longer than 20000 characters.",
+      "integrationVorlage_zu_tief": "The template is nested too deeply (at most 8 levels).",
+      "integrationVorlage_zu_viele_platzhalter": "The template has more than 200 placeholders.",
+      "integrationVorlage_pfad": "Unknown path in the template: {wert}.",
+      "integrationVorlage_leer": "The template is empty.",
+      "kontoName": "Please enter a name of 2 to 100 characters.",
+      "kontoEmail": "Please enter a valid email address.",
+      "kontoRolle": "Please choose a role for staff.",
+      "kontoVorhanden": "There is already an account for this email address.",
+      "kontoAnlegen": "The account could not be created. Please try again later.",
+      "eigeneSperre": "You cannot block your own account.",
+      "sperrgrund": "Please give a reason of 3 to 300 characters.",
+      "kontoSperreAuth": "The account of \"{wert}\" is blocked in the database, but the sign-in at the auth service could not be switched. Please block again.",
+      "passwortKurz": "The password needs at least 12 characters.",
+      "passwortLang": "The password is too long (at most 72 bytes).",
+      "passwortUngleich": "The two entries do not match.",
+      "passwortEinfach": "The password is too simple (not the email address, more than three different characters).",
+      "passwortGleich": "The new password must differ from the old one.",
+      "passwortAendern": "The password could not be changed. Please try again later.",
+      "risikoSchwellen": "The threshold for “high” must be above the threshold for “medium”.",
+      "risikoAusschuss": "The critical reject rate must be above the target.",
+      "risikoGewichte": "At least one weight must be above zero.",
+      "versionSchonErsetzt": "This proof already has a newer version. Please reload the page and renew the current version.",
+      "versionRegel": "A new version has the same category as the one it replaces, and its predecessor can no longer be changed.",
+      "wiSchwundOffen": "No benefit can currently be derived from the operating data.",
+      "biEingabe": "Please enter numbers only.",
+      "biPreis": "The selling price must be greater than 0 or left empty.",
+      "biKosten": "Variable cost must not be negative.",
+      "biMenge": "The annual volume must be greater than 0 or left empty.",
+      "biEntwicklung": "A yearly change lies between minus 50 and plus 100 percent.",
+      "biAbschreibung": "Depreciation runs over whole years, from 1 to 20."
     },
     "einladungen": {
       "erfolg": {
@@ -1141,14 +1316,28 @@
       "stand": "As of",
       "status": "Status",
       "datei": "File",
-      "foerderdossier": "Funding dossier"
+      "foerderdossier": "Funding dossier",
+      "gueltigVon": "Valid from",
+      "gueltigBis": "Valid until",
+      "unbefristet": "Valid without expiry",
+      "warnungTage": "Early warning (days before expiry)",
+      "verantwortlich": "Responsible",
+      "partner": "Partner",
+      "rechtsgrundlage": "Legal basis"
     },
     "beispiel": {
-      "name": "Spray record week 37 - North plot"
+      "name": "Spray record week 37, North plot",
+      "rechtsgrundlage": "e.g. requirement of the buyer"
     },
     "keinDossier": "no dossier",
     "aendernKnopf": "Save",
-    "linkNichtVerfuegbar": "file exists, link currently unavailable"
+    "linkNichtVerfuegbar": "file exists, link currently unavailable",
+    "hinweis": {
+      "warnungTage": "{min} to {max} days, default 60."
+    },
+    "keinVerantwortlicher": "nobody assigned",
+    "keinPartner": "no partner",
+    "versionKnopf": "Create new version"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "No brigade",
@@ -1393,9 +1582,8 @@
     "ohneErntetag": "no harvest day"
   },
   "wirtschaftlichkeitAnsicht": {
-    "eyebrow": "Investment appraisal",
-    "titel": "Is the rollout worth it?",
-    "lead": "What the step costs, when the money is back and what owning it costs, over three years.",
+    "titel": "Second: is the system worth it?",
+    "lead": "What the step costs, when the money is back and what owning it costs, over {jahre} years.",
     "modellPille": "Model calculation",
     "modellHinweis": "Model calculation dated {stichtag}. The figures come from the management's metric list, not from live operations. Anything estimated is marked on the tile.",
     "kursHinweis": "Converted at the National Bank of Kazakhstan rate of {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸.",
@@ -1410,10 +1598,11 @@
       "titel": "Four further figures",
       "lead": "Payback period, total cost, avoided cost and time to first benefit."
     },
-    "fussnote": "Return, payback and the cost per kilogram hang entirely on the assumed annual benefit. If the reduction per kilogram looks too high, the annual benefit is set too high. Once operational figures are captured, the page calculates from real items instead of constants.",
+    "fussnote": "Return, payback and the cost per kilogram hang on the annual benefit. If the reduction per kilogram looks too high, the annual benefit is set too high. The actual values further down show whether it materialises in operations.",
     "diagramm": {
       "wert": "Value",
-      "nulllinie": "Money back"
+      "nulllinie": "Money back",
+      "ist": "Actual"
     },
     "stapel": {
       "capex": "One-off",
@@ -1435,41 +1624,45 @@
         "frage": "Is it worth anything at all?",
         "rechenweg": "Annual benefit less one-off and recurring cost, divided by both combined."
       },
-      "roiDreiJahre": {
-        "label": "Return over 3 years",
+      "roiHorizont": {
+        "label": "Return over {jahre} years",
         "frage": "Is it properly worth it?",
-        "rechenweg": "Three times the annual benefit less one-off and three times recurring cost, divided by the outlay."
+        "rechenweg": "Annual benefit times {jahre} less one-off cost and recurring cost times {jahre}, divided by the outlay."
       },
       "capex": {
         "label": "Cost to acceptance",
         "frage": "What does the step cost?",
-        "rechenweg": "Fixed price up to acceptance. One number, not a range."
+        "rechenweg": "Fixed price up to acceptance. One number, not a range.",
+        "rechenwegErfasst": "Sum of the recorded investment items."
       },
       "opex": {
         "label": "Recurring cost per year",
         "frage": "What does owning it cost?",
-        "rechenweg": "Hosting, maintenance, support and further development."
+        "rechenweg": "Hosting, maintenance, support and further development.",
+        "rechenwegErfasst": "Sum of the recorded operating items per year."
       },
       "tco": {
-        "label": "Total cost over 3 years",
+        "label": "Total cost over {jahre} years",
         "frage": "What does the comparison really cost?",
-        "rechenweg": "One-off cost plus three years of recurring cost, against any alternative."
+        "rechenweg": "One-off cost plus {jahre} years of recurring cost, against any alternative."
       },
       "vermiedeneKosten": {
         "label": "Avoided cost per year",
         "frage": "Where does the benefit come from?",
-        "rechenweg": "Shrinkage, manual work and audit preparation. Back-calculated from the given return figures."
+        "rechenweg": "Shrinkage, manual work and audit preparation. Back-calculated from the given return figures.",
+        "rechenwegErfasst": "Sum of the recorded benefit items per year: shrinkage, manual work, audit preparation and other."
       },
       "kapitalwert": {
         "label": "Net present value",
         "frage": "Does it hold up with the CFO?",
-        "rechenweg": "Present value of the benefit less the investment over three years, discounted monthly at {zins}."
+        "rechenweg": "Present value of the benefit less the investment over {jahre} years, discounted monthly at {zins}."
       },
       "kostenJeKilogramm": {
         "label": "Cost per kilogram",
         "frage": "Does the operation get cheaper?",
         "rechenweg": "Full cost divided by the marketed quantity, before against after. Needs operational figures.",
-        "rechenwegMitWerten": "Full cost divided by the marketed quantity. Before {vorher} ₸, less {ersparnis} ₸ benefit per kilogram at {menge} kg annual volume."
+        "rechenwegMitWerten": "Full cost divided by the marketed quantity. Before {vorher} ₸, less {ersparnis} ₸ benefit per kilogram at {menge} kg annual volume.",
+        "rechenwegMengeOffen": "The marketed annual quantity is still missing. It comes from the deliveries once they cover a full year, or by hand from the assumptions."
       },
       "nutzenbeginn": {
         "label": "Time to first benefit",
@@ -1480,7 +1673,21 @@
     "jeKilogramm": {
       "vorher": "Before",
       "nachher": "After"
-    }
+    },
+    "pille": {
+      "offen": "Partly open",
+      "geschaetzt": "Partly estimated",
+      "belegt": "Evidenced"
+    },
+    "erfasstHinweis": "The figures are calculated from the {anzahl} recorded items and the assumptions further down. Anything estimated or still missing is marked on the tile.",
+    "erfasstLeer": "No item is recorded yet, so every figure stays open. Below you can record the items or take over the values of the metric list as a starting point.",
+    "standHinweis": "Saved snapshot \"{name}\" of {datum}. The page shows the calculation as it was then, with the items and the exchange rate of that day.",
+    "standUnbekannt": "The requested snapshot was not found. The current calculation is shown.",
+    "nurLesen": "View only: administration, CEO and accounting can record entries.",
+    "jahresnutzenOffen": "The annual benefit is not recorded yet. Without it, return, payback period, net present value and the cost per kilogram stay open.",
+    "jahresnutzenGeschaetzt": "Every figure rests on an annual benefit of {tenge} ({rubel}). That number is estimated and not yet evidenced by operations.",
+    "jahresnutzenBelegt": "Every figure rests on an annual benefit of {tenge} ({rubel}), recorded as evidenced.",
+    "kursHinweisQuelle": "Converted at the rate of {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸. Source: {quelle}."
   },
   "finanzVorschau": {
     "titel": "Finances this month",
@@ -1561,19 +1768,24 @@
     },
     "risikoRadar": {
       "titel": "Risk radar",
-      "lead": "Every open statutory deadline from tax, labor and data-protection law in one place - sorted by urgency.",
+      "lead": "Every open statutory deadline from tax, labor and data-protection law, plus expired or expiring evidence, in one place, sorted by urgency.",
       "anzahlOffen": "{anzahl} open deadline(s)",
-      "alleErledigt": "No open deadline - tax, labor and data-protection obligations are all on track right now.",
+      "alleErledigt": "No open deadline. Tax, labor and data-protection obligations and all evidence are on track right now.",
       "ansehen": "View →",
       "kategorie": {
         "steuer": "Tax law",
         "arbeit": "Labor law",
-        "datenschutz": "Data protection"
+        "datenschutz": "Data protection",
+        "nachweis": "Evidence"
       },
       "labelMwst": "VAT registration after crossing the threshold",
       "labelEsutd": "ESUTD filing for {name}",
       "labelVorfall": "Reporting a data-protection incident to the authority",
-      "labelDrittweitergabe": "Notification about disclosure to {empfaenger}"
+      "labelDrittweitergabe": "Notification about disclosure to {empfaenger}",
+      "labelNachweisAbgelaufen": "Evidence expired: {name}",
+      "labelNachweisLaeuftAb": "Evidence expiring: {name}",
+      "labelEsutdAenderung": "ESUTD filing of an amendment for {name}",
+      "labelEsutdBeendigung": "ESUTD filing of a termination for {name}"
     },
     "cockpitTitle": "Compliance cockpit",
     "cockpitLead": "Processing purposes, consents, data incidents and third-party disclosures from the database - under the 2026 Kazakhstani legal framework.",
@@ -1718,8 +1930,17 @@
   "benachrichtigungen": {
     "titel": "Notifications",
     "leer": "No new notifications.",
-    "leerHinweis": "Alerts and deadlines are still shown directly in the modules.",
-    "schliessen": "Close notifications"
+    "leerHinweis": "You can still see alarms and deadlines directly in the modules.",
+    "schliessen": "Close notifications",
+    "alleGelesen": "Mark all as read",
+    "ungelesenAnzahl": "{anzahl} unread",
+    "art": {
+      "nachweis_abgelaufen": "Proof expired: {name}",
+      "nachweis_laeuft_ab": "Proof expires soon: {name}",
+      "esf_ueberfaellig": "Deliveries without ЭСФ past the deadline: {anzahl}",
+      "esutd_ueberfaellig": "Overdue ЕСУТД reports: {anzahl}",
+      "block_risiko_hoch": "Row blocks with risk level high: {anzahl}"
+    }
   },
   "sync": {
     "knopf": {
@@ -1779,27 +2000,55 @@
     "keineMessungen": "No cooling measurement recorded yet."
   },
   "wetterAnsicht": {
-    "summeTitel": "Temperature sum",
-    "summeLead": "Cumulative heat units above a 5 °C base temperature since the start of the season - a heuristic for the yield forecast, not a forecast model.",
-    "seit": "since",
-    "hinweis": "A pure observation figure. A link to actual harvest volume can only be evaluated reliably after a full season with real comparison data.",
+    "summeTitel": "Heat sum since the start of the year",
+    "summeLead": "How much warmth the plants have received since 1 January. The unit is degree days and it is not a temperature.",
     "keineDaten": "No weather data recorded yet.",
-    "tageTitel": "Last 14 days",
-    "tageLead": "Daily minimum, daily maximum, precipitation and the cumulative temperature sum up to that day.",
+    "tageTitel": "The last 14 days",
+    "tageLead": "Each day with its contribution and the sum up to that day.",
     "veraltet": "The series ends on {datum}. “Update now” below adds the missing days.",
     "col": {
       "datum": "Date",
-      "min": "Min.",
-      "max": "Max.",
+      "min": "Lowest",
+      "max": "Highest",
       "niederschlag": "Precipitation",
-      "summe": "Sum"
+      "summe": "Sum since 1 January",
+      "mittel": "Mean",
+      "beitrag": "Counts"
     },
     "formular": {
       "titel": "Update weather data",
-      "lead": "Fetches the season since January 1 plus the last few days from Open-Meteo and recomputes the temperature sum.",
+      "lead": "Fetches the season since 1 January plus the last few days from Open-Meteo and recalculates the heat sum.",
       "knopf": "Update now"
     },
-    "note": "Coordinates and base temperature are placeholders (Almaty city area, 5 °C) and should be replaced with the plantation's actual values or confirmed by an agronomist."
+    "einheit": "degree days",
+    "standSeit": "As of {datum}, counted since {start}",
+    "stat": {
+      "letzterTag": "Last day",
+      "siebenTage": "Last 7 days",
+      "schnitt": "Average per day"
+    },
+    "erklaerung": {
+      "titel": "How the number comes about",
+      "schritt1": "For each day, the mean of the lowest and the highest reading is taken.",
+      "schritt2": "If the mean is above {basis} °C, the difference counts. A cooler day counts 0.",
+      "schritt3": "All days since 1 January are added up. The sum only grows and never falls.",
+      "beispiel": "Example {datum}: lowest {min} °C, highest {max} °C, mean {mittel} °C. {mittel} minus {basis} gives {beitrag} degree days for this day.",
+      "beispielKalt": "Example {datum}: the mean of {mittel} °C is not above {basis} °C. The day counts 0 degree days.",
+      "hoch": "The number is large because it grows over {tage} days. On average {schnitt} degree days are added per day."
+    },
+    "verlauf": {
+      "titel": "Course since the start of the year",
+      "lead": "In summer the curve climbs steeply, in winter it stays flat because cold days add nothing.",
+      "wert": "Heat sum",
+      "ersteErnte": "First harvest"
+    },
+    "einordnung": {
+      "ersteErnte": "The first harvest of this year was on {datum}. The heat sum on that day was {summe} degree days.",
+      "ersteErnteOhneSumme": "The first harvest of this year was on {datum}. There are no weather values for that day.",
+      "keineErnte": "No harvest has been recorded this year yet, so there is no comparison value.",
+      "hinweis": "One season alone does not give a rule. Only several years show at which heat sum the harvest begins. The heat sum is not a forecast of the harvest quantity."
+    },
+    "grundlagen": "Basis: weather data from Open-Meteo for the point {breite} degrees north, {laenge} degrees east (Almaty city area). Counting starts on 1 January with a base temperature of {basis} °C, the usual threshold for berries. The exact location of the plantation is still outstanding."
   },
   "kanaeleAnsicht": {
     "titel": "Contact channels",
@@ -2268,6 +2517,7 @@
         "periodeEnde": "To",
         "dokument": "Document",
         "bereich": "Area",
+        "weitereBereiche": "Also applies to",
         "quellenart": "Source type",
         "cluster": "Cluster",
         "textgrundlage": "Text basis",
@@ -2408,6 +2658,8 @@
       },
       "formular": {
         "bereich": "Area",
+        "weitereBereiche": "Also applies to",
+        "weitereBereicheHinweis": "A document that applies to several areas (for example ISO 31000 for audit and risk) appears in each of them. The main area still decides what the source is good for.",
         "cluster": "Cluster",
         "bitteWaehlen": "Please choose",
         "rollen": "Who may see the document?",
@@ -3618,6 +3870,21 @@
         "keinBezug": "no reference",
         "knopf": "Create delivery"
       }
+    },
+    "loggerImport": {
+      "titel": "Import logger file",
+      "datei": "CSV or JSON file of the temperature logger",
+      "kennung": "Logger (optional)",
+      "kennungBeispiel": "e.g. serial number or vehicle",
+      "hinweis": "Time and temperature per row, or a JSON list with time and temperature per entry. Times without a time zone use the zone chosen here. Kelvin and Fahrenheit are converted to degrees Celsius. Values older than 24 hours are not accepted.",
+      "knopf": "Import",
+      "zeitzone": "Logger clock",
+      "zonen": {
+        "Asia_Almaty": "Almaty (farm time)",
+        "UTC": "UTC",
+        "Europe_Berlin": "Berlin (CET/CEST)",
+        "Europe_Moscow": "Moscow"
+      }
     }
   },
   "b2bPortalAnsicht": {
@@ -3717,7 +3984,9 @@
         "gueltigAb": "Valid from",
         "gueltigBis": "Valid until (optional)",
         "kundengruppe": "Client group (optional)",
-        "knopf": "Create price list"
+        "knopf": "Create price list",
+        "inklMwst": "Prices include VAT (gross)",
+        "inklMwstHinweis": "Default: net. The ЭСФ always calculates net plus rate. With a gross list it splits the total. The setting applies to the whole list and cannot be changed afterwards."
       },
       "position": {
         "sorte": "Variety",
@@ -3729,7 +3998,9 @@
         "label": "Client group",
         "knopf": "Save"
       }
-    }
+    },
+    "netto": "net",
+    "brutto": "incl. VAT"
   },
   "sortenkatalogAnsicht": {
     "sortenTitel": "Varieties",
@@ -3820,7 +4091,8 @@
       "erfasst": "recorded",
       "offen": "open"
     },
-    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are not part of this view - the growing-degree-day total is in the weather module."
+    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are not part of this view - the heat sum is in the weather module.",
+    "esutdAltbestand": "Status from the old records: there is no contract for this person in the reporting process. Please add the contract in the Compliance module."
   },
   "erlebnis": {
     "bento": {
@@ -4408,5 +4680,1316 @@
         "description": "Load documents into the knowledge base, classify them by cluster, source type and level, and have a second person approve them. The assistant searches them for legal, tax, compliance, audit and risk questions."
       }
     }
+  },
+  "nachweisregister": {
+    "status": {
+      "gueltig": "valid",
+      "laeuft_ab": "expiring",
+      "abgelaufen": "expired",
+      "offen": "open"
+    },
+    "col": {
+      "gueltigBis": "Valid until",
+      "verantwortlich": "Responsible"
+    },
+    "unbefristet": "no expiry",
+    "keinZeitraum": "no period recorded",
+    "inTagen": "{tage, plural, one {in # day} other {in # days}}",
+    "vorTagen": "{tage, plural, one {# day ago} other {# days ago}}",
+    "zaehlung": "State of the register",
+    "bearbeiten": "Edit",
+    "heute": "today",
+    "neueVersion": "New version",
+    "vorversionen": "{anzahl, plural, one {# earlier version} other {# earlier versions}}",
+    "bis": "until {datum}",
+    "versionLead": "The proof was renewed: the new version replaces this entry in the register. The old one is kept as an earlier version and no longer counts as current. Please enter the new period."
+  },
+  "blockRisiko": {
+    "col": "Risk",
+    "stufe": {
+      "hoch": "high",
+      "mittel": "medium",
+      "niedrig": "low"
+    },
+    "punkte": "{punkte} of 100",
+    "keinMangel": "no issue",
+    "grund": {
+      "ueberfaellig": "Round overdue",
+      "sperre": "Harvest time lost to the lock",
+      "ausschuss": "High waste",
+      "kuehlkette": "Cold chain violations",
+      "erfassung": "Recording gap",
+      "sperre_konflikt": "Task falls within the waiting-period lock"
+    },
+    "erklaerung": {
+      "titel": "How the risk score is built",
+      "lead": "Five factors, weighted. Weights and thresholds are stored with their reasoning in the database. Administration and CEO may change them under Office → Settings.",
+      "gewicht": "Weight {gewicht}",
+      "faktor": {
+        "ueberfaellig": {
+          "name": "Missed round",
+          "regel": "The oldest open task or the oldest open rotation date is overdue. From {tage, plural, one {# day} other {# days}} of delay the factor counts as full, because a whole round is lost by then."
+        },
+        "sperre": {
+          "name": "Waiting-period lock",
+          "regel": "If an open task falls due before the lock ends, that is a conflict: the factor is full and the level is always high. Otherwise every round lost to the lock counts proportionally, full from {durchgaenge, plural, one {# round} other {# rounds}}."
+        },
+        "ausschuss": {
+          "name": "Waste",
+          "regel": "Waste rate over the last {tage, plural, one {# day} other {# days}}. Zero at the target of {ziel} percent, full at {kritisch} percent."
+        },
+        "kuehlkette": {
+          "name": "Cold chain",
+          "regel": "Violations of the 60-minute rule for batches of the block in the last {tage, plural, one {# day} other {# days}}, full from {anzahl, plural, one {# violation} other {# violations}}."
+        },
+        "erfassung": {
+          "name": "Recording gap",
+          "regel": "Work was done on the block in the last {aktiv, plural, one {# day} other {# days}}, but there is no open task and none from the last {tage, plural, one {# day} other {# days}}."
+        }
+      },
+      "schwellen": "Level high from {hoch} points, medium from {mittel}. A conflict with the waiting-period lock is always high."
+    }
+  },
+  "rollenZuweisung": {
+    "titel": "Accounts and roles",
+    "lead": "An account's role decides what it may see and do. A change applies from the next page the account opens.",
+    "col": {
+      "name": "Name",
+      "email": "Email",
+      "rolle": "Role",
+      "aendern": "Change"
+    },
+    "knopf": "Save",
+    "kundeHinweis": "Customer account, managed through invitations",
+    "eigenesKonto": "Your own account",
+    "nurAdministration": "Only administration assigns roles.",
+    "leer": "No accounts visible.",
+    "hinweis": "The last administrator keeps the role. Your own role cannot be changed here.",
+    "gesperrtSeit": "blocked since {datum}",
+    "sperrgrund": "Reason: {grund}",
+    "anlegen": {
+      "titel": "Create an account for staff",
+      "lead": "The person gets a temporary password that is shown here once. They change it at the first sign-in on the Security page. Customer accounts are created through invitations.",
+      "name": "Name",
+      "email": "Email",
+      "rolle": "Role",
+      "knopf": "Create account"
+    },
+    "sperre": {
+      "sperren": "Block account",
+      "entsperren": "Unblock account",
+      "grund": "Reason for the block",
+      "sperrenKnopf": "Block",
+      "entsperrenKnopf": "Unblock"
+    }
+  },
+  "nachrichten": {
+    "titel": "Messages on pre-orders",
+    "lead": "Agreements on quantity and date stay with the pre-order. Sent messages cannot be changed or deleted.",
+    "keineVorbestellung": "No pre-order yet.",
+    "keineNachrichten": "No messages yet.",
+    "gekuerzt": "Showing {gezeigt} of {gesamt} pre-orders: open ones first, with the most recent activity. Older ones are in the list of pre-orders above.",
+    "anzahl": "{anzahl, plural, one {# message} other {# messages}}",
+    "feld": "Message",
+    "platzhalter": "e.g. Please deliver one day earlier",
+    "hinweis": "At most {max} characters. Sent messages cannot be changed.",
+    "senden": "Send",
+    "storniert": "A cancelled pre-order gets no new messages.",
+    "download": {
+      "knopf": "Delivery plan as calendar file",
+      "hinweis": "The calendar file (ICS) contains the upcoming delivery dates. Download again to refresh."
+    },
+    "anonymisiert": "Anonymised on {datum}",
+    "anonymisieren": {
+      "knopf": "Anonymise",
+      "grund": "Reason (without personal data)",
+      "hinweis": "Text and name are removed, the history stays. This cannot be undone.",
+      "bestaetigen": "Anonymise permanently",
+      "grundVermerk": "Reason: {grund}"
+    }
+  },
+  "lieferplan": {
+    "kalenderName": "Damicon delivery plan",
+    "titelLieferung": "Delivery: {sorte}, {menge} kg",
+    "titelVorbestellung": "Pre-order: {sorte}, {menge} kg",
+    "lieferungGeplant": "Delivery planned",
+    "status": {
+      "angefragt": "Pre-order requested, not yet confirmed",
+      "bestaetigt": "Pre-order confirmed"
+    },
+    "kunde": "Customer: {kunde}",
+    "sorteMenge": "{sorte}, {menge} kg",
+    "ohneSorte": "Variety open"
+  },
+  "foerdermittelCheckliste": {
+    "titel": "Checklists of the dossiers",
+    "lead": "The funding body decides what an application needs. The checklist helps to forget nothing and reminds of deadlines. It is not an official form.",
+    "keineDossiers": "No dossier yet.",
+    "leer": "No items yet",
+    "fortschritt": "{erledigt} of {gesamt} done ({prozent} %)",
+    "pflichtOffen": "Required open: {anzahl}",
+    "ueberfaellig": "Deadline passed: {anzahl}",
+    "vollstaendig": "All required items are done.",
+    "vorschlagHinweis": "Five general items as a suggestion, not an official catalogue. Please compare with the funding body's requirements and adjust.",
+    "vorschlagUebernehmen": "Use general suggestion",
+    "freiwillig": "optional",
+    "erledigtAm": "done on {datum}",
+    "erledigen": "Done",
+    "oeffnen": "Reopen",
+    "entfernen": "Remove",
+    "hinzufuegen": "Add item",
+    "beispiel": "e.g. obtain a quote for the cooling unit",
+    "feld": {
+      "bezeichnung": "New item",
+      "frist": "Deadline (optional)",
+      "pflicht": "Required item"
+    },
+    "vorlage": {
+      "antragsformular": "Application form completed and signed",
+      "identifikation": "Proof of legal form and identification number",
+      "kostenaufstellung": "Cost or investment statement with quotes",
+      "flaechennachweis": "Proof of the areas and the crops",
+      "zahlungsbelege": "Payment receipts for the settlement"
+    }
+  },
+  "esfAnsicht": {
+    "titel": "Document register of the electronic invoice (ЭСФ)",
+    "lead": "The register shows which delivered shipment has which document and which has none yet. The ЭСФ is still issued in the state portal. The system prepares the details and tracks the status.",
+    "stufeHinweis": "The automatic handover to the state system follows once the authority grants access. Paper is only permitted during a system outage and needs a reason.",
+    "nurLesen": "View only: administration, CEO and accounting can record entries.",
+    "zaehlOffen": "Without document",
+    "offen": {
+      "titel": "Deliveries without ЭСФ",
+      "lead": "Delivered, but without an issued document. The age counts from the delivery day, the deadline is {frist} calendar days (setting maintained by accounting).",
+      "leer": "All delivered shipments have an issued document.",
+      "col": {
+        "kunde": "Customer",
+        "geliefertAm": "Delivered on",
+        "menge": "Quantity",
+        "alter": "Age",
+        "beleg": "Document"
+      },
+      "heute": "today",
+      "tage": "{tage, plural, one {# day} other {# days}}",
+      "keinBeleg": "no draft yet",
+      "leadOhneFrist": "Delivered, but without an issued document. The age counts from the delivery day. No deadline is set in the settings.",
+      "ueberfaellig": "{tage, plural, one {# day} other {# days}} overdue",
+      "nochTage": "{tage, plural, one {# day} other {# days}} left",
+      "letzterTag": "last day"
+    },
+    "belege": {
+      "titel": "Documents",
+      "lead": "The draft is a snapshot of the details on the delivery day. Once issued, it no longer changes.",
+      "leer": "No document created yet."
+    },
+    "status": {
+      "entwurf": "Draft",
+      "ausgestellt": "issued",
+      "bestaetigt": "confirmed",
+      "abgelehnt": "rejected",
+      "papier": "Paper (outage)"
+    },
+    "nummerMit": "ЭСФ number {nummer}",
+    "ausgestelltAm": "issued on {datum}",
+    "bestaetigtAm": "confirmed on {datum}",
+    "entwurf": {
+      "titel": "Details for the portal",
+      "stichtag": "Delivery day",
+      "kaeufer": "Buyer",
+      "identifikationsnummer": "Identification number (IIN or BIN)",
+      "fehlt": "missing",
+      "sorte": "Variety",
+      "charge": "Batch",
+      "menge": "Quantity",
+      "preis": "Price per kg per price list",
+      "betrag": "Amount",
+      "mwst": "VAT {prozent} %",
+      "nichtRegistriert": "The farm was not VAT-registered on the delivery day, no VAT in the draft.",
+      "gesamt": "Total",
+      "annahme": "Assumption: the price list holds net prices, VAT is added on top. The setting is kept on the price list.",
+      "lueckenTitel": "The draft still lacks:",
+      "unlesbar": "The stored draft cannot be read. Please recalculate.",
+      "annahmeBrutto": "Assumption: the price list holds gross prices (including VAT). The amount without VAT is the total divided by 1 plus the rate. The setting is kept on the price list."
+    },
+    "luecke": {
+      "preis": "No price in the price list on the delivery day",
+      "sorte": "No variety on delivery or batch",
+      "identifikationsnummer": "Customer identification number is missing",
+      "mwstSatz": "No VAT rate stored for the delivery day"
+    },
+    "aktion": {
+      "entwurfErstellen": "Create draft",
+      "entwurfNeu": "Recalculate draft",
+      "entwurfVerwerfen": "Discard draft",
+      "neuBeginnen": "Start a new draft",
+      "ausgestellt": {
+        "titel": "Record as issued",
+        "nummer": "ЭСФ number",
+        "datum": "Issued on",
+        "knopf": "Record"
+      },
+      "bestaetigt": {
+        "titel": "Record confirmation",
+        "datum": "Confirmed on",
+        "knopf": "Record"
+      },
+      "abgelehnt": {
+        "titel": "Record rejection",
+        "grund": "Reason for rejection",
+        "knopf": "Record"
+      },
+      "papier": {
+        "titel": "Keep on paper (outage)",
+        "grund": "Kind and duration of the outage",
+        "knopf": "Keep on paper"
+      }
+    },
+    "zaehlUeberfaellig": "Deadline exceeded"
+  },
+  "esutdAnsicht": {
+    "titel": "Reporting process in the unified system (ЕСУТД)",
+    "lead": "The conclusion, change and termination of every seasonal contract belong in the state unified system ЕСУТД. The list shows what is to be reported, what has been reported and what proves it. Reporting is still done in the state system, Damicon keeps the status.",
+    "stufeHinweis": "The reporting deadlines come from the settings: conclusion {tageAbschluss} working days after signing (otherwise after the start of the contract), amendment {tageAnpassung} calendar days, termination {tageBeendigung} working days. Saturday and Sunday do not count, there is no public holiday calendar. Automatic reporting follows once the authority's access is available.",
+    "nurLesen": "View only: administration, CEO and farm management can record entries.",
+    "zaehl": {
+      "offen": "Open",
+      "ueberfaellig": "Deadline passed",
+      "erfasst": "Reported"
+    },
+    "art": {
+      "abschluss": "Conclusion",
+      "aenderung": "Change",
+      "beendigung": "Termination"
+    },
+    "status": {
+      "offen": "open",
+      "erfasst": "reported"
+    },
+    "liste": {
+      "titel": "Reports",
+      "leer": "No report created yet.",
+      "col": {
+        "person": "Person",
+        "art": "Type",
+        "datum": "Date",
+        "frist": "Deadline",
+        "status": "Status",
+        "beleg": "Proof"
+      },
+      "ohneName": "Name not visible",
+      "keineFrist": "no deadline stored",
+      "fristBis": "by {datum}",
+      "ueberfaellig": "Deadline passed",
+      "ausweis": "ID {ausweis}",
+      "vertrag": "Contract {nummer}",
+      "erfasstAm": "reported on {datum}",
+      "bestaetigung": "Confirmation {nummer}",
+      "beleg": "Proof: {name}",
+      "keinBeleg": "no proof"
+    },
+    "aktion": {
+      "erfassen": {
+        "titel": "Record as reported",
+        "datum": "Reported on",
+        "bestaetigung": "Confirmation number (optional)",
+        "beleg": "Proof (optional)",
+        "keinBeleg": "no proof",
+        "hinweis": "Proofs are kept in the evidence register (category ЕСУТД proof). Upload there, select here.",
+        "knopf": "Record"
+      },
+      "oeffnen": "Reopen",
+      "entfernen": "Remove"
+    },
+    "neu": {
+      "abschluss": {
+        "titel": "Create a new conclusion",
+        "person": "Person",
+        "bitteWaehlen": "please choose",
+        "keinePersonen": "No person visible.",
+        "beginn": "Start of contract",
+        "nummer": "Contract number (optional)",
+        "knopf": "Create",
+        "unterschrift": "Signed on (empty: start of contract)",
+        "unterschriftHinweis": "The reporting deadline runs from here."
+      },
+      "ereignis": {
+        "titel": "Create a change or termination",
+        "vertrag": "Contract",
+        "keineVertraege": "No conclusion recorded yet.",
+        "art": "Type",
+        "datum": "Date of the change or end of the contract",
+        "beschreibung": "What changes? (optional for a termination)",
+        "knopf": "Create"
+      }
+    },
+    "export": {
+      "knopf": "Open reports as CSV",
+      "hinweis": "The file contains names and ID numbers. Use it only for entry in the state system and delete it afterwards. There is no official import format here, the file is a plain table.",
+      "spalte": {
+        "person": "Person",
+        "ausweis": "ID",
+        "art": "Type",
+        "vertrag": "Contract number",
+        "datum": "Date",
+        "frist": "Deadline",
+        "beschreibung": "Description",
+        "status": "Status",
+        "erfasstAm": "Reported on",
+        "bestaetigung": "Confirmation number"
+      }
+    },
+    "verlauf": {
+      "titel": "History of reports",
+      "lead": "Every recording and reopening, including the details that disappear from the report on reopening. The history cannot be changed.",
+      "erfasst": "reported on {datum}",
+      "geoeffnet": "reopened (previously reported on {datum})"
+    }
+  },
+  "dokument": {
+    "rahmen": {
+      "untertitel": "Raspberry farm Kazakhstan",
+      "vertraulich": "Confidential",
+      "fussVertraulich": "Confidential · for the intended recipients only",
+      "seite": "Page",
+      "von": "of",
+      "inhalt": "Contents",
+      "kennung": "Document number",
+      "erstelltAm": "Created on",
+      "ersteller": "Created by",
+      "siegel": "Seal and evidence",
+      "siegelKurz": "Seal",
+      "siegelHinweis": "The seal is a SHA-256 checksum over the content of this document. Every retrieval is logged with the same checksum, so it can be shown later that the content is unchanged.",
+      "unterschrift": "Signature",
+      "ortDatum": "Place, date",
+      "freigabe": "Approval",
+      "freigabeText": "Noted and approved for further use.",
+      "hinweise": "Limitations",
+      "drucken": "Print or save as PDF",
+      "tippDruck": "Tip for the print dialog: turn \"Headers and footers\" off, paper size A4. Colours and branding are applied automatically."
+    },
+    "esutd": {
+      "art": "ЕСУТД · Reporting process",
+      "titel": "Reports to the unified system ЕСУТД",
+      "dateiname": "ЕСУТД-reports",
+      "untertitelOffen": "Open reports",
+      "untertitelAlle": "All reports",
+      "stand": "As of",
+      "umfang": "Scope",
+      "umfangWert": "{anzahl, plural, one {# report} other {# reports}}",
+      "zusammenfassung": "Conclusion, change and termination of the seasonal contracts. Reporting is done in the state system, Damicon keeps the status and records what proves each report.",
+      "abschnittMeldungen": "Reports",
+      "abschnittHinweise": "Deadlines and assumptions",
+      "leer": "There is no report in this selection.",
+      "personenbezug": "This document contains personal data. Share it only with authorised persons and keep it no longer than the purpose requires.",
+      "keinAmtlichesFormat": "There is no official import format of the state system here. This document is an overview, not a report."
+    },
+    "esf": {
+      "art": "ЭСФ · Electronic invoice",
+      "titelRegister": "Document register of the electronic invoice",
+      "titelBeleg": "ЭСФ document",
+      "untertitelRegister": "Deliveries without ЭСФ and status of the documents",
+      "dateinameRegister": "ЭСФ-document-register",
+      "dateinameBeleg": "ЭСФ-document-{kunde}",
+      "umfang": "Scope",
+      "umfangWert": "{offen} deliveries without an issued document, {belege} documents",
+      "zusammenfassungRegister": "Which delivered shipment has which ЭСФ document and which has none yet. The ЭСФ is issued in the state portal.",
+      "zusammenfassungBeleg": "Details for the state portal and status of this document.",
+      "status": "Status",
+      "bemerkung": "Remark",
+      "nummerDaten": "Number and dates",
+      "abschnittStand": "Status of the document",
+      "abschnittHinweise": "Notes",
+      "keinErsatz": "This document does not replace the ЭСФ. It records the details and the status, the electronic invoice is issued in the state system."
+    },
+    "foerderung": {
+      "art": "Grants · Checklist",
+      "titel": "Checklist for the grant application",
+      "dateiname": "Checklist-{titel}",
+      "antragsnummer": "Application number",
+      "fortschritt": "Progress",
+      "pflichtOffen": "Required open",
+      "ueberfaellig": "Deadline passed",
+      "abschnittDossier": "Dossier",
+      "abschnittPunkte": "Items of the checklist",
+      "abschnittHinweise": "Notes",
+      "notizen": "Notes",
+      "punkt": "Item",
+      "verbindlichkeit": "Binding",
+      "pflicht": "Required",
+      "offen": "open"
+    },
+    "lieferung": {
+      "art": "Delivery · Handover receipt",
+      "titel": "Handover receipt and cold chain",
+      "dateiname": "Delivery-{kunde}",
+      "charge": "Batch",
+      "status": "Status",
+      "hoechstwert": "Worst measurement",
+      "messungen": "Measurements",
+      "vomLogger": "of which from the logger",
+      "zusammenfassungMitUrteil": "Overall rating of the cold chain: {urteil}. The worst measurement from pre-cooling and transport decides.",
+      "zusammenfassungOhneUrteil": "There is no temperature measurement for this delivery yet.",
+      "abschnittLieferung": "Delivery",
+      "abschnittUebergabe": "Handover",
+      "abschnittKuehlkette": "Cold chain during transport",
+      "tag": "Delivery day",
+      "nochNichtUebergeben": "The delivery has not been handed over yet.",
+      "zeitpunkt": "Time",
+      "temperatur": "Temperature",
+      "bewertung": "Rating",
+      "herkunft": "Origin",
+      "kennung": "Logger",
+      "quelleLogger": "Logger",
+      "quelleManuell": "Manual measurement",
+      "regel": "Rating per measurement: up to 4 °C fine, up to 8 °C warning, above that violation. Values from a logger file carry the origin logger and the identifier of the device.",
+      "keineMessungen": "No measurement was recorded for the transport.",
+      "empfaenger": "Recipient"
+    },
+    "nachweise": {
+      "art": "Evidence register",
+      "titel": "Evidence register with validity",
+      "untertitel": "Certificates, permits, contracts and records",
+      "dateiname": "Evidence-register",
+      "stand": "As of",
+      "umfang": "Scope",
+      "umfangWert": "{anzahl, plural, one {# proof} other {# proofs}}",
+      "zusammenfassung": "The status follows from the period: valid, expiring, expired or open. It is not set by hand.",
+      "abschnittRegister": "Register",
+      "abschnittHinweise": "Notes",
+      "leer": "No evidence recorded.",
+      "regelStatus": "Valid until is the last day of validity. On the following day the proof counts as expired. The day changes at midnight in Almaty.",
+      "regelOffen": "Open means: no period recorded or not yet in force. The system does not invent dates, a proof without a period stands out as a gap."
+    },
+    "lieferplan": {
+      "art": "Delivery schedule",
+      "titel": "Delivery schedule",
+      "untertitel": "Upcoming delivery dates from {datum}",
+      "dateiname": "Delivery-schedule",
+      "stand": "As of",
+      "termine": "Dates",
+      "fest": "firmly planned",
+      "wunsch": "Requested dates",
+      "menge": "Quantity",
+      "zusammenfassung": "Firmly planned deliveries on a tour and pre-orders with a requested date, without duplicates.",
+      "abschnittTermine": "Dates",
+      "abschnittHinweise": "Notes",
+      "leer": "No upcoming dates.",
+      "regel": "A pre-order that already has a planned delivery on a tour is not listed twice: the day of the tour counts, not the request. The customer sees only their own dates.",
+      "datum": "Date",
+      "artSpalte": "Type",
+      "kunde": "Customer",
+      "sorte": "Variety"
+    },
+    "knopf": {
+      "standard": "As document (PDF)",
+      "hinweis": "Opens the document in the Damicon layout in a new tab. There it can be printed or saved as PDF.",
+      "register": "Register as document",
+      "lieferung": "Handover receipt and cold chain",
+      "lieferplan": "Delivery schedule as document",
+      "checkliste": "Checklist as document",
+      "alle": "All reports as document",
+      "offen": "Open reports as document"
+    },
+    "wirtschaftlichkeit": {
+      "art": "Business case · Investment appraisal",
+      "titel": "Investment appraisal for the rollout",
+      "dateiname": "Business-case",
+      "untertitelLaufend": "Current calculation",
+      "untertitelModell": "Model calculation",
+      "untertitelStand": "Saved snapshot \"{name}\"",
+      "meta": {
+        "stand": "As of",
+        "kurs": "Exchange rate",
+        "zins": "Discount rate",
+        "posten": "Recorded items"
+      },
+      "col": {
+        "kennzahl": "Figure",
+        "wert": "Value",
+        "herkunft": "Origin"
+      },
+      "zusammenfassung": "Calculated from {anzahl} recorded items. {geschaetzt} figures rest on estimates, {offen} are still open because information is missing.",
+      "zusammenfassungModell": "Model calculation based on the management's metric list of 23 September 2026, not from live operations.",
+      "zusammenfassungLeer": "No items are recorded yet, so every figure is open.",
+      "abschnittKennzahlen": "Figures",
+      "abschnittPosten": "Items of the calculation",
+      "abschnittAnnahmen": "Assumptions",
+      "abschnittPlanIst": "Plan and actual",
+      "abschnittHinweise": "Notes on reliability",
+      "hinweiseTitel": "To keep in mind when assessing",
+      "leerPosten": "No items recorded.",
+      "hinweis": {
+        "modell": "Model calculation without a database connection: the values come from the metric list of 23 September 2026.",
+        "stand": "This document shows a saved snapshot. It calculates with the items and the exchange rate of that time, not today's.",
+        "geschaetzt": "Estimated, because they depend on assumptions that operations have not yet evidenced: {liste}.",
+        "offen": "Open, because information is missing: {liste}."
+      }
+    },
+    "abholauftrag": {
+      "art": "Pickup round · Order",
+      "titel": "Pickup order",
+      "titelNachweis": "Record of the pickup round",
+      "dateiname": "Pickup-order-{datum}",
+      "unbekannt": "unknown",
+      "planungOffen": "No route was calculated for this round, so there is no driving time estimate.",
+      "planungOk": "Estimated drive from the first stop to the cold store: {minuten} minutes. That fits into the 60 minutes.",
+      "planungKnapp": "Estimated drive from the first stop to the cold store: {minuten} minutes. That is tight: the clock already runs from the start of picking, before the vehicle arrives.",
+      "planungZuLang": "Estimated drive from the first stop to the cold store: {minuten} minutes. That exceeds the 60 minutes even without waiting time at the neighbouring farm. The round should be split.",
+      "abschnittStopps": "Stops",
+      "abschnittRegel": "Cold chain rule",
+      "abschnittErgebnis": "Result per pickup",
+      "abschnittHinweise": "Notes",
+      "regel": "From the start of picking the clock runs until the produce is in the cold store. Up to {warnung} minutes the pickup counts as fine, up to {rot} minutes as a warning, beyond that as a violation. The neighbouring farm states when picking began. If it is missing, the pickup counts as a warning.",
+      "keineStopps": "This round has no stops.",
+      "keineAbholung": "Nothing was collected.",
+      "verstossTitel": "Violation of the 60-minute rule",
+      "verstossText": "At least one pickup exceeded the limit of {grenze} minutes to the cold store. The produce is to be checked under the cold chain rules before it is processed or sold.",
+      "col": {
+        "nr": "No.",
+        "betrieb": "Neighbouring farm",
+        "erwartet": "Expected",
+        "abgeholt": "Collected",
+        "status": "State",
+        "pflueckbeginn": "Picking began",
+        "abholung": "Pickup",
+        "minuten": "Minutes to cold store",
+        "ergebnis": "Result"
+      },
+      "meta": {
+        "datum": "Date",
+        "fahrzeug": "Vehicle",
+        "status": "Status",
+        "ankunft": "Arrival at the cold store",
+        "kapazitaet": "Capacity",
+        "abfahrt": "Departure"
+      },
+      "kennzahl": {
+        "stopps": "Stops",
+        "erwartet": "Expected quantity",
+        "abgeholt": "Collected quantity",
+        "offen": "Open stops"
+      },
+      "zusammenfassungAbgeschlossen": "The round is completed: {abgeholt} pickups, {entfallen} cancelled. This document no longer changes.",
+      "zusammenfassungOffen": "Order for {anzahl} stops. The driver records each pickup with the quantity and the start of picking that the neighbouring farm states.",
+      "fahrer": "Driver",
+      "ankunftCa": "Arrival approx. {zeit}",
+      "fensterZeit": "Window {von} to {bis}"
+    }
+  },
+  "wirtschaftlichkeitErfassung": {
+    "posten": {
+      "titel": "Items of the calculation",
+      "lead": "One-off investment, recurring operating cost and expected benefit, per year. The figures above are calculated from these lines. If a whole type is missing, everything that depends on it stays open.",
+      "art": {
+        "investition": "Investment (one-off)",
+        "betrieb": "Recurring system cost (per year)",
+        "nutzen": "Benefit (per year)"
+      },
+      "col": {
+        "kategorie": "Category",
+        "bezeichnung": "Description",
+        "datum": "Date",
+        "betrag": "Amount",
+        "herkunft": "Origin"
+      },
+      "summe": "Total {betrag}",
+      "nichtErfasst": "not recorded",
+      "keineZeile": "No item of this type recorded yet.",
+      "neu": "Record an item",
+      "entfernen": "Remove"
+    },
+    "kategorie": {
+      "schwund": "Shrinkage",
+      "handarbeit": "Manual work",
+      "audit": "Audit preparation",
+      "sonstiges": "Other"
+    },
+    "herkunft": {
+      "belegt": "evidenced",
+      "geschaetzt": "estimated"
+    },
+    "waehrung": {
+      "EUR": "Euro (EUR)",
+      "KZT": "Tenge (KZT)",
+      "RUB": "Ruble (RUB)"
+    },
+    "form": {
+      "art": "Type",
+      "kategorie": "Category",
+      "kategorieBeispiel": "e.g. development, hosting",
+      "bezeichnung": "Description",
+      "betrag": "Amount",
+      "waehrung": "Currency",
+      "datum": "Date",
+      "herkunft": "Origin",
+      "notiz": "Note (optional)",
+      "monat": "Month",
+      "anlegen": "Create item",
+      "speichern": "Save"
+    },
+    "modell": {
+      "titel": "Start with the values of the metric list",
+      "lead": "Nothing is recorded yet. The values of the metric list of 23 September 2026 can be taken over as a starting point: investment and recurring cost as evidenced, the back-calculated annual benefit as estimated. Every line can be changed afterwards.",
+      "knopf": "Take over model values",
+      "investition": {
+        "bezeichnung": "Rollout of Damicon up to acceptance (fixed price)",
+        "kategorie": "Rollout"
+      },
+      "betrieb": {
+        "bezeichnung": "Hosting, maintenance, support and further development",
+        "kategorie": "Operation"
+      },
+      "nutzen": {
+        "bezeichnung": "Total avoided cost (back-calculated from the given returns)"
+      },
+      "notiz": "Metric list of the management dated 23 September 2026"
+    },
+    "annahmen": {
+      "titel": "Assumptions",
+      "lead": "Interest rate, exchange rate, full cost and quantity used in the calculation. Every entry carries its origin. A saved snapshot keeps its values.",
+      "offen": "open",
+      "zins": "Discount rate per year",
+      "kurs": "Exchange rate",
+      "stichtag": "as of {datum}",
+      "vollkosten": "Full cost per kg before the rollout",
+      "menge": "Marketed quantity per year",
+      "mengeAusAnnahme": "Set by hand.",
+      "mengeAusLieferungen": "Sum of the delivered shipments of the last 12 months.",
+      "mengeZuKurz": "The deliveries only reach back {tage} days ({menge} kg so far). An annual quantity exists after a full year, or by hand under \"Change assumptions\".",
+      "mengeKeine": "No delivered shipment yet. The quantity can be set by hand.",
+      "nutzenbeginn": "Time until benefit starts",
+      "wochen": "{von} to {bis} weeks",
+      "echtbetrieb": "Start of live operation",
+      "aendern": "Change assumptions",
+      "form": {
+        "zins": "Discount rate in percent",
+        "herkunft": "Origin",
+        "kursEur": "1 EUR in tenge",
+        "kursRub": "1 RUB in tenge",
+        "kursStichtag": "Date of the rate",
+        "kursQuelle": "Source of the rate",
+        "vollkosten": "Full cost per kg before (₸)",
+        "menge": "Marketed quantity per year (kg)",
+        "mengeHinweis": "Leave empty if the quantity should come from the deliveries.",
+        "wochenVon": "Benefit starts at the earliest (weeks)",
+        "wochenBis": "Benefit starts at the latest (weeks)",
+        "echtbetrieb": "First month of live operation",
+        "echtbetriebHinweis": "The plan versus actual comparison runs from here."
+      },
+      "zinsCheck": "Rate check (net present value)",
+      "zinsCheckHinweis": "For comparison: the reference value is {richtwert} %. Derivation and sources are in the settings. The rate above stays your assumption."
+    },
+    "planIst": {
+      "titel": "Plan and actual",
+      "lead": "The cost that is meant to be avoided (one twelfth of the annual benefit per month) against what was actually avoided. The actual values also appear as points on the curves above.",
+      "leer": "No month yet. As soon as the start of live operation is set in the assumptions or an actual value exists, the comparison appears here.",
+      "col": {
+        "monat": "Month",
+        "plan": "Plan",
+        "ist": "Actual",
+        "abweichung": "Deviation",
+        "istKumuliert": "Actual total",
+        "notiz": "Note"
+      },
+      "eintraege": "Recorded actual values",
+      "neu": "Record an actual value",
+      "erfassen": "Record actual value"
+    },
+    "staende": {
+      "titel": "Saved snapshots",
+      "lead": "A snapshot keeps items, assumptions and result, with the exchange rate of the day. It no longer changes. Later you can look up what was calculated back then.",
+      "leer": "No snapshot saved yet.",
+      "ansehen": "View",
+      "angezeigt": "shown",
+      "zumAktuellen": "Back to the current calculation",
+      "festhaltenTitel": "Save the current state",
+      "festhaltenLead": "Saves today's state with items, actual values, assumptions and exchange rate.",
+      "name": "Name of the snapshot",
+      "nameBeispiel": "e.g. quarterly snapshot Q1 2027",
+      "festhalten": "Save snapshot"
+    },
+    "schwund": {
+      "titel": "Loss benefit from operating data",
+      "lead": "What the lower loss is worth, derived from the loss rate before introduction and that of the last 365 days.",
+      "vorher": "Loss rate before introduction (baseline)",
+      "jetzt": "Loss rate of the last 365 days",
+      "menge": "Annual volume (quantity plus rejects)",
+      "kosten": "Full cost per kilogram",
+      "offen": "open",
+      "zeitraum": "Basis: {chargen} batches from {von} to {bis}.",
+      "ergebnis": "Losses avoided: {kg} kg per year, valued at full cost: {nutzen} EUR per year.",
+      "hinweis": "A proposal, not a measurement. It is valued at full cost, not at the sales revenue, which is cautious. The item gets the origin “estimated” and can be changed like any other.",
+      "knopf": "Adopt as benefit item",
+      "bezeichnung": "Loss (derived from the loss rate)",
+      "notiz": "Loss rate from {vorher} % to {jetzt} %, annual volume {menge} kg, full cost {kosten} KZT per kg, losses avoided {kg} kg.",
+      "grund": {
+        "keineBaseline": "The baseline does not state a loss rate as a number. It is maintained in the baseline metrics.",
+        "keineBetriebsdaten": "There are no batches with quantity and rejects from the last 365 days yet.",
+        "zuWenigDaten": "Too few batches for a reliable rate (at least ten). The derivation follows once more are recorded.",
+        "keineKosten": "The full cost per kilogram is missing in the assumptions.",
+        "keineBesserung": "The loss rate is not below the baseline: no benefit follows."
+      }
+    }
+  },
+  "abholrundenAnsicht": {
+    "titel": "Pickup rounds at neighbouring farms",
+    "lead": "A vehicle collects produce at neighbouring farms and brings it to the cold store. This is the opposite direction of the delivery tour planning.",
+    "regel": "From the start of picking, the 60-minute cold chain rule counts until the produce is in the cold store: up to 45 minutes fine, up to 60 minutes a warning, beyond that a violation. The neighbouring farm states when picking began, and the driver enters it at pickup. Without it, the pickup counts as a warning.",
+    "nurLesen": "Administration, CEO, operations management and accounting can plan. The drivers of the crew also record the progress.",
+    "leer": "No pickup round planned yet.",
+    "status": {
+      "geplant": "planned",
+      "unterwegs": "on the road",
+      "abgeschlossen": "completed"
+    },
+    "stoppStatus": {
+      "geplant": "open",
+      "abgeholt": "collected",
+      "entfallen": "cancelled"
+    },
+    "ergebnis": {
+      "ok": "fine",
+      "warnung": "warning",
+      "verstoss": "violation"
+    },
+    "runde": {
+      "ohneFahrzeug": "no vehicle",
+      "stopps": "{anzahl, plural, one {# stop} other {# stops}}",
+      "plan": "expected {menge} kg",
+      "ist": "collected {menge} kg",
+      "gestartet": "started {zeit}",
+      "ankunft": "at the cold store {zeit}",
+      "route": "Route {km} km, {minuten} minutes in total",
+      "keineRoute": "No route calculated: addresses are missing, or the routing service was not reachable.",
+      "abErstem": "{minuten} minutes of driving from the first stop to the cold store",
+      "ergebnisse": "{ok} fine, {warnung} warnings, {rot} violations",
+      "auftrag": "Pickup order (PDF)",
+      "abgeschlossenTitel": "Completed rounds ({anzahl})",
+      "abgeschlossenLead": "Completed rounds no longer change. They are the evidence for the 60-minute rule.",
+      "kapazitaet": "Capacity {nutzlast} kg, load {prozent} %",
+      "ueberKapazitaet": "over capacity",
+      "knapp": "capacity tight",
+      "platz": "capacity sufficient",
+      "start": "Departure {zeit}"
+    },
+    "planung": {
+      "ok": "Drive fits",
+      "knapp": "Drive tight",
+      "zuLang": "Drive too long"
+    },
+    "stopp": {
+      "plan": "expected {menge} kg",
+      "ist": "collected {menge} kg",
+      "pflueckbeginn": "picking began {zeit}",
+      "pflueckUnbekannt": "picking start unknown, counted as a warning",
+      "abgeholtAm": "collected {zeit}",
+      "minuten": "{minuten} minutes to the cold store",
+      "ankunft": "Arrival approx. {zeit}",
+      "fenster": "Window {von} to {bis}",
+      "fensterFrueh": "before the window",
+      "fensterSpaet": "after the window",
+      "fensterIm": "within the window",
+      "doppelt": "also in another round on this day"
+    },
+    "aktion": {
+      "starten": "Start round",
+      "verwerfen": "Discard round",
+      "entfaellt": "Cancelled"
+    },
+    "abholung": {
+      "titel": "Record pickup",
+      "menge": "Collected quantity (kg)",
+      "pflueckVor": "Picking began how many minutes ago?",
+      "pflueckVorHinweis": "Since when has the neighbouring farm been picking this produce? Leave empty if unknown.",
+      "bemerkung": "Remark (optional)",
+      "knopf": "Save pickup"
+    },
+    "abschluss": {
+      "titel": "Arrival at the cold store",
+      "offen": "{anzahl, plural, one {# stop is} other {# stops are}} still open. Every stop is collected or cancelled before the round ends.",
+      "bereit": "All stops are done. The round can be completed.",
+      "knopf": "Report arrival at the cold store"
+    },
+    "planen": {
+      "titel": "Plan a pickup round",
+      "lead": "Date, vehicle and the neighbouring farms with the expected quantity. With an address, the system orders the stops by the shortest route.",
+      "datum": "Date",
+      "fahrzeug": "Vehicle (optional)",
+      "fahrzeugBeispiel": "e.g. refrigerated truck 1",
+      "notiz": "Note (optional)",
+      "menge": "Quantity (kg)",
+      "keineBetriebe": "No neighbouring farms are set up yet. They are created in the aggregator module.",
+      "keineKoordinaten": "No address, goes to the end",
+      "knopf": "Create pickup round",
+      "kapazitaet": "Vehicle capacity (kg)",
+      "kapazitaetHinweis": "Empty: no check. Default from the settings.",
+      "start": "Departure at the farm",
+      "startHinweis": "The planning uses it to estimate the arrival at each stop."
+    },
+    "adresse": {
+      "label": "Address",
+      "platzhalter": "Street, town",
+      "knopf": "Save address"
+    },
+    "zeitfenster": {
+      "keins": "No pickup window",
+      "gesetzt": "Pickup window {von} to {bis}",
+      "von": "from",
+      "bis": "to",
+      "knopf": "Save window"
+    }
+  },
+  "integrationAuslieferung": {
+    "titel": "Delivery to partner systems",
+    "lead": "If an event is to go to another system, for example an issued ЭСФ invoice to accounting, Damicon puts it in a queue and delivers it as a signed webhook. Without explicit activation no record leaves the system.",
+    "stand": "The state portals themselves (stage 2 of ЭСФ and ЕСУТД) need the authority's access. This delivery is the framework for them and for a partner such as accounting.",
+    "cron": "The cron service calls /api/integrationen/ausliefern with the secret CRON_SECRET. Without cron, the button below delivers.",
+    "nurAdmin": "Administration and CEO can configure and retry.",
+    "integrationen": {
+      "titel": "Integrations",
+      "adapter": {
+        "manuell": "manual",
+        "webhook": "webhook"
+      },
+      "keinZiel": "no target",
+      "aktiv": "active",
+      "aus": "off",
+      "geheimnisGesetzt": "secret set",
+      "geheimnisFehlt": "secret missing ({name})",
+      "aendern": "Configure",
+      "vorlage": "Template active",
+      "zugangGesetzt": "Access set",
+      "zugangFehlt": "Access missing ({name})"
+    },
+    "form": {
+      "adapter": "Type of connection",
+      "adapterManuell": "manual (entered by hand in the target system)",
+      "adapterWebhook": "webhook (signed POST)",
+      "url": "Address of the target",
+      "urlHinweis": "https only, no address in the own network.",
+      "geheimnis": "Name of the environment variable holding the secret",
+      "geheimnisHinweis": "The value is never in the database, only its name, for example DAMICON_HOOK_ESF. It is set in the server environment.",
+      "aktiv": "Delivery active",
+      "knopf": "Save",
+      "auth": "Access at the target",
+      "authHmac": "Signature only (HMAC)",
+      "authBasic": "Signature and user with password (HTTP Basic)",
+      "zugang": "Name of the environment variable with user:password",
+      "zugangHinweis": "Only for HTTP Basic (for example OData of 1C). The value has the form user:password and is never stored in the database. Starts with DAMICON_HOOK_.",
+      "bestaetigung": "The partner reports receipt back",
+      "bestaetigungHinweis": "The partner calls {pfad}, signed like our message, with idempotenzSchluessel and ok. Until then a sent entry counts as unconfirmed.",
+      "vorlage": {
+        "label": "Template for the target format (JSON)",
+        "beispiel": "Insert example for 1C",
+        "platzhalter": "Empty: the envelope is sent unchanged.",
+        "hinweis": "Placeholders such as '{{daten.entwurf.kunde.name}}' or '{{umschlag.idempotenzSchluessel}}'. A text that consists only of a placeholder keeps the type of the value (a number stays a number). Lookup only, no expressions.",
+        "vorschau": "Preview with an example (ЭСФ issued)",
+        "fehler": {
+          "kein_json": "This is not valid JSON.",
+          "kein_objekt": "The template is a JSON object in curly braces.",
+          "zu_gross": "The template is longer than 20000 characters.",
+          "zu_tief": "The template is nested deeper than 8 levels.",
+          "zu_viele_platzhalter": "More than 200 placeholders.",
+          "pfad": "Unknown path \"{wert}\". Allowed: umschlag or daten, then names with a dot, list entries as [0].",
+          "leer": "Empty."
+        }
+      }
+    },
+    "warteschlange": {
+      "titel": "Queue",
+      "leer": "No event in the queue yet.",
+      "col": {
+        "ereignis": "Event",
+        "ziel": "Target",
+        "status": "Status",
+        "versuche": "Attempts",
+        "naechster": "Next attempt or completion"
+      },
+      "status": {
+        "pending": "waiting",
+        "sent": "delivered",
+        "acked": "acknowledged",
+        "failed": "failed"
+      },
+      "ohneEreignis": "no event",
+      "ohneIntegration": "not assigned to an integration, will not be delivered",
+      "versucheVon": "{versuche} of {max}",
+      "wiederholen": "Try again",
+      "jetzt": "Deliver now",
+      "bestaetigungOffen": "Confirmation pending"
+    }
+  },
+  "einstellungen": {
+    "lead": "These values are not in the program but here. Every change is logged. Who may read or write what is not a choice: roles and the database decide that.",
+    "nichtGesetzt": "not set",
+    "nurLesen": "View only: administration, management and the responsible specialist role can change this.",
+    "standard": "Default: {wert}",
+    "stand": "Source as of: {datum}",
+    "geaendert": "last changed {datum}",
+    "quelle": "Source: {quelle}",
+    "bereich": {
+      "steuer": {
+        "titel": "Tax",
+        "lead": "Deadlines for the electronic invoice."
+      },
+      "arbeitsrecht": {
+        "titel": "Labour law",
+        "lead": "Reporting deadlines in the unified system ЕСУТД."
+      },
+      "abholung": {
+        "titel": "Pickup rounds",
+        "lead": "Vehicle capacity."
+      },
+      "finanzen": {
+        "titel": "Finance",
+        "lead": "Reference values for the investment calculation."
+      },
+      "auslieferung": {
+        "titel": "Delivery",
+        "lead": "Time budget of the interface to partner systems."
+      },
+      "sicherheit": {
+        "titel": "Security",
+        "lead": "Limits against misuse."
+      }
+    },
+    "einheit": {
+      "kalendertage": "calendar days",
+      "arbeitstage": "working days",
+      "kg": "kg",
+      "prozent": "percent",
+      "sekunden": "seconds",
+      "anfragen_je_stunde": "requests per person and hour",
+      "minuten": "minutes"
+    },
+    "formular": {
+      "wert": "Value",
+      "leerHinweis": "Leave empty for: not set, no check.",
+      "grund": "Reason (optional)",
+      "speichern": "Save"
+    },
+    "verlauf": {
+      "titel": "History of changes",
+      "lead": "Who changed which value and when. The history cannot be changed."
+    },
+    "eintrag": {
+      "esf_frist_tage": {
+        "label": "Deadline for the ЭСФ",
+        "beschreibung": "The electronic invoice (ЭСФ) may be issued at the latest this many calendar days after the delivery day. After that the delivery counts as overdue in the list."
+      },
+      "esutd_frist_abschluss_tage": {
+        "label": "ЕСУТД: deadline for a conclusion",
+        "beschreibung": "Working days after both parties have signed (without a date: after the start of the contract) until the contract must be reported in the unified system. Saturdays and Sundays do not count, public holidays are not stored."
+      },
+      "esutd_frist_aenderung_tage": {
+        "label": "ЕСУТД: deadline for an amendment",
+        "beschreibung": "Calendar days after the day of the amendment until it must be reported."
+      },
+      "esutd_frist_beendigung_tage": {
+        "label": "ЕСУТД: deadline for a termination",
+        "beschreibung": "Working days after the end of the contract until the termination must be reported. Saturday and Sunday do not count."
+      },
+      "abholung_fahrzeug_kapazitaet_kg": {
+        "label": "Vehicle capacity of pickup rounds",
+        "beschreibung": "Payload of the refrigerated vehicle in kg. If a round plans more than this, the planning warns. Empty means: no check. A single round can carry its own capacity."
+      },
+      "wirtschaftlichkeit_kalkulationszins_richtwert": {
+        "label": "Reference value for the discount rate",
+        "beschreibung": "Suggestion for the interest rate of the investment calculation as long as the farm enters no value of its own. Nominal, in percent."
+      },
+      "wirtschaftlichkeit_zins_sensitivitaet_niedrig": {
+        "label": "Comparison rate, lower",
+        "beschreibung": "Lower comparison calculation to the reference value, in percent."
+      },
+      "wirtschaftlichkeit_zins_sensitivitaet_hoch": {
+        "label": "Comparison rate, upper",
+        "beschreibung": "Upper comparison calculation to the reference value, in percent."
+      },
+      "auslieferung_zeitbudget_sekunden": {
+        "label": "Time budget of the delivery",
+        "beschreibung": "A delivery run lasts at most this long. What has not been sent by then stays for the next run."
+      },
+      "sicherheit_adresssuche_je_stunde": {
+        "label": "Limit of the address search",
+        "beschreibung": "How often a person may have an address converted into coordinates per hour (geocoding)."
+      },
+      "abholung_aufenthalt_minuten": {
+        "label": "Time per stop of the pickup round",
+        "beschreibung": "Minutes for weighing, loading and handover at a neighbouring farm. The planning adds them to the driving time when it estimates the arrival at each stop. A planning assumption, to be checked after the first rounds."
+      }
+    },
+    "risiko": {
+      "titel": "Block risk: weights and thresholds",
+      "lead": "A row block's score (0 to 100) is made of five factors. The weight says how heavily a factor counts against the others; the score is divided by their sum. Only administration and management may change them, and every change is logged.",
+      "nurLesen": "View only: administration and management can change this.",
+      "bereich": "allowed: {min} to {max}",
+      "gruppe": {
+        "gewichte": "Weights of the five factors",
+        "faktoren": "When a factor counts as full",
+        "zeitfenster": "Time windows",
+        "schwellen": "Thresholds of the levels"
+      },
+      "eintrag": {
+        "gewicht_ueberfaellig": {
+          "label": "Weight: missed picking round",
+          "einheit": "weight",
+          "beschreibung": "A skipped picking round destroys the block's harvest for the cycle: the heaviest and most frequent consequence."
+        },
+        "gewicht_sperre": {
+          "label": "Weight: waiting-period block",
+          "einheit": "weight",
+          "beschreibung": "Conflict between an open task and the waiting-period block, plus harvest time lost to the block."
+        },
+        "gewicht_ausschuss": {
+          "label": "Weight: rejects",
+          "einheit": "weight",
+          "beschreibung": "Rejects reduce the harvest's revenue, but only part of it."
+        },
+        "gewicht_kuehlkette": {
+          "label": "Weight: cold chain",
+          "einheit": "weight",
+          "beschreibung": "Breaches of the 60-minute rule hit the batch, not the block itself."
+        },
+        "gewicht_erfassung": {
+          "label": "Weight: recording gap",
+          "einheit": "weight",
+          "beschreibung": "A recording gap is a hint, not damage: pauses can be deliberate."
+        },
+        "intervall_max_tage": {
+          "label": "Longest picking interval",
+          "einheit": "days",
+          "beschreibung": "Longest picking interval of the rotation plan. A delay of this length means a lost round."
+        },
+        "ausschuss_ziel_prozent": {
+          "label": "Rejects: target",
+          "einheit": "percent",
+          "beschreibung": "Rejects do not count up to this value. The target of the loss-rate metric."
+        },
+        "ausschuss_kritisch_prozent": {
+          "label": "Rejects: critical value",
+          "einheit": "percent",
+          "beschreibung": "From here the rejects factor counts as full. Must be above the target."
+        },
+        "kuehl_verstoesse_voll": {
+          "label": "Cold-chain breaches until full",
+          "einheit": "breaches",
+          "beschreibung": "From this many breaches in the review period the factor counts as full."
+        },
+        "sperre_durchgaenge_voll": {
+          "label": "Lost rounds until full",
+          "einheit": "rounds",
+          "beschreibung": "From this many rounds lost to the block the block factor counts as full."
+        },
+        "betrachtung_tage": {
+          "label": "Review period",
+          "einheit": "days",
+          "beschreibung": "Time window for rejects and cold-chain breaches, by default one harvest week."
+        },
+        "aktiv_tage": {
+          "label": "Block counts as in use",
+          "einheit": "days",
+          "beschreibung": "A block counts as in use if a task lay on it within this time."
+        },
+        "schwelle_hoch": {
+          "label": "Threshold: level high",
+          "einheit": "points",
+          "beschreibung": "From here level high. Must be above the threshold for medium."
+        },
+        "schwelle_mittel": {
+          "label": "Threshold: level medium",
+          "einheit": "points",
+          "beschreibung": "From here level medium."
+        }
+      }
+    }
+  },
+  "passwort": {
+    "titel": "Change password",
+    "lead": "At least {min} characters. It applies from the next sign-in.",
+    "vorlaeufig": "Your password is temporary. Please set your own now.",
+    "neu": "New password",
+    "wiederholung": "Once more",
+    "knopf": "Change password"
+  },
+  "schulungsvideos": {
+    "titel": "Training videos",
+    "lead": "Short onboarding videos, played in the person's language where one exists.",
+    "pflicht": "Required",
+    "dauer": "{min} min {sek} s",
+    "nochKeinVideo": "There is no video for this yet.",
+    "keineDatei": "No video file available.",
+    "sprachwahl": "Video language",
+    "kein_video_support": "Your browser cannot play this video.",
+    "sprache": {
+      "de": "Deutsch",
+      "en": "English",
+      "ru": "Русский",
+      "kk": "Қазақша"
+    },
+    "entfernen": "Remove file",
+    "upload": {
+      "titel": "Upload or replace video file",
+      "sprache": "Language",
+      "datei": "File (MP4 or WebM)",
+      "knopf": "Upload",
+      "laeuft": "Uploading … {prozent} %",
+      "fertig": "The video file is saved.",
+      "hinweis": "MP4 or WebM, up to 500 MB. An existing file in the same language is replaced. The upload runs in chunks and can be resumed after an interruption."
+    },
+    "fehler": {
+      "zugriff": "You do not have permission for this.",
+      "ungueltig": "The video or the language is invalid.",
+      "typ": "Only MP4 or WebM files are possible.",
+      "groesse": "The file is empty or larger than 500 MB.",
+      "nichtDa": "The file did not arrive in storage after uploading. Please try again.",
+      "speicher": "Storage did not accept the file. Please try again.",
+      "unbekannt": "The upload failed."
+    }
+  },
+  "betriebsrechnung": {
+    "zeitraum": {
+      "label": "Period of the calculation",
+      "jahre": "{jahre} years"
+    },
+    "abschnitt": {
+      "titel": "The operation over the next {jahre} years",
+      "lead": "Year 1 is the twelve months from the start of live operation. Volume, price and cost of the first year are assumptions or come from operations, after that they change by a fixed rate per year."
+    },
+    "pille": {
+      "belegt": "Evidenced",
+      "geschaetzt": "Partly estimated",
+      "offen": "Inputs missing"
+    },
+    "hinweis": {
+      "belegt": "Every input of this calculation is evidenced.",
+      "geschaetzt": "The calculation rests on assumptions marked as estimated. The more of them operations can evidence, the more reliable the result.",
+      "offen": "Inputs for the calculation are still missing.",
+      "mitSystem": "The system is part of the calculation: its benefit, its recurring cost and its depreciation.",
+      "ohneSystem": "The system is not included yet because its items below are incomplete (investment, recurring cost and benefit)."
+    },
+    "fehlt": {
+      "titel": "Still missing for the calculation",
+      "menge": "Annual volume in the first year, under Operating assumptions",
+      "preis": "Selling price per kilogram, under Operating assumptions",
+      "variableKosten": "Variable cost per kilogram, under Operating assumptions",
+      "fixkosten": "Fixed costs of the operation, record them further down"
+    },
+    "kennzahl": {
+      "ergebnisErstesJahr": {
+        "label": "Result in year 1",
+        "frage": "What is left in the first year?",
+        "rechenweg": "Revenue minus variable cost minus fixed costs.",
+        "rechenwegMitSystem": "Revenue minus variable cost minus fixed costs, plus the benefit of the system minus its recurring cost and depreciation."
+      },
+      "ergebnisLetztesJahr": {
+        "label": "Result in year {jahr}",
+        "frage": "Where is the result heading?",
+        "rechenweg": "The same calculation with the values of year {jahr}, following the yearly rates of change."
+      },
+      "ergebnisSumme": {
+        "label": "Result over {jahre} years",
+        "frage": "What is left in total?",
+        "rechenweg": "The results of all {jahre} years together."
+      },
+      "umsatzrendite": {
+        "label": "Return on sales in year {jahr}",
+        "frage": "How much of every tenge of sales remains as result?",
+        "rechenweg": "Result divided by the revenue of the year."
+      },
+      "deckungsbeitrag": {
+        "label": "Contribution margin per kg",
+        "frage": "What does a kilogram bring after variable cost?",
+        "rechenweg": "Price minus variable cost per kilogram, in the first year."
+      },
+      "gewinnschwelle": {
+        "label": "Break-even in year 1",
+        "frage": "From which volume does the operation earn money?",
+        "rechenweg": "Fixed costs divided by the contribution margin per kilogram.",
+        "rechenwegMitSystem": "Fixed costs less the effect of the system, divided by the contribution margin per kilogram."
+      }
+    },
+    "gewinnschwelle": {
+      "gedeckt": "already covered",
+      "nie": "not reachable",
+      "puffer": "The planned volume may fall by {anteil} before a loss arises.",
+      "unterSchwelle": "The planned volume is {anteil} below break-even, a loss arises in the first year.",
+      "keinDeckungsbeitrag": "The contribution margin per kilogram is not positive."
+    },
+    "einheit": {
+      "tonnen": "t",
+      "kilogramm": "kg",
+      "millionen": "m"
+    },
+    "tabelle": {
+      "titel": "The calculation year by year",
+      "lead": "Amounts in millions of tenge, volume in tonnes, price in tenge per kilogram. Whatever is deducted is shown with a minus.",
+      "position": "Item",
+      "jahr": "Year {jahr}",
+      "zeile": {
+        "menge": "Volume (t)",
+        "preis": "Price (₸ per kg)",
+        "erloes": "Revenue",
+        "variableKosten": "Variable cost",
+        "deckungsbeitrag": "Contribution margin",
+        "fixkosten": "Fixed costs",
+        "betriebsergebnis": "Operating result",
+        "nutzen": "Benefit of the system",
+        "systemKosten": "Recurring cost of the system",
+        "abschreibung": "Depreciation of the system",
+        "ergebnis": "Result",
+        "kumuliert": "Result, cumulative"
+      }
+    },
+    "diagramm": {
+      "titel": "Revenue, cost and result per year",
+      "lead": "Cost here is all cost less the benefit of the system, so revenue minus cost gives the result.",
+      "leadOhneSystem": "Cost here is variable cost plus fixed costs, so revenue minus cost gives the result.",
+      "erloes": "Revenue",
+      "kosten": "Cost",
+      "ergebnis": "Result",
+      "jahr": "Year {jahr}"
+    },
+    "annahmen": {
+      "titel": "Operating assumptions",
+      "lead": "The values of the first year and the yearly development. Every value carries its origin: evidenced when it comes from operations, otherwise estimated.",
+      "menge": "Annual volume in year 1",
+      "preis": "Selling price per kg in year 1",
+      "kosten": "Variable cost per kg in year 1",
+      "mengeEntwicklung": "Volume change per year",
+      "preisEntwicklung": "Price change per year",
+      "kostenEntwicklung": "Change of variable cost per year",
+      "fixkostenEntwicklung": "Change of fixed costs per year",
+      "abschreibung": "Depreciation of the system",
+      "abschreibungWert": "{jahre} years, straight line",
+      "nichtGesetzt": "not set",
+      "ohneVeraenderung": "calculated without change",
+      "journal": "From the ledger of the last twelve months: price {preis} ₸ per kg, variable cost {kosten} ₸ per kg, contribution margin {deckungsbeitrag} ₸ per kg, with {menge} kg harvested and {buchungen} entries. Only booked cost counts: whatever is not in the ledger is missing here too.",
+      "journalLeer": "The ledger of the last twelve months gives no comparison value, because revenue or harvest volume is missing.",
+      "aendern": "Change operating assumptions",
+      "form": {
+        "menge": "Annual volume in the first year (kg)",
+        "mengeHinweis": "The same number as the annual volume in the assumptions of the system.",
+        "preis": "Selling price per kg in the first year (₸)",
+        "kosten": "Variable cost per kg in the first year (₸)",
+        "mengeProzent": "Volume change per year (%)",
+        "preisProzent": "Price change per year (%)",
+        "kostenProzent": "Change of variable cost per year (%)",
+        "fixkostenProzent": "Change of fixed costs per year (%)",
+        "entwicklungHinweis": "5 means five percent more than the year before, minus is a decline. Empty counts as no change.",
+        "abschreibung": "Depreciation of the system (years)",
+        "abschreibungHinweis": "The investment is written off evenly over these years. Empty means five years.",
+        "herkunft": "Origin"
+      }
+    },
+    "fixkosten": {
+      "titel": "Fixed costs of the operation",
+      "lead": "Cost that does not depend on the harvest volume: permanent staff, land lease, vehicles, insurance and administration. Amounts per year, in euro, tenge or rouble.",
+      "summe": "Total per year: {betrag}",
+      "leer": "No fixed costs recorded yet. Without them the result cannot be calculated.",
+      "neu": "Record fixed costs",
+      "kategorieBeispiel": "for example staff"
+    },
+    "nurLesen": "View only: administration, CEO and accounting can record entries.",
+    "standHinweis": "A saved snapshot holds only the calculation of the system. The operating calculation always uses the current figures, so it is not shown here. Open the current view to see it."
   }
 }

@@ -20,6 +20,7 @@ import { RisikoRadar } from "@/components/db/risiko-radar";
 import { ladeBetroffenenOptionen, ladeCompliance } from "@/lib/data/compliance";
 import { ladeMwstStatus, type MwstUebersicht } from "@/lib/data/mwst";
 import { ladeOffeneEsutdFristen } from "@/lib/data/esutd";
+import { ladeNachweisFristen } from "@/lib/data/dokumente";
 import type { Datenquelle } from "@/lib/supabase/config";
 import type {
   AuditEreignisZeile,
@@ -57,10 +58,11 @@ function complianceFormate(format: Formatierer) {
 }
 
 export async function ComplianceAnsicht() {
-  const [cockpit, mwst, esutdFristen, betroffenenOptionen, profil, t] = await Promise.all([
+  const [cockpit, mwst, esutdFristen, nachweise, betroffenenOptionen, profil, t] = await Promise.all([
     ladeCompliance(),
     ladeMwstStatus(),
     ladeOffeneEsutdFristen(),
+    ladeNachweisFristen(),
     ladeBetroffenenOptionen(),
     getSessionProfile(),
     getTranslations("complianceAnsicht"),
@@ -83,6 +85,7 @@ export async function ComplianceAnsicht() {
     esutdFristen,
     vorfaelleUeberfaellig: cockpit.vorfaelle.filter((v) => v.ueberfaellig),
     drittweitergabenUeberfaellig: cockpit.drittweitergaben.filter((d) => d.ueberfaellig),
+    nachweise: nachweise.fristen,
   });
 
   return (
