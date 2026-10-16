@@ -110,13 +110,13 @@ Jede Zeile war ein offener Punkt dieser Liste. Die Begründung steht in `docs/EN
 
 ## Testdaten (16.10.2026)
 
-Elf Migrationen `20261209*` füllen die neuen Funktionen mit realitätsnahen, in sich stimmigen Daten. Sie laufen wie jede Datenänderung: beim Push in den Pull Request auf `public_preview`, nach dem Merge auf `public`. Damit stehen beide Umgebungen gleich da.
+Zwölf Migrationen `20261209*` füllen die neuen Funktionen mit realitätsnahen, in sich stimmigen Daten. Sie laufen wie jede Datenänderung: beim Push in den Pull Request auf `public_preview`, nach dem Merge auf `public`. Damit stehen beide Umgebungen gleich da.
 
 | Datei | Inhalt |
 |---|---|
 | `…010000_testdaten_wirtschaftlichkeit` | Investitionsrechnung der Geschäftsführung vom 23.09.2026 als 13 Posten (154.000 EUR, 25.000 EUR je Jahr, 200.000 EUR Nutzen), drei Ist-Werte für September, zwei festgehaltene Stände (mit dem Code der Anwendung gerechnet), Echtbetrieb ab 01.09.2026, Jahresmenge 350 t |
 | `…015000_testdaten_pfluecker` | Zehn Saisonkräfte in den Brigaden Nord, Süd und Ost samt Einarbeitung |
-| `…020000_testdaten_saison_fortsetzung` | Ernte vom 25.09. bis 15.10.2026: 16 Pflückaufgaben mit Charge, Steigen, Arbeitszeiten und Vorkühlung (zwei Verstöße), 20 Lieferungen mit Tour, Vorbestellung und Transporttemperatur, Zukauf, zwei Reklamationen mit Verlauf, Wetter bis zum ersten Frost am 14.10. |
+| `…020000_testdaten_saison_fortsetzung` | Ernte vom 25.09. bis 15.10.2026: 16 Pflückaufgaben mit Charge, Steigen, Arbeitszeiten und Vorkühlung (zwei Verstöße), 20 Lieferungen mit Tour, Vorbestellung und Transporttemperatur, Zukauf, zwei Reklamationen mit Verlauf, Wetter bis 15.10. (die Wetterseite ersetzt die erfundenen Werte beim ersten „Jetzt aktualisieren“ durch die des Wetterdienstes) |
 | `…030000_testdaten_finanzen` | Kostenträger und 88 Buchungen zu diesen Chargen (Deckungsbeitrag je Charge, 590 bis 890 Tenge je kg), Stand der MwSt-Schwellenprüfung |
 | `…040000_testdaten_stammdaten` | Rechtsform und BIN oder IIN (mit gültiger Prüfziffer), Anschriften und Abholfenster der Nachbarbetriebe, Werte der Kontaktkanäle |
 | `…050000_testdaten_behoerden_nachweise` | ЭСФ-Belege zu allen Lieferungen nach Alter gestaffelt, 15 ЕСУТД-Verträge mit Änderung und Beendigung, Fördercheckpunkte, Gültigkeit der Nachweise, zehn neue Nachweise (einer davon ist die neue Version einer Rückstandsanalyse) |
@@ -125,6 +125,7 @@ Elf Migrationen `20261209*` füllen die neuen Funktionen mit realitätsnahen, in
 | `…080000_testdaten_kennzahlen_nachrechnen` | Kennzahlenverlauf vom 25.09.2026 bis heute aus dem jetzigen Stand |
 | `…090000_testdaten_esf_korrektur` | führt ЭСФ-Belege der Testdaten, die bei Lieferungen über 45 Tage offen oder unbestätigt geblieben waren, zu Ende (die zufällige Verteilung in `…050000` hatte Altfälle von über einem Jahr als Entwurf liegen lassen) |
 | `…100000_testdaten_benachrichtigungen_neu` | nimmt die ЭСФ-Hinweise, die vor der Korrektur entstanden sind, zurück (wenn nichts mehr über der Frist offen ist) und lässt die Erzeugung neu laufen |
+| `…110000_testdaten_abholstopp_text` | nimmt den Wetterbezug (Frost) aus einer Abholbemerkung, weil das Wetter nach einer Aktualisierung ein anderes ist |
 
 **Schutz.** Jede Migration greift nur, wo Betriebsdaten da sind. Eine leere Datenbank (CI, lokaler Stack vor dem Seed) bleibt unverändert. Jede Tabelle wird nur gefüllt, wenn sie leer ist oder die Zeile fehlt; was jemand von Hand erfasst hat, wird nie ergänzt oder verdoppelt. Ein zweiter Lauf ändert nichts.
 
