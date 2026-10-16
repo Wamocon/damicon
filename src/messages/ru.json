@@ -5889,7 +5889,7 @@
       "ergebnisSumme": {
         "label": "Результат за {jahre, plural, one {# год} few {# года} many {# лет} other {# лет}}",
         "frage": "Что остаётся в сумме?",
-        "rechenweg": "Результаты всех лет вместе."
+        "rechenweg": "Результаты всех {jahre} лет вместе."
       },
       "umsatzrendite": {
         "label": "Рентабельность продаж в {jahr}-м году",
