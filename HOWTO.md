@@ -152,6 +152,8 @@ Füge den Kommentar `# notsecret` am Ende der betroffenen Zeile hinzu.
 git commit --no-verify -m "deine Nachricht"
 ```
 
+**Claude Code:** Der Hook `.claude/hooks/git-schutz.mjs` (eingebunden in `.claude/settings.json`) fragt nach, bevor Claude den Pre-commit Hook umgeht (`--no-verify`, `git commit -n`, `core.hooksPath`) oder etwas nach `main` bringt (Push, Merge auf `main`, `gh pr create` ohne anderen `--base`, `gh pr merge`). Der Befehl läuft erst, wenn ein Mensch zustimmt. Der Notfall-Bypass bleibt damit möglich, aber nicht unbemerkt.
+
 ---
 
 ### 2. Supabase Setup & Warnung
@@ -641,6 +643,8 @@ Add the comment `# notsecret` at the end of that line.
 ```bash
 git commit --no-verify -m "your message"
 ```
+
+**Claude Code:** The hook `.claude/hooks/git-schutz.mjs` (registered in `.claude/settings.json`) asks for confirmation before Claude bypasses the pre-commit hook (`--no-verify`, `git commit -n`, `core.hooksPath`) or sends something to `main` (push, merge on `main`, `gh pr create` without a different `--base`, `gh pr merge`). The command only runs once a human confirms. The emergency bypass remains possible, but not unnoticed.
 
 ---
 

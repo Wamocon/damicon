@@ -97,6 +97,10 @@
 <td>Erstelle eine <code>.instructions.md</code>-Datei in <code>.github/instructions/</code> mit YAML-Frontmatter. Das <code>applyTo</code>-Feld akzeptiert Glob-Muster und bestimmt, für welche Dateien die Regeln gelten.</td>
 <td>Create a <code>.instructions.md</code> file in <code>.github/instructions/</code> with YAML frontmatter. The <code>applyTo</code> field accepts glob patterns and determines which files the rules apply to.</td>
 </tr>
+<tr>
+<td><strong>Claude Code</strong> liest kein <code>applyTo</code>, sondern Regeln unter <code>.claude/rules/</code> mit <code>paths</code>. Nach jeder Änderung an <code>.github/instructions/</code> <code>npm run claude:regeln</code> ausführen: Das Skript erzeugt die Kopien, <code>npm test</code> meldet veraltete.</td>
+<td><strong>Claude Code</strong> does not read <code>applyTo</code>; it loads rules from <code>.claude/rules/</code> with <code>paths</code>. After every change in <code>.github/instructions/</code>, run <code>npm run claude:regeln</code>: the script generates the copies, <code>npm test</code> reports stale ones.</td>
+</tr>
 </table>
 
 ```yaml

@@ -13,3 +13,8 @@ docs/manual/*.html text eol=lf
 # Dieselbe Regel fuer die Quellen daneben, damit Generator und Repo sich auch
 # dort nicht widersprechen.
 scripts/handbuch/*.ts text eol=lf
+
+# Regeln fuer Claude Code, erzeugt von scripts/claude-regeln.mjs aus .github/instructions/.
+# Gleicher Grund wie oben: Der Generator schreibt LF, und die Pruefung in npm test soll
+# keine Abweichung melden, die nur aus dem Zeilenende besteht.
+.claude/rules/*.md text eol=lf

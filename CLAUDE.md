@@ -33,3 +33,8 @@ Regeln:
 4. **Datenänderungen** (UPDATE, DELETE) idempotent schreiben, nur die genau gemeinten Zeilen treffen und im Pull Request ausdrücklich als Datenänderung nennen. Die CI pusht Migrationen nach dem Merge automatisch auf die gemeinsame Cloud-Datenbank.
 5. **Vor dem Push** `npm run db:migrationen-pruefen` und `npm run test:migrationen`.
 6. **Ist doch etwas ohne Datei gelaufen** (Notfall, nur auf Anweisung von Niko): sofort die Migrationsdatei mit dem ausgeführten SQL nachreichen. Sonst meldet der Drift-Check es täglich.
+
+## Projektregeln und Git-Schutz
+
+- **Regeln:** Die Dateien unter `.claude/rules/` sind Kopien von `.github/instructions/*.instructions.md`, aus `applyTo` wird `paths`. Nur die Quelle bearbeiten, danach `npm run claude:regeln`. `npm test` meldet veraltete Kopien.
+- **Git-Schutz:** `.claude/hooks/git-schutz.mjs` fragt nach, bevor ein Befehl den Pre-commit Hook umgeht (`--no-verify`, `git commit -n`, `core.hooksPath`) oder etwas nach `main` bringt (Push, Merge auf `main`, `gh pr create` ohne anderen `--base`, `gh pr merge`). Nicht alles gehört nach `main`; sensible Unterlagen bleiben lokal.
