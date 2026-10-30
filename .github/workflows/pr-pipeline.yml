@@ -194,7 +194,7 @@ jobs:
 
       - name: Berichte sichern
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: browsertests
           path: |
@@ -206,7 +206,7 @@ jobs:
 
       - name: Referenzbilder sichern
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: visuelle-referenz
           path: e2e/visuell.spec.ts-snapshots
