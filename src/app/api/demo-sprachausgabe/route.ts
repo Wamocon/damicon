@@ -15,7 +15,7 @@
 import { createHash } from "node:crypto";
 import { after } from "next/server";
 import { getSessionProfile } from "@/lib/auth";
-import { erzeugeSprachausgabeMitRueckfall } from "@/lib/ai/sprachausgabe-client";
+import { erzeugeSprachausgabe, erzeugeSprachausgabeMitRueckfall } from "@/lib/ai/sprachausgabe-client";
 import { ladeRatenlimitGrenze, ratenlimitUeberschritten, skaliereFuerSprachausgabe } from "@/lib/ai/ratenbegrenzung";
 import { darfDemo, istDemoSprache, MAX_SCHRITT_ZEICHEN, schrittMitId, sprechtext } from "@/lib/demo/drehbuch";
 import { istSprachausgabeSprache, sprechfassung, stimmenFuer, type Stimme } from "@/lib/domain/sprachausgabe";
@@ -26,6 +26,8 @@ import { fuerSprache } from "@/lib/text/umlaute";
 const BUCKET = "ki-sprachausgabe";
 /** Version der Aufbereitung: bei geänderter Sprechweise hochzählen, dann entsteht neues Audio. */
 const DEMO_VERSION = 1;
+/** Versuche mit der bevorzugten Stimme, bevor die Ersatzstimme spricht. */
+const VERSUCHE = 3;
 
 export const maxDuration = 60;
 
@@ -42,16 +44,17 @@ function ablagePfad(sprache: string, stimme: Stimme, text: string): string {
   return `${verzeichnis}demo/${sprache}/${kennung(stimme.anbieter)}-${kennung(stimme.stimme)}${tempo}-v${DEMO_VERSION}-${abdruck}.mp3`;
 }
 
-function audioAntwort(audio: ArrayBuffer | Uint8Array, typ: string, herkunft: "treffer" | "neu") {
+function audioAntwort(audio: ArrayBuffer | Uint8Array, typ: string, herkunft: "treffer" | "neu", ersatzstimme = false) {
   const koerper = audio instanceof Uint8Array ? new Uint8Array(audio) : audio;
   return new Response(koerper, {
     status: 200,
     headers: {
       "content-type": typ || "audio/mpeg",
       "x-damicon-zwischenspeicher": herkunft,
-      // Derselbe Schritt klingt immer gleich: der Browser darf ihn behalten, aber nur für diese
-      // Person (private). So kostet das Vorladen des nächsten Schritts den Ablauf nichts.
-      "cache-control": "private, max-age=3600",
+      // Die Ersatzstimme ist kein Dauerzustand: der Browser merkt sie sich nicht, damit der nächste
+      // Lauf es wieder mit der bevorzugten Stimme versucht. Sonst darf er den Schritt behalten (er
+      // klingt immer gleich), aber nur für diese Person (private).
+      ...(ersatzstimme ? { "x-damicon-ersatzstimme": "1", "cache-control": "no-store" } : { "cache-control": "private, max-age=3600" }),
     },
   });
 }
@@ -90,22 +93,55 @@ export async function GET(req: Request) {
   const { data: gespeichert } = await dienst.storage.from(BUCKET).download(gesucht);
   if (gespeichert) return audioAntwort(await gespeichert.arrayBuffer(), gespeichert.type || "audio/mpeg", "treffer");
 
-  const erzeugt = await erzeugeSprachausgabeMitRueckfall(text, stimmen);
-  if (!erzeugt.ok) {
+  // Eine Vorführung klingt nur dann gut, wenn jeder Schritt dieselbe Stimme hat. Fiel die bevorzugte
+  // Stimme bei einer Anfrage aus, sprang die Route früher sofort auf die Ersatzstimme, und ein
+  // einzelner Schritt klang plötzlich anders. Deshalb erst die bevorzugte Stimme, bis zu dreimal mit
+  // kurzer Pause (ein abgewiesener Anruf geht beim zweiten oft durch), und nur wenn sie ganz ausfällt
+  // die Ersatzstimme, besser eine andere Stimme als Stille.
+  const bevorzugt = stimmen[0];
+  const beginn = Date.now();
+  let erzeugt: { audio: ArrayBuffer; typ: string; stimme: Stimme } | null = null;
+  let letzterGrund = "";
+  for (let versuch = 1; versuch <= VERSUCHE && !erzeugt; versuch++) {
+    const ergebnis = await erzeugeSprachausgabe(text, bevorzugt);
+    if (ergebnis.ok) {
+      erzeugt = { audio: ergebnis.audio, typ: ergebnis.typ, stimme: bevorzugt };
+      break;
+    }
+    letzterGrund = ergebnis.grund;
+    console.error(`[damicon] Sprachausgabe der Vorführung, Versuch ${versuch} über ${bevorzugt.anbieter} fehlgeschlagen:`, ergebnis.grund);
+    // Die Route darf höchstens eine Minute laufen: nach 25 s lohnt kein weiterer Versuch.
+    if (versuch < VERSUCHE && Date.now() - beginn < 25_000) await new Promise((fertig) => setTimeout(fertig, 600 * versuch));
+    else break;
+  }
+  let ersatzstimme = false;
+  if (!erzeugt && stimmen.length > 1) {
+    const ersatz = await erzeugeSprachausgabeMitRueckfall(text, stimmen.slice(1));
+    if (ersatz.ok) {
+      erzeugt = { audio: ersatz.audio, typ: ersatz.typ, stimme: ersatz.stimme };
+      ersatzstimme = true;
+      console.warn("[damicon] Sprachausgabe der Vorführung: Ersatzstimme für einen Schritt, Grund:", letzterGrund);
+    }
+  }
+  if (!erzeugt) {
     // Der Grund kann interne Angaben enthalten (Umgebungsvariable, Rohantwort des Dienstes): nur ins
     // Server-Protokoll. Der Browser spielt dann die Untertitel weiter.
-    console.error("[damicon] Sprachausgabe der Vorführung fehlgeschlagen:", erzeugt.grund);
+    console.error("[damicon] Sprachausgabe der Vorführung fehlgeschlagen:", letzterGrund);
     return fehler(502, "dienst-nicht-erreichbar");
   }
 
-  const pfad = ablagePfad(sprache, erzeugt.stimme, text);
   const audio = erzeugt.audio;
   const typ = erzeugt.typ || "audio/mpeg";
-  // Nach der Antwort ablegen: wer zuhört, wartet nicht. Ein Fehler beim Ablegen macht die fertige
-  // Antwort nicht kaputt, dann bleibt es beim nächsten Mal eben wieder langsam.
-  after(async () => {
-    const { error } = await dienst.storage.from(BUCKET).upload(pfad, audio, { contentType: typ, upsert: false });
-    if (error) console.error("[damicon] Sprachausgabe der Vorführung nicht zwischengespeichert:", error.message);
-  });
-  return audioAntwort(audio, typ, "neu");
+  // Der Ton einer Ersatzstimme wird NICHT abgelegt: sonst spräche dieser Schritt in jeder späteren
+  // Vorführung mit der anderen Stimme. Beim nächsten Mal bekommt die bevorzugte Stimme ihre Chance.
+  if (!ersatzstimme) {
+    const pfad = ablagePfad(sprache, erzeugt.stimme, text);
+    // Nach der Antwort ablegen: wer zuhört, wartet nicht. Ein Fehler beim Ablegen macht die fertige
+    // Antwort nicht kaputt, dann bleibt es beim nächsten Mal eben wieder langsam.
+    after(async () => {
+      const { error } = await dienst.storage.from(BUCKET).upload(pfad, audio, { contentType: typ, upsert: false });
+      if (error) console.error("[damicon] Sprachausgabe der Vorführung nicht zwischengespeichert:", error.message);
+    });
+  }
+  return audioAntwort(audio, typ, "neu", ersatzstimme);
 }

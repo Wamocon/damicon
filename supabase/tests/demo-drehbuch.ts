@@ -26,6 +26,7 @@ import {
   verfuegbareSprachen,
   woerterJeBereich,
 } from "../../src/lib/demo/drehbuch";
+import { rahmenFuer } from "../../src/components/demo/demo-rahmen";
 import { waehleBlase } from "../../src/components/haustier/haustier-dashboard-blasen";
 import { amortisationMonate } from "../../src/lib/domain/wirtschaftlichkeit";
 import { hasPermission } from "../../src/lib/rbac";
@@ -59,6 +60,17 @@ pruefe("ohne CEO-Teil: kurzer Schluss, kein Schritt des CEO-Teils", ohneCeo.incl
 pruefe("mit CEO-Teil: drei CEO-Schritte und der lange Schluss, nicht der kurze", mitCeo.includes("abschluss") && !mitCeo.includes("abschluss-ohne") && mitCeo.filter((i) => i.startsWith("ceo-")).length === 3);
 pruefe("der Schluss steht in beiden Fassungen zuletzt", ohneCeo.at(-1) === "abschluss-ohne" && mitCeo.at(-1) === "abschluss");
 pruefe("die Reihenfolge der gemeinsamen Schritte ist in beiden Fassungen gleich", ohneCeo.filter((i) => mitCeo.includes(i)).join() === mitCeo.filter((i) => ohneCeo.includes(i)).join());
+
+// ---- Start ab den Beispielen (die vortragende Person leitet selbst ein) -------------------------
+
+const abBeispielen = schritteFuer(false, false).map((s) => s.id);
+pruefe("ab den Beispielen: Himbis Einstieg, Problem und Lösung entfallen", !["einstieg", "problem", "loesung"].some((i) => abBeispielen.includes(i)));
+pruefe("ab den Beispielen: der Anschlusssatz kommt zuerst, danach das Feld", abBeispielen[0] === "himbi-start" && abBeispielen[1] === "reihenbloecke");
+pruefe("mit Einleitung von Himbi: kein Anschlusssatz", !ohneCeo.includes("himbi-start") && ohneCeo.slice(0, 3).join() === "einstieg,problem,loesung");
+pruefe(
+  "ab den Beispielen mit CEO-Teil: dieselben Schritte wie sonst, nur ohne Einleitung",
+  schritteFuer(true, false).map((s) => s.id).filter((i) => i !== "himbi-start").join() === mitCeo.filter((i) => !["einstieg", "problem", "loesung"].includes(i)).join(),
+);
 
 // ---- Ziele -------------------------------------------------------------------------------------
 
@@ -209,6 +221,11 @@ pruefe("Stimme: Text kommt aus dem Drehbuch (sprechtext)", route.includes("sprec
 pruefe("Stimme: kein frei übergebener Text", !/searchParams\.get\(["'](text|inhalt|satz)["']\)/.test(route) && !/req\.json\(\)/.test(route));
 pruefe("Stimme: echte Profilrolle wird geprüft", route.includes("darfDemo(profil.role)"));
 pruefe("Stimme: ohne Anmeldung 401", route.includes('fehler(401, "nicht-angemeldet")'));
+// Rückmeldung vom 05.11.2026: bei einem Block sprach plötzlich eine andere Stimme, dann wieder die erste.
+// Fiel die bevorzugte Stimme bei einer Anfrage aus, sprang die Route sofort auf die Ersatzstimme.
+const versuche = /const VERSUCHE = (\d+);/.exec(route);
+pruefe("Stimme: bevorzugte Stimme mehrfach versuchen, bevor die Ersatzstimme spricht", versuche !== null && Number(versuche[1]) >= 2 && route.includes("erzeugeSprachausgabe(text, bevorzugt)"));
+pruefe("Stimme: der Ton einer Ersatzstimme wird nicht gespeichert und nicht im Browser behalten", route.includes("if (!ersatzstimme)") && route.includes('"x-damicon-ersatzstimme"') && route.includes('"cache-control": "no-store"'));
 
 const layout = readFileSync("src/app/[locale]/dashboard/layout.tsx", "utf8");
 pruefe("Layout: Provider der Vorführung eingebunden und geschlossen", layout.includes("<DemoProvider>") && layout.includes("</DemoProvider>"));
@@ -222,7 +239,13 @@ pruefe("Player klickt nichts und füllt nichts aus", !/\.click\(\)|fuelleFeld|\.
 // nächste Schritt vorab geholt wurde und die Stimme langsamer sein kann als ein Schritt lang ist.
 const vorab = /const VORAB = (\d+);/.exec(player);
 pruefe("Player holt den Ton mehrere Schritte im Voraus", vorab !== null && Number(vorab[1]) >= 3);
-pruefe("Player hält den Ton als Datei im Speicher (ein Abruf je Schritt)", player.includes("tonSpeicher") && player.includes("URL.createObjectURL"));
+pruefe("Player spielt den Ton als Datei aus dem Speicher (ein Abruf je Schritt)", player.includes("useTonSpeicher") && player.includes("URL.createObjectURL"));
+pruefe("Player: Himbi spricht nach höchstens 1,5 s Wartezeit auf die Seite, die Markierung folgt nach", player.includes("versuch < 6") && player.includes("fuehreNach("));
+const tonQuelle = readFileSync("src/components/demo/demo-ton.ts", "utf8");
+pruefe("Player: Schritte im Voraus laufen nacheinander, nicht gleichzeitig", tonQuelle.includes("kette.current.then(lade, lade)") && player.includes("holeTon(naechster.id, sprache, true)"));
+pruefe("Ton: ein Abruf je Schritt und Sprache, ein Fehlschlag wird nicht gemerkt", tonQuelle.includes("speicher.current.get(schluessel)") && tonQuelle.includes("speicher.current.delete(schluessel)"));
+pruefe("Player: eigener Rahmen statt der CSS-Klasse, der Rahmen wird beim Beenden entfernt", player.includes("new Rahmen(") && player.includes("rahmen.entfernen()") && !player.includes("haustier-fokus"));
+pruefe("Player: die Karte wird bestimmt (karteVon), nicht der Container einer allgemeinen Regel", player.includes("karteVon(quelle)") && !player.includes("stelleZu("));
 const nachlauf = /const NACHLAUF_MS = (\d+);/.exec(player);
 pruefe("Pause nach dem letzten Wort ist fest und kurz (höchstens 800 ms)", nachlauf !== null && Number(nachlauf[1]) <= 800);
 
@@ -254,9 +277,22 @@ const mitTour = waehleBlase({ ...blasenLage, tour: { aktiv: true, frageBereit: f
 pruefe("Vorführung läuft: der Live-Hinweis tritt zurück, die Führung ist zu sehen", !mitVorfuehrung.liveHinweisSichtbar && mitVorfuehrung.tourAktivSichtbar);
 pruefe("Compliance-Tour wie bisher: der Live-Hinweis hat Vorrang vor ihr", mitTour.liveHinweisSichtbar && !mitTour.tourAktivSichtbar);
 
+// ---- Rahmen ------------------------------------------------------------------------------------
+
+// Rückmeldung vom 05.11.2026: die Markierung war mal größer, kleiner, schmaler oder breiter als die
+// Karte. Der Rahmen steht jetzt immer gleich um den sichtbaren Teil der Karte.
+const karte = { left: 100, right: 700, top: 200, bottom: 500 };
+const im = rahmenFuer(karte, 900);
+pruefe("Rahmen: gleicher Abstand rundum (6 px) um eine ganz sichtbare Karte", im !== null && im.left === 94 && im.top === 194 && im.width === 612 && im.height === 312);
+const hoch = rahmenFuer({ left: 100, right: 700, top: 60, bottom: 2000 }, 900);
+pruefe("Rahmen: eine hohe Karte bekommt nur ihren sichtbaren Teil, nie unter die Kopfzeile", hoch !== null && hoch.top >= 72 - 6 && hoch.top + hoch.height <= 900 - 16 + 6);
+pruefe("Rahmen: eine kaum sichtbare Karte bekommt keinen Rahmen", rahmenFuer({ left: 0, right: 600, top: 880, bottom: 1200 }, 900) === null);
+const rahmenQuelle = readFileSync("src/components/demo/demo-rahmen.ts", "utf8");
+pruefe("Rahmen: nimmt keine Klicks an und ist für Hilfstechnik verborgen", rahmenQuelle.includes('pointerEvents: "none"') && rahmenQuelle.includes('setAttribute("aria-hidden", "true")'));
+
 // ---- Oberflächentexte --------------------------------------------------------------------------
 
-const SCHLUESSEL = ["titel", "text", "start", "startMitCeo", "sprache", "nichtMoeglich", "schritt", "fortsetzen", "keinTon", "ende", "nochmal"];
+const SCHLUESSEL = ["titel", "text", "start", "einleitung", "ceoTeil", "sprache", "nichtMoeglich", "schritt", "fortsetzen", "keinTon", "ende", "nochmal"];
 for (const l of SPRACHDATEIEN) {
   const fehlend = SCHLUESSEL.filter((k) => typeof nachricht(l, `haustier.demo.${k}`) !== "string" || !(nachricht(l, `haustier.demo.${k}`) as string).trim());
   pruefe(`Oberflächentexte der Vorführung (${l}) vollständig`, fehlend.length === 0, fehlend.join(", "));

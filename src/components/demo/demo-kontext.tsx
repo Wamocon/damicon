@@ -6,7 +6,10 @@ import { DemoBlase } from "@/components/demo/demo-blase";
 import { usePersona } from "@/components/dashboard/persona";
 import type { ComplianceTourAnzeige } from "@/components/dashboard/use-compliance-tour";
 import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
-import { inSichtBringen, stelleZu, stelleZuSprechziel, warteBisRuhig } from "@/components/ki/ui-steuerung";
+import { Rahmen, karteVon } from "@/components/demo/demo-rahmen";
+import { useTonSpeicher } from "@/components/demo/demo-ton";
+import { inSichtBringen, stelleZuSprechziel, warteBisRuhig } from "@/components/ki/ui-steuerung";
+import { bewegungReduziert } from "@/lib/bewegung";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { useIstHandy } from "@/components/ui/handy";
 import { usePathname, useRouter } from "@/i18n/navigation";
@@ -29,7 +32,7 @@ import { hasPermission } from "@/lib/rbac";
 // zweite Anbindung: useComplianceTourAnzeige() reicht, solange die Vorführung läuft, DIESE Anzeige
 // durch.
 //
-// Es wird nur gezeigt. Der Durchgang öffnet Seiten, scrollt und hebt hervor (haustier-fokus), er
+// Es wird nur gezeigt. Der Durchgang öffnet Seiten, scrollt und legt einen Rahmen um die Karte (demo-rahmen.ts), er
 // klickt nichts, was etwas absendet oder ändert, und füllt kein Feld aus.
 //
 // Zeigen: ein Schritt nennt die Stellen der Seite (abschnitte), und die Markierung wandert über sie,
@@ -45,6 +48,9 @@ import { hasPermission } from "@/lib/rbac";
 
 export interface DemoStart {
   mitCeoTeil: boolean;
+  /** Himbi spricht auch Begrüßung, Problem und Lösung. Aus: die vortragende Person leitet selbst ein
+   *  und übergibt an Himbi, der mit den Beispielen beginnt. */
+  mitEinleitung: boolean;
   sprache: DemoSprache;
 }
 
@@ -77,7 +83,6 @@ interface Lauf {
   mitCeoTeil: boolean;
 }
 
-const FOKUS_KLASSE = "haustier-fokus";
 /** Feste Pause nach dem letzten Wort, bevor die nächste Seite aufgeht. */
 const NACHLAUF_MS = 500;
 /** So lange wartet der Durchgang höchstens auf eine Seite, bevor er mit der aktuellen weitermacht. */
@@ -98,8 +103,10 @@ function sichtbar(el: Element): boolean {
   return r.width > 0 && r.height > 0;
 }
 
-/** Die Stellen, auf die Himbi bei diesem Schritt nacheinander zeigt (leer: nirgends). */
-function findeStellen(schritt: DemoSchritt, t: ReturnType<typeof useTranslations>): HTMLElement[] {
+/** Die Karten, auf die Himbi bei diesem Schritt nacheinander zeigt (leer: nirgends), und wie viele der
+ *  gewünschten Abschnitte die Seite schon hat. Zwei Abschnitte können in derselben Karte liegen: dann
+ *  gibt es weniger Karten als Abschnitte, und das ist kein Grund zu warten. */
+function findeStellen(schritt: DemoSchritt, t: ReturnType<typeof useTranslations>): { stellen: HTMLElement[]; gefunden: number } {
   if (schritt.zeigeAuf) {
     let titel: string | null = null;
     try {
@@ -108,23 +115,25 @@ function findeStellen(schritt: DemoSchritt, t: ReturnType<typeof useTranslations
       titel = null;
     }
     const treffer = titel ? stelleZuSprechziel(`t:${titel}`) : null;
-    return treffer ? [treffer] : [];
+    return treffer ? { stellen: [karteVon(treffer)], gefunden: 1 } : { stellen: [], gefunden: 0 };
   }
-  if (schritt.ziel.art !== "modul") return [];
+  if (schritt.ziel.art !== "modul") return { stellen: [], gefunden: 0 };
   const haupt = document.getElementById("main");
   const kopf = haupt?.querySelector<HTMLElement>("h1");
-  if (!haupt || !kopf) return [];
+  if (!haupt || !kopf) return { stellen: [], gefunden: 0 };
   // 0 ist der Seitenkopf, 1.. sind die Abschnitte mit Zwischenüberschrift in der Reihenfolge der Seite.
   const abschnitte = Array.from(haupt.querySelectorAll<HTMLElement>("h2")).filter((h) => sichtbar(h) && !h.closest("aside, nav"));
   const gewollt = schritt.abschnitte ?? [0];
   const stellen: HTMLElement[] = [];
+  let gefunden = 0;
   for (const nr of gewollt) {
     const quelle = nr === 0 ? kopf : abschnitte[nr - 1];
     if (!quelle) continue;
-    const stelle = stelleZu(quelle);
+    gefunden++;
+    const stelle = karteVon(quelle);
     if (!stellen.includes(stelle)) stellen.push(stelle);
   }
-  return stellen;
+  return { stellen, gefunden };
 }
 
 export function DemoProvider({ children }: { children: ReactNode }) {
@@ -145,7 +154,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [tonFehlt, setTonFehlt] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const tonSpeicher = useRef(new Map<string, Promise<Blob | null>>());
+  const rahmenRef = useRef<Rahmen | null>(null);
   // Stände für die asynchrone Schleife unten: sie darf nicht bei jedem Seitenwechsel neu starten,
   // liest die aktuellen Werte also über Refs, die im Effekt nachgeführt werden.
   const pfadRef = useRef(pfad);
@@ -160,25 +169,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const sprachen = useMemo(() => verfuegbareSprachen(), []);
   const kannStarten = darfDemo(role) && an && !weg && verfuegbar && !handy;
 
-  /** Der Ton eines Schritts als Datei, genau einmal angefragt und dann gemerkt. Ein Fehlschlag wird
-   *  nicht gemerkt, ein erneuter Lauf versucht es noch einmal. */
-  const holeTon = useCallback((id: string, sprache: DemoSprache): Promise<Blob | null> => {
-    const schluessel = `${sprache}:${id}`;
-    const vorhanden = tonSpeicher.current.get(schluessel);
-    if (vorhanden) return vorhanden;
-    const abruf = fetch(`/api/demo-sprachausgabe?schritt=${encodeURIComponent(id)}&sprache=${sprache}`)
-      .then((antwort) => (antwort.ok ? antwort.blob() : null))
-      .catch(() => null)
-      .then((blob) => {
-        if (!blob) tonSpeicher.current.delete(schluessel);
-        return blob;
-      });
-    tonSpeicher.current.set(schluessel, abruf);
-    return abruf;
-  }, []);
+  /** Der Ton eines Schritts als Datei, genau einmal angefragt (demo-ton.ts). */
+  const holeTon = useTonSpeicher();
 
   const starten = useCallback(
-    ({ mitCeoTeil, sprache }: DemoStart) => {
+    ({ mitCeoTeil, mitEinleitung, sprache }: DemoStart) => {
       if (!kannStarten) return;
       // Das Audio-Element entsteht im Klick: spätere play()-Aufrufe der Schleife sind dann erlaubt.
       audioRef.current ??= new Audio();
@@ -187,7 +182,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       setOffen(false);
       // Schritte, deren Seite die Rolle nicht sehen darf, entfallen. Für Geschäftsführung und
       // Administration sind das keine, die Prüfung hält aber auch eine künftige Rechteänderung ein.
-      const schritte = schritteFuer(mitCeoTeil).filter((s) => {
+      const schritte = schritteFuer(mitCeoTeil, mitEinleitung).filter((s) => {
         const modul = modulZu(s.ziel);
         return !modul || hasPermission(rolleRef.current, modul.resource, "view");
       });
@@ -212,6 +207,17 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const aktuellerSchritt = lauf?.schritte[schrittNummer] ?? null;
   const sprache = lauf?.sprache ?? "de";
   const schritte = lauf?.schritte ?? null;
+  // Der Rahmen lebt, solange die Vorführung läuft, und wird bei Pause, Ende und Abmeldung entfernt.
+  // Vor dem Schrittablauf deklariert: dessen Effekt findet ihn beim ersten Lauf schon vor.
+  useEffect(() => {
+    if (phase !== "laeuft") return;
+    const rahmen = new Rahmen(bewegungReduziert());
+    rahmenRef.current = rahmen;
+    return () => {
+      rahmen.entfernen();
+      rahmenRef.current = null;
+    };
+  }, [phase]);
   useEffect(() => {
     if (phase !== "laeuft" || !schritte || !aktuellerSchritt) return;
     const schritt = aktuellerSchritt;
@@ -219,9 +225,6 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     const timer = new Set<number>();
     const audio = audioRef.current;
     let tonAdresse: string | null = null;
-    // Als Behauptung geschrieben: TypeScript sieht die Zuweisungen in den Funktionen darunter nicht
-    // und hielte die Variable sonst für immer null.
-    let markiert = null as HTMLElement | null;
 
     const aufraeumen = () => {
       abgebrochen = true;
@@ -234,7 +237,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         audio.pause();
       }
       if (tonAdresse) URL.revokeObjectURL(tonAdresse);
-      markiert?.classList.remove(FOKUS_KLASSE);
+      rahmenRef.current?.setze(null);
       setStimmeLaeuft(false);
     };
 
@@ -247,14 +250,10 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         timer.add(id);
       });
 
-    /** Hebt eine Stelle hervor (die vorige verliert ihre Markierung) und lässt Himbi hinschauen. */
+    /** Legt den Rahmen um eine Karte (er gleitet von der vorigen) und lässt Himbi hinschauen. */
     const zeige = (stelle: HTMLElement) => {
-      markiert?.classList.remove(FOKUS_KLASSE);
-      markiert = stelle;
-      // Neu setzen, damit die kurze Hervorhebung (haustier.css) für jede Stelle von vorn läuft.
-      void stelle.offsetWidth;
       inSichtBringen(stelle);
-      stelle.classList.add(FOKUS_KLASSE);
+      rahmenRef.current?.setze(stelle);
       setZiel(stelle);
       setHuepf((h) => h + 1);
     };
@@ -271,7 +270,17 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       });
     };
 
-    const sprich = (text: string, ton: Blob | null, stellen: HTMLElement[]) =>
+    /** Zeigt auf die Stellen, sobald die Seite sie hat: lädt sie langsam, beginnt Himbi trotzdem zu
+     *  sprechen und die Markierung folgt, auf die Restzeit verteilt. */
+    const fuehreNach = (stellenZukunft: Promise<HTMLElement[]>, gesamtMs: number) => {
+      const seit = Date.now();
+      void stellenZukunft.then((stellen) => {
+        if (abgebrochen || stellen.length === 0) return;
+        fuehreDurch(stellen, Math.max(gesamtMs - (Date.now() - seit), 1500));
+      });
+    };
+
+    const sprich = (text: string, ton: Blob | null, stellenZukunft: Promise<HTMLElement[]>) =>
       new Promise<void>((fertig) => {
         const lesezeit = lesedauerMs(text);
         let erledigt = false;
@@ -283,7 +292,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         const ohneTon = () => {
           setTonFehlt(true);
           setStimmeLaeuft(false);
-          fuehreDurch(stellen, lesezeit);
+          fuehreNach(stellenZukunft, lesezeit);
           void nachPause(lesezeit).then(ende);
         };
         if (!audio || !ton) return ohneTon();
@@ -300,7 +309,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
             setTonFehlt(false);
             // Die Länge steht nach dem Start fest; bis dahin gilt die Lesezeit.
             const dauer = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration * 1000 : lesezeit;
-            fuehreDurch(stellen, dauer);
+            fuehreNach(stellenZukunft, dauer);
           },
           ohneTon,
         );
@@ -327,20 +336,34 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       // Eine langsame Seite zeigt zuerst Platzhalter und liefert die Abschnitte nach: bis zu vier
       // Sekunden warten, bis alle gewünschten da sind, sonst mit den vorhandenen weitermachen.
       const erwartet = schritt.ziel.art === "modul" ? (schritt.abschnitte ?? [0]).length : schritt.zeigeAuf ? 1 : 0;
-      let stellen = findeStellen(schritt, tRef.current);
-      for (let versuch = 0; versuch < 16 && stellen.length < erwartet && !abgebrochen; versuch++) {
+      // Bis zu 1,5 s auf die Abschnitte warten, dann beginnt Himbi trotzdem: die Suche läuft bis zu vier
+      // weitere Sekunden im Hintergrund weiter, und die Markierung folgt, sobald die Seite so weit ist.
+      let fund = findeStellen(schritt, tRef.current);
+      for (let versuch = 0; versuch < 6 && fund.gefunden < erwartet && !abgebrochen; versuch++) {
         await nachPause(250);
-        stellen = findeStellen(schritt, tRef.current);
+        fund = findeStellen(schritt, tRef.current);
       }
+      const bisher = fund;
+      const stellenZukunft: Promise<HTMLElement[]> =
+        bisher.gefunden >= erwartet
+          ? Promise.resolve(bisher.stellen)
+          : (async () => {
+              let spaeter = bisher;
+              for (let versuch = 0; versuch < 16 && spaeter.gefunden < erwartet && !abgebrochen; versuch++) {
+                await nachPause(250);
+                spaeter = findeStellen(schritt, tRef.current);
+              }
+              return spaeter.stellen;
+            })();
       if (abgebrochen) return;
       const ton = await Promise.race([tonAbruf, nachPause(TON_MAX_MS).then(() => null)]);
       if (abgebrochen) return;
       const text = textIn(schritt, sprache);
-      if (text) await sprich(text, ton, stellen);
+      if (text) await sprich(text, ton, stellenZukunft);
       if (abgebrochen) return;
       await nachPause(NACHLAUF_MS);
       if (abgebrochen) return;
-      markiert?.classList.remove(FOKUS_KLASSE);
+      rahmenRef.current?.setze(null);
       if (index + 1 < schritte.length) setIndex(index + 1);
       else {
         setZiel(null);
@@ -358,7 +381,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     if (phase !== "laeuft" || !schritte) return;
     for (let k = 1; k <= VORAB; k++) {
       const naechster = schritte[index + k];
-      if (naechster && textIn(naechster, sprache)) void holeTon(naechster.id, sprache);
+      if (naechster && textIn(naechster, sprache)) void holeTon(naechster.id, sprache, true);
     }
   }, [phase, schritte, index, sprache, holeTon]);
 

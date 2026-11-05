@@ -60,6 +60,11 @@ export interface DemoSchritt {
   ceoTeil?: boolean;
   /** Nur ohne CEO-Teil (zwei Fassungen des Schlusses). */
   nurOhneCeoTeil?: boolean;
+  /** Himbis eigene Einleitung (Begrüßung, Problem, Lösung). Sie entfällt, wenn die vortragende Person
+   *  selbst einleitet und dann an Himbi übergibt ("Ab den Beispielen"). */
+  einleitung?: boolean;
+  /** Der Anschlusssatz nach der Übergabe, nur "Ab den Beispielen". */
+  nurAbBeispielen?: boolean;
   /** Text je Sprache. Deutsch ist die Vorlage. */
   text: { de: string } & Partial<Record<Exclude<DemoSprache, "de">, string>>;
 }
@@ -69,6 +74,7 @@ export const DREHBUCH: readonly DemoSchritt[] = [
   {
     id: "einstieg",
     ziel: { art: "pfad", pfad: "/dashboard" },
+    einleitung: true,
     text: {
       de: "Guten Morgen. Ich bin Himbi und zeige Ihnen in wenigen Minuten, was Damicon Ihnen bringt.",
       ru: "Доброе утро. Я Химби и за несколько минут покажу, что даёт вам Damicon.",
@@ -77,6 +83,7 @@ export const DREHBUCH: readonly DemoSchritt[] = [
   {
     id: "problem",
     ziel: { art: "pfad", pfad: "/dashboard" },
+    einleitung: true,
     text: {
       de: "Heute steht vieles auf Papier oder im Kopf einer Person. Dabei geht leicht etwas verloren: Behandlungen, Erntemengen, Kühlzeiten, Gewinn.",
       ru: "Сейчас многое записано на бумаге или хранится в голове одного человека. Легко потерять обработки, объёмы урожая, время охлаждения и прибыль.",
@@ -85,9 +92,19 @@ export const DREHBUCH: readonly DemoSchritt[] = [
   {
     id: "loesung",
     ziel: { art: "pfad", pfad: "/dashboard" },
+    einleitung: true,
     text: {
       de: "Damicon ist das digitale Gedächtnis Ihres Betriebs. Alles wird einmal erfasst, und Sie bekommen jede Zahl auf Anfrage, auf dem Bildschirm oder von mir.",
       ru: "Damicon это цифровая память вашего хозяйства. Всё записывается один раз, и вы получаете любую цифру по запросу: на экране или от меня.",
+    },
+  },
+  {
+    id: "himbi-start",
+    ziel: { art: "pfad", pfad: "/dashboard" },
+    nurAbBeispielen: true,
+    text: {
+      de: "Sehr gern. Ich bin Himbi und zeige Ihnen, was Damicon auf Feld und Hof bringt.",
+      ru: "С удовольствием. Я Химби и покажу, что Damicon даёт на поле и во дворе.",
     },
   },
   // ---- Feld (höchste Priorität) ----------------------------------------------------------------
@@ -256,8 +273,10 @@ export const DREHBUCH: readonly DemoSchritt[] = [
 
 /** Die Schritte eines Laufs, in der Reihenfolge des Drehbuchs. Der Schluss ist je nach CEO-Teil eine
  *  von zwei Fassungen ("abschluss" mit, "abschluss-ohne" ohne), der Rest des CEO-Teils entfällt. */
-export function schritteFuer(mitCeoTeil: boolean): DemoSchritt[] {
+export function schritteFuer(mitCeoTeil: boolean, mitEinleitung = true): DemoSchritt[] {
   return DREHBUCH.filter((s) => {
+    if (s.einleitung) return mitEinleitung;
+    if (s.nurAbBeispielen) return !mitEinleitung;
     if (s.nurOhneCeoTeil) return !mitCeoTeil;
     if (s.ceoTeil) return mitCeoTeil;
     return true;
