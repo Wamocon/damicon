@@ -65,7 +65,7 @@ jobs:
           node-version: 22
 
       # Gleiche Version wie datenbank-migration-preview.yml: die Skripte lesen die JSON-Ausgabe der CLI.
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v3
         with:
           version: 2.118.0
 

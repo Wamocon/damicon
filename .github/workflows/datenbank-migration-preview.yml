@@ -107,7 +107,7 @@ jobs:
       # Fest gepinnt (Fund 75, 28.09.2026): preview-cli.mjs haengt an "db query --output-format json"
       # und "--agent no"; ein neues Ausgabeformat hat die CI schon einmal still gebrochen (485dca8).
       # Anheben nur zusammen mit einem Probelauf (anwenden --linked --nur-anzeigen).
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v3
         with:
           version: 2.118.0
 
