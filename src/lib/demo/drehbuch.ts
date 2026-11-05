@@ -10,6 +10,9 @@
 // Warum der Text hier auch für die Stimme gilt: die Route /api/demo-sprachausgabe nimmt nur eine
 // Schrittkennung und eine Sprache entgegen und liest den Text aus dieser Datei. So bleibt sie kein
 // offener Sprachgenerator (gleiche Überlegung wie bei /api/ki-sprachausgabe).
+//
+// Die Texte sagen kurz, was es bringt: Nutzen zuerst, höchstens zwei Sätze je Schritt, kein Ablauf
+// und keine Aufzählung von Funktionen.
 
 import { modules } from "@/lib/modules";
 import type { Role } from "@/lib/rbac";
@@ -39,147 +42,163 @@ export type DemoZiel =
 export interface DemoSchritt {
   id: string;
   ziel: DemoZiel;
-  /** Nachrichtenschlüssel (next-intl, voller Pfad) der Überschrift, auf die Himbi zeigt. Ohne Angabe:
-   *  bei einem Modul dessen Titel, sonst die Überschrift der Seite. Wird die Stelle nicht gefunden,
-   *  zeigt Himbi auf die Überschrift der Seite, der Schritt bleibt nie hängen. */
+  /** Die Stellen einer Modulseite, auf die Himbi nacheinander zeigt, solange er spricht: 0 ist der
+   *  Seitenkopf (die Karte mit der Überschrift), 1 der erste Abschnitt mit Zwischenüberschrift, 2 der
+   *  zweite und so weiter, in der Reihenfolge der Seite. Gezählt wird nach Position, nicht nach Wort,
+   *  deshalb gilt dieselbe Angabe in jeder Sprache. Die Markierung wandert gleichmäßig über die
+   *  Sprechzeit. Fehlt ein Abschnitt (zum Beispiel weil die Seite leer ist), entfällt er still. Ohne
+   *  Angabe zeigt Himbi bei einem Modul auf den Seitenkopf. */
+  abschnitte?: readonly number[];
+  /** Nachrichtenschlüssel (next-intl, voller Pfad) einer Überschrift auf einer festen Seite, auf die Himbi
+   *  zeigt. Ohne Angabe zeigt er dort nirgends hin. */
   zeigeAuf?: string;
   /** Gehört zum CEO-Teil: läuft nur, wenn er gewählt ist. */
   ceoTeil?: boolean;
   /** Nur ohne CEO-Teil (zwei Fassungen des Schlusses). */
   nurOhneCeoTeil?: boolean;
-  /** Text je Sprache. Deutsch ist die Vorlage, jede weitere Sprache kommt nach der Freigabe dazu. */
+  /** Text je Sprache. Deutsch ist die Vorlage. */
   text: { de: string } & Partial<Record<Exclude<DemoSprache, "de">, string>>;
 }
 
-// Die Schritte folgen dem Drehbuch (Stand: Entwurf zur Prüfung). Himbi spricht von sich in der
-// ersten Person, wo er vorkommt.
 export const DREHBUCH: readonly DemoSchritt[] = [
   {
     id: "einstieg",
     ziel: { art: "pfad", pfad: "/dashboard" },
     text: {
-      de: "Guten Morgen. Ich bin Himbi. In wenigen Minuten zeige ich Ihnen drei Dinge: das Problem, die Lösung und den Nutzen für Sie.",
-      ru: "Доброе утро. Я Химби. За несколько минут я покажу вам три вещи: проблему, решение и пользу для вас.",
+      de: "Guten Morgen. Ich bin Himbi und zeige Ihnen in wenigen Minuten, was Damicon Ihnen bringt.",
+      ru: "Доброе утро. Я Химби и за несколько минут покажу, что даёт вам Damicon.",
     },
   },
   {
     id: "problem",
     ziel: { art: "pfad", pfad: "/dashboard" },
     text: {
-      de: "Das Hauptproblem: Alles steht auf Papier oder im Kopf einer einzigen Person. Dabei vergisst man leicht etwas. Welcher Block muss sich noch erholen? Wann war die letzte Behandlung? Wer hat wie viel gepflückt und wie hoch war der Ertrag? Was wurde an wen verkauft, und wie viel ist noch übrig? Und was bleibt nach allen Kosten als Gewinn?",
-      ru: "Главная проблема: всё записано на бумаге или хранится в голове одного человека. Очень легко что-нибудь забыть. Какой блок ещё отдыхает? Когда была последняя обработка? Кто сколько собрал и каков был урожай? Что и кому продано, и сколько осталось? И сколько остаётся прибыли после всех затрат?",
+      de: "Heute steht vieles auf Papier oder im Kopf einer Person. Dabei geht leicht etwas verloren: Behandlungen, Mengen, Verkäufe, Gewinn.",
+      ru: "Сейчас многое записано на бумаге или хранится в голове одного человека. Легко потерять обработки, количества, продажи и прибыль.",
     },
   },
   {
     id: "loesung",
     ziel: { art: "pfad", pfad: "/dashboard" },
     text: {
-      de: "Die Lösung heißt Damicon. Damicon ist das digitale Gedächtnis Ihres Betriebs. Alles wird einmal erfasst. Danach liefert es jede Zahl auf Anfrage, auf dem Bildschirm oder über mich. Die Beispiele zeige ich Ihnen jetzt selbst.",
-      ru: "Решение называется Damicon. Damicon это цифровая память вашего хозяйства. Всё записывается один раз. Дальше он выдаёт любую цифру по запросу: на экране или через меня. Примеры я покажу вам сам.",
+      de: "Damicon ist das digitale Gedächtnis Ihres Betriebs. Alles wird einmal erfasst, und Sie bekommen jede Zahl auf Anfrage, auf dem Bildschirm oder von mir.",
+      ru: "Damicon это цифровая память вашего хозяйства. Всё записывается один раз, и вы получаете любую цифру по запросу: на экране или от меня.",
     },
   },
   {
     id: "reihenbloecke",
     ziel: { art: "modul", modul: "reihenbloecke" },
+    abschnitte: [1, 2],
     text: {
-      de: "Was bringt das? Fünf Beispiele. Erstens, das Feld. Jeder Reihenblock hat einen Status. Hier sehen Sie, welcher Block reif ist, ruht oder wegen einer Wartezeit gesperrt ist.",
-      ru: "Что это даёт? Пять примеров. Первый: поле. У каждого рядного блока есть статус. Здесь видно, какой блок созрел, какой отдыхает, а какой закрыт из-за срока ожидания.",
+      de: "Erstens, das Feld: Sie sehen für jeden Reihenblock den Status, reif, ruhend oder gesperrt.",
+      ru: "Первое, поле: по каждому рядному блоку виден статус: созрел, отдыхает или закрыт.",
     },
   },
   {
     id: "rotationsplan",
     ziel: { art: "modul", modul: "rotationsplan" },
+    abschnitte: [1, 2],
     text: {
-      de: "Der Rotationsplan zeigt, welcher Block heute dran ist, und markiert einen ausgelassenen Durchgang. Ergebnis: keine verpasste Pflückrunde, und die Menge je Block ist erfasst.",
-      ru: "План ротации показывает, какой блок сегодня в очереди, и отмечает пропущенный обход. Итог: ни одного пропущенного сбора, а количество с каждого блока записано.",
+      de: "Der Rotationsplan zeigt, welcher Block heute dran ist. So wird keine Pflückrunde verpasst.",
+      ru: "План ротации показывает, какой блок сегодня в очереди. Ни один сбор не пропущен.",
     },
   },
   {
     id: "pflanzenschutz",
     ziel: { art: "modul", modul: "pflanzenschutz" },
+    abschnitte: [0, 1],
     text: {
-      de: "Zweitens, die Behandlungen. Jede Behandlung wird je Block erfasst, mit Mittel und Datum. Damicon sperrt den Block automatisch bis zum Ende der Wartezeit. Ergebnis: Es wird nie während der Wartezeit gepflückt, und der Nachweis für den Handel kommt auf Knopfdruck.",
-      ru: "Второй: обработки. Каждая обработка записывается по блоку: средство и дата. Damicon сам закрывает блок до конца срока ожидания. Итог: во время срока ожидания сбора не будет, а подтверждение для торговых сетей готово по нажатию кнопки.",
+      de: "Zweitens, die Behandlungen: Mittel und Datum je Block, und der Block bleibt bis zum Ende der Wartezeit gesperrt. Den Nachweis für den Handel gibt es auf Knopfdruck.",
+      ru: "Второе, обработки: средство и дата по каждому блоку, и блок закрыт до конца срока ожидания. Подтверждение для торговых сетей по нажатию кнопки.",
     },
   },
   {
     id: "personal",
     ziel: { art: "modul", modul: "personal" },
+    abschnitte: [1, 4],
     text: {
-      de: "Drittens, das Büro. Ein Scan je Steige erfasst Person, Menge, Block und Uhrzeit. Sie sehen die Leistung jeder Person und die Streuung im Team.",
-      ru: "Третий: офис. Один скан ящика записывает человека, количество, блок и время. Вы видите выработку каждого и разброс в бригаде.",
+      de: "Drittens, das Büro: Sie sehen die Leistung jeder Person und die Streuung im Team.",
+      ru: "Третье, офис: вы видите выработку каждого человека и разброс в бригаде.",
     },
   },
   {
     id: "lohn",
     ziel: { art: "modul", modul: "lohn" },
+    abschnitte: [1],
     text: {
-      de: "Der Lohn richtet sich nach der echten Menge und nach der Qualität.",
-      ru: "Оплата зависит от реального количества и от качества.",
+      de: "Der Lohn richtet sich nach Menge und Qualität.",
+      ru: "Оплата зависит от количества и качества.",
     },
   },
   {
     id: "integrationen",
     ziel: { art: "modul", modul: "integrationen" },
+    abschnitte: [1, 2],
     text: {
-      de: "Die Saisonverträge melden wir im staatlichen Register für Arbeitsverträge, kurz ЕСУТД. Dazu im Büro: Schichtplan, Dokumente mit Ablaufdatum und Fördermittel mit Fristen.",
-      ru: "Сезонные договоры мы ведём в системе и передаём в Единую систему учёта трудовых договоров, сокращённо ЕСУТД. Кроме того, в офисе есть график смен, документы со сроком действия и субсидии со сроками.",
+      de: "Saisonverträge führt das System mit, samt Meldung und Frist für das staatliche Register ЕСУТД.",
+      ru: "Сезонные договоры система ведёт вместе со сроками и сообщением в государственную систему ЕСУТД.",
     },
   },
   {
     id: "b2b-portal",
     ziel: { art: "modul", modul: "b2b_portal" },
+    abschnitte: [1, 5, 2],
     text: {
-      de: "Viertens, der Markt. Jede Steige gehört zu genau einer Charge. Die Charge läuft bis zur Rechnung und bis zur ЭСФ. Kunden bestellen vor und verfolgen ihre Lieferung im Portal.",
-      ru: "Четвёртый: рынок. Каждый ящик относится ровно к одной партии. Партия идёт до счёта и до ЭСФ. Клиенты заказывают заранее и следят за поставкой в портале.",
+      de: "Viertens, der Markt: Kunden verfolgen ihre Lieferung im Portal und bestellen selbst vor. Jede Charge läuft bis zur Rechnung.",
+      ru: "Четвёртое, рынок: клиенты сами следят за поставкой в портале и заказывают заранее. Каждая партия идёт до счёта.",
     },
   },
   {
     id: "reklamationen",
     ziel: { art: "modul", modul: "reklamationen" },
+    abschnitte: [1],
     text: {
-      de: "Reklamationen führen zurück zur Charge. Dazu kommen Preislisten je Kunde, Zukauf von Nachbarbetrieben und Anfragen von der Website. Ergebnis: Sie sehen, wer was zu welchem Preis gekauft hat.",
-      ru: "Рекламации ведут обратно к партии. Кроме того, есть прайс-листы для каждого клиента, закупки у соседних хозяйств и заявки с сайта. Итог: вы видите, кто что купил и по какой цене.",
+      de: "Jede Reklamation führt zurück zur Charge. Sie sehen, wer was zu welchem Preis gekauft hat.",
+      ru: "Каждая рекламация ведёт обратно к партии. Вы видите, кто что купил и по какой цене.",
     },
   },
   {
     id: "finanzen",
     ziel: { art: "modul", modul: "finanzen" },
+    abschnitte: [1, 2],
     text: {
-      de: "Fünftens, die Finanzen. Das Büro rechnet den Deckungsbeitrag, also Erlös minus direkte Kosten, je Reihenblock, Sorte und Erntetag und je Kilogramm. Gebuchtes lässt sich nicht mehr ändern. Dazu kommt die Wirtschaftlichkeit des Betriebs über drei bis fünf Jahre. Ergebnis: Sie entscheiden nach Zahlen statt nach Gefühl.",
-      ru: "Пятый: финансы. Офис считает маржинальный доход, то есть выручку минус прямые затраты, по рядному блоку, сорту и дню сбора и на килограмм. Проведённое нельзя изменить. Кроме того, есть экономическая эффективность хозяйства за период от трёх до пяти лет. Итог: вы решаете по цифрам, а не по ощущению.",
+      de: "Fünftens, die Finanzen: Der Deckungsbeitrag je Reihenblock, Sorte und Erntetag zeigt, was bleibt. Sie entscheiden nach Zahlen.",
+      ru: "Пятое, финансы: маржинальный доход по рядному блоку, сорту и дню сбора показывает, что остаётся. Вы решаете по цифрам.",
     },
   },
   {
     id: "pflueckaufgaben",
     ziel: { art: "modul", modul: "pflueckaufgaben" },
+    abschnitte: [0, 1],
     text: {
-      de: "Der wichtigste Nutzen liegt auf dem Feld und im Hof. Dort geben Sie Arbeit ab, ohne die Kontrolle zu verlieren. Auf dem Feld geben Sie eine Pflückaufgabe an eine Brigade. Die Brigade nimmt sie an, pflückt und meldet Menge und Fotos zurück. Sie sehen den Stand: offen, angenommen, in Arbeit, abgeschlossen.",
-      ru: "Главная польза на поле и во дворе. Там вы передаёте работу, не теряя контроля. На поле вы даёте бригаде задание на сбор. Бригада принимает его, собирает и сообщает количество и фото. Вы видите статус: открыто, принято, в работе, закрыто.",
+      de: "Der wichtigste Nutzen liegt auf Feld und Hof: Sie geben Arbeit ab und sehen den Stand. Die Brigade nimmt die Pflückaufgabe an und meldet Menge und Fotos zurück.",
+      ru: "Главная польза на поле и во дворе: вы передаёте работу и видите статус. Бригада принимает задание на сбор и сообщает количество и фото.",
     },
   },
   {
     id: "kuehlkette",
     ziel: { art: "modul", modul: "kuehlkette" },
+    abschnitte: [1, 2],
     text: {
-      de: "Im Hof läuft die Kühlketten-Uhr ab dem Pflücken. Ist die Ware nach 60 Minuten nicht gekühlt, ist sie am nächsten Tag nur noch Industrieware. Das System meldet jede Abweichung sofort, ohne dass jemand danebensteht.",
-      ru: "Во дворе с момента сбора идёт таймер холодовой цепи. Если через 60 минут ягоды не охлаждены, на следующий день это уже только продукция для промышленной переработки. Система сразу сообщает о любом отклонении, и никому не нужно стоять рядом.",
+      de: "Im Hof läuft ab dem Pflücken die Kühlketten-Uhr. Ist die Ware nach 60 Minuten nicht gekühlt, ist sie am nächsten Tag nur noch Industrieware. Jede Abweichung sehen Sie sofort.",
+      ru: "Во дворе с момента сбора идёт таймер холодовой цепи. Если через 60 минут ягоды не охлаждены, на следующий день они годятся только для переработки. Любое отклонение вы видите сразу.",
     },
   },
   {
     id: "logistik",
     ziel: { art: "modul", modul: "logistik" },
+    abschnitte: [1],
     text: {
-      de: "Die Übergabe an den Kunden quittiert die Brigade digital. Ergebnis: Sie fragen nicht mehr nach. Sie sehen es.",
-      ru: "Передачу клиенту бригада подтверждает в цифровом виде. Итог: вы больше не переспрашиваете. Вы это видите.",
+      de: "Die Brigade quittiert die Übergabe an den Kunden digital. Sie fragen nicht nach, Sie sehen es.",
+      ru: "Бригада подтверждает передачу клиенту в цифровом виде. Вы не переспрашиваете, вы видите.",
     },
   },
   {
     id: "himbi",
     ziel: { art: "pfad", pfad: "/dashboard" },
     text: {
-      de: "Ich bin Himbi, der Assistent. Ich beantworte Fragen zu Ihren Daten und zeige die richtige Seite, so wie eben. Ich handle nur nach Ihrer Bestätigung. Sie können auch mit mir sprechen.",
-      ru: "Я Химби, помощник. Я отвечаю на вопросы по вашим данным и показываю нужную страницу, как только что. Я действую только с вашего подтверждения. Со мной можно и говорить.",
+      de: "Ich beantworte Fragen zu Ihren Daten und zeige die richtige Seite. Gehandelt wird nur nach Ihrer Bestätigung.",
+      ru: "Я отвечаю на вопросы по вашим данным и показываю нужную страницу. Действую только с вашего подтверждения.",
     },
   },
   {
@@ -188,17 +207,18 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     zeigeAuf: "ceoUebersicht.titel",
     ceoTeil: true,
     text: {
-      de: "Jetzt Ihr Morgen. Oben sehen Sie die vier Prüfbereiche: Audit, Steuern, Recht und Risiko. Jeder hat Punkte und offene Maßnahmen. Überfälliges steht ganz oben.",
-      ru: "Теперь ваше утро. Вверху вы видите четыре области проверки: аудит, налоги, право и риски. В каждой есть баллы и открытые меры. Просроченное стоит первым.",
+      de: "Ihr Morgen: Audit, Steuern, Recht und Risiko sind schon geprüft. Überfälliges steht oben.",
+      ru: "Ваше утро: аудит, налоги, право и риски уже проверены. Просроченное стоит первым.",
     },
   },
   {
     id: "ceo-wirtschaftlichkeit",
     ziel: { art: "modul", modul: "wirtschaftlichkeit" },
+    abschnitte: [3, 4],
     ceoTeil: true,
     text: {
-      de: "Dann die Wirtschaftlichkeit: Die Rechnung des Systems zeigt eine Amortisation von 11 Monaten. Die Annahmen dahinter bitte ich Sie zu bestätigen.",
-      ru: "Дальше экономическая эффективность: расчёт системы показывает срок окупаемости 11 месяцев. Допущения этого расчёта прошу вас подтвердить.",
+      de: "Die Rechnung des Systems zeigt eine Amortisation von 11 Monaten. Die Annahmen bitte ich Sie zu bestätigen.",
+      ru: "Расчёт системы показывает срок окупаемости 11 месяцев. Допущения прошу вас подтвердить.",
     },
   },
   {
@@ -207,8 +227,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     zeigeAuf: "dashboard.bereiche.titel",
     ceoTeil: true,
     text: {
-      de: "Unten sehen Sie die vier Bereiche des Betriebs: Feld, Hof, Büro und Markt.",
-      ru: "Внизу четыре области хозяйства: поле, двор, офис и рынок.",
+      de: "Darunter sehen Sie Feld, Hof, Büro und Markt auf einen Blick.",
+      ru: "Ниже вы видите поле, двор, офис и рынок одним взглядом.",
     },
   },
   {
@@ -216,8 +236,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "pfad", pfad: "/dashboard" },
     ceoTeil: true,
     text: {
-      de: "Zusammengefasst: Das Problem ist Papier und der Kopf einer Person. Die Lösung ist das digitale Gedächtnis des Betriebs. Der Nutzen: Auf dem Feld und im Hof geben Sie Arbeit ab und sehen das Ergebnis sofort. Ich habe eine Bitte: Bestätigen Sie die Annahmen der Wirtschaftlichkeit.",
-      ru: "Итог: проблема в бумаге и в голове одного человека, решение в цифровой памяти хозяйства, польза в том, что на поле и во дворе вы передаёте работу и сразу видите результат. У меня одна просьба: подтвердите допущения экономической эффективности.",
+      de: "Zusammengefasst: Sie geben Arbeit ab und sehen das Ergebnis sofort. Bitte bestätigen Sie die Annahmen der Wirtschaftlichkeit.",
+      ru: "Итог: вы передаёте работу и сразу видите результат. Прошу подтвердить допущения экономической эффективности.",
     },
   },
   {
@@ -225,8 +245,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "pfad", pfad: "/dashboard" },
     nurOhneCeoTeil: true,
     text: {
-      de: "Zusammengefasst: Das Problem ist Papier und der Kopf einer Person. Die Lösung ist das digitale Gedächtnis des Betriebs. Der Nutzen: Auf dem Feld und im Hof geben Sie Arbeit ab und sehen das Ergebnis sofort. Die Wirtschaftlichkeit zeige ich Ihnen gern in einem eigenen Termin.",
-      ru: "Итог: проблема в бумаге и в голове одного человека, решение в цифровой памяти хозяйства, польза в том, что на поле и во дворе вы передаёте работу и сразу видите результат. Экономическую эффективность я охотно покажу вам на отдельной встрече.",
+      de: "Zusammengefasst: Sie geben Arbeit ab und sehen das Ergebnis sofort. Die Wirtschaftlichkeit zeige ich Ihnen gern in einem eigenen Termin.",
+      ru: "Итог: вы передаёте работу и сразу видите результат. Экономическую эффективность я охотно покажу отдельно.",
     },
   },
 ];
@@ -278,7 +298,7 @@ export function sprechtext(schritt: DemoSchritt, sprache: DemoSprache): string |
 /** Wie lange ein Schritt ohne Ton steht: grob die Lesezeit, mindestens gut lesbar. */
 export function lesedauerMs(text: string): number {
   const woerter = text.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(4000, Math.round(woerter * 430));
+  return Math.max(3500, Math.round(woerter * 430));
 }
 
 /** Das Modul zu einem Schritt, falls das Ziel ein Modul ist. */

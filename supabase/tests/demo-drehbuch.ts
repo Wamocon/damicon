@@ -116,7 +116,38 @@ pruefe(
 pruefe("Russisch ist in der Auswahl, sobald alle Schritte übersetzt sind", verfuegbareSprachen().includes("ru"));
 pruefe("Anzeige behält das Kürzel der Behörde", esutd !== null && (textIn(esutd, "de") ?? "").includes("ЕСУТД"));
 pruefe("sprechtext liefert null, wo es keinen Text gibt", DREHBUCH.every((s) => sprechtext(s, "ru") === null || textIn(s, "ru") !== null));
-pruefe("Lesedauer: nie unter vier Sekunden", lesedauerMs("Ja.") === 4000 && lesedauerMs("") === 4000);
+pruefe("Lesedauer: nie unter dreieinhalb Sekunden", lesedauerMs("Ja.") === 3500 && lesedauerMs("") === 3500);
+
+// ---- Kürze: Nutzen statt Ablauf ----------------------------------------------------------------
+
+// Rückmeldung vom 05.11.2026: das Drehbuch war zu lang und nannte zu viel. Jeder Schritt bleibt bei
+// höchstens drei Sätzen und 35 Wörtern, in jeder Sprache.
+for (const s of DREHBUCH) {
+  for (const sprache of DEMO_SPRACHEN) {
+    const text = textIn(s, sprache);
+    if (text === null) continue;
+    const saetze = (text.match(/[.!?](\s|$)/g) ?? []).length;
+    const woerter = text.split(/\s+/).filter(Boolean).length;
+    pruefe(`Schritt ${s.id} (${sprache}): höchstens drei Sätze und 35 Wörter`, saetze <= 3 && woerter <= 35, `${saetze} Sätze, ${woerter} Wörter`);
+  }
+}
+
+// ---- Zeigen: Abschnitte der Seite --------------------------------------------------------------
+
+for (const s of DREHBUCH) {
+  if (s.abschnitte) {
+    pruefe(`Schritt ${s.id}: Abschnitte gehören zu einer Modulseite`, s.ziel.art === "modul");
+    pruefe(
+      `Schritt ${s.id}: Abschnitte sind ganze Zahlen von 0 bis 8, ohne Wiederholung`,
+      s.abschnitte.every((n) => Number.isInteger(n) && n >= 0 && n <= 8) && new Set(s.abschnitte).size === s.abschnitte.length,
+    );
+  }
+  if (s.zeigeAuf) pruefe(`Schritt ${s.id}: eine Überschrift nur auf einer festen Seite`, s.ziel.art === "pfad" && !s.abschnitte);
+}
+pruefe(
+  "Fünf der Modulschritte zeigen auf mehr als eine Stelle (die Markierung wandert)",
+  DREHBUCH.filter((s) => (s.abschnitte?.length ?? 0) > 1).length >= 5,
+);
 
 // ---- Zeit --------------------------------------------------------------------------------------
 
@@ -126,8 +157,8 @@ function minuten(schritte: ReturnType<typeof schritteFuer>): number {
 }
 const ohne = minuten(schritteFuer(false));
 const mit = minuten(schritteFuer(true));
-pruefe("Sprechzeit ohne CEO-Teil zwischen 3 und 6 Minuten", ohne >= 3 && ohne <= 6, `${ohne.toFixed(1)} min`);
-pruefe("Sprechzeit mit CEO-Teil höchstens 7 Minuten", mit <= 7, `${mit.toFixed(1)} min`);
+pruefe("Sprechzeit ohne CEO-Teil zwischen 1,5 und 3,5 Minuten", ohne >= 1.5 && ohne <= 3.5, `${ohne.toFixed(1)} min`);
+pruefe("Sprechzeit mit CEO-Teil höchstens 4 Minuten", mit <= 4, `${mit.toFixed(1)} min`);
 
 // ---- Zahlen ------------------------------------------------------------------------------------
 
@@ -159,6 +190,13 @@ const einstellung = readFileSync("src/components/haustier/haustier-einstellung.t
 pruefe("Start liegt in Himbis Einstellungen", einstellung.includes("<DemoStart />"));
 const player = readFileSync("src/components/demo/demo-kontext.tsx", "utf8");
 pruefe("Player klickt nichts und füllt nichts aus", !/\.click\(\)|fuelleFeld|\.submit\(|requestSubmit|\.value\s*=/.test(player));
+// Rückmeldung vom 05.11.2026: die Pausen zwischen den Schritten waren mal lang, mal kurz, weil nur der
+// nächste Schritt vorab geholt wurde und die Stimme langsamer sein kann als ein Schritt lang ist.
+const vorab = /const VORAB = (\d+);/.exec(player);
+pruefe("Player holt den Ton mehrere Schritte im Voraus", vorab !== null && Number(vorab[1]) >= 3);
+pruefe("Player hält den Ton als Datei im Speicher (ein Abruf je Schritt)", player.includes("tonSpeicher") && player.includes("URL.createObjectURL"));
+const nachlauf = /const NACHLAUF_MS = (\d+);/.exec(player);
+pruefe("Pause nach dem letzten Wort ist fest und kurz (höchstens 800 ms)", nachlauf !== null && Number(nachlauf[1]) <= 800);
 
 // ---- Vorrang vor dem Live-Hinweis --------------------------------------------------------------
 

@@ -7,7 +7,7 @@ Himbi führt in wenigen Minuten durch Damicon: Er öffnet Seite für Seite, hebt
 ## Starten
 
 1. KI-Panel öffnen (Knopf "KI fragen"), Reiter **Einstellungen**.
-2. Unter "Vorführung mit Himbi" **Vorführung starten** (rund 5 bis 6 Minuten) oder **Mit CEO-Teil starten** (rund 7 Minuten).
+2. Unter "Vorführung mit Himbi" **Vorführung starten** (rund 3 bis 4 Minuten mit Seitenwechseln) oder **Mit CEO-Teil starten** (rund 4 bis 5 Minuten). Das Drehbuch sagt kurz, was es bringt: höchstens zwei bis drei Sätze je Schritt, der Test hält 35 Wörter ein.
 3. Bedienung in der Sprechblase: Zurück, Pause, Weiter, Sprache, Beenden. Ein Klick irgendwo auf der Seite pausiert, Escape beendet.
 
 Wer darf: nur Geschäftsführung und Administration (echte Profilrolle, auch für die Stimme auf dem Server). Voraussetzungen: Himbi ist eingeschaltet und im Bild, kein Handy.
@@ -16,7 +16,10 @@ Wer darf: nur Geschäftsführung und Administration (echte Profilrolle, auch fü
 
 ## Das Drehbuch ändern
 
-Alles steht in einer Datei: `src/lib/demo/drehbuch.ts`. Ein Schritt hat eine Kennung, ein Ziel (Modul aus `modules.ts` oder feste Seite), optional die Überschrift, auf die Himbi zeigt (`zeigeAuf`, ein Schlüssel aus `src/messages`), und den Text je Sprache.
+Alles steht in einer Datei: `src/lib/demo/drehbuch.ts`. Ein Schritt hat eine Kennung, ein Ziel (Modul aus `modules.ts` oder feste Seite), die Stellen, auf die Himbi zeigt, und den Text je Sprache.
+
+- **Modulseiten:** `abschnitte: [1, 2]` heißt: erst auf den ersten, dann auf den zweiten Abschnitt mit Zwischenüberschrift zeigen. 0 ist der Seitenkopf. Gezählt wird nach Position auf der Seite, deshalb gilt dieselbe Angabe in jeder Sprache. Die Markierung wandert gleichmäßig über die Sprechzeit, denn der Text spricht meist über mehrere Stellen. Fehlt ein Abschnitt, entfällt er still, der Durchgang wartet bis zu vier Sekunden auf langsam ladende Seiten.
+- **Feste Seiten (Startübersicht):** `zeigeAuf` nennt den Schlüssel einer Überschrift aus `src/messages`. Ohne Angabe zeigt Himbi dort nirgends hin.
 
 - Der Text gilt für Untertitel UND Stimme. Die Route `/api/demo-sprachausgabe` nimmt nur Schrittkennung und Sprache und liest den Text aus dieser Datei. Freier Text ist nicht möglich.
 - Kürzel, die die deutsche Stimme nicht lesen kann (ЕСУТД, ЭСФ), stehen in `SPRECHWEISE_DE` mit ihrer gesprochenen Form.
@@ -28,7 +31,7 @@ Alles steht in einer Datei: `src/lib/demo/drehbuch.ts`. Ein Schritt hat eine Ken
 
 ## Stimme
 
-Die vorhandene Sprachausgabe (`KI_SPRACHAUSGABE_ANBIETER`, Sokrates oder Soniox, mit Rückfall). Der nächste Schritt wird vorab erzeugt, jeder Schritt danach aus dem Zwischenspeicher geholt. Der Zwischenspeicher ist der private Bucket `ki-sprachausgabe` unter `demo/<sprache>/`, der **nur MP3** annimmt (der Dienst liefert MP3).
+Die vorhandene Sprachausgabe (`KI_SPRACHAUSGABE_ANBIETER`, Sokrates oder Soniox, mit Rückfall). Der Ton der nächsten drei Schritte wird schon geholt, während der aktuelle läuft, und als Datei im Speicher des Browsers gehalten (ein Abruf je Schritt). So bleibt die Pause zwischen den Schritten kurz und gleichmäßig, auch wenn die Stimme etwa in Echtzeit erzeugt. Gemessen mit einer Stimme, die 4 Sekunden je Schritt braucht: Lücken zwischen 0,8 und 1,9 Sekunden. Beim zweiten Lauf kommt jeder Schritt aus dem Zwischenspeicher. Der Zwischenspeicher ist der private Bucket `ki-sprachausgabe` unter `demo/<sprache>/`, der **nur MP3** annimmt (der Dienst liefert MP3).
 
 Fällt die Stimme aus (Dienst nicht erreichbar, Berechtigung, Ratenlimit), laufen die Untertitel mit der Lesezeit weiter, in der Blase steht "Kein Ton". Ein Schritt bleibt nie hängen.
 
