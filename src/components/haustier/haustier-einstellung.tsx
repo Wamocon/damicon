@@ -2,6 +2,7 @@
 
 import { useState, useSyncExternalStore, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
+import { DemoStart } from "@/components/demo/demo-start";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { Himbi, TRACHTEN } from "@/components/haustier/himbi";
 import { bewegungSpeicher, schreibeBewegung, VORSCHAU_ZUSTAENDE, type HaustierZustand, type Stimmung } from "@/lib/haustier";
@@ -112,6 +113,9 @@ export function HaustierEinstellung() {
         </button>
       </div>
       <p className="ki-einstellung__text">{t("einstellung.bewegungText")}</p>
+
+      {/* Vorführung nach Drehbuch (components/demo): nur für Geschäftsführung und Administration. */}
+      <DemoStart />
 
       <div className="hb-vorschau">
         <div className="hb-vorschau__buehne" data-bewegung={bewegung}>

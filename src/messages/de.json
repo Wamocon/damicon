@@ -2177,6 +2177,19 @@
         "jade": "Jade"
       }
     },
+    "demo": {
+      "titel": "Vorführung mit Himbi",
+      "text": "Himbi führt in wenigen Minuten durch Damicon: Er öffnet die Seiten, zeigt auf die Stellen und spricht dazu. Er zeigt nur und ändert nichts.",
+      "start": "Vorführung starten",
+      "startMitCeo": "Mit CEO-Teil starten",
+      "sprache": "Sprache der Vorführung",
+      "nichtMoeglich": "Himbi muss eingeschaltet und im Bild sein, am Handy gibt es die Vorführung nicht.",
+      "schritt": "Schritt {n} von {m}",
+      "fortsetzen": "Fortsetzen",
+      "keinTon": "Kein Ton, die Untertitel laufen weiter.",
+      "ende": "Das war die Vorführung. Danke für Ihre Zeit.",
+      "nochmal": "Nochmal"
+    },
     "tour": {
       "gruss": "Hallo, ich bin Himbi! Soll ich dir Damicon in einer Minute zeigen?",
       "autoStart": "Ich lege gleich von allein los. Klick oder scrolle, wenn du lieber selbst schaust.",
