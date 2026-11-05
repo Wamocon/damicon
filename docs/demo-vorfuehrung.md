@@ -20,7 +20,7 @@ Alles steht in einer Datei: `src/lib/demo/drehbuch.ts`. Ein Schritt hat eine Ken
 
 - Der Text gilt für Untertitel UND Stimme. Die Route `/api/demo-sprachausgabe` nimmt nur Schrittkennung und Sprache und liest den Text aus dieser Datei. Freier Text ist nicht möglich.
 - Kürzel, die die deutsche Stimme nicht lesen kann (ЕСУТД, ЭСФ), stehen in `SPRECHWEISE_DE` mit ihrer gesprochenen Form.
-- Eine Sprache erscheint in der Auswahl erst, wenn **jeder** Schritt einen Text in ihr hat. Russisch kommt als zweite Textspalte (`text.ru`) nach der Freigabe der deutschen Fassung.
+- Eine Sprache erscheint in der Auswahl erst, wenn **jeder** Schritt einen Text in ihr hat. Deutsch und Russisch liegen vor (`text.de`, `text.ru`). Die Sprache folgt der Oberfläche: steht sie auf Russisch, spricht Himbi Russisch. In der Blase wechselt der Knopf mit dem Sprachnamen mitten im Lauf. Die russische Stimme bekommt "Дамикон" statt "Damicon" (`SPRECHWEISE_RU`), die Untertitel behalten die Schreibweise.
 - Ändert sich ein Text, entsteht neues Audio: der Zwischenspeicher trägt einen Abdruck des Textes im Pfad.
 - Die genannte Amortisation (11 Monate) muss mit der Rechnung im System übereinstimmen, der Test prüft das.
 
@@ -38,7 +38,7 @@ Die Vorführung speist dieselben Felder wie die Compliance-Tour (Blase, Zustand,
 
 ## Grenzen und offen
 
-- Russisch fehlt noch (Text nach Freigabe der deutschen Fassung). Kasachisch und Englisch sind nicht vorgesehen.
+- Der russische Text ist eine Übersetzung der deutschen Fassung und noch nicht von einer Person gegengelesen, die Russisch spricht. Die Aussprache der Kürzel ЭСФ und ЕСУТД durch die russische Stimme ist nicht gehört. Kasachisch und Englisch sind nicht vorgesehen.
 - Die Seiten zeigen die Daten des angemeldeten Kontos. Fehlen Beispieldaten (kein gesperrter Block, keine überfällige Rotation), spricht Himbi über eine leere Stelle. Vor einer Vorführung Daten prüfen.
 - Nicht verifiziert ist der Ton mit den echten Stimmen (Sokrates, Soniox). Getestet wurde der Weg mit einer Attrappe, die MP3 liefert, einschließlich Zwischenspeicher und Vorab-Erzeugung.
 - Auf dem Handy gibt es keine Figur und damit keine Vorführung.

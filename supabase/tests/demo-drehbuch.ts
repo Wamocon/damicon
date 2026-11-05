@@ -106,6 +106,14 @@ for (const s of DREHBUCH) {
 const esutd = schrittMitId("integrationen");
 const sprechDe = esutd ? sprechtext(esutd, "de") : null;
 pruefe("deutsche Stimme: Kürzel in Buchstaben, keine kyrillischen Zeichen mehr", sprechDe !== null && !/[Ѐ-ӿ]/.test(sprechDe) && sprechDe.includes("E S U T D"));
+pruefe(
+  "russische Stimme: kein lateinischer Buchstabe mehr, die Untertitel behalten Damicon",
+  DREHBUCH.every((s) => {
+    const gesprochen = sprechtext(s, "ru");
+    return gesprochen !== null && !/[A-Za-z]/.test(gesprochen);
+  }) && DREHBUCH.some((s) => (textIn(s, "ru") ?? "").includes("Damicon")),
+);
+pruefe("Russisch ist in der Auswahl, sobald alle Schritte übersetzt sind", verfuegbareSprachen().includes("ru"));
 pruefe("Anzeige behält das Kürzel der Behörde", esutd !== null && (textIn(esutd, "de") ?? "").includes("ЕСУТД"));
 pruefe("sprechtext liefert null, wo es keinen Text gibt", DREHBUCH.every((s) => sprechtext(s, "ru") === null || textIn(s, "ru") !== null));
 pruefe("Lesedauer: nie unter vier Sekunden", lesedauerMs("Ja.") === 4000 && lesedauerMs("") === 4000);
