@@ -24,6 +24,7 @@ import {
   sprechtext,
   textIn,
   verfuegbareSprachen,
+  woerterJeBereich,
 } from "../../src/lib/demo/drehbuch";
 import { waehleBlase } from "../../src/components/haustier/haustier-dashboard-blasen";
 import { amortisationMonate } from "../../src/lib/domain/wirtschaftlichkeit";
@@ -131,6 +132,33 @@ for (const s of DREHBUCH) {
     pruefe(`Schritt ${s.id} (${sprache}): höchstens drei Sätze und 35 Wörter`, saetze <= 3 && woerter <= 35, `${saetze} Sätze, ${woerter} Wörter`);
   }
 }
+
+// ---- Gewichtung: Feld und Hof, dann Büro, Markt ganz kurz --------------------------------------
+
+// Vorgabe vom 05.11.2026: die Priorität zeigt sich an der Länge. Gemessen werden die Wörter der
+// Modulschritte je Bereich (Zone des Moduls) ohne CEO-Teil.
+for (const sprache of DEMO_SPRACHEN) {
+  if (!verfuegbareSprachen().includes(sprache)) continue;
+  const w = woerterJeBereich(sprache);
+  const gesamt = w.feld + w.hof + w.buero + w.markt;
+  const feldHof = w.feld + w.hof;
+  const anteil = (n: number) => `${Math.round((n / gesamt) * 100)} %`;
+  const bild = `Feld ${w.feld}, Hof ${w.hof}, Büro ${w.buero}, Markt ${w.markt} Wörter (Feld und Hof ${anteil(feldHof)})`;
+  pruefe(`Gewichtung (${sprache}): Feld und Hof haben den größten Teil, mindestens 60 Prozent`, feldHof / gesamt >= 0.6, bild);
+  pruefe(`Gewichtung (${sprache}): Feld und Hof zusammen länger als Büro, Büro länger als Markt`, feldHof > w.buero && w.buero > w.markt, bild);
+  pruefe(`Gewichtung (${sprache}): der Markt ist ganz kurz, höchstens 10 Prozent`, w.markt / gesamt <= 0.1, bild);
+  pruefe(`Gewichtung (${sprache}): Feld und Hof haben je mindestens zwei Schritte`, w.feld > 0 && w.hof > 0, bild);
+}
+const jeZone = (zone: string) => schritteFuer(false).filter((s) => modulZu(s.ziel)?.zone === zone).length;
+pruefe(
+  "Reihenfolge: Feld, dann Hof, dann Büro, dann Markt",
+  (() => {
+    const zonen = schritteFuer(false).map((s) => modulZu(s.ziel)?.zone).filter((z): z is NonNullable<typeof z> => !!z);
+    const rang = { feld: 0, hof: 1, buero: 2, markt: 3 } as Record<string, number>;
+    return zonen.every((z, i) => i === 0 || rang[z] >= rang[zonen[i - 1]]);
+  })(),
+);
+pruefe("Schritte je Bereich: Feld mindestens 3, Hof mindestens 2, Markt genau 1", jeZone("feld") >= 3 && jeZone("hof") >= 2 && jeZone("markt") === 1);
 
 // ---- Zeigen: Abschnitte der Seite --------------------------------------------------------------
 

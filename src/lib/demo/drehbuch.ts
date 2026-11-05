@@ -13,6 +13,10 @@
 //
 // Die Texte sagen kurz, was es bringt: Nutzen zuerst, höchstens zwei Sätze je Schritt, kein Ablauf
 // und keine Aufzählung von Funktionen.
+//
+// Gewichtung (Vorgabe vom 05.11.2026): Feld und Hof haben die höchste Priorität und damit den
+// größten Teil der Zeit, das Büro die nächste, der Markt die niedrigste und nur ganz kurz. Die
+// Priorität zeigt sich an der Länge: der Test misst die Wörter je Bereich (Zone des Moduls).
 
 import { modules } from "@/lib/modules";
 import type { Role } from "@/lib/rbac";
@@ -61,6 +65,7 @@ export interface DemoSchritt {
 }
 
 export const DREHBUCH: readonly DemoSchritt[] = [
+  // ---- Einstieg --------------------------------------------------------------------------------
   {
     id: "einstieg",
     ziel: { art: "pfad", pfad: "/dashboard" },
@@ -73,8 +78,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     id: "problem",
     ziel: { art: "pfad", pfad: "/dashboard" },
     text: {
-      de: "Heute steht vieles auf Papier oder im Kopf einer Person. Dabei geht leicht etwas verloren: Behandlungen, Mengen, Verkäufe, Gewinn.",
-      ru: "Сейчас многое записано на бумаге или хранится в голове одного человека. Легко потерять обработки, количества, продажи и прибыль.",
+      de: "Heute steht vieles auf Papier oder im Kopf einer Person. Dabei geht leicht etwas verloren: Behandlungen, Erntemengen, Kühlzeiten, Gewinn.",
+      ru: "Сейчас многое записано на бумаге или хранится в голове одного человека. Легко потерять обработки, объёмы урожая, время охлаждения и прибыль.",
     },
   },
   {
@@ -85,13 +90,14 @@ export const DREHBUCH: readonly DemoSchritt[] = [
       ru: "Damicon это цифровая память вашего хозяйства. Всё записывается один раз, и вы получаете любую цифру по запросу: на экране или от меня.",
     },
   },
+  // ---- Feld (höchste Priorität) ----------------------------------------------------------------
   {
     id: "reihenbloecke",
     ziel: { art: "modul", modul: "reihenbloecke" },
     abschnitte: [1, 2],
     text: {
-      de: "Erstens, das Feld: Sie sehen für jeden Reihenblock den Status, reif, ruhend oder gesperrt.",
-      ru: "Первое, поле: по каждому рядному блоку виден статус: созрел, отдыхает или закрыт.",
+      de: "Der wichtigste Nutzen liegt auf Feld und Hof. Zuerst das Feld: Sie sehen für jeden Reihenblock den Status, reif, ruhend oder gesperrt.",
+      ru: "Главная польза на поле и во дворе. Сначала поле: по каждому рядному блоку виден статус: созрел, отдыхает или закрыт.",
     },
   },
   {
@@ -99,8 +105,17 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "rotationsplan" },
     abschnitte: [1, 2],
     text: {
-      de: "Der Rotationsplan zeigt, welcher Block heute dran ist. So wird keine Pflückrunde verpasst.",
-      ru: "План ротации показывает, какой блок сегодня в очереди. Ни один сбор не пропущен.",
+      de: "Der Rotationsplan zeigt, welcher Block heute dran ist. So wird keine Pflückrunde verpasst, und die Menge je Block ist erfasst.",
+      ru: "План ротации показывает, какой блок сегодня в очереди. Ни один сбор не пропущен, а количество с каждого блока записано.",
+    },
+  },
+  {
+    id: "pflueckaufgaben",
+    ziel: { art: "modul", modul: "pflueckaufgaben" },
+    abschnitte: [0, 1],
+    text: {
+      de: "Sie geben Arbeit ab und sehen den Stand: Die Brigade nimmt die Pflückaufgabe an und meldet Menge und Fotos zurück.",
+      ru: "Вы передаёте работу и видите статус: бригада принимает задание на сбор и сообщает количество и фото.",
     },
   },
   {
@@ -108,17 +123,37 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "pflanzenschutz" },
     abschnitte: [0, 1],
     text: {
-      de: "Zweitens, die Behandlungen: Mittel und Datum je Block, und der Block bleibt bis zum Ende der Wartezeit gesperrt. Den Nachweis für den Handel gibt es auf Knopfdruck.",
-      ru: "Второе, обработки: средство и дата по каждому блоку, и блок закрыт до конца срока ожидания. Подтверждение для торговых сетей по нажатию кнопки.",
+      de: "Jede Behandlung wird mit Mittel und Datum erfasst. Der Block bleibt bis zum Ende der Wartezeit gesperrt, und den Nachweis für den Handel gibt es auf Knopfdruck.",
+      ru: "Каждая обработка записывается со средством и датой. Блок закрыт до конца срока ожидания, а подтверждение для торговых сетей готово по нажатию кнопки.",
     },
   },
+  // ---- Hof (höchste Priorität) -----------------------------------------------------------------
+  {
+    id: "kuehlkette",
+    ziel: { art: "modul", modul: "kuehlkette" },
+    abschnitte: [1, 2],
+    text: {
+      de: "Dann der Hof: Ab dem Pflücken läuft die Kühlketten-Uhr. Ist die Ware nach 60 Minuten nicht gekühlt, ist sie am nächsten Tag nur noch Industrieware. Jede Abweichung sehen Sie sofort.",
+      ru: "Теперь двор: с момента сбора идёт таймер холодовой цепи. Если через 60 минут ягоды не охлаждены, на следующий день они годятся только для переработки. Любое отклонение вы видите сразу.",
+    },
+  },
+  {
+    id: "logistik",
+    ziel: { art: "modul", modul: "logistik" },
+    abschnitte: [1],
+    text: {
+      de: "Die Brigade quittiert die Übergabe an den Kunden digital. Sie fragen nicht nach, Sie sehen es.",
+      ru: "Бригада подтверждает передачу клиенту в цифровом виде. Вы не переспрашиваете, вы видите.",
+    },
+  },
+  // ---- Büro (nächste Priorität) ----------------------------------------------------------------
   {
     id: "personal",
     ziel: { art: "modul", modul: "personal" },
     abschnitte: [1, 4],
     text: {
-      de: "Drittens, das Büro: Sie sehen die Leistung jeder Person und die Streuung im Team.",
-      ru: "Третье, офис: вы видите выработку каждого человека и разброс в бригаде.",
+      de: "Im Büro sehen Sie die Leistung jeder Person und die Streuung im Team.",
+      ru: "В офисе вы видите выработку каждого человека и разброс в бригаде.",
     },
   },
   {
@@ -140,59 +175,25 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     },
   },
   {
-    id: "b2b-portal",
-    ziel: { art: "modul", modul: "b2b_portal" },
-    abschnitte: [1, 5, 2],
-    text: {
-      de: "Viertens, der Markt: Kunden verfolgen ihre Lieferung im Portal und bestellen selbst vor. Jede Charge läuft bis zur Rechnung.",
-      ru: "Четвёртое, рынок: клиенты сами следят за поставкой в портале и заказывают заранее. Каждая партия идёт до счёта.",
-    },
-  },
-  {
-    id: "reklamationen",
-    ziel: { art: "modul", modul: "reklamationen" },
-    abschnitte: [1],
-    text: {
-      de: "Jede Reklamation führt zurück zur Charge. Sie sehen, wer was zu welchem Preis gekauft hat.",
-      ru: "Каждая рекламация ведёт обратно к партии. Вы видите, кто что купил и по какой цене.",
-    },
-  },
-  {
     id: "finanzen",
     ziel: { art: "modul", modul: "finanzen" },
     abschnitte: [1, 2],
     text: {
-      de: "Fünftens, die Finanzen: Der Deckungsbeitrag je Reihenblock, Sorte und Erntetag zeigt, was bleibt. Sie entscheiden nach Zahlen.",
-      ru: "Пятое, финансы: маржинальный доход по рядному блоку, сорту и дню сбора показывает, что остаётся. Вы решаете по цифрам.",
+      de: "Der Deckungsbeitrag je Reihenblock, Sorte und Erntetag zeigt, was bleibt. Sie entscheiden nach Zahlen.",
+      ru: "Маржинальный доход по рядному блоку, сорту и дню сбора показывает, что остаётся. Вы решаете по цифрам.",
     },
   },
+  // ---- Markt (niedrigste Priorität, ganz kurz) -------------------------------------------------
   {
-    id: "pflueckaufgaben",
-    ziel: { art: "modul", modul: "pflueckaufgaben" },
-    abschnitte: [0, 1],
+    id: "b2b-portal",
+    ziel: { art: "modul", modul: "b2b_portal" },
+    abschnitte: [1, 5, 2],
     text: {
-      de: "Der wichtigste Nutzen liegt auf Feld und Hof: Sie geben Arbeit ab und sehen den Stand. Die Brigade nimmt die Pflückaufgabe an und meldet Menge und Fotos zurück.",
-      ru: "Главная польза на поле и во дворе: вы передаёте работу и видите статус. Бригада принимает задание на сбор и сообщает количество и фото.",
+      de: "Im Markt bestellen Kunden selbst vor und verfolgen ihre Lieferung im Portal.",
+      ru: "На рынке клиенты сами заказывают заранее и следят за поставкой в портале.",
     },
   },
-  {
-    id: "kuehlkette",
-    ziel: { art: "modul", modul: "kuehlkette" },
-    abschnitte: [1, 2],
-    text: {
-      de: "Im Hof läuft ab dem Pflücken die Kühlketten-Uhr. Ist die Ware nach 60 Minuten nicht gekühlt, ist sie am nächsten Tag nur noch Industrieware. Jede Abweichung sehen Sie sofort.",
-      ru: "Во дворе с момента сбора идёт таймер холодовой цепи. Если через 60 минут ягоды не охлаждены, на следующий день они годятся только для переработки. Любое отклонение вы видите сразу.",
-    },
-  },
-  {
-    id: "logistik",
-    ziel: { art: "modul", modul: "logistik" },
-    abschnitte: [1],
-    text: {
-      de: "Die Brigade quittiert die Übergabe an den Kunden digital. Sie fragen nicht nach, Sie sehen es.",
-      ru: "Бригада подтверждает передачу клиенту в цифровом виде. Вы не переспрашиваете, вы видите.",
-    },
-  },
+  // ---- Himbi -----------------------------------------------------------------------------------
   {
     id: "himbi",
     ziel: { art: "pfad", pfad: "/dashboard" },
@@ -201,6 +202,7 @@ export const DREHBUCH: readonly DemoSchritt[] = [
       ru: "Я отвечаю на вопросы по вашим данным и показываю нужную страницу. Действую только с вашего подтверждения.",
     },
   },
+  // ---- CEO-Teil (nur auf Wunsch) ---------------------------------------------------------------
   {
     id: "ceo-pruefung",
     ziel: { art: "pfad", pfad: "/dashboard" },
@@ -231,13 +233,14 @@ export const DREHBUCH: readonly DemoSchritt[] = [
       ru: "Ниже вы видите поле, двор, офис и рынок одним взглядом.",
     },
   },
+  // ---- Schluss ---------------------------------------------------------------------------------
   {
     id: "abschluss",
     ziel: { art: "pfad", pfad: "/dashboard" },
     ceoTeil: true,
     text: {
-      de: "Zusammengefasst: Sie geben Arbeit ab und sehen das Ergebnis sofort. Bitte bestätigen Sie die Annahmen der Wirtschaftlichkeit.",
-      ru: "Итог: вы передаёте работу и сразу видите результат. Прошу подтвердить допущения экономической эффективности.",
+      de: "Zusammengefasst: Auf Feld und Hof geben Sie Arbeit ab und sehen das Ergebnis sofort. Bitte bestätigen Sie die Annahmen der Wirtschaftlichkeit.",
+      ru: "Итог: на поле и во дворе вы передаёте работу и сразу видите результат. Прошу подтвердить допущения экономической эффективности.",
     },
   },
   {
@@ -245,8 +248,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "pfad", pfad: "/dashboard" },
     nurOhneCeoTeil: true,
     text: {
-      de: "Zusammengefasst: Sie geben Arbeit ab und sehen das Ergebnis sofort. Die Wirtschaftlichkeit zeige ich Ihnen gern in einem eigenen Termin.",
-      ru: "Итог: вы передаёте работу и сразу видите результат. Экономическую эффективность я охотно покажу отдельно.",
+      de: "Zusammengefasst: Auf Feld und Hof geben Sie Arbeit ab und sehen das Ergebnis sofort. Die Wirtschaftlichkeit zeige ich Ihnen gern in einem eigenen Termin.",
+      ru: "Итог: на поле и во дворе вы передаёте работу и сразу видите результат. Экономическую эффективность я охотно покажу отдельно.",
     },
   },
 ];
@@ -304,6 +307,21 @@ export function lesedauerMs(text: string): number {
 /** Das Modul zu einem Schritt, falls das Ziel ein Modul ist. */
 export function modulZu(ziel: DemoZiel) {
   return ziel.art === "modul" ? (modules.find((m) => m.key === ziel.modul) ?? null) : null;
+}
+
+/** Wörter je Bereich (Zone des Moduls) in einer Sprache, ohne CEO-Teil: das Maß für die Gewichtung. */
+export function woerterJeBereich(sprache: DemoSprache): Record<"feld" | "hof" | "buero" | "markt", number> {
+  const summe = { feld: 0, hof: 0, buero: 0, markt: 0 };
+  for (const schritt of schritteFuer(false)) {
+    const modul = modulZu(schritt.ziel);
+    const text = textIn(schritt, sprache);
+    if (!modul || !text) continue;
+    const zone = modul.zone;
+    if (zone === "feld" || zone === "hof" || zone === "buero" || zone === "markt") {
+      summe[zone] += text.split(/\s+/).filter(Boolean).length;
+    }
+  }
+  return summe;
 }
 
 /** Die Obergrenze eines Textes für die Stimme (Zeichen). Die Route weist längere ab. */

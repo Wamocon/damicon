@@ -8,6 +8,8 @@ Himbi führt in wenigen Minuten durch Damicon: Er öffnet Seite für Seite, hebt
 
 1. KI-Panel öffnen (Knopf "KI fragen"), Reiter **Einstellungen**.
 2. Unter "Vorführung mit Himbi" **Vorführung starten** (rund 3 bis 4 Minuten mit Seitenwechseln) oder **Mit CEO-Teil starten** (rund 4 bis 5 Minuten). Das Drehbuch sagt kurz, was es bringt: höchstens zwei bis drei Sätze je Schritt, der Test hält 35 Wörter ein.
+
+   **Gewichtung nach Priorität:** Feld und Hof kommen zuerst und nehmen mit rund zwei Dritteln den größten Teil der Zeit ein, dann das Büro (rund ein Viertel), zuletzt der Markt in einem einzigen kurzen Schritt (rund 6 Prozent). Die Priorität zeigt sich an der Länge: Der Test misst die Wörter je Bereich (Zone des Moduls) und fällt, wenn Feld und Hof unter 60 Prozent rutschen oder der Markt über 10 Prozent wächst. Reihenfolge: Feld, Hof, Büro, Markt.
 3. Bedienung in der Sprechblase: Zurück, Pause, Weiter, Sprache, Beenden. Ein Klick irgendwo auf der Seite pausiert, Escape beendet.
 
 Wer darf: nur Geschäftsführung und Administration (echte Profilrolle, auch für die Stimme auf dem Server). Voraussetzungen: Himbi ist eingeschaltet und im Bild, kein Handy.
