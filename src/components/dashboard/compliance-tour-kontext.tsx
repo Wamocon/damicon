@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useDemoAnzeige } from "@/components/demo/demo-kontext";
 import { useComplianceTour, type ComplianceTourAnzeige, type ComplianceTourSchritt } from "@/components/dashboard/use-compliance-tour";
 import type { PruefBezug } from "@/components/ki/ki-pane-kontext";
 
@@ -87,7 +88,11 @@ const LEER_ANZEIGE: ComplianceTourAnzeige = {
 /** Fuer Himbi (haustier-dashboard.tsx): alles, was in ihre Blase, ihren Zustand und ihr
  *  Blickziel einfliesst. */
 export function useComplianceTourAnzeige(): ComplianceTourAnzeige {
-  return useContext(ComplianceTourContext) ?? LEER_ANZEIGE;
+  // Läuft die Vorführung (components/demo/demo-kontext.tsx), führt Himbi sie über dieselben Felder:
+  // Blase, Zustand, Blickziel, Hüpfer. Dann braucht die Figur keine zweite Anbindung.
+  const vorfuehrung = useDemoAnzeige();
+  const tour = useContext(ComplianceTourContext) ?? LEER_ANZEIGE;
+  return vorfuehrung ?? tour;
 }
 
 /** Fuer die Kopfzeile der CEO-Uebersicht (ceo-tour-aktionen.tsx): ob es ueberhaupt etwas zu

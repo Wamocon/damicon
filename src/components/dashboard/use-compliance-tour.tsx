@@ -57,6 +57,10 @@ export interface ComplianceTourAnzeige {
   frageBlase: ReactNode;
   /** Die Tour fuehrt gerade oder ist gerade zu Ende gegangen. */
   aktiv: boolean;
+  /** Nur die Vorfuehrung (components/demo) setzt es: Himbi spricht gerade das Drehbuch und laesst sich
+   *  dabei nicht vom Live-Hinweis der Compliance-Pruefung ueberdecken. Die Tour selbst weicht ihm
+   *  weiter (waehleBlase). */
+  vorrang?: boolean;
   tourBlase: ReactNode;
   tourZustand: HaustierZustand;
   tourZiel: Element | null;

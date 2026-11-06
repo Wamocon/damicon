@@ -8,6 +8,7 @@ import { BlattProvider, HauptSpalte } from "@/components/dashboard/blatt-kontext
 import { CeoPruefungProvider } from "@/components/dashboard/ceo-pruefung-kontext";
 import { ComplianceTourProvider } from "@/components/dashboard/compliance-tour-kontext";
 import { GlockenProvider } from "@/components/dashboard/glocke";
+import { DemoProvider } from "@/components/demo/demo-kontext";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { UntereLeiste } from "@/components/dashboard/untere-leiste";
@@ -89,6 +90,7 @@ export default async function DashboardLayout({
         <CeoPruefungProvider>
         <HaustierProvider>
         <ComplianceTourProvider>
+        <DemoProvider>
         <BlattProvider>
         {/* Die globale Suche umschliesst die Shell und legt ihr Fenster
             daneben ab statt in die Kopfzeile (suche/such-kontext.tsx). Sie
@@ -132,6 +134,7 @@ export default async function DashboardLayout({
         </SuchProvider>
         <HaustierDashboard />
         </BlattProvider>
+        </DemoProvider>
         </ComplianceTourProvider>
         </HaustierProvider>
         </CeoPruefungProvider>

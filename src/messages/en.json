@@ -2177,6 +2177,20 @@
         "jade": "Jade"
       }
     },
+    "demo": {
+      "titel": "Demo with Himbi",
+      "text": "In a few minutes Himbi walks through Damicon: he opens the pages, points at the right spots and speaks along. He only shows and changes nothing.",
+      "start": "Start demo",
+      "einleitung": "With intro by Himbi",
+      "ceoTeil": "With CEO part",
+      "sprache": "Demo language",
+      "nichtMoeglich": "Himbi must be switched on and visible; the demo is not available on a phone.",
+      "schritt": "Step {n} of {m}",
+      "fortsetzen": "Resume",
+      "keinTon": "No sound, the subtitles keep running.",
+      "ende": "That was the demo. Thank you for your time.",
+      "nochmal": "Again"
+    },
     "tour": {
       "gruss": "Hi, I am Himbi! Shall I show you Damicon in one minute?",
       "autoStart": "I will start on my own in a moment. Click or scroll if you would rather look around yourself.",

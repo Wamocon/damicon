@@ -319,7 +319,7 @@ export function waehleBlase({
   fertigBlase: boolean;
   offen: boolean;
   liveHinweisAktiv: boolean;
-  tour: Pick<ComplianceTourAnzeige, "aktiv" | "frageBereit">;
+  tour: Pick<ComplianceTourAnzeige, "aktiv" | "frageBereit" | "vorrang">;
   ruhigGenug: boolean;
   sprachmodus: boolean;
   tagesbeginnAn: boolean;
@@ -335,7 +335,9 @@ export function waehleBlase({
 }) {
   const { befindenFrage, befinden, befindenBlase } = befindenLage;
   const keineWichtigereMeldung = phase !== "freigabe" && phase !== "arbeitet" && phase !== "fehler" && !fertigBlase;
-  const liveHinweisSichtbar = !offen && keineWichtigereMeldung && liveHinweisAktiv;
+  // Die Vorfuehrung (components/demo) hat Vorrang vor dem Live-Hinweis: laeuft nach dem Login gerade die
+  // automatische Pruefung, soll sie die ersten Saetze des Drehbuchs nicht ueberdecken.
+  const liveHinweisSichtbar = !offen && keineWichtigereMeldung && liveHinweisAktiv && !tour.vorrang;
   const tourAktivSichtbar = !offen && keineWichtigereMeldung && !liveHinweisSichtbar && tour.aktiv;
 
   // Hier steht nur, was bereitliegt. Wann eine Blase bereit ist und welche gewinnt, entscheiden
