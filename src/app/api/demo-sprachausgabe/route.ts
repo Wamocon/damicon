@@ -26,10 +26,10 @@ import { fuerSprache } from "@/lib/text/umlaute";
 const BUCKET = "ki-sprachausgabe";
 /** Version der Aufbereitung: bei geänderter Sprechweise hochzählen, dann entsteht neues Audio. */
 const DEMO_VERSION = 2;
-/** Sprechtempo der Vorführung bei Soniox. Soniox erlaubt höchstens 1,3. Verlauf am 06.11.2026: 1,2 (Chat) war
- *  am 05.11. zu schnell, 0,92 zu langsam, 1,06 noch um 20 bis 30 Prozent zu langsam gewünscht: 1,3 ist die
- *  Obergrenze des Dienstes (rund 23 Prozent mehr als 1,06). */
-const DEMO_TEMPO = 1.3;
+/** Sprechtempo der Vorführung bei Soniox (erlaubt 0,7 bis 1,3). Verlauf am 06.11.2026: 1,2 (Chat) war am 05.11.
+ *  zu schnell, 0,92 zu langsam, 1,06 noch zu langsam, 1,3 (Obergrenze) zu schnell: 1,04 sind 20 Prozent weniger
+ *  als 1,3. */
+const DEMO_TEMPO = 1.04;
 /** Versuche mit der bevorzugten Stimme, bevor die Ersatzstimme spricht. */
 const VERSUCHE = 3;
 

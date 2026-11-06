@@ -211,12 +211,12 @@ pruefe(
 
 function minuten(schritte: ReturnType<typeof schritteFuer>): number {
   const woerter = schritte.reduce((summe, s) => summe + (textIn(s, "de") ?? "").split(/\s+/).filter(Boolean).length, 0);
-  return woerter / 140; // Sprechtempo der Vorführung (Tempo 1,3), Wörter pro Minute
+  return woerter / 115; // Sprechtempo der Vorführung (Tempo 1,04), Wörter pro Minute
 }
 const ohne = minuten(schritteFuer(false, false)); // Regelfall: die Vortragenden leiten selbst ein
 // Vorgabe vom 06.11.2026: die Vorführung dauert etwa zwei Minuten. Die Sprechzeit ist nur ein Teil davon, dazu kommen
 // die Pausen (0,5 s nach jedem Schritt, 0,8 s nach einem Seitenwechsel, 1,5 s zusätzlich beim Wechsel der Zone) und das Laden der Seiten.
-pruefe("Sprechzeit im Regelfall (ab den Beispielen, ohne CEO-Teil) zwischen 0,7 und 1,3 Minuten, mit den Pausen etwa zwei Minuten", ohne >= 0.7 && ohne <= 1.3, `${ohne.toFixed(1)} min`);
+pruefe("Sprechzeit im Regelfall (ab den Beispielen, ohne CEO-Teil) zwischen 0,9 und 1,6 Minuten, mit den Pausen etwa zwei bis zweieinhalb Minuten", ohne >= 0.9 && ohne <= 1.6, `${ohne.toFixed(1)} min`);
 pruefe("Sprechzeit mit CEO-Teil und Einleitung höchstens 2,5 Minuten (mit Pausen höchstens etwa 3,5)", minuten(schritteFuer(true, true)) <= 2.5, `${minuten(schritteFuer(true, true)).toFixed(1)} min`);
 
 // ---- Zahlen ------------------------------------------------------------------------------------
@@ -284,8 +284,8 @@ pruefe(
   pruefe("Der Ablauf wechselt je Zone genau einmal (kein Hin und Her)", wechsel === new Set(zonen).size - 1, zonen.join(" > "));
 }
 const demoTempo = /const DEMO_TEMPO = ([\d.]+);/.exec(route);
-// Rückmeldung vom 06.11.2026: 1,06 noch um 20 bis 30 Prozent beschleunigen; Soniox erlaubt höchstens 1,3.
-pruefe("Stimme: Soniox spricht die Vorführung 20 bis 30 Prozent schneller als mit 1,06 (höchstens 1,3), die Pausen bleiben", demoTempo !== null && Number(demoTempo[1]) >= 1.06 * 1.2 && Number(demoTempo[1]) <= 1.3 && route.includes("stilleKuerzen: false"));
+// Rückmeldung vom 06.11.2026: 1,3 war zu schnell, 20 Prozent langsamer (1,04). Frühere Werte: 0,92 zu langsam, 1,06 zu langsam.
+pruefe("Stimme: Soniox spricht die Vorführung 20 Prozent langsamer als mit 1,3 (1,04), die Pausen bleiben", demoTempo !== null && Math.abs(Number(demoTempo[1]) - 1.3 * 0.8) < 0.011 && route.includes("stilleKuerzen: false"));
 
 // Übergänge: jeder Schritt, der auf einer neuen Seite beginnt, kündigt den Wechsel an (Füllwörter statt
 // hartem Sprung). Geprüft wird der deutsche Text: Er beginnt mit einem Übergang oder einem Anker.
