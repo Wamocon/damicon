@@ -84,7 +84,10 @@ interface Lauf {
 }
 
 /** Feste Pause nach dem letzten Wort, bevor die nächste Seite aufgeht. */
-const NACHLAUF_MS = 500;
+const NACHLAUF_MS = 1000;
+/** Nach einem Seitenwechsel: so lange steht die neue Seite, bevor Himbi dazu spricht. Wer zuschaut,
+ *  soll erst sehen, wo er gelandet ist (Rückmeldung vom 06.11.2026: zu schnell, man kam nicht mit). */
+const ANKOMMEN_MS = 1500;
 /** So lange wartet der Durchgang höchstens auf eine Seite, bevor er mit der aktuellen weitermacht. */
 const SEITE_MAX_MS = 6000;
 /** So lange wartet er höchstens auf den Ton eines Schritts (die Stimme erzeugt etwa in Echtzeit). */
@@ -324,13 +327,16 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       // Der Ton wird sofort angefordert und läuft parallel zum Öffnen der Seite.
       const tonAbruf = holeTon(schritt.id, sprache);
       const gewollt = zielPfad(schritt);
-      if (gewollt && pfadRef.current !== gewollt) {
+      const seitenwechsel = !!gewollt && pfadRef.current !== gewollt;
+      if (gewollt && seitenwechsel) {
         router.push(gewollt);
         const start = Date.now();
         while (!abgebrochen && pfadRef.current !== gewollt && Date.now() - start < SEITE_MAX_MS) await nachPause(100);
       }
       if (abgebrochen) return;
       await warteBisRuhig(2500, 300);
+      if (abgebrochen) return;
+      if (seitenwechsel) await nachPause(ANKOMMEN_MS);
       if (abgebrochen) return;
 
       // Eine langsame Seite zeigt zuerst Platzhalter und liefert die Abschnitte nach: bis zu vier

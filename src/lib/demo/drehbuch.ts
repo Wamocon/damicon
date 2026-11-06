@@ -76,17 +76,17 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "pfad", pfad: "/dashboard" },
     einleitung: true,
     text: {
-      de: "Guten Morgen. Ich bin Himbi und zeige Ihnen in wenigen Minuten, was Damicon Ihnen bringt.",
-      ru: "Доброе утро. Я Химби и за несколько минут покажу, что даёт вам Damicon.",
+      de: "Guten Morgen. Ich bin Himbi und zeige Ihnen in Ruhe, was Damicon Ihnen auf Feld und Hof bringt.",
+      ru: "Доброе утро. Я Химби и спокойно покажу, что Damicon даёт вам на поле и во дворе.",
     },
   },
   {
-    id: "problem",
+    id: "nutzen",
     ziel: { art: "pfad", pfad: "/dashboard" },
     einleitung: true,
     text: {
-      de: "Heute steht vieles auf Papier oder im Kopf einer Person. Dabei geht leicht etwas verloren: Behandlungen, Erntemengen, Kühlzeiten, Gewinn.",
-      ru: "Сейчас многое записано на бумаге или хранится в голове одного человека. Легко потерять обработки, объёмы урожая, время охлаждения и прибыль.",
+      de: "Das Wichtigste vorweg: Sie sehen jederzeit, was auf den Blöcken passiert, jeden Nachweis gibt es auf Knopfdruck, und Sie entscheiden nach Zahlen.",
+      ru: "Главное сразу: вы в любой момент видите, что происходит на блоках, любое подтверждение есть по нажатию кнопки, и вы решаете по цифрам.",
     },
   },
   {
@@ -103,8 +103,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "pfad", pfad: "/dashboard" },
     nurAbBeispielen: true,
     text: {
-      de: "Sehr gern. Ich bin Himbi und zeige Ihnen, was Damicon auf Feld und Hof bringt.",
-      ru: "С удовольствием. Я Химби и покажу, что Damicon даёт на поле и во дворе.",
+      de: "Sehr gern. Ich bin Himbi und zeige Ihnen in Ruhe, was Damicon auf Feld und Hof bringt. Wir beginnen mit dem Feld.",
+      ru: "С удовольствием. Я Химби и спокойно покажу, что Damicon даёт на поле и во дворе. Начнём с поля.",
     },
   },
   // ---- Feld (höchste Priorität) ----------------------------------------------------------------
@@ -113,8 +113,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "reihenbloecke" },
     abschnitte: [1, 2],
     text: {
-      de: "Der wichtigste Nutzen liegt auf Feld und Hof. Zuerst das Feld: Sie sehen für jeden Reihenblock den Status, reif, ruhend oder gesperrt.",
-      ru: "Главная польза на поле и во дворе. Сначала поле: по каждому рядному блоку виден статус: созрел, отдыхает или закрыт.",
+      de: "Wir beginnen auf dem Feld, denn hier liegt der größte Nutzen. Sie sehen für jeden Reihenblock den Status: reif, ruhend oder gesperrt. So wissen Sie jederzeit, wo gepflückt werden kann.",
+      ru: "Начинаем с поля, потому что здесь главная польза. По каждому рядному блоку виден статус: созрел, отдыхает или закрыт. Так вы всегда знаете, где можно собирать.",
     },
   },
   {
@@ -122,8 +122,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "rotationsplan" },
     abschnitte: [1, 2],
     text: {
-      de: "Der Rotationsplan zeigt, welcher Block heute dran ist. So wird keine Pflückrunde verpasst, und die Menge je Block ist erfasst.",
-      ru: "План ротации показывает, какой блок сегодня в очереди. Ни один сбор не пропущен, а количество с каждого блока записано.",
+      de: "Als Nächstes schauen wir uns den Rotationsplan an. Er zeigt, welcher Block heute dran ist. So wird keine Pflückrunde verpasst, und die Menge je Block ist erfasst.",
+      ru: "Дальше посмотрим план ротации. Он показывает, какой блок сегодня в очереди. Ни один сбор не пропущен, а количество с каждого блока записано.",
     },
   },
   {
@@ -131,8 +131,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "pflueckaufgaben" },
     abschnitte: [0, 1],
     text: {
-      de: "Sie geben Arbeit ab und sehen den Stand: Die Brigade nimmt die Pflückaufgabe an und meldet Menge und Fotos zurück.",
-      ru: "Вы передаёте работу и видите статус: бригада принимает задание на сбор и сообщает количество и фото.",
+      de: "Von dort gehen wir zu den Pflückaufgaben. Sie geben Arbeit ab und sehen den Stand: Die Brigade nimmt die Aufgabe an und meldet Menge und Fotos zurück.",
+      ru: "Отсюда перейдём к заданиям на сбор. Вы передаёте работу и видите статус: бригада принимает задание и сообщает количество и фото.",
     },
   },
   {
@@ -140,8 +140,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "pflanzenschutz" },
     abschnitte: [0, 1],
     text: {
-      de: "Jede Behandlung wird mit Mittel und Datum erfasst. Der Block bleibt bis zum Ende der Wartezeit gesperrt, und den Nachweis für den Handel gibt es auf Knopfdruck.",
-      ru: "Каждая обработка записывается со средством и датой. Блок закрыт до конца срока ожидания, а подтверждение для торговых сетей готово по нажатию кнопки.",
+      de: "Jetzt kommt der Pflanzenschutz, ein wichtiger Punkt für den Handel. Jede Behandlung wird mit Mittel und Datum erfasst, und der Block bleibt bis zum Ende der Wartezeit gesperrt. Den Nachweis gibt es auf Knopfdruck.",
+      ru: "Теперь защита растений, важный пункт для торговых сетей. Каждая обработка записывается со средством и датой, а блок закрыт до конца срока ожидания. Подтверждение готово по нажатию кнопки.",
     },
   },
   // ---- Hof (höchste Priorität) -----------------------------------------------------------------
@@ -150,8 +150,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "kuehlkette" },
     abschnitte: [1, 2],
     text: {
-      de: "Dann der Hof: Ab dem Pflücken läuft die Kühlketten-Uhr. Ist die Ware nach 60 Minuten nicht gekühlt, ist sie am nächsten Tag nur noch Industrieware. Jede Abweichung sehen Sie sofort.",
-      ru: "Теперь двор: с момента сбора идёт таймер холодовой цепи. Если через 60 минут ягоды не охлаждены, на следующий день они годятся только для переработки. Любое отклонение вы видите сразу.",
+      de: "Damit verlassen wir das Feld und kommen auf den Hof. Ab dem Pflücken läuft die Kühlketten-Uhr. Ist die Ware nach 60 Minuten nicht gekühlt, ist sie am nächsten Tag nur noch Industrieware, und jede Abweichung sehen Sie sofort.",
+      ru: "Теперь покидаем поле и переходим во двор. С момента сбора идёт таймер холодовой цепи. Если через 60 минут ягоды не охлаждены, на следующий день они годятся только для переработки, а любое отклонение вы видите сразу.",
     },
   },
   {
@@ -159,8 +159,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "logistik" },
     abschnitte: [1],
     text: {
-      de: "Die Brigade quittiert die Übergabe an den Kunden digital. Sie fragen nicht nach, Sie sehen es.",
-      ru: "Бригада подтверждает передачу клиенту в цифровом виде. Вы не переспрашиваете, вы видите.",
+      de: "Der letzte Schritt auf dem Hof ist die Übergabe. Die Brigade quittiert sie an den Kunden digital. Sie fragen nicht nach, Sie sehen es.",
+      ru: "Последний шаг во дворе: передача клиенту. Бригада подтверждает её в цифровом виде. Вы не переспрашиваете, вы видите.",
     },
   },
   // ---- Büro (nächste Priorität) ----------------------------------------------------------------
@@ -169,8 +169,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "personal" },
     abschnitte: [1, 4],
     text: {
-      de: "Im Büro sehen Sie die Leistung jeder Person und die Streuung im Team.",
-      ru: "В офисе вы видите выработку каждого человека и разброс в бригаде.",
+      de: "Wenn wir jetzt ins Büro wechseln, sehen Sie zuerst die Leistung jeder Person und die Streuung im Team.",
+      ru: "Теперь переходим в офис. Здесь вы видите выработку каждого человека и разброс в бригаде.",
     },
   },
   {
@@ -178,8 +178,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "lohn" },
     abschnitte: [1],
     text: {
-      de: "Der Lohn richtet sich nach Menge und Qualität.",
-      ru: "Оплата зависит от количества и качества.",
+      de: "Daraus folgt der Lohn: Er richtet sich nach Menge und Qualität.",
+      ru: "Отсюда следует оплата: она зависит от количества и качества.",
     },
   },
   {
@@ -187,8 +187,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "integrationen" },
     abschnitte: [1, 2],
     text: {
-      de: "Saisonverträge führt das System mit, samt Meldung und Frist für das staatliche Register ЕСУТД.",
-      ru: "Сезонные договоры система ведёт вместе со сроками и сообщением в государственную систему ЕСУТД.",
+      de: "Weiter geht es mit den Saisonverträgen. Das System führt sie mit, samt Meldung und Frist für das staatliche Register ЕСУТД.",
+      ru: "Дальше сезонные договоры. Система ведёт их вместе со сроками и сообщением в государственную систему ЕСУТД.",
     },
   },
   {
@@ -196,8 +196,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "finanzen" },
     abschnitte: [1, 2],
     text: {
-      de: "Der Deckungsbeitrag je Reihenblock, Sorte und Erntetag zeigt, was bleibt. Sie entscheiden nach Zahlen.",
-      ru: "Маржинальный доход по рядному блоку, сорту и дню сбора показывает, что остаётся. Вы решаете по цифрам.",
+      de: "Zum Schluss im Büro die Finanzen: Der Deckungsbeitrag je Reihenblock, Sorte und Erntetag zeigt, was bleibt. Sie entscheiden nach Zahlen.",
+      ru: "В конце офиса финансы: маржинальный доход по рядному блоку, сорту и дню сбора показывает, что остаётся. Вы решаете по цифрам.",
     },
   },
   // ---- Markt (niedrigste Priorität, ganz kurz) -------------------------------------------------
@@ -206,8 +206,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     ziel: { art: "modul", modul: "b2b_portal" },
     abschnitte: [1, 5, 2],
     text: {
-      de: "Im Markt bestellen Kunden selbst vor und verfolgen ihre Lieferung im Portal.",
-      ru: "На рынке клиенты сами заказывают заранее и следят за поставкой в портале.",
+      de: "Zuletzt ein kurzer Blick auf den Markt: Kunden bestellen selbst vor und verfolgen ihre Lieferung im Portal.",
+      ru: "Напоследок коротко о рынке: клиенты сами заказывают заранее и следят за поставкой в портале.",
     },
   },
   // ---- Himbi -----------------------------------------------------------------------------------
@@ -215,8 +215,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     id: "himbi",
     ziel: { art: "pfad", pfad: "/dashboard" },
     text: {
-      de: "Ich beantworte Fragen zu Ihren Daten und zeige die richtige Seite. Gehandelt wird nur nach Ihrer Bestätigung.",
-      ru: "Я отвечаю на вопросы по вашим данным и показываю нужную страницу. Действую только с вашего подтверждения.",
+      de: "Zum Abschluss zeige ich noch, wie ich Ihnen helfe. Ich beantworte Fragen zu Ihren Daten und zeige die richtige Seite. Gehandelt wird nur nach Ihrer Bestätigung.",
+      ru: "В заключение покажу, как я помогаю. Я отвечаю на вопросы по вашим данным и показываю нужную страницу. Действую только с вашего подтверждения.",
     },
   },
   // ---- CEO-Teil (nur auf Wunsch) ---------------------------------------------------------------
@@ -226,8 +226,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     zeigeAuf: "ceoUebersicht.titel",
     ceoTeil: true,
     text: {
-      de: "Ihr Morgen: Audit, Steuern, Recht und Risiko sind schon geprüft. Überfälliges steht oben.",
-      ru: "Ваше утро: аудит, налоги, право и риски уже проверены. Просроченное стоит первым.",
+      de: "Nun zu Ihrem Morgen. Audit, Steuern, Recht und Risiko sind schon geprüft, und Überfälliges steht oben.",
+      ru: "Теперь о вашем утре. Аудит, налоги, право и риски уже проверены, а просроченное стоит первым.",
     },
   },
   {
@@ -236,8 +236,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     abschnitte: [3, 4],
     ceoTeil: true,
     text: {
-      de: "Die Rechnung des Systems zeigt eine Amortisation von 11 Monaten. Die Annahmen bitte ich Sie zu bestätigen.",
-      ru: "Расчёт системы показывает срок окупаемости 11 месяцев. Допущения прошу вас подтвердить.",
+      de: "Dann die Wirtschaftlichkeit. Die Rechnung des Systems zeigt eine Amortisation von 11 Monaten. Die Annahmen bitte ich Sie zu bestätigen.",
+      ru: "Затем экономическая эффективность. Расчёт системы показывает срок окупаемости 11 месяцев. Допущения прошу вас подтвердить.",
     },
   },
   {
@@ -246,8 +246,8 @@ export const DREHBUCH: readonly DemoSchritt[] = [
     zeigeAuf: "dashboard.bereiche.titel",
     ceoTeil: true,
     text: {
-      de: "Darunter sehen Sie Feld, Hof, Büro und Markt auf einen Blick.",
-      ru: "Ниже вы видите поле, двор, офис и рынок одним взглядом.",
+      de: "Und zurück auf die Startseite: Darunter sehen Sie Feld, Hof, Büro und Markt auf einen Blick.",
+      ru: "И вернёмся на главную: ниже вы видите поле, двор, офис и рынок одним взглядом.",
     },
   },
   // ---- Schluss ---------------------------------------------------------------------------------

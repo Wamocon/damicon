@@ -64,12 +64,12 @@ pruefe("die Reihenfolge der gemeinsamen Schritte ist in beiden Fassungen gleich"
 // ---- Start ab den Beispielen (die vortragende Person leitet selbst ein) -------------------------
 
 const abBeispielen = schritteFuer(false, false).map((s) => s.id);
-pruefe("ab den Beispielen: Himbis Einstieg, Problem und Lösung entfallen", !["einstieg", "problem", "loesung"].some((i) => abBeispielen.includes(i)));
+pruefe("ab den Beispielen: Himbis Einstieg, Nutzen und Lösung entfallen", !["einstieg", "nutzen", "loesung"].some((i) => abBeispielen.includes(i)));
 pruefe("ab den Beispielen: der Anschlusssatz kommt zuerst, danach das Feld", abBeispielen[0] === "himbi-start" && abBeispielen[1] === "reihenbloecke");
-pruefe("mit Einleitung von Himbi: kein Anschlusssatz", !ohneCeo.includes("himbi-start") && ohneCeo.slice(0, 3).join() === "einstieg,problem,loesung");
+pruefe("mit Einleitung von Himbi: kein Anschlusssatz", !ohneCeo.includes("himbi-start") && ohneCeo.slice(0, 3).join() === "einstieg,nutzen,loesung");
 pruefe(
   "ab den Beispielen mit CEO-Teil: dieselben Schritte wie sonst, nur ohne Einleitung",
-  schritteFuer(true, false).map((s) => s.id).filter((i) => i !== "himbi-start").join() === mitCeo.filter((i) => !["einstieg", "problem", "loesung"].includes(i)).join(),
+  schritteFuer(true, false).map((s) => s.id).filter((i) => i !== "himbi-start").join() === mitCeo.filter((i) => !["einstieg", "nutzen", "loesung"].includes(i)).join(),
 );
 
 // ---- Ziele -------------------------------------------------------------------------------------
@@ -133,15 +133,16 @@ pruefe("Lesedauer: nie unter dreieinhalb Sekunden", lesedauerMs("Ja.") === 3500 
 
 // ---- Kürze: Nutzen statt Ablauf ----------------------------------------------------------------
 
-// Rückmeldung vom 05.11.2026: das Drehbuch war zu lang und nannte zu viel. Jeder Schritt bleibt bei
-// höchstens drei Sätzen und 35 Wörtern, in jeder Sprache.
+// Rückmeldung vom 05.11.2026: das Drehbuch war zu lang und nannte zu viel. Am 06.11.2026 kam die
+// Gegenrichtung: Himbi war zu schnell, es fehlten Übergänge beim Seitenwechsel. Jeder Schritt darf
+// deshalb einen kurzen Übergangssatz tragen, bleibt aber bei höchstens vier Sätzen und 45 Wörtern.
 for (const s of DREHBUCH) {
   for (const sprache of DEMO_SPRACHEN) {
     const text = textIn(s, sprache);
     if (text === null) continue;
     const saetze = (text.match(/[.!?](\s|$)/g) ?? []).length;
     const woerter = text.split(/\s+/).filter(Boolean).length;
-    pruefe(`Schritt ${s.id} (${sprache}): höchstens drei Sätze und 35 Wörter`, saetze <= 3 && woerter <= 35, `${saetze} Sätze, ${woerter} Wörter`);
+    pruefe(`Schritt ${s.id} (${sprache}): höchstens vier Sätze und 45 Wörter`, saetze <= 4 && woerter <= 45, `${saetze} Sätze, ${woerter} Wörter`);
   }
 }
 
@@ -193,12 +194,11 @@ pruefe(
 
 function minuten(schritte: ReturnType<typeof schritteFuer>): number {
   const woerter = schritte.reduce((summe, s) => summe + (textIn(s, "de") ?? "").split(/\s+/).filter(Boolean).length, 0);
-  return woerter / 130; // ruhiges Sprechtempo der Stimme, Wörter pro Minute
+  return woerter / 105; // ruhiges Sprechtempo der Vorführung (Tempo 0,92), Wörter pro Minute
 }
 const ohne = minuten(schritteFuer(false));
-const mit = minuten(schritteFuer(true));
-pruefe("Sprechzeit ohne CEO-Teil zwischen 1,5 und 3,5 Minuten", ohne >= 1.5 && ohne <= 3.5, `${ohne.toFixed(1)} min`);
-pruefe("Sprechzeit mit CEO-Teil höchstens 4 Minuten", mit <= 4, `${mit.toFixed(1)} min`);
+pruefe("Sprechzeit ohne CEO-Teil zwischen 2 und 5 Minuten", ohne >= 2 && ohne <= 5, `${ohne.toFixed(1)} min`);
+pruefe("Sprechzeit mit CEO-Teil und Einleitung höchstens 7 Minuten (Obergrenze der Vorführung: 10 bis 15)", minuten(schritteFuer(true, true)) <= 7, `${minuten(schritteFuer(true, true)).toFixed(1)} min`);
 
 // ---- Zahlen ------------------------------------------------------------------------------------
 
@@ -246,8 +246,27 @@ pruefe("Player: Schritte im Voraus laufen nacheinander, nicht gleichzeitig", ton
 pruefe("Ton: ein Abruf je Schritt und Sprache, ein Fehlschlag wird nicht gemerkt", tonQuelle.includes("speicher.current.get(schluessel)") && tonQuelle.includes("speicher.current.delete(schluessel)"));
 pruefe("Player: eigener Rahmen statt der CSS-Klasse, der Rahmen wird beim Beenden entfernt", player.includes("new Rahmen(") && player.includes("rahmen.entfernen()") && !player.includes("haustier-fokus"));
 pruefe("Player: die Karte wird bestimmt (karteVon), nicht der Container einer allgemeinen Regel", player.includes("karteVon(quelle)") && !player.includes("stelleZu("));
+// Rückmeldung vom 06.11.2026: Himbi war zu schnell, besonders beim Seitenwechsel. Die Pausen sind fest,
+// aber großzügig: nach dem letzten Wort und nach dem Öffnen einer neuen Seite.
 const nachlauf = /const NACHLAUF_MS = (\d+);/.exec(player);
-pruefe("Pause nach dem letzten Wort ist fest und kurz (höchstens 800 ms)", nachlauf !== null && Number(nachlauf[1]) <= 800);
+pruefe("Pause nach dem letzten Wort ist fest und ruhig (800 bis 2000 ms)", nachlauf !== null && Number(nachlauf[1]) >= 800 && Number(nachlauf[1]) <= 2000);
+const ankommen = /const ANKOMMEN_MS = (\d+);/.exec(player);
+pruefe("Nach einem Seitenwechsel steht die Seite erst, bevor Himbi spricht (mindestens 1000 ms)", ankommen !== null && Number(ankommen[1]) >= 1000 && player.includes("if (seitenwechsel) await nachPause(ANKOMMEN_MS)"));
+const demoTempo = /const DEMO_TEMPO = ([\d.]+);/.exec(route);
+pruefe("Stimme: Soniox spricht die Vorführung langsamer als den Chat (Tempo unter 1,0, die Pausen bleiben)", demoTempo !== null && Number(demoTempo[1]) < 1 && Number(demoTempo[1]) >= 0.7 && route.includes("stilleKuerzen: false"));
+
+// Übergänge: jeder Schritt, der auf einer neuen Seite beginnt, kündigt den Wechsel an (Füllwörter statt
+// hartem Sprung). Geprüft wird der deutsche Text: Er beginnt mit einem Übergang oder einem Anker.
+const UEBERGANG = /^(Wir|Als Nächstes|Von dort|Jetzt|Damit|Der letzte|Wenn wir|Daraus|Weiter|Zum|Zuletzt|Nun|Dann|Und zurück|Sehr gern|Guten Morgen|Das Wichtigste|Zusammengefasst)/;
+for (const id of ["reihenbloecke", "rotationsplan", "pflueckaufgaben", "pflanzenschutz", "kuehlkette", "logistik", "personal", "lohn", "integrationen", "finanzen", "b2b-portal", "himbi"]) {
+  const s = schrittMitId(id);
+  pruefe(`Schritt ${id}: beginnt mit einem Übergang`, s !== null && UEBERGANG.test(textIn(s, "de") ?? ""));
+}
+// Rückmeldung vom 06.11.2026: die Vortragenden nennen die Probleme selbst, Himbi wiederholt sie nicht.
+pruefe(
+  "Himbis Einleitung nennt keine Probleme, nur Nutzen und Lösung",
+  DREHBUCH.filter((s) => s.einleitung).every((s) => !/(geht leicht|verloren|Papier|im Kopf|Problem)/i.test(textIn(s, "de") ?? "")),
+);
 
 // ---- Vorrang vor dem Live-Hinweis --------------------------------------------------------------
 

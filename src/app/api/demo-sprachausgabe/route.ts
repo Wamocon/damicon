@@ -25,7 +25,9 @@ import { fuerSprache } from "@/lib/text/umlaute";
 
 const BUCKET = "ki-sprachausgabe";
 /** Version der Aufbereitung: bei geänderter Sprechweise hochzählen, dann entsteht neues Audio. */
-const DEMO_VERSION = 1;
+const DEMO_VERSION = 2;
+/** Sprechtempo der Vorführung bei Soniox (erlaubt 0,7 bis 1,3; der Chat spricht Deutsch mit 1,2). */
+const DEMO_TEMPO = 0.92;
 /** Versuche mit der bevorzugten Stimme, bevor die Ersatzstimme spricht. */
 const VERSUCHE = 3;
 
@@ -81,7 +83,10 @@ export async function GET(req: Request) {
   if (roh.length > MAX_SCHRITT_ZEICHEN) return fehler(422, "text-zu-lang");
 
   if (!istSprachausgabeSprache(sprache)) return fehler(422, "keine-stimme");
-  const stimmen = stimmenFuer(sprache);
+  // Die Vorführung spricht ruhiger als der Chat: bei Soniox ein langsameres Tempo, und die Pausen
+  // zwischen den Wörtern bleiben (Rückmeldung vom 06.11.2026: Himbi sprach zu schnell, man kam nicht
+  // mit). Sokrates kennt kein Tempo und bleibt, wie es ist.
+  const stimmen = stimmenFuer(sprache).map((s): Stimme => (s.anbieter === "soniox" ? { ...s, tempo: DEMO_TEMPO, stilleKuerzen: false } : s));
   if (stimmen.length === 0) return fehler(422, "keine-stimme");
   // Wie bei den Antworten: Symbole und Zahlen als Wörter, auf Deutsch echte Umlaute.
   const text = sprechfassung(fuerSprache(roh, sprache), sprache);
