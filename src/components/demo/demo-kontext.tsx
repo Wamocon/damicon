@@ -7,6 +7,7 @@ import { usePersona } from "@/components/dashboard/persona";
 import type { ComplianceTourAnzeige } from "@/components/dashboard/use-compliance-tour";
 import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { Rahmen, karteVon } from "@/components/demo/demo-rahmen";
+import { seitenleisteMerken, seitenleisteZeige, seitenleisteZurueck } from "@/components/demo/demo-seitenleiste";
 import { useTonSpeicher } from "@/components/demo/demo-ton";
 import { inSichtBringen, stelleZuSprechziel, warteBisRuhig } from "@/components/ki/ui-steuerung";
 import { bewegungReduziert } from "@/lib/bewegung";
@@ -16,6 +17,7 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import {
   darfDemo,
   lesedauerMs,
+  zoneVon,
   modulZu,
   schritteFuer,
   textIn,
@@ -84,10 +86,12 @@ interface Lauf {
 }
 
 /** Feste Pause nach dem letzten Wort, bevor die nächste Seite aufgeht. */
-const NACHLAUF_MS = 800;
+const NACHLAUF_MS = 500;
 /** Nach einem Seitenwechsel: so lange steht die neue Seite, bevor Himbi dazu spricht. Wer zuschaut,
  *  soll erst sehen, wo er gelandet ist (Rückmeldung vom 06.11.2026: zu schnell, man kam nicht mit). */
-const ANKOMMEN_MS = 1200;
+const ANKOMMEN_MS = 800;
+/** Zusätzliche Pause, wenn ein großes Thema (Zone: Feld, Hof, Büro, Markt) zu Ende ist. */
+const ZONENPAUSE_MS = 1500;
 /** So lange wartet der Durchgang höchstens auf eine Seite, bevor er mit der aktuellen weitermacht. */
 const SEITE_MAX_MS = 6000;
 /** So lange wartet er höchstens auf den Ton eines Schritts (die Stimme erzeugt etwa in Echtzeit). */
@@ -110,6 +114,11 @@ function sichtbar(el: Element): boolean {
  *  gewünschten Abschnitte die Seite schon hat. Zwei Abschnitte können in derselben Karte liegen: dann
  *  gibt es weniger Karten als Abschnitte, und das ist kein Grund zu warten. */
 function findeStellen(schritt: DemoSchritt, t: ReturnType<typeof useTranslations>): { stellen: HTMLElement[]; gefunden: number } {
+  if (schritt.zeigeSeitenleiste) {
+    // Die Leiste steht in zwei Formen im Baum (breit und schmal), die sichtbare zählt.
+    const leiste = Array.from(document.querySelectorAll<HTMLElement>("aside[data-seitenleiste] nav")).find(sichtbar);
+    return leiste ? { stellen: [leiste], gefunden: 1 } : { stellen: [], gefunden: 0 };
+  }
   if (schritt.zeigeAuf) {
     let titel: string | null = null;
     try {
@@ -183,6 +192,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       audioRef.current.preload = "auto";
       // Das Seitenpanel zeigt sonst die Antwort statt der Sprechblase (haustier-dashboard-blasen.ts).
       setOffen(false);
+      seitenleisteMerken();
       // Schritte, deren Seite die Rolle nicht sehen darf, entfallen. Für Geschäftsführung und
       // Administration sind das keine, die Prüfung hält aber auch eine künftige Rechteänderung ein.
       const schritte = schritteFuer(mitCeoTeil, mitEinleitung).filter((s) => {
@@ -210,6 +220,10 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const aktuellerSchritt = lauf?.schritte[schrittNummer] ?? null;
   const sprache = lauf?.sprache ?? "de";
   const schritte = lauf?.schritte ?? null;
+  // Ende oder Abbruch: die offenen Bereiche der Seitenleiste wie vorher.
+  useEffect(() => {
+    if (phase === "aus" || phase === "fertig") seitenleisteZurueck();
+  }, [phase]);
   // Der Rahmen lebt, solange die Vorführung läuft, und wird bei Pause, Ende und Abmeldung entfernt.
   // Vor dem Schrittablauf deklariert: dessen Effekt findet ihn beim ersten Lauf schon vor.
   useEffect(() => {
@@ -336,12 +350,14 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       if (abgebrochen) return;
       await warteBisRuhig(2500, 300);
       if (abgebrochen) return;
+      // Nur der Bereich dieses Schritts bleibt offen: der vorige klappt zu, die Leiste bleibt kurz.
+      seitenleisteZeige(zoneVon(schritt));
       if (seitenwechsel) await nachPause(ANKOMMEN_MS);
       if (abgebrochen) return;
 
       // Eine langsame Seite zeigt zuerst Platzhalter und liefert die Abschnitte nach: bis zu vier
       // Sekunden warten, bis alle gewünschten da sind, sonst mit den vorhandenen weitermachen.
-      const erwartet = schritt.ziel.art === "modul" ? (schritt.abschnitte ?? [0]).length : schritt.zeigeAuf ? 1 : 0;
+      const erwartet = schritt.ziel.art === "modul" ? (schritt.abschnitte ?? [0]).length : schritt.zeigeAuf || schritt.zeigeSeitenleiste ? 1 : 0;
       // Bis zu 1,5 s auf die Abschnitte warten, dann beginnt Himbi trotzdem: die Suche läuft bis zu vier
       // weitere Sekunden im Hintergrund weiter, und die Markierung folgt, sobald die Seite so weit ist.
       let fund = findeStellen(schritt, tRef.current);
@@ -370,6 +386,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       await nachPause(NACHLAUF_MS);
       if (abgebrochen) return;
       rahmenRef.current?.setze(null);
+      const folgt = schritte[index + 1];
+      if (folgt && zoneVon(folgt) !== zoneVon(schritt)) await nachPause(ZONENPAUSE_MS);
+      if (abgebrochen) return;
       if (index + 1 < schritte.length) setIndex(index + 1);
       else {
         setZiel(null);

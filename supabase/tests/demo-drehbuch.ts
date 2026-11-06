@@ -25,10 +25,12 @@ import {
   textIn,
   verfuegbareSprachen,
   woerterJeBereich,
+  zoneVon,
 } from "../../src/lib/demo/drehbuch";
 import { rahmenFuer } from "../../src/components/demo/demo-rahmen";
 import { waehleBlase } from "../../src/components/haustier/haustier-dashboard-blasen";
 import { amortisationMonate } from "../../src/lib/domain/wirtschaftlichkeit";
+import { modules } from "../../src/lib/modules";
 import { hasPermission } from "../../src/lib/rbac";
 
 let bestanden = 0;
@@ -65,7 +67,7 @@ pruefe("die Reihenfolge der gemeinsamen Schritte ist in beiden Fassungen gleich"
 
 const abBeispielen = schritteFuer(false, false).map((s) => s.id);
 pruefe("ab den Beispielen: Himbis Einstieg, Nutzen und Lösung entfallen", !["einstieg", "nutzen", "loesung"].some((i) => abBeispielen.includes(i)));
-pruefe("ab den Beispielen: der Anschlusssatz kommt zuerst, danach das Feld", abBeispielen[0] === "himbi-start" && abBeispielen[1] === "reihenbloecke");
+pruefe("ab den Beispielen: der Anschlusssatz kommt zuerst, dann die Seitenleiste, dann das Feld", abBeispielen[0] === "himbi-start" && abBeispielen[1] === "seitenleiste" && abBeispielen[2] === "reihenbloecke");
 pruefe("mit Einleitung von Himbi: kein Anschlusssatz", !ohneCeo.includes("himbi-start") && ohneCeo.slice(0, 3).join() === "einstieg,nutzen,loesung");
 pruefe(
   "ab den Beispielen mit CEO-Teil: dieselben Schritte wie sonst, nur ohne Einleitung",
@@ -174,6 +176,20 @@ pruefe(
 );
 pruefe("Schritte je Bereich: Feld mindestens 3, Hof mindestens 2, Markt genau 1", jeZone("feld") >= 3 && jeZone("hof") >= 2 && jeZone("markt") === 1);
 
+// Rückmeldung vom 06.11.2026: nicht wild hin und her springen, sondern von oben nach unten. Die Modulseiten
+// folgen der Reihenfolge der Navigation (modules.ts), die Stellen auf einer Seite steigen auf.
+{
+  const modulSchritte = schritteFuer(false, false).filter((s) => modulZu(s.ziel));
+  const lage = modulSchritte.map((s) => modules.indexOf(modulZu(s.ziel)!));
+  pruefe("Reihenfolge der Seiten wie in der Navigation (von oben nach unten)", lage.every((n, i) => n >= 0 && (i === 0 || n > lage[i - 1])), lage.join(","));
+  pruefe(
+    "Die Stellen auf einer Seite steigen auf (nie zurück nach oben)",
+    DREHBUCH.every((s) => (s.abschnitte ?? []).every((n, i, alle) => i === 0 || n > alle[i - 1])),
+  );
+  const ceoSchritte = schritteFuer(true, false).map((s) => s.id);
+  pruefe("CEO-Teil: Startseite oben und unten nacheinander, dann die Wirtschaftlichkeit, der Schluss bleibt dort", ceoSchritte.slice(-4).join() === "ceo-pruefung,ceo-bereiche,ceo-wirtschaftlichkeit,abschluss");
+}
+
 // ---- Zeigen: Abschnitte der Seite --------------------------------------------------------------
 
 for (const s of DREHBUCH) {
@@ -195,13 +211,13 @@ pruefe(
 
 function minuten(schritte: ReturnType<typeof schritteFuer>): number {
   const woerter = schritte.reduce((summe, s) => summe + (textIn(s, "de") ?? "").split(/\s+/).filter(Boolean).length, 0);
-  return woerter / 100; // ruhiges Sprechtempo der Vorführung (Tempo 0,92), Wörter pro Minute
+  return woerter / 140; // Sprechtempo der Vorführung (Tempo 1,3), Wörter pro Minute
 }
 const ohne = minuten(schritteFuer(false, false)); // Regelfall: die Vortragenden leiten selbst ein
 // Vorgabe vom 06.11.2026: die Vorführung dauert etwa zwei Minuten. Die Sprechzeit ist nur ein Teil davon, dazu kommen
-// die Pausen (0,8 s nach jedem Schritt, 1,2 s nach einem Seitenwechsel) und das Laden der Seiten.
-pruefe("Sprechzeit im Regelfall (ab den Beispielen, ohne CEO-Teil) zwischen 1 und 1,6 Minuten, mit den Pausen etwa zwei Minuten", ohne >= 1 && ohne <= 1.6, `${ohne.toFixed(1)} min`);
-pruefe("Sprechzeit mit CEO-Teil und Einleitung höchstens 3 Minuten (mit Pausen höchstens etwa 4)", minuten(schritteFuer(true, true)) <= 3, `${minuten(schritteFuer(true, true)).toFixed(1)} min`);
+// die Pausen (0,5 s nach jedem Schritt, 0,8 s nach einem Seitenwechsel, 1,5 s zusätzlich beim Wechsel der Zone) und das Laden der Seiten.
+pruefe("Sprechzeit im Regelfall (ab den Beispielen, ohne CEO-Teil) zwischen 0,7 und 1,3 Minuten, mit den Pausen etwa zwei Minuten", ohne >= 0.7 && ohne <= 1.3, `${ohne.toFixed(1)} min`);
+pruefe("Sprechzeit mit CEO-Teil und Einleitung höchstens 2,5 Minuten (mit Pausen höchstens etwa 3,5)", minuten(schritteFuer(true, true)) <= 2.5, `${minuten(schritteFuer(true, true)).toFixed(1)} min`);
 
 // ---- Zahlen ------------------------------------------------------------------------------------
 
@@ -252,18 +268,48 @@ pruefe("Player: die Karte wird bestimmt (karteVon), nicht der Container einer al
 // Rückmeldung vom 06.11.2026: Himbi war zu schnell, besonders beim Seitenwechsel. Die Pausen sind fest,
 // aber großzügig: nach dem letzten Wort und nach dem Öffnen einer neuen Seite.
 const nachlauf = /const NACHLAUF_MS = (\d+);/.exec(player);
-pruefe("Pause nach dem letzten Wort ist fest und ruhig (800 bis 2000 ms)", nachlauf !== null && Number(nachlauf[1]) >= 800 && Number(nachlauf[1]) <= 2000);
+pruefe("Pause nach dem letzten Wort ist fest und klein (300 bis 1000 ms)", nachlauf !== null && Number(nachlauf[1]) >= 300 && Number(nachlauf[1]) <= 1000);
 const ankommen = /const ANKOMMEN_MS = (\d+);/.exec(player);
-pruefe("Nach einem Seitenwechsel steht die Seite erst, bevor Himbi spricht (mindestens 1000 ms)", ankommen !== null && Number(ankommen[1]) >= 1000 && player.includes("if (seitenwechsel) await nachPause(ANKOMMEN_MS)"));
+pruefe("Nach einem Seitenwechsel steht die Seite kurz, bevor Himbi spricht (600 bis 1500 ms)", ankommen !== null && Number(ankommen[1]) >= 600 && Number(ankommen[1]) <= 1500 && player.includes("if (seitenwechsel) await nachPause(ANKOMMEN_MS)"));
+// Rückmeldung vom 06.11.2026: die allgemeine Geschwindigkeit etwas schneller, aber kleine Pausen zwischen
+// großen Themen. Die Zonenpause ist länger als die Pausen im Thema.
+const zonenpause = /const ZONENPAUSE_MS = (\d+);/.exec(player);
+pruefe(
+  "Zwischen großen Themen (Zone) eine längere Pause als im Thema",
+  zonenpause !== null && Number(zonenpause[1]) >= 1000 && Number(zonenpause[1]) <= 3000 && player.includes("zoneVon(folgt) !== zoneVon(schritt)") && Number(zonenpause[1]) > Number(nachlauf?.[1] ?? 0) + Number(ankommen?.[1] ?? 0),
+);
+{
+  const zonen = schritteFuer(false, false).map(zoneVon).filter((z) => z !== "start"); // Anfang und Ende liegen auf der Startseite
+  const wechsel = zonen.filter((z, i) => i > 0 && z !== zonen[i - 1]).length;
+  pruefe("Der Ablauf wechselt je Zone genau einmal (kein Hin und Her)", wechsel === new Set(zonen).size - 1, zonen.join(" > "));
+}
 const demoTempo = /const DEMO_TEMPO = ([\d.]+);/.exec(route);
-pruefe("Stimme: Soniox spricht die Vorführung langsamer als den Chat (Tempo unter 1,0, die Pausen bleiben)", demoTempo !== null && Number(demoTempo[1]) < 1 && Number(demoTempo[1]) >= 0.7 && route.includes("stilleKuerzen: false"));
+// Rückmeldung vom 06.11.2026: 1,06 noch um 20 bis 30 Prozent beschleunigen; Soniox erlaubt höchstens 1,3.
+pruefe("Stimme: Soniox spricht die Vorführung 20 bis 30 Prozent schneller als mit 1,06 (höchstens 1,3), die Pausen bleiben", demoTempo !== null && Number(demoTempo[1]) >= 1.06 * 1.2 && Number(demoTempo[1]) <= 1.3 && route.includes("stilleKuerzen: false"));
 
 // Übergänge: jeder Schritt, der auf einer neuen Seite beginnt, kündigt den Wechsel an (Füllwörter statt
 // hartem Sprung). Geprüft wird der deutsche Text: Er beginnt mit einem Übergang oder einem Anker.
-const UEBERGANG = /^(Wir|Zuerst|Als Nächstes|Von dort|Jetzt|Damit|Der letzte|Wenn wir|Daraus|Weiter|Zum|Zuletzt|Nun|Dann|Und zurück|Sehr gern|Guten Morgen|Das Wichtigste|Zusammengefasst)/;
-for (const id of ["reihenbloecke", "rotationsplan", "pflanzenschutz", "kuehlkette", "logistik", "integrationen", "finanzen", "b2b-portal"]) {
+const UEBERGANG = /^(Herzlich|Guten Tag|Wir|Dazu|Darunter|Zuerst|Als Nächstes|Von dort|Jetzt|Damit|Der letzte|Wenn wir|Daraus|Weiter|Zum|Zuletzt|Nun|Dann|Und zurück|Sehr gern|Guten Morgen|Das Wichtigste|Zusammengefasst)/;
+for (const id of ["reihenbloecke", "pflanzenschutz", "rotationsplan", "kuehlkette", "logistik", "finanzen", "integrationen", "b2b-portal", "ceo-bereiche", "ceo-wirtschaftlichkeit"]) {
   const s = schrittMitId(id);
   pruefe(`Schritt ${id}: beginnt mit einem Übergang`, s !== null && UEBERGANG.test(textIn(s, "de") ?? ""));
+}
+// Rückmeldung vom 06.11.2026: bis zum Feld redete Himbi nur und zeigte nichts. Jeder Schritt auf der
+// Startseite vor den Beispielen zeigt jetzt auf die vier Bereiche, und die Begrüßung nennt Herrn Mukhtar, ohne Tageszeit (Rückmeldung vom 06.11.2026).
+pruefe("Startseite vor dem Feld: Himbi zeigt auf die vier Bereiche", ["einstieg", "nutzen", "loesung", "himbi-start"].every((i) => schrittMitId(i)?.zeigeAuf === "dashboard.bereiche.titel"));
+pruefe(
+  "Begrüßung ohne Tageszeit: Herzlich willkommen, Herr Mukhtar (de) und Здравствуйте, господин Мухтар (ru)",
+  ["einstieg", "himbi-start"].every((i) => textIn(schrittMitId(i)!, "de")?.startsWith("Herzlich willkommen, Herr Mukhtar.") && (textIn(schrittMitId(i)!, "ru") ?? "").startsWith("Здравствуйте, господин Мухтар.")),
+);
+// Rückmeldung vom 06.11.2026: die Seitenleiste mit ihren vielen Funktionen soll nicht abschrecken, Himbi sagt
+// das kurz und zeigt dabei auf die Leiste; dann klappt er die Bereiche beim Wechsel zu.
+{
+  const leiste = schrittMitId("seitenleiste");
+  pruefe("Seitenleiste: Schritt zeigt auf die Leiste und sagt, dass die vielen Funktionen nicht abschrecken sollen", leiste !== null && leiste.zeigeSeitenleiste === true && /abschrecken/.test(textIn(leiste, "de") ?? "") && /пугает/.test(textIn(leiste, "ru") ?? ""));
+  pruefe("Seitenleiste: der Schritt steht in jedem Lauf, vor dem Feld", [schritteFuer(false, true), schritteFuer(false, false), schritteFuer(true, false)].every((l) => l.findIndex((s) => s.id === "seitenleiste") >= 0 && l.findIndex((s) => s.id === "seitenleiste") < l.findIndex((s) => s.id === "reihenbloecke")));
+  const leisteQuelle = readFileSync("src/components/demo/demo-seitenleiste.ts", "utf8");
+  pruefe("Seitenleiste: nur der Bereich des Schritts bleibt offen, am Ende der Stand von vorher", leisteQuelle.includes("offeneZonenSetzen(treffer ? [treffer.key] : [])") && leisteQuelle.includes("vorher ??= offeneZonenLesen()") && leisteQuelle.includes("offeneZonenSetzen(vorher)"));
+  pruefe("Player: klappt beim Schritt zu, merkt zu Beginn, stellt am Ende wieder her", player.includes("seitenleisteZeige(zoneVon(schritt))") && player.includes("seitenleisteMerken()") && player.includes("seitenleisteZurueck()") && player.includes("aside[data-seitenleiste] nav"));
 }
 // Rückmeldung vom 06.11.2026: die Vortragenden nennen die Probleme selbst, Himbi wiederholt sie nicht.
 pruefe(

@@ -128,6 +128,16 @@ function zonenSetzen(naechste: readonly BereichKey[]) {
   zonenListener.forEach((eintrag) => eintrag());
 }
 
+/** Die offenen Bereichsgruppen lesen und setzen, ohne den Hook: die Vorfuehrung mit Himbi klappt damit den
+ *  Bereich zu, den sie verlaesst, und stellt am Ende den Stand von vorher wieder her. */
+export function offeneZonenLesen(): readonly BereichKey[] {
+  return offeneZonen();
+}
+
+export function offeneZonenSetzen(naechste: readonly BereichKey[]): void {
+  zonenSetzen(naechste);
+}
+
 /** Bereich der gerade geoeffneten Seite, aus /dashboard/<zone>/<modul> oder /dashboard/administration/<seite>. */
 export function useAktiveZone(): BereichKey | null {
   const pathname = usePathname();
