@@ -84,10 +84,10 @@ interface Lauf {
 }
 
 /** Feste Pause nach dem letzten Wort, bevor die nächste Seite aufgeht. */
-const NACHLAUF_MS = 1000;
+const NACHLAUF_MS = 800;
 /** Nach einem Seitenwechsel: so lange steht die neue Seite, bevor Himbi dazu spricht. Wer zuschaut,
  *  soll erst sehen, wo er gelandet ist (Rückmeldung vom 06.11.2026: zu schnell, man kam nicht mit). */
-const ANKOMMEN_MS = 1500;
+const ANKOMMEN_MS = 1200;
 /** So lange wartet der Durchgang höchstens auf eine Seite, bevor er mit der aktuellen weitermacht. */
 const SEITE_MAX_MS = 6000;
 /** So lange wartet er höchstens auf den Ton eines Schritts (die Stimme erzeugt etwa in Echtzeit). */

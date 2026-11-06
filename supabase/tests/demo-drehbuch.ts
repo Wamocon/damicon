@@ -135,14 +135,15 @@ pruefe("Lesedauer: nie unter dreieinhalb Sekunden", lesedauerMs("Ja.") === 3500 
 
 // Rückmeldung vom 05.11.2026: das Drehbuch war zu lang und nannte zu viel. Am 06.11.2026 kam die
 // Gegenrichtung: Himbi war zu schnell, es fehlten Übergänge beim Seitenwechsel. Jeder Schritt darf
-// deshalb einen kurzen Übergangssatz tragen, bleibt aber bei höchstens vier Sätzen und 45 Wörtern.
+// deshalb einen kurzen Übergangssatz tragen, bleibt aber bei höchstens vier Sätzen und 40 Wörtern (rund 15 bis 25 Sekunden
+// Sprechzeit). Am selben Tag: die Dauer von gestern (3 bis 4 Minuten) war richtig, nur das Tempo zu hoch.
 for (const s of DREHBUCH) {
   for (const sprache of DEMO_SPRACHEN) {
     const text = textIn(s, sprache);
     if (text === null) continue;
     const saetze = (text.match(/[.!?](\s|$)/g) ?? []).length;
     const woerter = text.split(/\s+/).filter(Boolean).length;
-    pruefe(`Schritt ${s.id} (${sprache}): höchstens vier Sätze und 45 Wörter`, saetze <= 4 && woerter <= 45, `${saetze} Sätze, ${woerter} Wörter`);
+    pruefe(`Schritt ${s.id} (${sprache}): höchstens vier Sätze und 40 Wörter`, saetze <= 4 && woerter <= 40, `${saetze} Sätze, ${woerter} Wörter`);
   }
 }
 
@@ -194,11 +195,13 @@ pruefe(
 
 function minuten(schritte: ReturnType<typeof schritteFuer>): number {
   const woerter = schritte.reduce((summe, s) => summe + (textIn(s, "de") ?? "").split(/\s+/).filter(Boolean).length, 0);
-  return woerter / 105; // ruhiges Sprechtempo der Vorführung (Tempo 0,92), Wörter pro Minute
+  return woerter / 100; // ruhiges Sprechtempo der Vorführung (Tempo 0,92), Wörter pro Minute
 }
-const ohne = minuten(schritteFuer(false));
-pruefe("Sprechzeit ohne CEO-Teil zwischen 2 und 5 Minuten", ohne >= 2 && ohne <= 5, `${ohne.toFixed(1)} min`);
-pruefe("Sprechzeit mit CEO-Teil und Einleitung höchstens 7 Minuten (Obergrenze der Vorführung: 10 bis 15)", minuten(schritteFuer(true, true)) <= 7, `${minuten(schritteFuer(true, true)).toFixed(1)} min`);
+const ohne = minuten(schritteFuer(false, false)); // Regelfall: die Vortragenden leiten selbst ein
+// Vorgabe vom 06.11.2026: die Vorführung dauert etwa zwei Minuten. Die Sprechzeit ist nur ein Teil davon, dazu kommen
+// die Pausen (0,8 s nach jedem Schritt, 1,2 s nach einem Seitenwechsel) und das Laden der Seiten.
+pruefe("Sprechzeit im Regelfall (ab den Beispielen, ohne CEO-Teil) zwischen 1 und 1,6 Minuten, mit den Pausen etwa zwei Minuten", ohne >= 1 && ohne <= 1.6, `${ohne.toFixed(1)} min`);
+pruefe("Sprechzeit mit CEO-Teil und Einleitung höchstens 3 Minuten (mit Pausen höchstens etwa 4)", minuten(schritteFuer(true, true)) <= 3, `${minuten(schritteFuer(true, true)).toFixed(1)} min`);
 
 // ---- Zahlen ------------------------------------------------------------------------------------
 
@@ -257,8 +260,8 @@ pruefe("Stimme: Soniox spricht die Vorführung langsamer als den Chat (Tempo unt
 
 // Übergänge: jeder Schritt, der auf einer neuen Seite beginnt, kündigt den Wechsel an (Füllwörter statt
 // hartem Sprung). Geprüft wird der deutsche Text: Er beginnt mit einem Übergang oder einem Anker.
-const UEBERGANG = /^(Wir|Als Nächstes|Von dort|Jetzt|Damit|Der letzte|Wenn wir|Daraus|Weiter|Zum|Zuletzt|Nun|Dann|Und zurück|Sehr gern|Guten Morgen|Das Wichtigste|Zusammengefasst)/;
-for (const id of ["reihenbloecke", "rotationsplan", "pflueckaufgaben", "pflanzenschutz", "kuehlkette", "logistik", "personal", "lohn", "integrationen", "finanzen", "b2b-portal", "himbi"]) {
+const UEBERGANG = /^(Wir|Zuerst|Als Nächstes|Von dort|Jetzt|Damit|Der letzte|Wenn wir|Daraus|Weiter|Zum|Zuletzt|Nun|Dann|Und zurück|Sehr gern|Guten Morgen|Das Wichtigste|Zusammengefasst)/;
+for (const id of ["reihenbloecke", "rotationsplan", "pflanzenschutz", "kuehlkette", "logistik", "integrationen", "finanzen", "b2b-portal"]) {
   const s = schrittMitId(id);
   pruefe(`Schritt ${id}: beginnt mit einem Übergang`, s !== null && UEBERGANG.test(textIn(s, "de") ?? ""));
 }
